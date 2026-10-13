@@ -346,6 +346,11 @@ function placeBuilding(state: GameState, cmd: Extract<GameCommand, { type: 'Plac
   return [{ type: 'BuildingPlaced', building, cost: def.cost.map((c) => ({ ...c })) }];
 }
 
+/** 玩家是否在自己蓋的營火旁 */
+export function nearCampfire(state: Pick<GameState, 'buildings'>, at: { x: number; z: number }): boolean {
+  return state.buildings.some((b) => b.buildable === 'campfire' && Math.hypot(b.x - at.x, b.z - at.z) <= PLAYER_STATS.campfire.radius);
+}
+
 function acceptQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
   const def = ctx.quests.get(questId);
   if (!def) return reject('AcceptQuest', 'unknown-quest');
@@ -384,10 +389,12 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
     if (position && cmd.player && Math.hypot(position[0] - cmd.player.x, position[2] - cmd.player.z) < RESPAWN_CLEARANCE) continue;
     events.push({ type: 'ObjectRespawned', placementId: id });
   }
-  // 脫離戰鬥一段時間後回血
+  // 脫離戰鬥一段時間後回血；在自己蓋的營火旁回得更快（規格 6.7：建造物的簡單效果）
   const { player } = state;
-  if (!player.defeated && player.hp < PLAYER_STATS.maxHp && time - player.lastDamagedAt >= PLAYER_STATS.regenDelay) {
-    events.push({ type: 'PlayerHealed', hp: Math.min(PLAYER_STATS.maxHp, player.hp + PLAYER_STATS.regenPerSec * cmd.dt) });
+  const cozy = cmd.player !== undefined && nearCampfire(state, cmd.player);
+  const regen = cozy ? PLAYER_STATS.campfire : PLAYER_STATS;
+  if (!player.defeated && player.hp < PLAYER_STATS.maxHp && time - player.lastDamagedAt >= regen.regenDelay) {
+    events.push({ type: 'PlayerHealed', hp: Math.min(PLAYER_STATS.maxHp, player.hp + regen.regenPerSec * cmd.dt) });
   }
   events.push(...spawnerEvents(state, time, ctx));
   return events;

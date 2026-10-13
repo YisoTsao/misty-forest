@@ -71,6 +71,8 @@ export const PLAYER_STATS = {
   regenPerSec: 4,
   /** 被擊中後的無敵時間（秒），避免同一幀被多隻連續命中 */
   invulnerableSec: 0.6,
+  /** 在自己蓋的營火旁：回血開始得更快、速度更高 */
+  campfire: { radius: 3.5, regenDelay: 1, regenPerSec: 14 },
 } as const;
 
 /**

@@ -3,7 +3,7 @@ import { placementProblem, snapToGrid, BUILD_ROTATE_STEP } from '@/game-core/bui
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { regionAt } from '@/game-core/world/regions';
 import { authority, buildables, regions, worldIndex } from '@/game/authority';
-import { buildRuntime } from '@/game/build/buildRuntime';
+import { buildRuntime, REMOVE_TOOL } from '@/game/build/buildRuntime';
 import { input } from '@/game/input/inputManager';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
@@ -52,6 +52,26 @@ export function BuildController() {
       return;
     }
     if (ui.build.menu || !ui.build.selected) return;
+    if (ui.build.selected === REMOVE_TOOL) {
+      // 拆除：對準玩家面前最近的建造物
+      const { position, locomotion } = playerRuntime;
+      const ax = position.x + Math.sin(locomotion.facingYaw) * 1.5;
+      const az = position.z + Math.cos(locomotion.facingYaw) * 1.5;
+      let best: string | null = null;
+      let bestDist = Infinity;
+      for (const b of authority.getState().buildings) {
+        const d = Math.hypot(b.x - ax, b.z - az) - (buildables.get(b.buildable)?.footprint ?? 0);
+        if (d < 1 && d < bestDist) {
+          best = b.id;
+          bestDist = d;
+        }
+      }
+      buildRuntime.removeTarget = best;
+      const confirm = input.consumePressed('interact') || input.consumePressed('attack');
+      if (confirm && best) authority.send({ type: 'RemoveBuilding', buildingId: best });
+      return;
+    }
+    buildRuntime.removeTarget = null;
     const def = buildables.get(ui.build.selected);
     if (!def) return;
 

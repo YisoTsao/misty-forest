@@ -28,8 +28,14 @@ await runE2e('build e2e（1/2）', { env }, async ({ page, check, debug, state, 
     assert.ok(toasts.some((t) => t.textKey === 'build.onlyHome'));
   });
 
-  await check('小島上按 B 開啟建造選單，按 1 選營火後顯示預覽', async () => {
+  await check('來到小島：區域名稱下方提示「按 B 建造家園」', async () => {
     await standFacing(ISLAND.x - 2, ISLAND.z, ISLAND.x + 2, ISLAND.z);
+    const banner = page.locator('[data-testid="region-banner"]');
+    await banner.waitFor({ timeout: 2000 });
+    assert.match(await banner.innerText(), /旅人小屋[\s\S]*按 B 建造家園/);
+  });
+
+  await check('小島上按 B 開啟建造選單，按 1 選營火後顯示預覽', async () => {
     assert.equal(await debug(() => window.__mistwoodDebug.region()), 'home');
     await page.keyboard.press('KeyB');
     await page.locator('[data-testid="build-menu"]').waitFor({ timeout: 2000 });
@@ -112,6 +118,10 @@ await runE2e('build e2e（1/2）', { env }, async ({ page, check, debug, state, 
     }
     await page.keyboard.up('KeyW');
     assert.ok(min > 0.6, `穿進營火：最近 ${min.toFixed(2)}`);
+  });
+
+  await check('站在營火旁顯示「營火很溫暖」，體力恢復加快', async () => {
+    await page.locator('[data-testid="cozy"]').waitFor({ state: 'visible', timeout: 2000 });
     assert.equal(await debug(() => window.__mistwoodDebug.saveNow()), true);
   });
 });
@@ -125,10 +135,20 @@ await runE2e('build e2e（2/2 重開）', { query: 'debug=1', env }, async ({ pa
     assert.ok(Math.abs(list.find((b) => b.buildable === 'stool').yaw - Math.PI / 4) < 1e-6);
   });
 
-  await check('拆除後退還材料', async () => {
+  await check('建造選單的「拆除」：對準木凳顯示名稱，按 E 拆除並退還材料', async () => {
+    const stool = (await debug(() => window.__mistwoodDebug.buildings())).find((b) => b.buildable === 'stool');
+    await debug(([x, z]) => window.__mistwoodDebug.teleport(x, z + 2.2), [stool.x, stool.z]);
+    await page.waitForTimeout(500);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [stool.x, stool.z]);
     const before = await debug(() => window.__mistwoodDebug.itemCount('wood'));
-    await debug(() => window.__mistwoodDebug.send({ type: 'RemoveBuilding', buildingId: window.__mistwoodDebug.buildings()[0].id }));
-    assert.equal((await debug(() => window.__mistwoodDebug.buildings())).length, 1);
-    assert.ok((await debug(() => window.__mistwoodDebug.itemCount('wood'))) > before);
+    await page.keyboard.press('KeyB');
+    await page.locator('[data-testid="build-menu"]').waitFor({ timeout: 2000 });
+    await page.locator('[data-testid="build-option-remove"]').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('[data-testid="build-remove-target"]').innerText(), '拆除 木凳');
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(300);
+    assert.deepEqual((await debug(() => window.__mistwoodDebug.buildings())).map((b) => b.buildable), ['campfire']);
+    assert.equal(await debug(() => window.__mistwoodDebug.itemCount('wood')), before + 1);
   });
 });

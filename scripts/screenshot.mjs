@@ -4,7 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
-//   --build：湖心小島的建造選單、可放置 / 不可放置的預覽、蓋好的家園（任務 4A）
+//   --build：湖心小島的建造選單、可放置 / 不可放置的預覽、蓋好的家園（任務 4A）、拆除工具與營火旁（任務 4B）
 //   --companion：打開序章寶箱後星光夥伴出現與打招呼、按 H 詢問提示（任務 3F）
 //   --combat：森林裡的迷霧生物、攻擊前搖、玩家攻擊與傷害數字、星光衝擊、受傷與倒下（任務 3E）
 //   --lake：湖泊全景、斷橋、在橋頭修理、修好的木橋（任務 3D）
@@ -208,6 +208,21 @@ try {
     });
     await page.waitForTimeout(1500);
     await shot('build_home');
+    // 營火旁（體力恢復加快的提示）與拆除工具
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.teleport(36.3, 10.8);
+      d.face(37.5, 10);
+      d.camera({ yaw: -0.6, pitch: 0.42, distance: 6 });
+    });
+    await page.waitForTimeout(900);
+    await page.keyboard.press('KeyB');
+    await page.waitForSelector('[data-testid="build-menu"]', { timeout: 5000 });
+    await page.locator('[data-testid="build-option-remove"]').click();
+    await page.evaluate(() => window.__mistwoodDebug.face(35.5, 10.5));
+    await page.waitForTimeout(500);
+    await shot('build_remove');
+    await page.keyboard.press('Escape');
   }
 
   if (withCompanion) {

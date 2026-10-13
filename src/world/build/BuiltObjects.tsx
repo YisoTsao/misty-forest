@@ -7,11 +7,12 @@ import type { Building, BuildableDef } from '@/game-core/build/build';
 import { collisionShapes, type Placement } from '@/game-core/world/types';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { buildables, worldIndex } from '@/game/authority';
-import { buildRuntime } from '@/game/build/buildRuntime';
+import { buildRuntime, REMOVE_TOOL } from '@/game/build/buildRuntime';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { assetUrl } from '@/game/worldData';
 import { buildProceduralModel, PROCEDURAL_PREFIX } from '@/render/proceduralModels';
+import { MAX_CLEARINGS, vegetationUniforms } from '@/render/vegetation';
 import { InstancedPrefab } from '../vegetation/InstancedPrefab';
 
 function placementOf(b: Building, def: BuildableDef): Placement {
@@ -37,6 +38,12 @@ export function BuiltObjects() {
     [],
   );
   useGLTF(models);
+  // 建造物腳下的草花縮入地面（草叢在載入時就散佈好了）
+  useEffect(() => {
+    const list = buildings.slice(0, MAX_CLEARINGS);
+    list.forEach((b, i) => vegetationUniforms.uClearings.value[i]!.set(b.x, b.z, (buildables.get(b.buildable)?.footprint ?? 0.5) + 0.2, 0));
+    vegetationUniforms.uClearCount.value = list.length;
+  }, [buildings]);
   const groups = useMemo(() => {
     const map = new Map<string, Placement[]>();
     for (const b of buildings) {
@@ -145,10 +152,37 @@ const ghostBad = new THREE.MeshBasicMaterial({ color: '#ff6b6b', transparent: tr
 /** 預覽幽靈物件：綠色可放置、紅色不可放置（規格 6.7） */
 function GhostPreview() {
   const selected = useUiStore((s) => (s.build && !s.build.menu ? s.build.selected : null));
+  if (selected === REMOVE_TOOL) return <RemoveMarker />;
   const def = selected ? buildables.get(selected) : undefined;
   const model = def ? worldIndex.prefab(def.prefabId)?.model : undefined;
   if (!def || !model) return null;
   return model.startsWith(PROCEDURAL_PREFIX) ? <ProceduralGhost def={def} model={model} /> : <GltfGhost def={def} model={model} />;
+}
+
+/** 拆除工具：在對準的建造物腳下畫一圈紅色光環 */
+function RemoveMarker() {
+  const ref = useRef<THREE.Mesh>(null);
+  const geo = useMemo(() => new THREE.RingGeometry(0.88, 1, 48).rotateX(-Math.PI / 2), []);
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ff5a5a', transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide }), []);
+  useEffect(
+    () => () => {
+      geo.dispose();
+      mat.dispose();
+    },
+    [geo, mat],
+  );
+  const buildings = useGameStateStore((s) => s.state.buildings);
+  useFrame(({ clock }) => {
+    const m = ref.current;
+    if (!m) return;
+    const target = buildings.find((b) => b.id === buildRuntime.removeTarget);
+    const def = target && buildables.get(target.buildable);
+    m.visible = Boolean(target && def);
+    if (!target || !def) return;
+    m.position.set(target.x, terrainHeight(target.x, target.z) + 0.05, target.z);
+    m.scale.setScalar((def.footprint + 0.25) * (1 + Math.sin(clock.elapsedTime * 6) * 0.04));
+  });
+  return <mesh ref={ref} geometry={geo} material={mat} renderOrder={2} />;
 }
 
 function GltfGhost({ def, model }: { def: BuildableDef; model: string }) {

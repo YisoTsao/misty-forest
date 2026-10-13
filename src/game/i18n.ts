@@ -4,6 +4,11 @@ export type I18nKey = keyof typeof zhTW;
 
 const dictionary: Record<string, string> = zhTW;
 
+/** 是否有這個文字 key（選填的文字，例如區域提示） */
+export function hasText(key: string): boolean {
+  return key in dictionary;
+}
+
 /**
  * 取得 UI 文字。缺 key 時回傳 key 本身並在開發模式警告，方便發現遺漏。
  * vars 取代文字中的 {name}（例如按鍵名稱）。

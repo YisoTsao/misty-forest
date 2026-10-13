@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { PLAYER_STATS } from '@/game-core/combat/combat';
+import { nearCampfire } from '@/game-core/authority/rules';
+import { authority } from '@/game/authority';
 import { combatRuntime } from '@/game/combat/combatRuntime';
+import { playerRuntime } from '@/game/player/localRuntime';
 import { t } from '@/game/i18n';
 import { actionKey } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
@@ -18,6 +21,7 @@ export function CombatHud() {
   const bindings = useBindings();
   const cooldownRef = useRef<HTMLDivElement>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
+  const cozyRef = useRef<HTMLDivElement>(null);
   const attackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +39,7 @@ export function CombatHud() {
         v.style.display = flash > 0 ? '' : 'none';
         v.style.opacity = String(flash);
       }
+      if (cozyRef.current) cozyRef.current.style.display = nearCampfire(authority.getState(), playerRuntime.position) ? '' : 'none';
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -47,6 +52,9 @@ export function CombatHud() {
     <>
       <div ref={vignetteRef} className="pointer-events-none absolute inset-0" style={{ display: 'none', boxShadow: 'inset 0 0 160px 40px rgba(220, 40, 40, 0.55)' }} />
       <div className="pointer-events-none absolute bottom-6 left-6 w-60" data-testid="hp-bar" data-hp={Math.round(hp)}>
+        <div ref={cozyRef} data-testid="cozy" className="mb-1.5 w-fit rounded-full bg-orange-400/85 px-3 py-0.5 text-xs font-bold text-white shadow" style={{ display: 'none' }}>
+          🔥 {t('hud.cozy')}
+        </div>
         <div className="mb-1 flex items-baseline gap-2 text-white drop-shadow">
           <span className="text-sm font-bold">{t('hud.hp')}</span>
           <span className="font-mono text-xs opacity-90">

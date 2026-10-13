@@ -85,3 +85,23 @@ describe('RemoveBuilding', () => {
     expect(reason(r.state, { type: 'RemoveBuilding', buildingId: 'building_1' })).toBe('unknown-building');
   });
 });
+
+describe('營火效果與建造條件', () => {
+  const hurt = (s: GameState): GameState => ({ ...s, player: { hp: 40, lastDamagedAt: s.time, defeated: false } });
+  const withFire: GameState = { ...initialGameState(), buildings: [{ id: 'building_1', buildable: 'campfire', ...center, yaw: 0 }] };
+
+  it('在營火旁回血開始得更快、速度更高', () => {
+    const near = run(hurt(withFire), { type: 'AdvanceTime', dt: 2, player: { x: center.x + 1, z: center.z } }).state;
+    const far = run(hurt(withFire), { type: 'AdvanceTime', dt: 2, player: { x: center.x + 20, z: center.z } }).state;
+    expect(near.player.hp).toBeGreaterThan(60);
+    expect(far.player.hp).toBe(40); // 一般回血要等 5 秒
+  });
+
+  it('條件 hasBuilt：蓋過任何東西 / 指定種類', async () => {
+    const { evaluateCondition } = await import('../dialogue/conditions');
+    const cctx = { quests: ctx.quests };
+    expect(evaluateCondition({ type: 'hasBuilt' }, initialGameState(), cctx)).toBe(false);
+    expect(evaluateCondition({ type: 'hasBuilt' }, withFire, cctx)).toBe(true);
+    expect(evaluateCondition({ type: 'hasBuilt', buildable: 'cottage' }, withFire, cctx)).toBe(false);
+  });
+});

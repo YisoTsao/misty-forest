@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { countItem } from '@/game-core/inventory/inventory';
 import { authority, buildables } from '@/game/authority';
-import { buildRuntime } from '@/game/build/buildRuntime';
+import { buildRuntime, REMOVE_TOOL } from '@/game/build/buildRuntime';
 import { t } from '@/game/i18n';
 import { input } from '@/game/input/inputManager';
 import { keyVars } from '@/game/input/keyLabels';
@@ -35,7 +35,9 @@ export function BuildUi() {
   }, [build]);
 
   if (!build || !playing) return null;
-  return build.menu ? <BuildMenu /> : build.selected ? <BuildStatus buildable={build.selected} /> : null;
+  if (build.menu) return <BuildMenu />;
+  if (build.selected === REMOVE_TOOL) return <RemoveStatus />;
+  return build.selected ? <BuildStatus buildable={build.selected} /> : null;
 }
 
 function Cost({ cost }: { cost: { itemId: string; count: number }[] }) {
@@ -99,7 +101,58 @@ function BuildMenu() {
               </span>
             </button>
           ))}
+          <button
+            type="button"
+            data-testid="build-option-remove"
+            onClick={() => choose(REMOVE_TOOL)}
+            className="col-span-2 flex items-center justify-center gap-2 rounded-xl border-2 border-rose-200 bg-white/80 px-3 py-2 font-bold text-rose-700 hover:border-rose-400 hover:bg-rose-50"
+          >
+            {t('build.remove')}
+          </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** 拆除工具的狀態列：對準的建造物名稱 */
+function RemoveStatus() {
+  const bindings = useBindings();
+  const buildings = useGameStateStore((s) => s.state.buildings);
+  const labelRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    let raf = 0;
+    let last = '';
+    const loop = () => {
+      const target = buildings.find((b) => b.id === buildRuntime.removeTarget);
+      const def = target && buildables.get(target.buildable);
+      const text = def ? t('build.removeTarget', { name: t(def.nameKey) }) : t('build.removeNone');
+      if (text !== last && labelRef.current) {
+        labelRef.current.textContent = text;
+        last = text;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [buildings]);
+  useEffect(
+    () =>
+      authority.subscribe((events) => {
+        for (const e of events) {
+          if (e.type !== 'BuildingRemoved') continue;
+          const removed = buildings.find((b) => b.id === e.buildingId);
+          const def = removed && buildables.get(removed.buildable);
+          if (def) useUiStore.getState().pushToast({ textKey: 'build.removed', vars: { name: t(def.nameKey) } });
+        }
+      }),
+    [buildings],
+  );
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-28 flex justify-center">
+      <div data-testid="build-status" className="flex flex-col items-center gap-1 rounded-2xl bg-black/55 px-5 py-2 text-sm text-white shadow-lg">
+        <span ref={labelRef} data-testid="build-remove-target" className="font-bold text-rose-200" />
+        <span className="text-xs opacity-80">{t('build.removeHint', keyVars(bindings))}</span>
       </div>
     </div>
   );

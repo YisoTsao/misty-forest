@@ -194,8 +194,8 @@
   "dlg.balu.bridgeRemind": "材料備齊了嗎？需要 8 根木材和 4 塊石頭，\n到湖邊斷橋的橋頭按 {interact} 修理。石頭可以從草原上的大岩石敲下來。",
   "dlg.balu.bridgeDone": "你真的把橋修好了？\n我剛剛遠遠看到，湖面上的霧都散了！",
   "dlg.balu.opt.fixed": "嗯，修好了！",
-  "dlg.balu.bridgeGift": "這是謝禮，收下吧。\n對了，湖心小島上有一片平地，很適合蓋間小屋呢……",
-  "dlg.balu.island": "有空就到湖心的小島看看吧，那裡的風景很好。",
+  "dlg.balu.bridgeGift": "這是謝禮，收下吧。\n對了，湖心小島上有一片平地，很適合蓋東西——在島上按 {build} 就能開始建造！",
+  "dlg.balu.island": "有空就到湖心的小島看看吧，在島上按 {build} 可以蓋營火、桌椅，還能蓋一間自己的小屋！",
   "quest.bridge.name": "修復湖邊的木橋",
   "quest.bridge.desc": "湖邊的木橋被暴風雨沖斷了，帶著材料去把它修好。",
   "quest.bridge.objective": "在湖邊斷橋的橋頭修理",
@@ -268,5 +268,14 @@
   "build.ok": "可以放置",
   "build.placed": "放置了 {name}",
   "action.build": "建造",
-  "action.rotate": "旋轉（建造）"
+  "action.rotate": "旋轉（建造）",
+  "companion.hint.buildFirst": "橋修好了，湖心小島就能去了！在小島上按 {build} 可以蓋東西，先蓋個營火吧？\n對了，守衛雷歐好像也有事要拜託你。",
+  "companion.hint.buildCottage": "森林的光回來了！要不要在湖心小島蓋一間小木屋？需要很多木材、石頭和 3 塊星光碎片喔。",
+  "regionHint.home": "按 {build} 建造家園",
+  "build.remove": "拆除",
+  "build.removeHint": "對準要拆的東西，按 {interact} / 左鍵 拆除（退還全部材料）",
+  "build.removeNone": "前面沒有可以拆的東西",
+  "build.removeTarget": "拆除 {name}",
+  "build.removed": "拆除了 {name}，退還材料",
+  "hud.cozy": "營火很溫暖，體力恢復加快"
 }

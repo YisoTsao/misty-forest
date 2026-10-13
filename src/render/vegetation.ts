@@ -11,11 +11,17 @@ import { toonGradient } from './toon';
  */
 
 /** 所有植被材質共用的時間與風力 uniform（由 GrassField 每幀更新一次） */
+/** 植被清空區（建造物腳下）的上限 */
+export const MAX_CLEARINGS = 32;
+
 export const vegetationUniforms = {
   uTime: { value: 0 },
   uWind: { value: 0.09 },
   uFadeStart: { value: 40 },
   uFadeEnd: { value: 55 },
+  /** 建造物腳下不長草：每個 (x, z, 半徑, 0)；草叢在載入時散佈，之後蓋的東西以此在 shader 裡縮入地面 */
+  uClearings: { value: Array.from({ length: MAX_CLEARINGS }, () => new THREE.Vector4()) },
+  uClearCount: { value: 0 },
 };
 
 const WIND_VERTEX = /* glsl */ `
@@ -31,6 +37,10 @@ const WIND_VERTEX = /* glsl */ `
   vec2 vegSway = vec2(sin(uTime * 1.9 + vegPhase), cos(uTime * 1.5 + vegPhase * 1.3) * 0.6) * uWind * vegGust;
   transformed.xz += vegSway * vegTip * vegTip * uVegHeight;
   float vegFade = 1.0 - smoothstep(uFadeStart, uFadeEnd, distance(vegOrigin.xz, cameraPosition.xz));
+  for (int i = 0; i < ${MAX_CLEARINGS}; i++) {
+    if (i >= uClearCount) break;
+    vegFade *= step(uClearings[i].z, distance(vegOrigin.xz, uClearings[i].xy));
+  }
   transformed *= vegFade;
   vVegTip = vegTip;
 `;
@@ -41,6 +51,8 @@ const COMMON_VERTEX = /* glsl */ `
   uniform float uFadeStart;
   uniform float uFadeEnd;
   uniform float uVegHeight;
+  uniform vec4 uClearings[${MAX_CLEARINGS}];
+  uniform int uClearCount;
   varying float vVegTip;
 `;
 

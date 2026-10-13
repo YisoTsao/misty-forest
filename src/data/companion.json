@@ -1,16 +1,125 @@
 {
   "nameKey": "companion.name",
   "hints": [
-    { "when": { "type": "questReady", "quest": "clear_forest" }, "textKey": "companion.hint.forestReady" },
-    { "when": { "type": "questStatus", "quest": "clear_forest", "is": "active" }, "textKey": "companion.hint.forest" },
-    { "when": { "type": "questStatus", "quest": "clear_forest", "is": "completed" }, "textKey": "companion.hint.chapterEnd" },
-    { "when": { "type": "questStatus", "quest": "clear_forest", "is": "available" }, "textKey": "companion.hint.forestOffer" },
-    { "when": { "type": "questReady", "quest": "repair_bridge" }, "textKey": "companion.hint.bridgeReady" },
-    { "when": { "type": "questStatus", "quest": "repair_bridge", "is": "active" }, "textKey": "companion.hint.bridge" },
-    { "when": { "type": "questStatus", "quest": "repair_bridge", "is": "available" }, "textKey": "companion.hint.bridgeOffer" },
-    { "when": { "type": "questReady", "quest": "wood_for_bridge" }, "textKey": "companion.hint.woodReady" },
-    { "when": { "type": "questStatus", "quest": "wood_for_bridge", "is": "active" }, "textKey": "companion.hint.wood" },
-    { "when": { "type": "not", "condition": { "type": "tutorialDone" } }, "textKey": "companion.hint.tutorial" },
-    { "textKey": "companion.hint.village" }
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "clear_forest"
+      },
+      "textKey": "companion.hint.forestReady"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "clear_forest",
+        "is": "active"
+      },
+      "textKey": "companion.hint.forest"
+    },
+    {
+      "when": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "questStatus",
+            "quest": "clear_forest",
+            "is": "completed"
+          },
+          {
+            "type": "not",
+            "condition": {
+              "type": "hasBuilt",
+              "buildable": "cottage"
+            }
+          }
+        ]
+      },
+      "textKey": "companion.hint.buildCottage"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "clear_forest",
+        "is": "completed"
+      },
+      "textKey": "companion.hint.chapterEnd"
+    },
+    {
+      "when": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "questStatus",
+            "quest": "clear_forest",
+            "is": "available"
+          },
+          {
+            "type": "not",
+            "condition": {
+              "type": "hasBuilt"
+            }
+          }
+        ]
+      },
+      "textKey": "companion.hint.buildFirst"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "clear_forest",
+        "is": "available"
+      },
+      "textKey": "companion.hint.forestOffer"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "repair_bridge"
+      },
+      "textKey": "companion.hint.bridgeReady"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "repair_bridge",
+        "is": "active"
+      },
+      "textKey": "companion.hint.bridge"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "repair_bridge",
+        "is": "available"
+      },
+      "textKey": "companion.hint.bridgeOffer"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "wood_for_bridge"
+      },
+      "textKey": "companion.hint.woodReady"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "wood_for_bridge",
+        "is": "active"
+      },
+      "textKey": "companion.hint.wood"
+    },
+    {
+      "when": {
+        "type": "not",
+        "condition": {
+          "type": "tutorialDone"
+        }
+      },
+      "textKey": "companion.hint.tutorial"
+    },
+    {
+      "textKey": "companion.hint.village"
+    }
   ]
 }

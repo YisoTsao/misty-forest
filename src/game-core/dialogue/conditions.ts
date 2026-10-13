@@ -15,6 +15,8 @@ export type Condition =
   | { type: 'questStatus'; quest: string; is: 'locked' | 'available' | 'active' | 'completed' }
   /** 任務進行中且目標全部達成（可以回報） */
   | { type: 'questReady'; quest: string }
+  /** 在家園蓋過東西（可指定種類） */
+  | { type: 'hasBuilt'; buildable?: string }
   | { type: 'not'; condition: Condition }
   | { type: 'all'; conditions: Condition[] };
 
@@ -25,6 +27,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ type: z.literal('tutorialDone') }),
     z.object({ type: z.literal('questStatus'), quest: z.string().min(1), is: z.enum(['locked', 'available', 'active', 'completed']) }),
     z.object({ type: z.literal('questReady'), quest: z.string().min(1) }),
+    z.object({ type: z.literal('hasBuilt'), buildable: z.string().min(1).optional() }),
     z.object({ type: z.literal('not'), condition: conditionSchema }),
     z.object({ type: z.literal('all'), conditions: z.array(conditionSchema).min(1) }),
   ]),
@@ -51,6 +54,8 @@ export function evaluateCondition(condition: Condition | undefined, state: GameS
       return questStatus(state, quest(condition.quest)) === condition.is;
     case 'questReady':
       return isQuestReady(state, quest(condition.quest));
+    case 'hasBuilt':
+      return state.buildings.some((b) => condition.buildable === undefined || b.buildable === condition.buildable);
     case 'not':
       return !evaluateCondition(condition.condition, state, ctx);
     case 'all':
