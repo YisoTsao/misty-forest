@@ -1,4 +1,6 @@
 import { LocalAuthority } from '@/game-core/authority/authority';
+import type { DialogueDef } from '@/game-core/dialogue/dialogue';
+import type { NpcDef } from '@/game-core/npc/npc';
 import type { RegionDef } from '@/game-core/world/regions';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
@@ -8,7 +10,19 @@ import { worldDataResult } from './worldData';
 // 世界資料驗證失敗時 App 會顯示錯誤畫面，不會進入遊戲；此時以空資料建立，避免模組載入就拋錯。
 const data = worldDataResult.ok
   ? worldDataResult.data
-  : { prefabs: new Map(), placements: [], items: new Map(), lootTables: new Map(), regions: [] as RegionDef[] };
+  : {
+      prefabs: new Map(),
+      placements: [],
+      items: new Map(),
+      lootTables: new Map(),
+      regions: [] as RegionDef[],
+      dialogues: new Map<string, DialogueDef>(),
+      npcs: [] as NpcDef[],
+    };
+
+/** NPC 與對話資料 */
+export const npcs: readonly NpcDef[] = data.npcs;
+export const dialogues: ReadonlyMap<string, DialogueDef> = data.dialogues;
 
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;

@@ -20,6 +20,8 @@ type UiState = {
   inventoryOpen: boolean;
   /** 設定畫面（從主選單或暫停選單開啟） */
   settingsOpen: boolean;
+  /** 進行中的 NPC 對話（dialogueController 寫入） */
+  dialogue: { npcId: string; dialogueId: string; nodeId: string } | null;
   /** 玩家目前所在區域（RegionTracker 在改變時寫入） */
   currentRegion: RegionId;
   setInteractTarget: (target: InteractTarget | null) => void;
@@ -30,6 +32,7 @@ type UiState = {
   setInventoryOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setCurrentRegion: (region: RegionId) => void;
+  setDialogue: (dialogue: UiState['dialogue']) => void;
 };
 
 export const useUiStore = create<UiState>((set, get) => ({
@@ -39,6 +42,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   inventoryOpen: false,
   settingsOpen: false,
   currentRegion: DEFAULT_REGION,
+  dialogue: null,
   setInteractTarget: (target) => {
     if (get().interactTarget?.id === target?.id) return;
     set({ interactTarget: target });
@@ -49,6 +53,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
+  setDialogue: (dialogue) => set({ dialogue }),
   setCurrentRegion: (currentRegion) => {
     if (get().currentRegion !== currentRegion) set({ currentRegion });
   },
@@ -56,6 +61,6 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  const { message, inventoryOpen, settingsOpen } = useUiStore.getState();
-  return message !== null || inventoryOpen || settingsOpen;
+  const { message, inventoryOpen, settingsOpen, dialogue } = useUiStore.getState();
+  return message !== null || inventoryOpen || settingsOpen || dialogue !== null;
 }

@@ -1,0 +1,61 @@
+[
+  {
+    "id": "elder_intro",
+    "start": "greet",
+    "nodes": {
+      "greet": { "speakerKey": "npc.elder", "textKey": "dlg.elder.greet", "next": "tree" },
+      "tree": { "speakerKey": "npc.elder", "textKey": "dlg.elder.tree", "next": "mist" },
+      "mist": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.mist",
+        "options": [
+          { "textKey": "dlg.elder.opt.help", "next": "help" },
+          { "textKey": "dlg.elder.opt.forest", "next": "forest" },
+          { "textKey": "dlg.elder.opt.bye" }
+        ]
+      },
+      "help": { "speakerKey": "npc.elder", "textKey": "dlg.elder.help" },
+      "forest": { "speakerKey": "npc.elder", "textKey": "dlg.elder.forest", "next": "mist" }
+    }
+  },
+  {
+    "id": "elder_forest_cleared",
+    "start": "joy",
+    "nodes": {
+      "joy": { "speakerKey": "npc.elder", "textKey": "dlg.elder.cleared", "next": "next" },
+      "next": { "speakerKey": "npc.elder", "textKey": "dlg.elder.cleared2" }
+    }
+  },
+  {
+    "id": "balu_intro",
+    "start": "greet",
+    "nodes": {
+      "greet": { "speakerKey": "npc.balu", "textKey": "dlg.balu.greet", "next": "bridge" },
+      "bridge": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.balu.bridge",
+        "options": [
+          { "textKey": "dlg.balu.opt.wood", "next": "wood" },
+          { "textKey": "dlg.balu.opt.bye" }
+        ]
+      },
+      "wood": { "speakerKey": "npc.balu", "textKey": "dlg.balu.wood" }
+    }
+  },
+  {
+    "id": "leo_intro",
+    "start": "greet",
+    "nodes": {
+      "greet": { "speakerKey": "npc.leo", "textKey": "dlg.leo.greet", "next": "warn" },
+      "warn": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.warn",
+        "options": [
+          { "textKey": "dlg.leo.opt.shadow", "next": "shadow" },
+          { "textKey": "dlg.leo.opt.bye" }
+        ]
+      },
+      "shadow": { "speakerKey": "npc.leo", "textKey": "dlg.leo.shadow" }
+    }
+  }
+]

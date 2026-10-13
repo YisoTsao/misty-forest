@@ -1,0 +1,45 @@
+[
+  {
+    "id": "elder",
+    "nameKey": "npc.elder",
+    "regionId": "village",
+    "model": "models/characters/kaykit-adventurers/Mage.glb",
+    "scale": 0.72,
+    "hiddenNodes": ["1H_Wand", "Spellbook", "Spellbook_open"],
+    "clips": { "idle": "2H_Melee_Idle", "walk": "Walking_A", "talk": "Spellcast_Raise" },
+    "position": [-14.0, -27.6],
+    "facingYaw": 0.2,
+    "interactRadius": 2.4,
+    "talk": [
+      { "when": { "type": "mistStage", "region": "forest", "is": "clear" }, "dialogue": "elder_forest_cleared" },
+      { "dialogue": "elder_intro" }
+    ]
+  },
+  {
+    "id": "balu",
+    "nameKey": "npc.balu",
+    "regionId": "village",
+    "model": "models/characters/kaykit-adventurers/Barbarian.glb",
+    "scale": 0.74,
+    "hiddenNodes": ["1H_Axe_Offhand", "Barbarian_Round_Shield", "2H_Axe", "Mug"],
+    "clips": { "idle": "Idle", "walk": "Walking_A", "talk": "Cheer" },
+    "position": [-17.2, -45.6],
+    "facingYaw": 0.9,
+    "interactRadius": 2.4,
+    "talk": [{ "dialogue": "balu_intro" }]
+  },
+  {
+    "id": "leo",
+    "nameKey": "npc.leo",
+    "regionId": "village",
+    "model": "models/characters/kaykit-adventurers/Knight.glb",
+    "scale": 0.74,
+    "hiddenNodes": ["1H_Sword_Offhand", "Badge_Shield", "Rectangle_Shield", "Spike_Shield", "2H_Sword"],
+    "clips": { "idle": "Idle", "walk": "Walking_A", "talk": "Interact" },
+    "position": [-5.6, -19.5],
+    "facingYaw": 0,
+    "interactRadius": 2.4,
+    "talk": [{ "dialogue": "leo_intro" }],
+    "patrol": { "points": [[-5.6, -19.5], [-5.6, -25.5]], "speed": 1.2, "pauseSec": 4 }
+  }
+]

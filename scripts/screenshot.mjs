@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --npc：村莊 NPC 全身、與長老對話（一般段落與選項）（任務 3B）
 //   --region：森林空地在濃霧與迷霧清除後的跟隨視角、區域名稱（任務 3A）
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
@@ -21,6 +22,7 @@ const withInteract = flags.has('--interact');
 const withMenu = flags.has('--menu');
 const withHarvest = flags.has('--harvest');
 const withRegion = flags.has('--region');
+const withNpc = flags.has('--npc');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -151,6 +153,45 @@ try {
     await page.waitForTimeout(300);
     await shot('inventory');
     await page.keyboard.press('KeyI');
+  }
+
+  if (withNpc) {
+    const npcs = JSON.parse(readFileSync('src/data/npcs.json', 'utf8'));
+    for (const npc of npcs) {
+      const [x, z] = npc.position;
+      // 站在 NPC 面前 2.6 m，攝影機從側後方看，NPC 與角色都入鏡
+      await page.evaluate(
+        ([px, pz, yaw]) => {
+          const d = window.__mistwoodDebug;
+          d.setCameraMode('follow');
+          d.teleport(px + Math.sin(yaw) * 2.6, pz + Math.cos(yaw) * 2.6);
+          d.camera({ yaw: yaw + 0.5, pitch: 0.25, distance: 4.2 });
+        },
+        [x, z, npc.facingYaw],
+      );
+      await page.waitForTimeout(1200);
+      await shot(`npc_${npc.id}`);
+    }
+    const elder = npcs.find((n) => n.id === 'elder');
+    await page.evaluate(
+      ([px, pz]) => {
+        const d = window.__mistwoodDebug;
+        d.teleport(px, pz + 1.8);
+        d.camera({ yaw: 0.6, pitch: 0.25, distance: 4.5 });
+      },
+      elder.position,
+    );
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'npc:elder', null, { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForSelector('[data-testid="dialogue"]', { timeout: 5000 });
+    await page.waitForTimeout(700);
+    await shot('npc_dialogue');
+    await page.keyboard.press('Space');
+    await page.keyboard.press('Space');
+    await page.waitForSelector('[data-testid="dialogue-option"]', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    await shot('npc_dialogue_options');
+    await page.keyboard.press('Escape');
   }
 
   if (withRegion) {

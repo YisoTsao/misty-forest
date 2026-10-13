@@ -3,6 +3,7 @@ import { initialGameState } from '@/game-core/authority/rules';
 import { nextScreen, type FlowAction, type GameScreen } from '@/game-core/flow/gameFlow';
 import type { LoadedSave } from '@/game-core/save/convert';
 import { authority } from '../authority';
+import { endTalk } from '../dialogueController';
 import { cameraRuntime, playerRuntime } from '../player/localRuntime';
 import { useUiStore } from './uiStore';
 
@@ -40,6 +41,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const ui = useUiStore.getState();
     ui.closeMessage();
     ui.setInventoryOpen(false);
+    endTalk();
     if (loaded) {
       // 讀檔：回到存檔位置，攝影機在角色背後
       playerRuntime.restoreRequest = loaded.player;

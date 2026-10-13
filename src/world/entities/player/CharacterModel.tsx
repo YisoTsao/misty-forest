@@ -13,7 +13,7 @@ const FADE = 0.15;
 const ONE_SHOT: readonly ClipKey[] = ['jump', 'land', 'interact', 'attack'];
 
 /** 複製骨架模型、隱藏武器掛件、材質轉 toon。回傳的材質需由呼叫端釋放。 */
-function prepareModel(source: THREE.Object3D, hidden: readonly string[]) {
+export function prepareModel(source: THREE.Object3D, hidden: readonly string[]) {
   const root = cloneSkinned(source);
   const materials: THREE.Material[] = [];
   root.traverse((obj) => {

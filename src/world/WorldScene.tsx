@@ -15,6 +15,7 @@ import { RegionTracker } from './RegionTracker';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
+import { Npcs } from './entities/npc/Npcs';
 import { Player } from './entities/player/Player';
 import { InputBinder } from './InputBinder';
 import { InteractionSystem } from './interaction/InteractionSystem';
@@ -45,6 +46,7 @@ export function WorldScene({ data }: { data: WorldData }) {
           <Terrain />
           <EnvironmentColliders index={index} />
           <Player def={playerDef} colliderRef={playerCollider} />
+          <Npcs />
           {cameraMode === 'follow' && !onTitle && <FollowCamera playerCollider={playerCollider} />}
         </Physics>
         <AssetBoundary name="world-placements">

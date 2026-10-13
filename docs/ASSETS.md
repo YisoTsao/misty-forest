@@ -5,6 +5,7 @@
 | 名稱 | 路徑 | 來源 | 授權 | 商業使用 | 修改／再散布 | 用途 | 狀態 |
 |---|---|---|---|---|---|---|---|
 | 旅人角色（Rogue_Hooded） | `public/models/characters/kaykit-adventurers/Rogue_Hooded.glb` | KayKit Character Pack: Adventurers 1.0，Kay Lousberg（www.kaylousberg.com）；取自 [GitHub](https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0) | CC0 1.0（授權檔同目錄 `LICENSE.txt`） | 可 | 可（不強制署名，建議於製作名單致謝） | 玩家角色與動畫 | 正式使用 |
+| 村莊 NPC（Mage、Barbarian、Knight） | `public/models/characters/kaykit-adventurers/` | KayKit Character Pack: Adventurers 1.0（同旅人角色） | CC0 1.0 | 可 | 可（不強制署名） | 米拉長老、木匠巴魯、守衛雷歐（與玩家共用骨架與動畫） | 正式使用 |
 | 樹木（tree_single_A / B）、岩石（rock_single_A / B / C）與共用貼圖 `hexagons_medieval.png` | `public/models/kaykit-hexagon/` | KayKit Medieval Hexagon Pack 1.0，Kay Lousberg；取自 [GitHub](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0) | CC0 1.0（授權檔同目錄 `LICENSE.txt`） | 可 | 可（不強制署名） | 草原與森林的樹木、岩石 | 正式使用（風格判定後可能替換） |
 | 村莊建築：building_home_A_blue / home_A_yellow / home_B_red、tavern_green、well_blue、windmill_red | `public/models/kaykit-hexagon/` | 同上（KayKit Medieval Hexagon Pack 1.0） | CC0 1.0 | 可 | 可（不強制署名） | 小村莊的房屋、酒館、井、風車 | 正式使用 |
 | 村莊雜物：fence_wood_straight、barrel、crate_A_big / small、wheelbarrow、resource_lumber、sack、bucket_water | `public/models/kaykit-hexagon/` | 同上 | CC0 1.0 | 可 | 可（不強制署名） | 柵欄牧場、木桶、木箱等生活感細節（規格 4.3） | 正式使用 |

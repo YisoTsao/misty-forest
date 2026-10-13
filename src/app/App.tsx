@@ -8,6 +8,7 @@ import { useQualityPreset } from '@/game/state/settingsStore';
 import { worldDataResult } from '@/game/worldData';
 import { ControlHint } from '@/ui/ControlHint';
 import { DebugPanel } from '@/ui/DebugPanel';
+import { DialogueBox } from '@/ui/DialogueBox';
 import { ErrorOverlay } from '@/ui/ErrorOverlay';
 import { FatalScreen } from '@/ui/FatalScreen';
 import { InteractPrompt } from '@/ui/InteractPrompt';
@@ -57,6 +58,7 @@ export function App() {
         </>
       )}
       <MessageDialog />
+      <DialogueBox />
       <InventoryPanel />
       <TitleScreen />
       <PauseMenu />

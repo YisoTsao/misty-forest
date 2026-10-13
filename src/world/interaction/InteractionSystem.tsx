@@ -5,8 +5,10 @@ import { isControllable } from '@/game-core/flow/gameFlow';
 import { selectInteractTarget, type InteractCandidate } from '@/game-core/interaction/target';
 import { canInteract } from '@/game-core/world/objects';
 import type { Prefab } from '@/game-core/world/types';
-import { authority } from '@/game/authority';
+import { authority, npcs } from '@/game/authority';
+import { startTalk } from '@/game/dialogueController';
 import { input } from '@/game/input/inputManager';
+import { npcRuntime } from '@/game/npc/npcRuntime';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
@@ -25,6 +27,11 @@ const COMMAND_DELAY_SEC = { interact: 0.45, attack: 0.5 } as const;
 const MESSAGE_DELAY_SEC = 0.6;
 
 type Pending = { delay: number } & ({ kind: 'command'; command: GameCommand } | { kind: 'message'; message: UiMessage });
+
+/** 互動目標：世界物件（placement）或 NPC */
+type Target = { kind: 'object'; spec: InteractableSpec } | { kind: 'npc'; id: string; nameKey: string; x: number; z: number };
+
+const NPC_PREFIX = 'npc:';
 
 function commandFor(prefab: Prefab, placementId: string): GameCommand | null {
   switch (prefab.interaction) {
@@ -64,7 +71,7 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     [scratch],
   );
 
-  const selectTarget = (): InteractableSpec | null => {
+  const selectTarget = (): Target | null => {
     const { position, locomotion } = playerRuntime;
     const objects = useGameStateStore.getState().state.objects;
     const nearby = index.interactables.query(position.x, position.z, QUERY_RADIUS, scratch.nearby);
@@ -72,8 +79,20 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     for (const spec of nearby) {
       if (canInteract(spec.prefab, objects.get(spec.id))) scratch.candidates.push(spec);
     }
+    // NPC 會移動，不放進靜態格網；數量少，直接逐一檢查
+    for (const npc of npcs) {
+      const rt = npcRuntime.get(npc.id);
+      if (rt) scratch.candidates.push({ id: NPC_PREFIX + npc.id, x: rt.x, z: rt.z, radius: npc.interactRadius });
+    }
     const id = selectInteractTarget({ x: position.x, z: position.z, facingYaw: locomotion.facingYaw }, scratch.candidates);
-    return id === null ? null : (nearby.find((s) => s.id === id) ?? null);
+    if (id === null) return null;
+    if (id.startsWith(NPC_PREFIX)) {
+      const npc = npcs.find((n) => NPC_PREFIX + n.id === id);
+      const rt = npc && npcRuntime.get(npc.id);
+      return npc && rt ? { kind: 'npc', id: npc.id, nameKey: npc.nameKey, x: rt.x, z: rt.z } : null;
+    }
+    const spec = nearby.find((s) => s.id === id);
+    return spec ? { kind: 'object', spec } : null;
   };
 
   useFrame((_, dt) => {
@@ -114,17 +133,31 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     scratch.since = 0;
 
     const target = selectTarget();
-    const { interaction, nameKey } = target?.prefab ?? {};
-    ui.setInteractTarget(target && interaction && nameKey ? { id: target.id, kind: interaction, nameKey } : null);
+    if (target?.kind === 'npc') {
+      ui.setInteractTarget({ id: NPC_PREFIX + target.id, kind: 'talk', nameKey: target.nameKey });
+    } else {
+      const { interaction, nameKey } = target?.spec.prefab ?? {};
+      ui.setInteractTarget(target && interaction && nameKey ? { id: target.spec.id, kind: interaction, nameKey } : null);
+    }
     if (!pressed || !target) return;
-    const command = commandFor(target.prefab, target.id);
+
+    const { position, locomotion } = playerRuntime;
+    const tx = target.kind === 'npc' ? target.x : target.spec.x;
+    const tz = target.kind === 'npc' ? target.z : target.spec.z;
+    locomotion.facingYaw = Math.atan2(tx - position.x, tz - position.z);
+    locomotion.vx = locomotion.vz = 0;
+    if (target.kind === 'npc') {
+      // 對話（規格 6.4）：對話視窗開啟後由 DialogueBox 處理按鍵
+      ui.setInteractTarget(null);
+      if (document.pointerLockElement) document.exitPointerLock();
+      startTalk(target.id);
+      return;
+    }
+    const command = commandFor(target.spec.prefab, target.spec.id);
     if (!command) return;
 
-    // 轉身面向目標、播放動作，在揮下 / 伸手的瞬間送出指令（結果由權威層的事件決定）
-    const clip = target.prefab.harvest?.anim ?? 'interact';
-    const { position, locomotion } = playerRuntime;
-    locomotion.facingYaw = Math.atan2(target.x - position.x, target.z - position.z);
-    locomotion.vx = locomotion.vz = 0;
+    // 播放動作，在揮下 / 伸手的瞬間送出指令（結果由權威層的事件決定）
+    const clip = target.spec.prefab.harvest?.anim ?? 'interact';
     playerRuntime.action = { clip, remaining: ACTION_SEC[clip] };
     ui.setInteractTarget(null);
     scratch.pending.push({ kind: 'command', command, delay: COMMAND_DELAY_SEC[clip] });

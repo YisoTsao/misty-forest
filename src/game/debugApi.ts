@@ -9,6 +9,7 @@ import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { authority, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
+import { npcRuntime } from './npc/npcRuntime';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
 import { useDebugStore, type CameraMode } from './state/debugStore';
@@ -74,6 +75,10 @@ export type MistwoodDebugApi = {
   exportSave: () => Promise<string>;
   /** 目前的設定值 */
   settings: () => { quality: string };
+  /** NPC 目前的位置與狀態 */
+  npcState: (id: string) => { x: number; z: number; yaw: number; walking: boolean; talking: boolean } | null;
+  /** 進行中的對話 */
+  dialogue: () => { npcId: string; dialogueId: string; nodeId: string } | null;
   /** 目前畫面上的通知 */
   toasts: () => { itemId?: string; count?: number; textKey?: string }[];
   activeColliders: () => number;
@@ -164,6 +169,11 @@ export function installDebugApi(): void {
     saveNow: () => saveGame(),
     exportSave: async () => (await saveStorage.export(MAIN_SLOT)).text(),
     settings: () => ({ quality: useSettingsStore.getState().quality }),
+    npcState: (id) => {
+      const rt = npcRuntime.get(id);
+      return rt ? { x: rt.x, z: rt.z, yaw: rt.yaw, walking: rt.walking, talking: rt.talking } : null;
+    },
+    dialogue: () => useUiStore.getState().dialogue,
     toasts: () => useUiStore.getState().toasts.map(({ itemId, count, textKey }) => ({ itemId, count, textKey })),
     activeColliders: () => perfStats.activeColliders,
     perf: () => {
