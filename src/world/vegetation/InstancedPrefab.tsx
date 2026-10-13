@@ -1,7 +1,8 @@
 import { useGLTF } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import type { Placement } from '@/game-core/world/types';
+import type { Placement, Prefab } from '@/game-core/world/types';
 import { buildProceduralModel, PROCEDURAL_PREFIX, type ModelPart as Part } from '@/render/proceduralModels';
 import { patchOcclusion } from '@/render/occlusion';
 import { toToonMaterial } from '@/render/toon';
@@ -18,7 +19,7 @@ function useGltfParts(model: string): Part[] {
       const source = Array.isArray(obj.material) ? obj.material[0] : obj.material;
       if (!source) return;
       // 世界物件會在擋住攝影機時鏤空（render/occlusion.ts）
-      list.push({ key: obj.uuid, geometry: obj.geometry, material: patchOcclusion(toToonMaterial(source)), local: obj.matrixWorld.clone() });
+      list.push({ key: obj.uuid, name: obj.name, geometry: obj.geometry, material: patchOcclusion(toToonMaterial(source)), local: obj.matrixWorld.clone() });
     });
     if (list.length === 0) throw new Error(`模型沒有可渲染的 mesh：${model}`);
     return list;
@@ -42,8 +43,27 @@ function placementMatrix(p: Placement, out: THREE.Matrix4): THREE.Matrix4 {
   return out.compose(tmpPos, tmpQuat, tmpScale);
 }
 
-function InstancedPart({ part, placements, receiveShadow }: { part: Part; placements: readonly Placement[]; receiveShadow: boolean }) {
+type Animation = NonNullable<Prefab['animate']>[number];
+const tmpAxis = new THREE.Vector3();
+const tmpRot = new THREE.Matrix4();
+
+function InstancedPart({ part, placements, receiveShadow, anim }: { part: Part; placements: readonly Placement[]; receiveShadow: boolean; anim?: Animation }) {
   const ref = useRef<THREE.InstancedMesh>(null);
+
+  // 環境動畫（風車扇葉、衣服）：每幀以部件自己的原點與局部軸旋轉；每個 placement 相位不同
+  useFrame(({ clock }) => {
+    const mesh = ref.current;
+    if (!anim || !mesh) return;
+    const t = clock.elapsedTime;
+    tmpAxis.fromArray(anim.axis).normalize();
+    placements.forEach((p, i) => {
+      const phase = i * 1.7;
+      const angle = anim.kind === 'spin' ? anim.speed * t + phase : Math.sin(anim.speed * t + phase) * (anim.amplitude ?? 0.2);
+      placementMatrix(p, tmpMatrix).multiply(part.local).multiply(tmpRot.makeRotationAxis(tmpAxis, angle));
+      mesh.setMatrixAt(i, tmpMatrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  });
 
   useLayoutEffect(() => {
     const mesh = ref.current;
@@ -73,32 +93,48 @@ function useProceduralParts(model: string): Part[] {
   return parts;
 }
 
-type InstancedProps = { model: string; placements: readonly Placement[] };
+type InstancedProps = { model: string; placements: readonly Placement[]; animate?: Prefab['animate'] };
 
 /** 同一 prefab 的所有 placement 以 InstancedMesh 渲染（規格 4.3、7）。 */
-export function InstancedPrefab({ model, placements }: InstancedProps) {
+export function InstancedPrefab({ model, placements, animate }: InstancedProps) {
   if (placements.length === 0) return null;
   return model.startsWith(PROCEDURAL_PREFIX) ? (
-    <ProceduralInstanced model={model} placements={placements} />
+    <ProceduralInstanced model={model} placements={placements} animate={animate} />
   ) : (
-    <GltfInstanced model={model} placements={placements} />
+    <GltfInstanced model={model} placements={placements} animate={animate} />
   );
 }
 
-function GltfInstanced({ model, placements }: InstancedProps) {
-  return <InstancedParts parts={useGltfParts(model)} placements={placements} receiveShadow />;
+function GltfInstanced({ model, placements, animate }: InstancedProps) {
+  return <InstancedParts parts={useGltfParts(model)} placements={placements} animate={animate} receiveShadow />;
 }
 
-function ProceduralInstanced({ model, placements }: InstancedProps) {
+function ProceduralInstanced({ model, placements, animate }: InstancedProps) {
   // 程式植物的葉片與花瓣是薄面片，接收陰影會產生自我遮蔽的髒斑，因此只投影不接收
-  return <InstancedParts parts={useProceduralParts(model)} placements={placements} receiveShadow={false} />;
+  return <InstancedParts parts={useProceduralParts(model)} placements={placements} animate={animate} receiveShadow={false} />;
 }
 
-function InstancedParts({ parts, placements, receiveShadow }: { parts: Part[]; placements: readonly Placement[]; receiveShadow: boolean }) {
+function InstancedParts({
+  parts,
+  placements,
+  receiveShadow,
+  animate,
+}: {
+  parts: Part[];
+  placements: readonly Placement[];
+  receiveShadow: boolean;
+  animate?: Prefab['animate'];
+}) {
   return (
     <>
       {parts.map((part) => (
-        <InstancedPart key={part.key} part={part} placements={placements} receiveShadow={receiveShadow} />
+        <InstancedPart
+          key={part.key}
+          part={part}
+          placements={placements}
+          receiveShadow={receiveShadow}
+          anim={animate?.find((a) => a.node === part.name)}
+        />
       ))}
     </>
   );

@@ -287,5 +287,24 @@ for (const [id, prefabId, lx, lz, yaw, scale, y = 0] of interior) {
   });
 }
 
+// 環境生命感（任務 5D）：曬衣繩、路標、告示板。羊群與炊煙不是 placement（data/ambient.json、prefab 的 smoke）。
+const ambient: [string, string, string, number, number, number, number][] = [
+  // id, prefab, region, x, z, yaw, scale
+  ['village_clothesline_01', 'clothesline', 'village', -22.6, -24.2, 0.35, 1],
+  ['meadow_signpost_01', 'signpost', 'meadow', 0.9, -8.5, 0, 1],
+  ['village_notice_board_01', 'notice_board', 'village', -9.6, -26.4, 0.45, 1],
+  ['lake_signpost_01', 'signpost_lake', 'lake', 16.2, 11.2, 0, 1],
+];
+for (const [id, prefabId, regionId, x, z, yaw, scale] of ambient) {
+  placements.push({
+    id,
+    prefabId,
+    regionId,
+    position: [round(x), round(terrainHeight(x, z) - 0.03), round(z)],
+    rotation: [0, round(yaw), 0],
+    scale: [scale, scale, scale],
+  });
+}
+
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');
 console.log(`wrote ${placements.length} placements`);

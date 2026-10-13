@@ -6593,5 +6593,85 @@
       0.8,
       0.8
     ]
+  },
+  {
+    "id": "village_clothesline_01",
+    "prefabId": "clothesline",
+    "regionId": "village",
+    "position": [
+      -22.6,
+      -0.03,
+      -24.2
+    ],
+    "rotation": [
+      0,
+      0.35,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "meadow_signpost_01",
+    "prefabId": "signpost",
+    "regionId": "meadow",
+    "position": [
+      0.9,
+      -0.37,
+      -8.5
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "village_notice_board_01",
+    "prefabId": "notice_board",
+    "regionId": "village",
+    "position": [
+      -9.6,
+      -0.28,
+      -26.4
+    ],
+    "rotation": [
+      0,
+      0.45,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "lake_signpost_01",
+    "prefabId": "signpost_lake",
+    "regionId": "lake",
+    "position": [
+      16.2,
+      0.34,
+      11.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
   }
 ]

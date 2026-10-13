@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --ambient：環境生命感：羊群、炊煙、風車（兩張比對扇葉角度）、曬衣繩、路標與告示板（任務 5D）
 //   --gamepad：手把模式的互動提示（Y）、暫停選單的手把選取外框、設定畫面的手把配置（任務 5C）
 //   --tavern：酒館門口的提示、室內、和老闆娘對話（任務 5B）
 //   --build：湖心小島的建造選單、可放置 / 不可放置的預覽、蓋好的家園（任務 4A）、拆除工具與營火旁（任務 4B）
@@ -36,6 +37,7 @@ const withCompanion = flags.has('--companion');
 const withBuild = flags.has('--build');
 const withTavern = flags.has('--tavern');
 const withGamepad = flags.has('--gamepad');
+const withAmbient = flags.has('--ambient');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -197,6 +199,42 @@ try {
     await page.waitForTimeout(700);
     await shot('tavern_molly');
     await page.keyboard.press('Escape');
+  }
+
+  if (withAmbient) {
+    const view = async (name, px, pz, fx, fz, cam, wait = 1200) => {
+      await page.evaluate(
+        ([x, z, tx, tz, c]) => {
+          const d = window.__mistwoodDebug;
+          d.setCameraMode('follow');
+          d.teleport(x, z);
+          d.face(tx, tz);
+          d.camera(c);
+        },
+        [px, pz, fx, fz, cam],
+      );
+      await page.waitForTimeout(wait);
+      await shot(name);
+    };
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+    });
+    await view('ambient_sheep', -31, -12.5, -31, -21, { yaw: 0.25, pitch: 0.3, distance: 6 }, 2500);
+    await view('ambient_village_smoke', -12, -11, -14, -30, { yaw: 0.1, pitch: 0.06, distance: 7 }, 2500);
+    await view('ambient_windmill_a', -24 + 0.93 * 13, -45 + 0.36 * 13, -24, -45, { yaw: 1.2, pitch: 0.12, distance: 6 });
+    await page.waitForTimeout(900);
+    await shot('ambient_windmill_b');
+    await view('ambient_clothesline', -21.5, -20.5, -22.6, -24.2, { yaw: 0.3, pitch: 0.18, distance: 4.5 });
+    await view('ambient_signpost', 0.9, -6.6, 0.9, -8.5, { yaw: 0.5, pitch: 0.25, distance: 4.5 });
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'meadow_signpost_01', null, { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.locator('[data-testid="message-dialog"]').waitFor({ timeout: 3000 });
+    await page.waitForTimeout(300);
+    await shot('ambient_signpost_read');
+    await page.keyboard.press('Escape');
+    await view('ambient_notice_board', -9.6 + Math.sin(0.45) * 1.8, -26.4 + Math.cos(0.45) * 1.8, -9.6, -26.4, { yaw: 0.45, pitch: 0.2, distance: 4.5 });
   }
 
   if (withGamepad) {

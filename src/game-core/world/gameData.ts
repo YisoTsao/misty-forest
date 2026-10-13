@@ -6,6 +6,7 @@ import { parseDialogues, type DialogueDef } from '../dialogue/dialogue';
 import { parseItemData, type ItemCatalog, type LootTables } from '../items/items';
 import { parseNpcs, type NpcDef } from '../npc/npc';
 import { parseQuests, type QuestCatalog } from '../quest/quest';
+import { parseFlocks, type FlockDef } from '../ambient/sheep';
 import { parseInteriors, type InteriorDef } from './interiors';
 import { parseRegions, type RegionDef } from './regions';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
@@ -22,6 +23,7 @@ export type GameData = WorldData & {
   companion: CompanionDef;
   buildables: BuildableCatalog;
   interiors: ReadonlyMap<string, InteriorDef>;
+  flocks: readonly FlockDef[];
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -39,6 +41,7 @@ export function parseGameData(raw: {
   companion: unknown;
   buildables: unknown;
   interiors: unknown;
+  ambient: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -112,5 +115,11 @@ export function parseGameData(raw: {
     const to = prefab.enter?.to;
     if (to && to !== 'overworld' && !interiors.has(to)) throw new WorldDataError(`prefab ${prefab.id} 的出入口通往不存在的室內：${to}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors };
+  let flocks: FlockDef[];
+  try {
+    flocks = parseFlocks((raw.ambient as { flocks?: unknown } | null)?.flocks);
+  } catch (err) {
+    throw new WorldDataError(`ambient 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks };
 }

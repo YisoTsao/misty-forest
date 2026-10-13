@@ -33,7 +33,7 @@ export function WorldPlacements({ data }: { data: WorldData }) {
         if (prefab.entity === 'chest') return list.map((p) => <Chest key={p.id} placement={p} model={prefab.model} />);
         if (prefab.harvest) return <HarvestableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.repair) return <RepairableGroup key={prefabId} prefab={prefab} placements={list} />;
-        return <InstancedPrefab key={prefabId} model={prefab.model} placements={list} />;
+        return <InstancedPrefab key={prefabId} model={prefab.model} placements={list} animate={prefab.animate} />;
       })}
     </>
   );

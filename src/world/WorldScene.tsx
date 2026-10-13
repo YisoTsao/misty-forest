@@ -25,6 +25,8 @@ import { Enemies } from './entities/enemy/Enemies';
 import { Npcs } from './entities/npc/Npcs';
 import { Player } from './entities/player/Player';
 import { InputBinder } from './InputBinder';
+import { ChimneySmoke } from './ambient/ChimneySmoke';
+import { Flocks } from './ambient/Flock';
 import { InteriorLights, OutdoorOnly } from './LocationVisibility';
 import { InteractionSystem } from './interaction/InteractionSystem';
 import { EnvironmentColliders } from './physics/EnvironmentColliders';
@@ -60,6 +62,9 @@ export function WorldScene({ data }: { data: WorldData }) {
           </OutdoorOnly>
           <EnvironmentColliders index={index} />
           <Player def={playerDef} colliderRef={playerCollider} />
+          <OutdoorOnly>
+            <Flocks />
+          </OutdoorOnly>
           <Npcs />
           <Enemies />
           <BuiltObjects />
@@ -71,6 +76,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <OutdoorOnly>
           <GrassField index={index} />
           <Lake />
+          <ChimneySmoke data={data} />
           <AssetBoundary name="backdrop">
             <Backdrop />
           </AssetBoundary>

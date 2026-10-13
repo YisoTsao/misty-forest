@@ -94,6 +94,24 @@ export const prefabSchema = z
     enter: z.object({ to: z.string().min(1) }).optional(),
     /** 互動提示的動詞（i18n key），預設依 interaction（例如出口顯示「離開」） */
     verbKey: z.string().min(1).optional(),
+    /** 可閱讀的告示牌 / 路標（interaction 為 read）：顯示的標題與內文（i18n key） */
+    read: z.object({ titleKey: z.string().min(1), bodyKey: z.string().min(1) }).optional(),
+    /** 環境動畫（規格 4.3）：模型中某個節點持續旋轉（風車扇葉）或來回擺動（曬衣繩上的衣服），軸為節點的局部座標 */
+    animate: z
+      .array(
+        z.object({
+          node: z.string().min(1),
+          kind: z.enum(['spin', 'sway']),
+          axis: vec3,
+          /** spin：弧度 / 秒；sway：擺動頻率（弧度 / 秒） */
+          speed: z.number(),
+          /** sway 的擺幅（弧度） */
+          amplitude: z.number().optional(),
+        }),
+      )
+      .optional(),
+    /** 煙囪頂端（模型單位，乘上縮放與旋轉）：冒出炊煙 */
+    smoke: vec3.optional(),
     persists: z.boolean(),
   })
   .refine((p) => p.collider !== 'static' || p.collision !== undefined, {
@@ -103,6 +121,10 @@ export const prefabSchema = z
   .refine((p) => p.interaction !== 'harvest' || p.harvest !== undefined, {
     message: 'interaction 為 harvest 時必須提供 harvest 設定',
     path: ['harvest'],
+  })
+  .refine((p) => p.interaction !== 'read' || p.read !== undefined, {
+    message: 'interaction 為 read 時必須提供 read 設定',
+    path: ['read'],
   })
   .refine((p) => p.interaction !== 'enter' || p.enter !== undefined, {
     message: 'interaction 為 enter 時必須提供 enter 設定',

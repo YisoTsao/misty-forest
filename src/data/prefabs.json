@@ -320,6 +320,11 @@
         -0.04
       ]
     },
+    "smoke": [
+      0,
+      0.98,
+      -0.35
+    ],
     "persists": false
   },
   {
@@ -339,6 +344,11 @@
         -0.04
       ]
     },
+    "smoke": [
+      0,
+      0.98,
+      -0.35
+    ],
     "persists": false
   },
   {
@@ -353,6 +363,11 @@
         0.9
       ]
     },
+    "smoke": [
+      0.15,
+      1.33,
+      -0.45
+    ],
     "persists": false
   },
   {
@@ -408,6 +423,18 @@
         0.6
       ]
     },
+    "animate": [
+      {
+        "node": "building_windmill_top_fan_red",
+        "kind": "spin",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "speed": 0.9
+      }
+    ],
     "persists": false
   },
   {
@@ -793,6 +820,142 @@
         0,
         0
       ]
+    },
+    "persists": false
+  },
+  {
+    "id": "clothesline",
+    "model": "procedural:clothesline",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 1.9,
+        "offset": [
+          -1.6,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 1.9,
+        "offset": [
+          1.6,
+          0,
+          0
+        ]
+      }
+    ],
+    "animate": [
+      {
+        "node": "cloth_1",
+        "kind": "sway",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "speed": 1.83,
+        "amplitude": 0.22
+      },
+      {
+        "node": "cloth_2",
+        "kind": "sway",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "speed": 2.06,
+        "amplitude": 0.22
+      },
+      {
+        "node": "cloth_3",
+        "kind": "sway",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "speed": 2.29,
+        "amplitude": 0.22
+      },
+      {
+        "node": "cloth_4",
+        "kind": "sway",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "speed": 2.52,
+        "amplitude": 0.22
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "signpost",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.meadow.title",
+      "bodyKey": "sign.meadow.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "notice_board",
+    "model": "procedural:notice_board",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.7,
+        2.1,
+        0.3
+      ]
+    },
+    "interaction": "read",
+    "nameKey": "object.noticeBoard",
+    "interactRadius": 2.2,
+    "interactOffset": [
+      0,
+      0,
+      0.6
+    ],
+    "read": {
+      "titleKey": "sign.board.title",
+      "bodyKey": "sign.board.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_lake",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.lake.title",
+      "bodyKey": "sign.lake.body"
     },
     "persists": false
   }

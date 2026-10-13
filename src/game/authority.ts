@@ -6,6 +6,7 @@ import type { CombatData } from '@/game-core/combat/combat';
 import type { CompanionDef } from '@/game-core/companion/companion';
 import type { BuildableCatalog } from '@/game-core/build/build';
 import type { InteriorDef } from '@/game-core/world/interiors';
+import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
@@ -28,6 +29,7 @@ const data = worldDataResult.ok
       companion: { nameKey: 'companion.name', hints: [{ textKey: 'companion.hint.village' }] } as CompanionDef,
       buildables: new Map() as BuildableCatalog,
       interiors: new Map<string, InteriorDef>(),
+      flocks: [] as FlockDef[],
     };
 
 /** NPC 與對話資料 */
@@ -38,6 +40,8 @@ export const combat: CombatData = data.combat;
 export const companionDef: CompanionDef = data.companion;
 export const buildables: BuildableCatalog = data.buildables;
 export const interiors: ReadonlyMap<string, InteriorDef> = data.interiors;
+/** 羊群的牧草地（環境動畫） */
+export const flocks: readonly FlockDef[] = data.flocks;
 
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;

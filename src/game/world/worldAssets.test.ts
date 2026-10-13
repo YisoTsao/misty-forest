@@ -1,9 +1,9 @@
-// 世界物件的模型檔檢查：路徑存在、外部 buffer / 貼圖存在、寶箱有可動的蓋子節點。
+// 世界物件的模型檔檢查：路徑存在、外部 buffer / 貼圖存在、寶箱有可動的蓋子節點、環境動畫的節點存在。
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import prefabs from '@/data/prefabs.json';
-import { buildProceduralModel, PROCEDURAL_PREFIX } from '@/render/proceduralModels';
+import { buildProceduralModel, PROCEDURAL_PREFIX, sheepParts } from '@/render/proceduralModels';
 
 type GltfJson = { nodes?: { name?: string }[]; buffers?: { uri?: string }[]; images?: { uri?: string }[] };
 
@@ -52,5 +52,23 @@ describe('world prefab assets', () => {
     expect(chest).toBeDefined();
     const json = readGltfJson(path.join('public', chest!.model));
     expect(json.nodes?.some((n) => n.name === 'chest_lid')).toBe(true);
+  });
+
+  // 環境動畫（風車扇葉、曬衣繩的衣服）：指定的節點必須存在，否則動畫會默默失效
+  for (const p of prefabs) {
+    for (const anim of p.animate ?? []) {
+      it(`${p.id}：環境動畫的節點 ${anim.node} 存在`, () => {
+        const names = p.model.startsWith(PROCEDURAL_PREFIX)
+          ? buildProceduralModel(p.model).map((part) => part.name)
+          : (readGltfJson(path.join('public', p.model)).nodes ?? []).map((n) => n.name);
+        expect(names).toContain(anim.node);
+      });
+    }
+  }
+
+  it('羊的模型有身體、頭與兩組腿', () => {
+    const parts = sheepParts();
+    expect(parts.map((p) => p.name)).toEqual(['body', 'head', 'legsA', 'legsB']);
+    parts.forEach((p) => p.geometry.dispose());
   });
 });

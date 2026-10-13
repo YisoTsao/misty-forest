@@ -12,7 +12,8 @@ import { toonGradient } from './toon';
  * - 木橋：素材包的橋是石拱橋，與規格的「木橋」不符，以木板、樑、柱組成。
  */
 
-export type ModelPart = { key: string; geometry: THREE.BufferGeometry; material: THREE.Material; local: THREE.Matrix4 };
+/** name：節點名稱（GLB 的節點名、程式模型的部件名），環境動畫以此指定部件 */
+export type ModelPart = { key: string; name?: string; geometry: THREE.BufferGeometry; material: THREE.Material; local: THREE.Matrix4 };
 
 class MeshBuilder {
   readonly positions: number[] = [];
@@ -346,7 +347,119 @@ function doorMat(): THREE.BufferGeometry {
   return mergeParts(parts, '門墊');
 }
 
-type Builder = { build: () => THREE.BufferGeometry; kind: 'plant' | 'solid' };
+/** 低面數的圓團（羊毛、炊煙），帶頂點色 */
+function blob(radius: number, at: [number, number, number], color: THREE.Color, squash: [number, number, number] = [1, 1, 1]): THREE.BufferGeometry {
+  const g = new THREE.IcosahedronGeometry(radius, 1);
+  g.scale(...squash);
+  g.translate(...at);
+  const colors = new Float32Array(g.attributes.position!.count * 3);
+  for (let i = 0; i < colors.length; i += 3) color.toArray(colors, i);
+  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return g;
+}
+
+/** 具名部件；at 為部件的轉軸位置（幾何以它為原點建立，動畫繞此點旋轉） */
+export type NamedPart = { name: string; geometry: THREE.BufferGeometry; at?: [number, number, number] };
+
+/**
+ * 羊（羊群，規格 4.3）：蓬鬆的羊毛身體、深色的臉與耳朵、四條細腿。原點在腳底中央、面向 +Z。
+ * 頭（繞脖子點頭吃草）與前後腿（走路時擺動）是獨立部件，由 Flock 元件每幀擺動。
+ */
+export function sheepParts(): NamedPart[] {
+  const wool = new THREE.Color('#f4efe4');
+  const woolShade = new THREE.Color('#e4dccb');
+  const face = new THREE.Color('#3b302b');
+  const rand = mulberry32(31);
+  const body: THREE.BufferGeometry[] = [blob(0.42, [0, 0.62, 0], wool, [1, 0.85, 1.25])];
+  for (let i = 0; i < 9; i++) {
+    const a = rand() * Math.PI * 2;
+    body.push(blob(0.2 + rand() * 0.06, [Math.cos(a) * 0.3, 0.62 + (rand() - 0.3) * 0.32, Math.sin(a) * 0.42], rand() < 0.5 ? wool : woolShade));
+  }
+  body.push(blob(0.1, [0, 0.72, -0.55], wool)); // 尾巴
+  const head = [
+    blob(0.17, [0, 0.02, 0.14], face, [0.9, 1, 1.25]),
+    blob(0.14, [0, 0.13, 0.05], wool), // 頭頂的羊毛
+    box([0.16, 0.05, 0.09], [-0.16, 0.06, 0.06], face, [0, 0, 0.5]),
+    box([0.16, 0.05, 0.09], [0.16, 0.06, 0.06], face, [0, 0, -0.5]),
+    box([0.04, 0.04, 0.02], [-0.07, 0.06, 0.32], new THREE.Color('#f8f4ea')),
+    box([0.04, 0.04, 0.02], [0.07, 0.06, 0.32], new THREE.Color('#f8f4ea')),
+  ];
+  const leg = (x: number, z: number) => box([0.08, 0.4, 0.08], [x, -0.2, z], face);
+  return [
+    { name: 'body', geometry: mergeParts(body, '羊身體') },
+    { name: 'head', geometry: mergeParts(head, '羊頭'), at: [0, 0.78, 0.48] },
+    // 對角的兩條腿一起擺（左前 + 右後、右前 + 左後）
+    { name: 'legsA', geometry: mergeParts([leg(-0.16, 0), leg(0.16, -0.62)], '羊腿'), at: [0, 0.4, 0.3] },
+    { name: 'legsB', geometry: mergeParts([leg(0.16, 0), leg(-0.16, -0.62)], '羊腿'), at: [0, 0.4, 0.3] },
+  ];
+}
+
+/** 曬衣繩：兩根木柱與繩子（不動），掛著四件會隨風擺動的衣物（cloth_1–4，繞繩子擺動） */
+function clothesline(): NamedPart[] {
+  const H = 1.9;
+  const L = 3.2;
+  const posts = [
+    box([0.12, H, 0.12], [-L / 2, H / 2, 0], WOOD_DARK),
+    box([0.12, H, 0.12], [L / 2, H / 2, 0], WOOD_DARK),
+    box([0.5, 0.08, 0.08], [-L / 2, H - 0.05, 0], WOOD[1]!),
+    box([0.5, 0.08, 0.08], [L / 2, H - 0.05, 0], WOOD[1]!),
+    box([L, 0.025, 0.025], [0, H - 0.12, 0], new THREE.Color('#ddd2bb')),
+  ];
+  const cloths: [number, number, number, string][] = [
+    // x、寬、長、顏色
+    [-1.0, 0.55, 0.7, '#e46a5a'],
+    [-0.3, 0.45, 0.55, '#f1d16a'],
+    [0.35, 0.6, 0.8, '#7fb3e0'],
+    [1.0, 0.4, 0.5, '#f4f0e6'],
+  ];
+  return [
+    { name: 'frame', geometry: mergeParts(posts, '曬衣繩') },
+    ...cloths.map(([x, w, h, c], i) => ({
+      name: `cloth_${i + 1}`,
+      geometry: mergeParts([box([w, h, 0.03], [0, -h / 2, 0], new THREE.Color(c)), box([0.04, 0.08, 0.05], [-w / 3, 0, 0], WOOD_DARK), box([0.04, 0.08, 0.05], [w / 3, 0, 0], WOOD_DARK)], '衣物'),
+      at: [x, H - 0.12, 0] as [number, number, number],
+    })),
+  ];
+}
+
+/** 路標：木柱與三塊箭頭木牌。未旋轉時指向北（-Z）、東（+X）、東北（與路標文字一致） */
+function signpost(): THREE.BufferGeometry {
+  const parts = [box([0.14, 2.1, 0.14], [0, 1.05, 0], WOOD_DARK), box([0.22, 0.12, 0.22], [0, 2.12, 0], WOOD[2]!)];
+  const boards: [number, number, string][] = [
+    // 高度、方向（yaw，0 = +Z）、顏色
+    [1.8, Math.PI, '#c99a5c'],
+    [1.5, Math.PI / 2, '#b8834c'],
+    [1.2, (Math.PI * 3) / 4, '#c99a5c'],
+  ];
+  for (const [y, yaw, c] of boards) {
+    const color = new THREE.Color(c);
+    const dx = Math.sin(yaw);
+    const dz = Math.cos(yaw);
+    parts.push(box([0.06, 0.22, 0.8], [dx * 0.42, y, dz * 0.42], color, [0, yaw, 0]));
+    // 箭頭尖端
+    parts.push(box([0.06, 0.16, 0.16], [dx * 0.86, y, dz * 0.86], color, [0, yaw + Math.PI / 4, 0]));
+  }
+  return mergeParts(parts, '路標');
+}
+
+/** 告示板：兩根柱子、木框、貼著幾張紙、上方小屋頂 */
+function noticeBoard(): THREE.BufferGeometry {
+  const parts = [
+    box([0.12, 2.0, 0.12], [-0.75, 1.0, 0], WOOD_DARK),
+    box([0.12, 2.0, 0.12], [0.75, 1.0, 0], WOOD_DARK),
+    box([1.5, 0.9, 0.08], [0, 1.35, 0], WOOD[1]!),
+    box([1.6, 0.08, 0.12], [0, 1.82, 0], WOOD_DARK),
+    box([1.6, 0.08, 0.12], [0, 0.88, 0], WOOD_DARK),
+    box([1.9, 0.06, 0.5], [0, 2.05, 0], new THREE.Color('#b04a3c'), [0.25, 0, 0]),
+    box([0.42, 0.5, 0.01], [-0.4, 1.38, 0.05], new THREE.Color('#f6eedb'), [0, 0, 0.06]),
+    box([0.36, 0.3, 0.01], [0.15, 1.5, 0.05], new THREE.Color('#fbe9a8'), [0, 0, -0.08]),
+    box([0.34, 0.36, 0.01], [0.5, 1.22, 0.05], new THREE.Color('#e9f1f7'), [0, 0, 0.04]),
+  ];
+  return mergeParts(parts, '告示板');
+}
+
+/** solid 可以由多個具名部件組成（例如曬衣繩：柱子與繩子不動、衣服會擺） */
+type Builder = { build: () => THREE.BufferGeometry | NamedPart[]; kind: 'plant' | 'solid' };
 
 const builders: Record<string, Builder> = {
   flower_patch: { build: flowerPatch, kind: 'plant' },
@@ -356,6 +469,9 @@ const builders: Record<string, Builder> = {
   campfire: { build: campfire, kind: 'solid' },
   tavern_room: { build: tavernRoom, kind: 'solid' },
   door_mat: { build: doorMat, kind: 'solid' },
+  clothesline: { build: clothesline, kind: 'solid' },
+  signpost: { build: signpost, kind: 'solid' },
+  notice_board: { build: noticeBoard, kind: 'solid' },
 };
 
 export const PROCEDURAL_PREFIX = 'procedural:';
@@ -369,8 +485,15 @@ export function buildProceduralModel(model: string): ModelPart[] {
     // 實心物件（木橋）：一般 toon 材質，使用幾何本身的法線
     const material = patchMist(new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true }));
     material.name = `procedural_${id}`;
-    return [{ key: id, geometry: builder.build(), material, local: new THREE.Matrix4() }];
+    const built = builder.build();
+    if (Array.isArray(built)) {
+      // 部件共用同一個材質（釋放時重複呼叫 dispose 沒有副作用）
+      return built.map((b) => ({ key: `${id}:${b.name}`, name: b.name, geometry: b.geometry, material, local: new THREE.Matrix4().makeTranslation(...(b.at ?? [0, 0, 0])) }));
+    }
+    return [{ key: id, geometry: built, material, local: new THREE.Matrix4() }];
   }
+  const geometry = builder.build();
+  if (Array.isArray(geometry)) throw new Error(`植物程式模型只能有一個部件：${model}`);
   const material = new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true, side: THREE.DoubleSide });
   // 雙面材質在背面會把法線翻成朝下而變暗（花瓣發灰）；與植被相同，一律使用朝上的頂點法線
   material.onBeforeCompile = (shader) => {
@@ -382,5 +505,5 @@ export function buildProceduralModel(model: string): ModelPart[] {
   material.customProgramCacheKey = () => 'procedural-plant';
   material.name = `procedural_${id}`;
   patchMist(material);
-  return [{ key: id, geometry: builder.build(), material, local: new THREE.Matrix4() }];
+  return [{ key: id, geometry, material, local: new THREE.Matrix4() }];
 }

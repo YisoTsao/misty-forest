@@ -14,6 +14,7 @@ import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
 import { combatRuntime, enemyRuntime } from './combat/combatRuntime';
 import { companionRuntime } from './companion/companionRuntime';
+import { ambientRuntime } from './ambient/ambientRuntime';
 import { useInputDeviceStore } from './input/device';
 import { input } from './input/inputManager';
 import { useLocationStore } from './location';
@@ -105,6 +106,8 @@ export type MistwoodDebugApi = {
   audio: () => { state: string; played: Record<string, number>; music: boolean; birds: number };
   /** 目前所在的場景（overworld 或室內 id） */
   location: () => string;
+  /** 羊群：每隻羊的位置與狀態、整群是否暫停（玩家太遠） */
+  flock: (id: string) => { paused: boolean; sheep: { x: number; z: number; mode: string }[] } | null;
   /** 模擬手把狀態（buttons 0–1、axes -1–1，standard mapping）；null 還原為實體手把 */
   setPad: (pad: { buttons?: number[]; axes?: number[] } | null) => void;
   /** 最近使用的輸入裝置 */
@@ -224,6 +227,10 @@ export function installDebugApi(): void {
       input.setPadOverride(
         pad ? { buttons: Array.from({ length: 16 }, (_, i) => pad.buttons?.[i] ?? 0), axes: Array.from({ length: 4 }, (_, i) => pad.axes?.[i] ?? 0) } : null,
       ),
+    flock: (id) => {
+      const sheep = ambientRuntime.flocks.get(id);
+      return sheep ? { paused: ambientRuntime.flockPaused.get(id) ?? false, sheep: sheep.map((s) => ({ x: s.x, z: s.z, mode: s.mode })) } : null;
+    },
     inputDevice: () => useInputDeviceStore.getState().device,
     padFocus: () => document.querySelector('.pad-focus')?.textContent?.trim() ?? null,
     location: () => useLocationStore.getState().location,

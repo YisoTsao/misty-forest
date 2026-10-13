@@ -1,0 +1,5 @@
+{
+  "flocks": [
+    { "id": "village_sheep", "center": [-31, -21], "radius": 6.5, "count": 6, "seed": 12 }
+  ]
+}

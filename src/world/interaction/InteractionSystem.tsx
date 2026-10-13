@@ -172,6 +172,13 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
       travel(target.spec.prefab.enter.to);
       return;
     }
+    // 告示牌 / 路標：顯示內容（本機，不改變世界狀態）
+    if (target.spec.prefab.read) {
+      ui.setInteractTarget(null);
+      if (document.pointerLockElement) document.exitPointerLock();
+      ui.showMessage(target.spec.prefab.read);
+      return;
+    }
     const command = commandFor(target.spec.prefab, target.spec.id);
     if (!command) return;
 
