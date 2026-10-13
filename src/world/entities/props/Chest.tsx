@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Placement } from '@/game-core/world/types';
-import { useWorldStore } from '@/game/state/worldStore';
+import { useGameStateStore } from '@/game/state/gameStateStore';
 import { assetUrl } from '@/game/worldData';
 import { toToonMaterial } from '@/render/toon';
 
@@ -15,7 +15,7 @@ const OPEN_DELAY = 0.35;
 
 /**
  * 寶箱（規格 5.2：碰撞、可互動、持久化開關狀態）。
- * 每個寶箱需要獨立的蓋子動畫，所以不走 instancing；開關狀態只讀 worldStore。
+ * 每個寶箱需要獨立的蓋子動畫，所以不走 instancing；開關狀態只讀權威狀態。
  */
 export function Chest({ placement, model }: { placement: Placement; model: string }) {
   const gltf = useGLTF(assetUrl(model));
@@ -38,7 +38,7 @@ export function Chest({ placement, model }: { placement: Placement; model: strin
   }, [gltf.scene, model]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
 
-  const open = useWorldStore((s) => s.objects.get(placement.id)?.open === true);
+  const open = useGameStateStore((s) => s.state.objects.get(placement.id)?.open === true);
   const openedFor = useRef(0);
 
   useFrame((_, dt) => {

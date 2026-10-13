@@ -35,6 +35,8 @@ export type InteractionKind = (typeof interactionKinds)[number];
 export const prefabSchema = z
   .object({
     id: z.string().min(1),
+    /** GLB / glTF 路徑，或 `procedural:<id>`（程式產生的模型，例如花叢） */
+    /** GLB / glTF 路徑，或 `procedural:<id>`（程式產生的模型，例如花叢） */
     model: z.string().min(1),
     collider: z.enum(['none', 'static', 'sensor', 'dynamic']),
     collision: collisionShapeSchema.optional(),
@@ -45,12 +47,30 @@ export const prefabSchema = z
     nameKey: z.string().min(1).optional(),
     /** 可互動距離（公尺，從物件原點的水平距離） */
     interactRadius: z.number().positive().optional(),
-    harvest: z.object({ lootTableId: z.string(), respawnSec: z.number().positive().optional() }).optional(),
+    harvest: z
+      .object({
+        lootTableId: z.string().min(1),
+        /** 重生時間（遊戲時間秒）；省略表示不重生 */
+        respawnSec: z.number().positive().optional(),
+        /** 採集後留下的模型（例如樹樁）；省略時整個物件隱藏 */
+        harvestedModel: z.string().min(1).optional(),
+        /** 採集後的碰撞形狀；省略時移除碰撞 */
+        harvestedCollision: collisionShapeSchema.optional(),
+        /** 採集時角色播放的動作（砍樹、敲石頭用 attack，摘花用 interact） */
+        anim: z.enum(['attack', 'interact']).optional(),
+      })
+      .optional(),
+    /** 寶箱內容（打開時給予，只能領一次） */
+    contents: z.object({ lootTableId: z.string().min(1) }).optional(),
     persists: z.boolean(),
   })
   .refine((p) => p.collider !== 'static' || p.collision !== undefined, {
     message: 'collider 為 static 時必須提供 collision 形狀',
     path: ['collision'],
+  })
+  .refine((p) => p.interaction !== 'harvest' || p.harvest !== undefined, {
+    message: 'interaction 為 harvest 時必須提供 harvest 設定',
+    path: ['harvest'],
   })
   .refine((p) => p.interaction === undefined || p.nameKey !== undefined, {
     message: '可互動的 prefab 必須提供 nameKey',

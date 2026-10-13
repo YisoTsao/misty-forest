@@ -5278,5 +5278,965 @@
       10.9,
       11.85
     ]
+  },
+  {
+    "id": "meadow_flower_001",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -16.57,
+      -1.8,
+      4.38
+    ],
+    "rotation": [
+      0,
+      1.51,
+      0
+    ],
+    "scale": [
+      2.01,
+      2.19,
+      2.01
+    ]
+  },
+  {
+    "id": "meadow_flower_002",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -8.16,
+      -0.58,
+      1.29
+    ],
+    "rotation": [
+      0,
+      5.96,
+      0
+    ],
+    "scale": [
+      1.93,
+      2.09,
+      1.93
+    ]
+  },
+  {
+    "id": "meadow_flower_003",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -14.79,
+      -0.93,
+      12.64
+    ],
+    "rotation": [
+      0,
+      5.31,
+      0
+    ],
+    "scale": [
+      1.97,
+      1.95,
+      1.97
+    ]
+  },
+  {
+    "id": "meadow_flower_004",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      12.44,
+      1.16,
+      26.03
+    ],
+    "rotation": [
+      0,
+      5.24,
+      0
+    ],
+    "scale": [
+      2.11,
+      2.03,
+      2.11
+    ]
+  },
+  {
+    "id": "meadow_flower_005",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      16.68,
+      1.58,
+      22.92
+    ],
+    "rotation": [
+      0,
+      2.39,
+      0
+    ],
+    "scale": [
+      2.29,
+      2.56,
+      2.29
+    ]
+  },
+  {
+    "id": "meadow_flower_006",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -3.58,
+      -0.23,
+      -1.69
+    ],
+    "rotation": [
+      0,
+      2.8,
+      0
+    ],
+    "scale": [
+      2.03,
+      2.32,
+      2.03
+    ]
+  },
+  {
+    "id": "meadow_flower_007",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      15.36,
+      1.34,
+      20.79
+    ],
+    "rotation": [
+      0,
+      3.7,
+      0
+    ],
+    "scale": [
+      2.08,
+      1.92,
+      2.08
+    ]
+  },
+  {
+    "id": "meadow_flower_008",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -13.1,
+      0.58,
+      35.01
+    ],
+    "rotation": [
+      0,
+      2.39,
+      0
+    ],
+    "scale": [
+      2.15,
+      2.34,
+      2.15
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_001",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -55.55,
+      6.56,
+      67.35
+    ],
+    "rotation": [
+      0,
+      0.31,
+      0
+    ],
+    "scale": [
+      2.13,
+      2.22,
+      2.13
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_002",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -32.5,
+      4.88,
+      -62.21
+    ],
+    "rotation": [
+      0,
+      3.44,
+      0
+    ],
+    "scale": [
+      1.9,
+      1.81,
+      1.9
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_003",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -22.9,
+      -1.74,
+      -13.08
+    ],
+    "rotation": [
+      0,
+      4.7,
+      0
+    ],
+    "scale": [
+      2.02,
+      1.83,
+      2.02
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_004",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      16.84,
+      1.45,
+      18.57
+    ],
+    "rotation": [
+      0,
+      3.63,
+      0
+    ],
+    "scale": [
+      2.11,
+      1.91,
+      2.11
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_005",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -33.76,
+      0.72,
+      34.6
+    ],
+    "rotation": [
+      0,
+      4.77,
+      0
+    ],
+    "scale": [
+      2.11,
+      1.91,
+      2.11
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_006",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      55.16,
+      2,
+      5
+    ],
+    "rotation": [
+      0,
+      6.22,
+      0
+    ],
+    "scale": [
+      1.97,
+      2.01,
+      1.97
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_007",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      16.97,
+      2.39,
+      -64.73
+    ],
+    "rotation": [
+      0,
+      4.99,
+      0
+    ],
+    "scale": [
+      1.97,
+      2.2,
+      1.97
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_008",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -67.51,
+      6.44,
+      -15.62
+    ],
+    "rotation": [
+      0,
+      1.09,
+      0
+    ],
+    "scale": [
+      1.9,
+      2.01,
+      1.9
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_009",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      22.06,
+      0.83,
+      41.13
+    ],
+    "rotation": [
+      0,
+      5.91,
+      0
+    ],
+    "scale": [
+      2,
+      2.28,
+      2
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_010",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      45.67,
+      0.25,
+      30.08
+    ],
+    "rotation": [
+      0,
+      0.54,
+      0
+    ],
+    "scale": [
+      2.02,
+      1.84,
+      2.02
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_011",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -50.13,
+      -0.73,
+      1.59
+    ],
+    "rotation": [
+      0,
+      1.44,
+      0
+    ],
+    "scale": [
+      2.27,
+      2.39,
+      2.27
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_012",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      23.63,
+      1.99,
+      -4.91
+    ],
+    "rotation": [
+      0,
+      2.37,
+      0
+    ],
+    "scale": [
+      2.3,
+      2.08,
+      2.3
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_013",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      44.97,
+      2,
+      -2.23
+    ],
+    "rotation": [
+      0,
+      5.27,
+      0
+    ],
+    "scale": [
+      2.16,
+      2.1,
+      2.16
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_014",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -20.76,
+      0.28,
+      28.77
+    ],
+    "rotation": [
+      0,
+      1.45,
+      0
+    ],
+    "scale": [
+      2.17,
+      2.35,
+      2.17
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_015",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      15,
+      1.32,
+      1.14
+    ],
+    "rotation": [
+      0,
+      3.29,
+      0
+    ],
+    "scale": [
+      2.08,
+      2.13,
+      2.08
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_016",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      20.83,
+      1.56,
+      15.54
+    ],
+    "rotation": [
+      0,
+      5,
+      0
+    ],
+    "scale": [
+      2.29,
+      2.58,
+      2.29
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_017",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -56.31,
+      1.95,
+      -51.72
+    ],
+    "rotation": [
+      0,
+      3.01,
+      0
+    ],
+    "scale": [
+      2.14,
+      2.37,
+      2.14
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_018",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -23.33,
+      2.1,
+      49.19
+    ],
+    "rotation": [
+      0,
+      5.53,
+      0
+    ],
+    "scale": [
+      2.08,
+      2.18,
+      2.08
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_019",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      48.32,
+      0.77,
+      -13.88
+    ],
+    "rotation": [
+      0,
+      0.21,
+      0
+    ],
+    "scale": [
+      2.27,
+      2.28,
+      2.27
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_020",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -34.43,
+      -0.88,
+      23.58
+    ],
+    "rotation": [
+      0,
+      1.68,
+      0
+    ],
+    "scale": [
+      1.92,
+      2.01,
+      1.92
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_021",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -41.36,
+      -1.87,
+      6.01
+    ],
+    "rotation": [
+      0,
+      1.79,
+      0
+    ],
+    "scale": [
+      1.92,
+      2.03,
+      1.92
+    ]
+  },
+  {
+    "id": "meadow_flower_wild_022",
+    "prefabId": "flower_patch",
+    "regionId": "meadow",
+    "position": [
+      -32.81,
+      1.34,
+      39.89
+    ],
+    "rotation": [
+      0,
+      5.85,
+      0
+    ],
+    "scale": [
+      2.25,
+      2.54,
+      2.25
+    ]
+  },
+  {
+    "id": "forest_herb_001",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      53.99,
+      1.29,
+      -48.5
+    ],
+    "rotation": [
+      0,
+      0.97,
+      0
+    ],
+    "scale": [
+      1.92,
+      1.77,
+      1.92
+    ]
+  },
+  {
+    "id": "forest_herb_002",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      36.52,
+      1.07,
+      -60.47
+    ],
+    "rotation": [
+      0,
+      1.88,
+      0
+    ],
+    "scale": [
+      1.84,
+      1.8,
+      1.84
+    ]
+  },
+  {
+    "id": "forest_herb_003",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      68.58,
+      7.49,
+      -35.75
+    ],
+    "rotation": [
+      0,
+      5.44,
+      0
+    ],
+    "scale": [
+      2.06,
+      1.88,
+      2.06
+    ]
+  },
+  {
+    "id": "forest_herb_004",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      55.5,
+      1.79,
+      -46.35
+    ],
+    "rotation": [
+      0,
+      4.65,
+      0
+    ],
+    "scale": [
+      2.04,
+      2.28,
+      2.04
+    ]
+  },
+  {
+    "id": "forest_herb_005",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      54.08,
+      2.5,
+      -59.01
+    ],
+    "rotation": [
+      0,
+      4.22,
+      0
+    ],
+    "scale": [
+      2.13,
+      2.34,
+      2.13
+    ]
+  },
+  {
+    "id": "forest_herb_006",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      58.93,
+      3.24,
+      -59.89
+    ],
+    "rotation": [
+      0,
+      5.56,
+      0
+    ],
+    "scale": [
+      2.17,
+      2.44,
+      2.17
+    ]
+  },
+  {
+    "id": "forest_herb_007",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      72.42,
+      8.92,
+      -37.63
+    ],
+    "rotation": [
+      0,
+      3.19,
+      0
+    ],
+    "scale": [
+      2.15,
+      2,
+      2.15
+    ]
+  },
+  {
+    "id": "forest_herb_008",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      57,
+      2.44,
+      -36.77
+    ],
+    "rotation": [
+      0,
+      0.95,
+      0
+    ],
+    "scale": [
+      2,
+      2.1,
+      2
+    ]
+  },
+  {
+    "id": "forest_herb_009",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      62.5,
+      4.62,
+      -40.73
+    ],
+    "rotation": [
+      0,
+      0.44,
+      0
+    ],
+    "scale": [
+      1.85,
+      1.79,
+      1.85
+    ]
+  },
+  {
+    "id": "forest_herb_010",
+    "prefabId": "herb_bush",
+    "regionId": "forest",
+    "position": [
+      67.75,
+      7.55,
+      -67.35
+    ],
+    "rotation": [
+      0,
+      1.17,
+      0
+    ],
+    "scale": [
+      2.06,
+      2.32,
+      2.06
+    ]
+  },
+  {
+    "id": "meadow_herb_001",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      14.36,
+      1.37,
+      -6.51
+    ],
+    "rotation": [
+      0,
+      5.86,
+      0
+    ],
+    "scale": [
+      2.16,
+      2.44,
+      2.16
+    ]
+  },
+  {
+    "id": "meadow_herb_002",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      57.15,
+      2.57,
+      -19.61
+    ],
+    "rotation": [
+      0,
+      5.86,
+      0
+    ],
+    "scale": [
+      2.15,
+      2.36,
+      2.15
+    ]
+  },
+  {
+    "id": "meadow_herb_003",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      43.46,
+      0.09,
+      -33.67
+    ],
+    "rotation": [
+      0,
+      3.12,
+      0
+    ],
+    "scale": [
+      2.01,
+      2.03,
+      2.01
+    ]
+  },
+  {
+    "id": "meadow_herb_004",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      -11.84,
+      3.67,
+      56.14
+    ],
+    "rotation": [
+      0,
+      1.9,
+      0
+    ],
+    "scale": [
+      2.05,
+      2.27,
+      2.05
+    ]
+  },
+  {
+    "id": "meadow_herb_005",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      -43.55,
+      0.48,
+      -47.71
+    ],
+    "rotation": [
+      0,
+      4.5,
+      0
+    ],
+    "scale": [
+      2.07,
+      1.99,
+      2.07
+    ]
+  },
+  {
+    "id": "meadow_herb_006",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      -12.27,
+      9.27,
+      70.12
+    ],
+    "rotation": [
+      0,
+      2.77,
+      0
+    ],
+    "scale": [
+      1.98,
+      2.17,
+      1.98
+    ]
+  },
+  {
+    "id": "meadow_herb_007",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      57.65,
+      2.25,
+      45.23
+    ],
+    "rotation": [
+      0,
+      6.24,
+      0
+    ],
+    "scale": [
+      1.98,
+      2.27,
+      1.98
+    ]
+  },
+  {
+    "id": "meadow_herb_008",
+    "prefabId": "herb_bush",
+    "regionId": "meadow",
+    "position": [
+      9.7,
+      6.26,
+      69.1
+    ],
+    "rotation": [
+      0,
+      5.7,
+      0
+    ],
+    "scale": [
+      2.13,
+      2.44,
+      2.13
+    ]
   }
 ]

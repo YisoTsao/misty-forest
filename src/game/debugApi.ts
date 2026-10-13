@@ -1,14 +1,16 @@
 import { requiredClipKeys, type ClipKey } from '@/game-core/character/characterDef';
 import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
 import { parseMistLevel } from '@/game-core/world/mist';
+import { initialGameState, type GameCommand } from '@/game-core/authority/rules';
+import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
+import { authority } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
 import { useDebugStore, type CameraMode } from './state/debugStore';
 import { useGameStore } from './state/gameStore';
 import { useUiStore } from './state/uiStore';
-import { useWorldStore } from './state/worldStore';
 import { mistRuntime } from './world/mistRuntime';
 import { cameraBookmarks } from './worldData';
 
@@ -45,8 +47,17 @@ export type MistwoodDebugApi = {
   /** 目前顯示互動提示的物件 id */
   interactTarget: () => string | null;
   objectState: (placementId: string) => ObjectRuntime | null;
-  /** 世界物件回到初始狀態（端對端測試用） */
+  /** 權威狀態回到新遊戲（端對端測試用） */
   resetWorld: () => void;
+  /** 背包格子快照 */
+  inventory: () => InventorySlot[];
+  itemCount: (itemId: string) => number;
+  /** 遊戲時間（秒） */
+  gameTime: () => number;
+  /** 直接送出指令給權威層（測試用，例如快轉時間驗證重生） */
+  send: (command: GameCommand) => void;
+  /** 目前畫面上的通知 */
+  toasts: () => { itemId?: string; count?: number; textKey?: string }[];
   activeColliders: () => number;
   /** 效能量測數據快照（scripts/perf.mjs 使用） */
   perf: () => typeof perfStats & { jsHeapMB: number | null };
@@ -113,11 +124,16 @@ export function installDebugApi(): void {
     },
     mist: () => ({ current: mistRuntime.value, target: useDebugStore.getState().mistTarget }),
     interactTarget: () => useUiStore.getState().interactTarget?.id ?? null,
-    objectState: (id) => useWorldStore.getState().objects.get(id) ?? null,
+    objectState: (id) => authority.getState().objects.get(id) ?? null,
     resetWorld: () => {
-      useWorldStore.getState().reset();
+      authority.replaceState(initialGameState());
       useUiStore.getState().closeMessage();
     },
+    inventory: () => [...authority.getState().inventory.slots],
+    itemCount: (itemId) => countItem(authority.getState().inventory, itemId),
+    gameTime: () => authority.getState().time,
+    send: (command) => authority.send(command),
+    toasts: () => useUiStore.getState().toasts.map(({ itemId, count, textKey }) => ({ itemId, count, textKey })),
     activeColliders: () => perfStats.activeColliders,
     perf: () => {
       // performance.memory 為 Chromium 專有 API

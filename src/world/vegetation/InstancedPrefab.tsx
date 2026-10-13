@@ -2,13 +2,12 @@ import { useGLTF } from '@react-three/drei';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Placement } from '@/game-core/world/types';
+import { buildProceduralModel, PROCEDURAL_PREFIX, type ModelPart as Part } from '@/render/proceduralModels';
 import { toToonMaterial } from '@/render/toon';
 import { assetUrl } from '@/game/worldData';
 
-type Part = { key: string; geometry: THREE.BufferGeometry; material: THREE.Material; local: THREE.Matrix4 };
-
 /** 從 GLB 取出所有 mesh，材質轉為 toon；回傳每個部件與其在模型內的局部矩陣。 */
-function useModelParts(model: string): Part[] {
+function useGltfParts(model: string): Part[] {
   const gltf = useGLTF(assetUrl(model));
   const parts = useMemo(() => {
     const list: Part[] = [];
@@ -41,7 +40,7 @@ function placementMatrix(p: Placement, out: THREE.Matrix4): THREE.Matrix4 {
   return out.compose(tmpPos, tmpQuat, tmpScale);
 }
 
-function InstancedPart({ part, placements }: { part: Part; placements: readonly Placement[] }) {
+function InstancedPart({ part, placements, receiveShadow }: { part: Part; placements: readonly Placement[]; receiveShadow: boolean }) {
   const ref = useRef<THREE.InstancedMesh>(null);
 
   useLayoutEffect(() => {
@@ -55,16 +54,49 @@ function InstancedPart({ part, placements }: { part: Part; placements: readonly 
     mesh.computeBoundingSphere();
   }, [part, placements]);
 
-  return <instancedMesh ref={ref} args={[part.geometry, part.material, placements.length]} castShadow receiveShadow />;
+  return <instancedMesh ref={ref} args={[part.geometry, part.material, placements.length]} castShadow receiveShadow={receiveShadow} />;
 }
 
+/** 程式產生的模型：geometry 與 material 都由本元件建立與釋放 */
+function useProceduralParts(model: string): Part[] {
+  const parts = useMemo(() => buildProceduralModel(model), [model]);
+  useEffect(
+    () => () =>
+      parts.forEach((p) => {
+        p.geometry.dispose();
+        p.material.dispose();
+      }),
+    [parts],
+  );
+  return parts;
+}
+
+type InstancedProps = { model: string; placements: readonly Placement[] };
+
 /** 同一 prefab 的所有 placement 以 InstancedMesh 渲染（規格 4.3、7）。 */
-export function InstancedPrefab({ model, placements }: { model: string; placements: readonly Placement[] }) {
-  const parts = useModelParts(model);
+export function InstancedPrefab({ model, placements }: InstancedProps) {
+  if (placements.length === 0) return null;
+  return model.startsWith(PROCEDURAL_PREFIX) ? (
+    <ProceduralInstanced model={model} placements={placements} />
+  ) : (
+    <GltfInstanced model={model} placements={placements} />
+  );
+}
+
+function GltfInstanced({ model, placements }: InstancedProps) {
+  return <InstancedParts parts={useGltfParts(model)} placements={placements} receiveShadow />;
+}
+
+function ProceduralInstanced({ model, placements }: InstancedProps) {
+  // 程式植物的葉片與花瓣是薄面片，接收陰影會產生自我遮蔽的髒斑，因此只投影不接收
+  return <InstancedParts parts={useProceduralParts(model)} placements={placements} receiveShadow={false} />;
+}
+
+function InstancedParts({ parts, placements, receiveShadow }: { parts: Part[]; placements: readonly Placement[]; receiveShadow: boolean }) {
   return (
     <>
       {parts.map((part) => (
-        <InstancedPart key={part.key} part={part} placements={placements} />
+        <InstancedPart key={part.key} part={part} placements={placements} receiveShadow={receiveShadow} />
       ))}
     </>
   );

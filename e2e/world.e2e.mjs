@@ -11,14 +11,16 @@ const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
 const PLAYER_RADIUS = 0.32;
 const PIVOT_OFFSET_Y = 0.55;
 
-/** 找一棵四周 9 m 內（大於測試中攝影機距離 8 m）沒有其他物件、遠離出生點與地圖邊緣的樹，避免測試受其他碰撞體干擾 */
+/** 找一棵四周 9 m 內（大於測試中攝影機距離 8 m）沒有其他碰撞體、遠離出生點與地圖邊緣的樹，避免測試受其他碰撞體干擾 */
 function isolatedTree() {
   for (const p of placements) {
     const prefab = prefabs.get(p.prefabId);
     if (!p.prefabId.startsWith('tree_') || prefab.collision?.shape !== 'cylinder') continue;
     const [x, , z] = p.position;
     if (Math.abs(x) > 50 || Math.abs(z) > 50 || Math.hypot(x, z - 18) < 20) continue;
-    const crowded = placements.some((o) => o !== p && Math.hypot(o.position[0] - x, o.position[2] - z) < 9);
+    const crowded = placements.some(
+      (o) => o !== p && prefabs.get(o.prefabId).collider === 'static' && Math.hypot(o.position[0] - x, o.position[2] - z) < 9,
+    );
     if (crowded) continue;
     const [sx, sy, sz] = p.scale ?? [1, 1, 1];
     return { id: p.id, x, z, radius: prefab.collision.radius * Math.max(sx, sz), height: prefab.collision.height * sy };
@@ -119,13 +121,18 @@ try {
     assert.equal(await debug(() => window.__mistwoodDebug.interactTarget()), chest.id);
   });
 
-  await check('按 E 打開寶箱：播放互動動畫、蓋子狀態為開、顯示訊息', async () => {
+  await check('按 E 打開寶箱：播放互動動畫、伸手時蓋子狀態為開、星光碎片進背包、顯示訊息', async () => {
     await page.keyboard.press('KeyE');
     await page.waitForTimeout(150);
     const s = await state();
     assert.equal(s.action, 'interact', `action=${s.action}`);
+    // 指令在伸手的瞬間（0.45 秒）送出
+    await page.waitForTimeout(500);
     const obj = await debug((id) => window.__mistwoodDebug.objectState(id), chest.id);
     assert.equal(obj?.open, true, `objectState=${JSON.stringify(obj)}`);
+    assert.equal(await debug(() => window.__mistwoodDebug.itemCount('starlight_shard')), 1);
+    const toasts = await debug(() => window.__mistwoodDebug.toasts());
+    assert.ok(toasts.some((t) => t.itemId === 'starlight_shard'), `通知：${JSON.stringify(toasts)}`);
     await dialog.waitFor({ timeout: 3000 });
     assert.match(await dialog.innerText(), /打開了寶箱/);
   });
@@ -145,9 +152,10 @@ try {
     await page.waitForTimeout(400);
     assert.equal(await prompt.count(), 0, '寶箱打開後仍顯示提示');
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1500);
     assert.equal(await dialog.count(), 0, '重複開啟了訊息');
     assert.equal((await state()).action, null);
+    assert.equal(await debug(() => window.__mistwoodDebug.itemCount('starlight_shard')), 1, '重複領取了獎勵');
   });
 
   await check('寶箱有碰撞，角色無法穿過', async () => {

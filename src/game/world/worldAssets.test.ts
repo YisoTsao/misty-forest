@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import prefabs from '@/data/prefabs.json';
+import { buildProceduralModel, PROCEDURAL_PREFIX } from '@/render/proceduralModels';
 
 type GltfJson = { nodes?: { name?: string }[]; buffers?: { uri?: string }[]; images?: { uri?: string }[] };
 
@@ -15,10 +16,27 @@ function readGltfJson(file: string): GltfJson {
 }
 
 describe('world prefab assets', () => {
-  for (const prefab of prefabs) {
-    const file = path.join('public', prefab.model);
+  // 每個 prefab 的模型，加上採集後留下的模型（樹樁）
+  const models = prefabs.flatMap((p) => [
+    { label: p.id, model: p.model },
+    ...(p.harvest?.harvestedModel ? [{ label: `${p.id}（採集後）`, model: p.harvest.harvestedModel }] : []),
+  ]);
+  for (const { label, model } of models) {
+    if (model.startsWith(PROCEDURAL_PREFIX)) {
+      it(`${label}：程式模型可建立且有幾何`, () => {
+        const parts = buildProceduralModel(model);
+        expect(parts.length).toBeGreaterThan(0);
+        for (const part of parts) {
+          expect(part.geometry.getAttribute('position').count).toBeGreaterThan(0);
+          part.geometry.dispose();
+          part.material.dispose();
+        }
+      });
+      continue;
+    }
+    const file = path.join('public', model);
 
-    it(`${prefab.id}：模型與其外部檔案都存在`, () => {
+    it(`${label}：模型與其外部檔案都存在`, () => {
       expect(existsSync(file), file).toBe(true);
       const json = readGltfJson(file);
       const external = [...(json.buffers ?? []), ...(json.images ?? [])]

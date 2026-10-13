@@ -55,3 +55,13 @@
 - **T-30 Phase 1 先做最小主選單與暫停選單**：Phase 1 驗收要求「可連續遊玩並回主選單」。主選單（開始遊戲、畫質、離開遊戲）以緩慢環繞的實際場景為背景；遊玩中按 Esc 或滑鼠鎖定被解除時開啟暫停選單（繼續、畫質、回主選單）。流程狀態轉換為 game-core 純函式。還沒有存檔，所以回主選單再開始會重置世界與角色（選單上有提示）。`?play=1` 略過主選單（測試與截圖用）。
 - **T-31 關閉視窗即結束程式（含 macOS）**：遊戲只有一個視窗，沿用 macOS 文件型 App「關窗不結束」的慣例沒有意義，也會讓主選單的「離開遊戲」看起來沒反應。
 - **T-32 滑鼠鎖定的端對端檢查依環境略過**：Chromium 只在視窗位於作業系統前景時允許滑鼠鎖定；開發機有人使用其他視窗時，連最小測試頁都會被拒絕（`WrongDocumentError`，已驗證）。此時 `dev.e2e` 會把「鎖定滑鼠」標為略過並說明原因，改用除錯 API 以相同換算轉動攝影機，其餘流程照常驗證。
+
+## Phase 2（2026-10-13 起）
+- **P-01 進入 Phase 2**：使用者指示「依進度接續下一階段開發、一直做到結束」，視為同意 Phase 1 驗收、進入 Phase 2。仍待使用者處理的項目（風格參考圖比對、B 級機器量測）保留在 `PROGRESS.md`「下一步」，不阻擋後續階段；Phase 5 美術完善時一併做風格判定。
+- **T-33 Authority 與規則**：`game-core/authority/rules.ts` 的 `handleCommand(state, command, ctx) → events` 與 `applyEvents(state, events) → state` 皆為純函式；`ctx` 注入世界查詢、物品、掉落表與亂數（測試用固定種子，日後伺服器用自己的）。`LocalAuthority`（`authority.ts`）保存狀態、送指令、通知訂閱者，放在 game-core 以便伺服器重用。UI / 3D 只讀 `useGameStateStore`（權威狀態的唯讀鏡像），取代任務 1C 的 `worldStore`。Phase 6 的 `RemoteAuthority` 實作同一介面（`send / subscribe / getState`）。
+- **T-34 背包「全部放得下才成功」**：`addItems` 放不下任何一部分就回傳 null、狀態不變。採集與開箱在背包滿時被拒絕，物件維持原狀（樹不會被砍掉、寶箱保持關閉），唯一獎勵不會遺失。
+- **T-35 採集指令在動作揮下時送出**：按 E 先轉身並播放動作（砍樹 / 敲石頭用 attack，摘花採藥用 interact），0.45–0.5 秒後才送出指令，物件在揮下的瞬間變成樹樁或消失；結果仍完全由權威層決定。被拒絕時以通知顯示原因（例如背包已滿）。
+- **T-36 遊戲時間由權威層保存**：`GameState.time` 只在遊玩中前進（`GameClock` 每秒送 `AdvanceTime`，主選單與暫停時停止），重生時間 `respawnAt` 以遊戲時間計，存檔後讀回仍正確。玩家站在重生位置 2.5 m 內時延後重生，避免卡進碰撞體。
+- **T-37 樹樁與採集後碰撞**：KayKit Hexagon 包內的 `tree_single_A_cut / B_cut` 當樹樁（同包同貼圖）。prefab 的 `harvest.harvestedModel / harvestedCollision` 宣告採集後的外觀與碰撞；`EnvironmentColliders` 依狀態切換。樹樁矮於自動上台階高度時角色可以踩上去（不會穿進去）。
+- **T-38 花叢與草藥為程式產生的模型**：素材包沒有可採集的花與草藥，以葉片面片 + 星形花冠組合（`render/proceduralModels.ts`，prefab model 為 `procedural:<id>`），比草地上的裝飾小花大很多，一眼可辨。與植被相同使用朝上的法線、不接收陰影（薄面片自我遮蔽會發灰）。不放進 GLB 是為了不需要額外的建模工具鏈；若之後找到風格一致的 CC0 模型可直接換掉 prefab 的 model。
+- **T-39 物品圖示用 SVG 元件**：`ui/ItemIcon.tsx` 依 `items.json` 的 `icon` 欄位繪製，任何解析度都清晰，不需要圖片資產與授權登錄。

@@ -15,6 +15,7 @@ import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
 import { TitleScreen } from '@/ui/TitleScreen';
+import { Toasts } from '@/ui/Toasts';
 import { WorldScene } from '@/world/WorldScene';
 
 export function App() {
@@ -41,6 +42,7 @@ export function App() {
         <WorldScene data={worldDataResult.data} />
       </Canvas>
       <InteractPrompt />
+      <Toasts />
       <ControlHint />
       {debugEnabled && (
         <>

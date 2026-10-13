@@ -1,0 +1,20 @@
+import { LocalAuthority } from '@/game-core/authority/authority';
+import { initialGameState } from '@/game-core/authority/rules';
+import { WorldIndex } from './world/worldIndex';
+import { worldDataResult } from './worldData';
+
+// 單人模式的權威層（規格 3.2）。所有權威狀態的改變都經由這裡送出指令。
+// 世界資料驗證失敗時 App 會顯示錯誤畫面，不會進入遊戲；此時以空資料建立，避免模組載入就拋錯。
+const data = worldDataResult.ok
+  ? worldDataResult.data
+  : { prefabs: new Map(), placements: [], items: new Map(), lootTables: new Map() };
+
+/** 世界查詢索引（啟動時建立一次，之後唯讀） */
+export const worldIndex = new WorldIndex(data);
+
+export const authority = new LocalAuthority(initialGameState(), {
+  world: worldIndex,
+  items: data.items,
+  lootTables: data.lootTables,
+  random: Math.random,
+});

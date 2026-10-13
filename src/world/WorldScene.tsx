@@ -1,14 +1,15 @@
 import { Physics, type RapierCollider } from '@react-three/rapier';
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import type { WorldData } from '@/game-core/world/worldData';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStore } from '@/game/state/gameStore';
-import { WorldIndex } from '@/game/world/worldIndex';
+import { worldIndex as index } from '@/game/authority';
 import { PostEffects } from '@/render/PostEffects';
 import { AssetBoundary } from './AssetBoundary';
 import { DebugCameraRig } from './camera/DebugCameraRig';
 import { FollowCamera } from './camera/FollowCamera';
+import { GameClock } from './GameClock';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
@@ -30,7 +31,6 @@ export function WorldScene({ data }: { data: WorldData }) {
   const cameraMode = useDebugStore((s) => s.cameraMode);
   const onTitle = useGameStore((s) => s.screen === 'title');
   const playerCollider = useRef<RapierCollider>(null);
-  const index = useMemo(() => new WorldIndex(data), [data]);
 
   return (
     <>
@@ -53,6 +53,7 @@ export function WorldScene({ data }: { data: WorldData }) {
           <Backdrop />
         </AssetBoundary>
         <InteractionSystem index={index} />
+        <GameClock />
         <SceneReadyProbe />
       </Suspense>
       {cameraMode === 'follow' && onTitle && <TitleCameraRig />}

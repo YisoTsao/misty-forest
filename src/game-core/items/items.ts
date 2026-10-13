@@ -1,0 +1,83 @@
+// 物品定義與掉落表（規格 6.3：物品定義與玩家背包分離；6.2：資源有數量與條件）。
+import { z } from 'zod';
+
+export const itemCategories = ['material', 'special', 'quest'] as const;
+
+export const itemDefSchema = z.object({
+  id: z.string().min(1),
+  /** 名稱與說明（i18n key） */
+  nameKey: z.string().min(1),
+  descKey: z.string().min(1),
+  /** 圖示 id（UI 以此選擇圖示） */
+  icon: z.string().min(1),
+  category: z.enum(itemCategories),
+  /** 單格堆疊上限 */
+  maxStack: z.number().int().positive(),
+});
+export type ItemDef = z.infer<typeof itemDefSchema>;
+
+export const lootTableSchema = z.object({
+  id: z.string().min(1),
+  drops: z
+    .array(
+      z
+        .object({
+          itemId: z.string().min(1),
+          min: z.number().int().nonnegative(),
+          max: z.number().int().positive(),
+          /** 掉落機率（0–1，預設 1） */
+          chance: z.number().min(0).max(1).optional(),
+        })
+        .refine((d) => d.max >= d.min, { message: 'max 必須 ≥ min' }),
+    )
+    .min(1),
+});
+export type LootTable = z.infer<typeof lootTableSchema>;
+
+export type ItemStack = { itemId: string; count: number };
+export type ItemCatalog = ReadonlyMap<string, ItemDef>;
+export type LootTables = ReadonlyMap<string, LootTable>;
+
+export class ItemDataError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ItemDataError';
+  }
+}
+
+/** 驗證物品與掉落表；掉落表只能參照存在的物品。失敗時拋出 ItemDataError。 */
+export function parseItemData(rawItems: unknown, rawLootTables: unknown): { items: ItemCatalog; lootTables: LootTables } {
+  const itemList = z.array(itemDefSchema).safeParse(rawItems);
+  if (!itemList.success) throw new ItemDataError(`items 資料格式錯誤：${z.prettifyError(itemList.error)}`);
+  const tableList = z.array(lootTableSchema).safeParse(rawLootTables);
+  if (!tableList.success) throw new ItemDataError(`lootTables 資料格式錯誤：${z.prettifyError(tableList.error)}`);
+
+  const items = new Map<string, ItemDef>();
+  for (const item of itemList.data) {
+    if (items.has(item.id)) throw new ItemDataError(`物品 id 重複：${item.id}`);
+    items.set(item.id, item);
+  }
+  const lootTables = new Map<string, LootTable>();
+  for (const table of tableList.data) {
+    if (lootTables.has(table.id)) throw new ItemDataError(`掉落表 id 重複：${table.id}`);
+    for (const drop of table.drops) {
+      if (!items.has(drop.itemId)) throw new ItemDataError(`掉落表 ${table.id} 參照不存在的物品：${drop.itemId}`);
+    }
+    lootTables.set(table.id, table);
+  }
+  return { items, lootTables };
+}
+
+/** 擲一次掉落表。random 由呼叫端注入（測試用固定種子，伺服器用自己的亂數）。數量 0 的項目不列出。 */
+export function rollLoot(table: LootTable, random: () => number): ItemStack[] {
+  const result: ItemStack[] = [];
+  for (const drop of table.drops) {
+    if (drop.chance !== undefined && random() >= drop.chance) continue;
+    const count = drop.min + Math.floor(random() * (drop.max - drop.min + 1));
+    if (count <= 0) continue;
+    const existing = result.find((s) => s.itemId === drop.itemId);
+    if (existing) existing.count += count;
+    else result.push({ itemId: drop.itemId, count });
+  }
+  return result;
+}

@@ -4,9 +4,10 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單與暫停選單（Phase 1 驗收：可回到主選單）
+//   --harvest：輸出可採集的花叢、草藥特寫與砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
 /* global window -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
 
@@ -16,6 +17,7 @@ const withAnim = flags.has('--anim');
 const withMist = flags.has('--mist');
 const withInteract = flags.has('--interact');
 const withMenu = flags.has('--menu');
+const withHarvest = flags.has('--harvest');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -88,6 +90,48 @@ try {
     await page.keyboard.press('KeyE');
     await page.waitForTimeout(600);
     await shot('interact_after');
+  }
+
+  if (withHarvest) {
+    const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
+    const find = (id) => placements.find((p) => p.id === id);
+    // 花叢與草藥特寫：角色站在東側，攝影機從南方看，物件在角色左邊
+    for (const [name, id] of [
+      ['harvest_flower', 'meadow_flower_002'],
+      ['harvest_herb', 'meadow_herb_001'],
+    ]) {
+      const [x, , z] = find(id).position;
+      await page.evaluate(
+        ([px, pz]) => {
+          const d = window.__mistwoodDebug;
+          d.resetWorld();
+          d.setCameraMode('follow');
+          d.teleport(px + 1.4, pz + 0.3);
+          d.camera({ yaw: 0, pitch: 0.42, distance: 3.6 });
+        },
+        [x, z],
+      );
+      await page.waitForTimeout(1200);
+      await shot(name);
+    }
+    const tree = find('meadow_tree_001');
+    const [tx, , tz] = tree.position;
+    await page.evaluate(
+      ([px, pz]) => {
+        const d = window.__mistwoodDebug;
+        d.teleport(px, pz + 1.5);
+        d.camera({ yaw: 1.1, pitch: 0.3, distance: 6 });
+      },
+      [tx, tz],
+    );
+    await page.waitForFunction((id) => window.__mistwoodDebug.interactTarget() === id, tree.id, { timeout: 5000 });
+    await page.waitForTimeout(400);
+    await shot('harvest_tree_prompt');
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(420);
+    await shot('harvest_tree_chop');
+    await page.waitForTimeout(700);
+    await shot('harvest_tree_stump');
   }
 
   if (withMenu) {

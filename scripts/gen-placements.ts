@@ -1,4 +1,4 @@
-// 以固定種子產生出生草原的樹木、岩石、寶箱與小村莊 placement，寫入 src/data/placements.json。
+// 以固定種子產生出生草原的樹木、岩石、寶箱、小村莊與可採集植物 placement，寫入 src/data/placements.json。
 // 執行：node scripts/gen-placements.ts（Node 24 原生支援 TS 型別剝除）
 import { readFileSync, writeFileSync } from 'node:fs';
 import {
@@ -182,6 +182,44 @@ scatter({
   spacing: 1.6,
   scale: [8, 13],
   density: () => 0.5,
+});
+
+// 可採集的花叢與草藥（任務 2A）。放在最後產生，前面的樹木與岩石位置不受影響。
+// 出生點外圍一圈先放幾叢，教學時一出發就看得到。
+scatter({
+  count: 8,
+  prefix: 'meadow_flower',
+  prefabs: ['flower_patch'],
+  spacing: 1.2,
+  scale: [1.9, 2.3],
+  density: () => 1,
+  area: { x: SPAWN_POINT.x, z: SPAWN_POINT.z, r: 24 },
+});
+scatter({
+  count: 22,
+  prefix: 'meadow_flower_wild',
+  prefabs: ['flower_patch'],
+  spacing: 1.2,
+  scale: [1.9, 2.3],
+  density: (edge) => 1 - edge * 0.6,
+});
+scatter({
+  count: 10,
+  prefix: 'forest_herb',
+  prefabs: ['herb_bush'],
+  spacing: 1.2,
+  scale: [1.8, 2.2],
+  density: () => 1,
+  area: { x: 60, z: -58, r: 24 },
+  regionId: 'forest',
+});
+scatter({
+  count: 8,
+  prefix: 'meadow_herb',
+  prefabs: ['herb_bush'],
+  spacing: 1.2,
+  scale: [1.8, 2.2],
+  density: (edge) => edge,
 });
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');

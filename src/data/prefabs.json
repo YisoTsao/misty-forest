@@ -12,7 +12,14 @@
     "nameKey": "object.tree",
     "harvest": {
       "lootTableId": "wood_basic",
-      "respawnSec": 600
+      "respawnSec": 600,
+      "harvestedModel": "models/kaykit-hexagon/tree_single_A_cut.gltf",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.085,
+        "height": 0.22
+      },
+      "anim": "attack"
     },
     "persists": true
   },
@@ -29,7 +36,14 @@
     "nameKey": "object.tree",
     "harvest": {
       "lootTableId": "wood_basic",
-      "respawnSec": 600
+      "respawnSec": 600,
+      "harvestedModel": "models/kaykit-hexagon/tree_single_B_cut.gltf",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.09,
+        "height": 0.13
+      },
+      "anim": "attack"
     },
     "persists": true
   },
@@ -57,7 +71,8 @@
     "nameKey": "object.rock",
     "harvest": {
       "lootTableId": "stone_basic",
-      "respawnSec": 900
+      "respawnSec": 900,
+      "anim": "attack"
     },
     "persists": true
   },
@@ -74,7 +89,36 @@
     "nameKey": "object.rock",
     "harvest": {
       "lootTableId": "stone_basic",
-      "respawnSec": 900
+      "respawnSec": 900,
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "flower_patch",
+    "model": "procedural:flower_patch",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.flower",
+    "interactRadius": 1.6,
+    "harvest": {
+      "lootTableId": "flower_basic",
+      "respawnSec": 300,
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
+    "id": "herb_bush",
+    "model": "procedural:herb_bush",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.herb",
+    "interactRadius": 1.6,
+    "harvest": {
+      "lootTableId": "herb_basic",
+      "respawnSec": 420,
+      "anim": "interact"
     },
     "persists": true
   },
@@ -94,7 +138,10 @@
     "interaction": "open",
     "nameKey": "object.chest",
     "interactRadius": 1.8,
-    "persists": true
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_meadow"
+    }
   },
   {
     "id": "house_small_blue",

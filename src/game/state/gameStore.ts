@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { nextScreen, type FlowAction, type GameScreen } from '@/game-core/flow/gameFlow';
 import { cameraRuntime, playerRuntime } from '../player/localRuntime';
 import { useUiStore } from './uiStore';
-import { useWorldStore } from './worldStore';
+import { initialGameState } from '@/game-core/authority/rules';
+import { authority } from '../authority';
 
 // 遊戲流程狀態（本機）：主選單 / 遊玩 / 暫停。只在切換時寫入。
 type GameState = {
@@ -26,7 +27,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (next === screen) return;
     if (action === 'startGame') {
       // 新遊戲：世界物件與角色回到初始狀態（Phase 2 改為「新遊戲 / 讀取存檔」）
-      useWorldStore.getState().reset();
+      authority.replaceState(initialGameState());
       useUiStore.getState().closeMessage();
       playerRuntime.newGameRequest = true;
       Object.assign(cameraRuntime, { yaw: 0, pitch: 0.35, distance: 6 });

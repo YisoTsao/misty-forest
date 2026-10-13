@@ -12,6 +12,10 @@ export type StaticColliderSpec = {
   z: number;
   yaw: number;
   shape: { kind: 'cylinder'; radius: number; height: number } | { kind: 'box'; halfExtents: [number, number, number] };
+  /**
+   * 可採集物件被採集後的碰撞體（例如樹樁）：undefined 表示不可採集；null 表示採集後沒有碰撞。
+   */
+  harvested?: StaticColliderSpec | null;
 };
 
 export type InteractableSpec = {
@@ -41,11 +45,20 @@ function scaledShape(shape: CollisionShape, scale: readonly number[]): StaticCol
 
 function colliderSpec(p: Placement, prefab: Prefab): StaticColliderSpec | null {
   if (prefab.collider !== 'static' || !prefab.collision) return null;
+  const spec = shapeSpec(p, prefab.collision);
+  if (prefab.harvest) {
+    const after = prefab.harvest.harvestedCollision;
+    spec.harvested = after ? shapeSpec(p, after) : null;
+  }
+  return spec;
+}
+
+function shapeSpec(p: Placement, collision: CollisionShape): StaticColliderSpec {
   const [x, y, z] = p.position;
   const scale = p.scale ?? [1, 1, 1];
   const yaw = p.rotation?.[1] ?? 0;
   // 局部位移先縮放再依 yaw 旋轉（與 three 的 Y 軸旋轉一致：x' = x cos + z sin，z' = −x sin + z cos）
-  const [ox = 0, oy = 0, oz = 0] = prefab.collision.offset ?? [];
+  const [ox = 0, oy = 0, oz = 0] = collision.offset ?? [];
   const lx = ox * scale[0]!;
   const lz = oz * scale[2]!;
   const cos = Math.cos(yaw);
@@ -56,7 +69,7 @@ function colliderSpec(p: Placement, prefab: Prefab): StaticColliderSpec | null {
     y: y + oy * scale[1]!,
     z: z - lx * sin + lz * cos,
     yaw,
-    shape: scaledShape(prefab.collision, scale),
+    shape: scaledShape(collision, scale),
   };
 }
 

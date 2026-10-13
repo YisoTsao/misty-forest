@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { installDebugApi } from '@/game/debugApi';
+import { installEventFeedback } from '@/game/eventFeedback';
 import { t } from '@/game/i18n';
 import { useErrorStore } from '@/game/state/errorStore';
 import { App } from './App';
@@ -8,6 +9,7 @@ import './styles.css';
 
 document.title = t('app.title');
 installDebugApi();
+installEventFeedback();
 
 // 未捕捉的錯誤（例如 useFrame 內拋出，會讓整個渲染迴圈停住）顯示在畫面上，不讓遊戲無聲凍結
 const reportRuntimeError = (detail: unknown) =>

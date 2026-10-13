@@ -1,9 +1,12 @@
 # 開發進度
 
 ## 目前階段
-Phase 1（風格驗證場景與可玩角色）。**任務 1A、1B、1C 與 Phase 1 美術收尾已完成**；Phase 1 驗收中，剩下使用者的風格判定與 B 級機器量測（見下一步）。
+Phase 2（探索、互動與存檔框架）。**任務 2A（Authority、物品、背包、採集）已完成**；下一個是任務 2B（背包介面）。
+Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
-**續作從這裡開始**：讀完本檔「下一步」與「已知問題」。Phase 2 需使用者確認 Phase 1 驗收後才開始。
+**續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
+
+**環境注意**：這台機器的 `pnpm` 預設會用到 Node 12（`~/Library/pnpm/node`），執行前先 `export PATH=~/.nvm/versions/node/v24.13.0/bin:$PATH`。若 `pnpm test` 出現 rolldown「Cannot find native binding」，執行 `pnpm install --force`。
 
 ## 在另一台電腦續作
 1. `git clone https://github.com/YisoTsao/misty-forest.git && cd misty-forest`
@@ -15,6 +18,16 @@ Phase 1（風格驗證場景與可玩角色）。**任務 1A、1B、1C 與 Phase
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 2A：Authority、物品、背包與採集（2026-10-13）
+- **權威層**（規格 3.2，T-33）：`game-core/authority/rules.ts` 純函式 `handleCommand` / `applyEvents`；指令 `HarvestObject`、`OpenChest`、`AdvanceTime`；事件 `ObjectHarvested`、`ObjectRespawned`、`ChestOpened`、`ItemsGained`、`TimeAdvanced`、`CommandRejected`。`LocalAuthority`（send / subscribe / getState / replaceState）。UI 與 3D 只讀 `useGameStateStore`。
+- **物品與掉落表**：`data/items.json`（木材、石頭、花朵、草藥、星光碎片）、`data/lootTables.json`；zod 驗證並檢查跨檔參照（prefab 的掉落表必須存在）。
+- **背包**（規格 6.3）：24 格、堆疊上限、全部放得下才成功（T-34）、消耗與材料檢查（`hasItems` / `removeItems`，供修橋與建造使用）。
+- **採集**（規格 6.2、5.2）：樹木（揮砍 → 樹樁，T-37）、岩石（敲 → 消失）、花叢與草藥（摘 → 消失，程式模型 T-38）；不可重複採集；依遊戲時間重生，玩家站在旁邊時延後（T-36）。寶箱改為給予星光碎片與草藥，背包滿時保持關閉。
+- **回饋**：取得物品的通知（含 SVG 物品圖示，T-39）、背包已滿通知；互動提示「採集 樹木 / 岩石 / 花叢 / 草藥」。
+- 新增 30 叢花、18 叢草藥的 placement（出生點外圍 8 叢供教學）；`gen-placements.ts` 附加在最後產生，既有物件位置不變。
+- 截圖：`docs/screenshots/phase2/`（`--harvest`：花叢、草藥特寫、砍樹提示 / 揮砍中 / 樹樁與通知），已檢視：花色鮮明、樹樁正確、無粉紅材質。
+- 測試：Vitest 134 項（新增規則 15、背包 7、物品與掉落 5、Authority 3、程式模型）；端對端新增 `e2e/harvest.e2e.mjs` 9 項（共用 `e2e/lib.mjs`），寶箱測試改為檢查星光碎片入袋與不可重複領取。
+
 ### 修正：開發模式轉動視角後畫面停住（2026-10-13）
 - 原因：React StrictMode（只在開發模式）會重複掛載元件，Rapier 角色控制器被釋放後仍被使用，每幀拋錯，渲染迴圈停止（DECISIONS T-21）。
 - 修正：控制器改在 effect 內建立、cleanup 釋放。未捕捉的錯誤改為顯示在畫面上（T-22）。
@@ -66,17 +79,23 @@ Phase 1（風格驗證場景與可玩角色）。**任務 1A、1B、1C 與 Phase
 ## 進行中
 （無）
 
-## 下一步：完成 Phase 1 驗收 → Phase 2
-1. **使用者風格判定（規格 4.8）**：把參考圖放進 `docs/art/reference/`，與 `docs/screenshots/phase1/` 並排比對。不滿意的部分（例如樹木造型、草的形狀、色調）再調整。
-2. **B 級機器量測**：在 M1 / Iris Xe 8 GB 等級的機器執行 `node scripts/perf.mjs`（預估低畫質），補進 `PERF.md`；30 分鐘連續遊玩與 GPU 記憶體以活動監視器補測。
-3. 驗收通過後進入 Phase 2（探索、互動與存檔框架）：存檔（含設定與寶箱狀態）、採集、背包。
+## 下一步（Phase 2 其餘任務，依序）
+1. **任務 2B 背包介面**：I / Tab 開關、格子、圖示、數量、說明提示；開啟時釋放滑鼠、角色停止。
+2. **任務 2C 存檔框架**（規格 6.8）：`SaveStorage`（Electron 主程序 JSON：原子寫入、`.bak`；網頁開發模式 IndexedDB）、`version` + 遷移 + zod、損壞時嘗試備份 → 仍失敗則提示並允許新遊戲；自動存檔（定時、採集 / 開箱後）、手動存檔、匯出；主選單「繼續 / 新遊戲」；設定值（畫質）存檔。
+3. **任務 2D 教學引導與設定**：出生草原內完成移動、互動、採集的引導；設定畫面（畫質、按鍵重新配置）。
+4. Phase 2 驗收後進入 Phase 3（戰鬥、NPC 與任務）。
+
+## 待使用者處理（不阻擋開發）
+1. **風格判定（規格 4.8）**：把參考圖放進 `docs/art/reference/`，與 `docs/screenshots/phase1/`、`phase2/` 並排比對。
+2. **B 級機器量測**：在 M1 / Iris Xe 8 GB 等級的機器執行 `node scripts/perf.mjs`，補進 `PERF.md`。
 
 ## 已知問題
 - 觀景點書籤在濃霧（迷霧 1.0）時幾乎全灰：攝影機離地面約 90 m，超過濃霧可見距離 75 m。與「濃霧」設定一致，但無法拿來做美術比對；是否要讓濃霧時遠處仍看得到輪廓，待使用者決定。
 - 樹木與岩石是 KayKit Hexagon 的小模型放大使用，造型偏簡單；風格判定若不足，可換 KayKit Forest Nature Pack（itch.io，需手動下載）或其他 CC0 素材。
 - 地形顏色是 shader 程式產生，不是手繪貼圖（T-24）；確定畫風後可改為取樣手繪貼圖。
 - 風車的扇葉目前不會轉（與建築一起以 InstancedMesh 批次渲染）。
-- 互動只實作「打開寶箱」；採集、對話等於 Phase 2、3 開放。寶箱狀態與畫質設定不存檔（Phase 2）。
+- 互動已有開箱與採集；對話、修橋於 Phase 3。世界狀態、背包與畫質設定尚未存檔（任務 2C）。
+- 揮砍動作時角色手上沒有斧頭（角色模型的武器掛件都隱藏了）；Phase 3 加入戰鬥武器時一起處理。
 - 迷霧全地圖同一值；區域間空間混合等第二個區域加入時實作。
 - 滑鼠鎖定只在視窗位於作業系統前景時可用，自動測試時若有人在用電腦會略過該項（T-32）；人工試玩不受影響。
 - JS bundle 約 3.8 MB（含 Rapier WASM），冷啟動 1.3 s，桌面版可接受。

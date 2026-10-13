@@ -3,6 +3,7 @@ import { useRapier, type RapierCollider } from '@react-three/rapier';
 import { useEffect, useMemo } from 'react';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { perfStats } from '@/game/perfStats';
+import { useGameStateStore } from '@/game/state/gameStateStore';
 import type { StaticColliderSpec, WorldIndex } from '@/game/world/worldIndex';
 
 /** 玩家此距離內的物件才建立碰撞體（規格 7：只啟用玩家附近者） */
@@ -16,16 +17,17 @@ const REFRESH_INTERVAL = 0.25;
  * 樹木、岩石、寶箱等靜態物件的簡化碰撞體（圓柱 / 方塊）。
  * 物件數量多，因此不建立 React 元件，而是依玩家位置直接向 Rapier world 新增或移除。
  * 攝影機的 shape cast 也會命中這些碰撞體，因此樹木會自動參與攝影機避讓。
+ * 已採集的物件改用採集後的形狀（樹樁）或移除碰撞；重生後換回原形狀。
  */
 export function EnvironmentColliders({ index }: { index: WorldIndex }) {
   const { world, rapier } = useRapier();
-  const active = useMemo(() => new Map<string, RapierCollider>(), []);
+  const active = useMemo(() => new Map<string, { collider: RapierCollider; harvested: boolean }>(), []);
   const state = useMemo(() => ({ sinceRefresh: Infinity, query: [] as StaticColliderSpec[] }), []);
 
   useEffect(
     () => () => {
       // 卸載時移除所有碰撞體（Physics 可能已先卸載，此時 world 已釋放）
-      for (const collider of active.values()) {
+      for (const { collider } of active.values()) {
         if (world.getCollider(collider.handle)) world.removeCollider(collider, false);
       }
       active.clear();
@@ -39,14 +41,22 @@ export function EnvironmentColliders({ index }: { index: WorldIndex }) {
     state.sinceRefresh = 0;
 
     const { x, z } = playerRuntime.position;
+    const objects = useGameStateStore.getState().state.objects;
     const nearby = index.colliders.query(x, z, ACTIVE_RADIUS, state.query);
     for (const spec of nearby) {
-      if (active.has(spec.id)) continue;
-      active.set(spec.id, world.createCollider(colliderDesc(rapier, spec)));
+      const harvested = spec.harvested !== undefined && objects.get(spec.id)?.harvested === true;
+      const current = active.get(spec.id);
+      if (current?.harvested === harvested) continue;
+      if (current) {
+        world.removeCollider(current.collider, false);
+        active.delete(spec.id);
+      }
+      const form = harvested ? spec.harvested : spec;
+      if (form) active.set(spec.id, { collider: world.createCollider(colliderDesc(rapier, form)), harvested });
     }
     // 只移除超出遲滯範圍者
     const keep = (ACTIVE_RADIUS + HYSTERESIS) ** 2;
-    for (const [id, collider] of active) {
+    for (const [id, { collider }] of active) {
       const t = collider.translation();
       if ((t.x - x) ** 2 + (t.z - z) ** 2 > keep) {
         world.removeCollider(collider, false);
