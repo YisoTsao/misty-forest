@@ -1,7 +1,7 @@
 import { fromSaveData, toSaveData, type LoadedSave, type PlayerSnapshot } from '@/game-core/save/convert';
 import { loadWithFallback, type LoadOutcome } from '@/game-core/save/load';
 import { MAIN_SLOT } from '@/game-core/save/schema';
-import { authority, combat, worldIndex } from '../authority';
+import { authority, buildables, combat, worldIndex } from '../authority';
 import { playerRuntime } from '../player/localRuntime';
 import { useSaveStore, type MainSaveInfo } from '../state/saveStore';
 import { worldDataResult } from '../worldData';
@@ -18,7 +18,7 @@ function snapshotPlayer(): PlayerSnapshot {
 
 /** 讀取主存檔（主檔失敗時改用備份），並更新主選單顯示的存檔狀態。 */
 export async function loadMainSave(): Promise<LoadOutcome<LoadedSave>> {
-  const outcome = await loadWithFallback(saveStorage, MAIN_SLOT, (raw) => fromSaveData(raw, { world: worldIndex, items, combat }));
+  const outcome = await loadWithFallback(saveStorage, MAIN_SLOT, (raw) => fromSaveData(raw, { world: worldIndex, items, combat, buildables }));
   const set = (mainSave: MainSaveInfo) => useSaveStore.setState({ mainSave });
   switch (outcome.status) {
     case 'ok':

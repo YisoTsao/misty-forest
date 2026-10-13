@@ -104,6 +104,11 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
 
   useFrame((_, dt) => {
     const ui = useUiStore.getState();
+    // 建造模式中互動鍵用來放置（BuildController），不觸發互動
+    if (ui.build) {
+      ui.setInteractTarget(null);
+      return;
+    }
     const pressed = input.consumePressed('interact');
     // 主選單與暫停時不互動、不顯示提示（延遲中的指令與訊息也一起停住）
     if (!isControllable(currentScreen())) {

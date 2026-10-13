@@ -235,6 +235,47 @@ function woodBridge(broken: boolean): THREE.BufferGeometry {
   return merged;
 }
 
+/** 營火：一圈石頭、交叉的木柴、三層火焰（火焰顏色很亮，交給 Bloom 發光；跳動由 CampfireFlames 另外處理） */
+function campfire(): THREE.BufferGeometry {
+  const rand = mulberry32(5);
+  const parts: THREE.BufferGeometry[] = [];
+  const stone = ['#8f8d84', '#a3a197', '#7d7b73'].map((h) => new THREE.Color(h));
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    const g = new THREE.IcosahedronGeometry(0.13 + rand() * 0.04, 0);
+    g.scale(1.2, 0.75, 1);
+    g.rotateY(a);
+    g.translate(Math.cos(a) * 0.46, 0.07, Math.sin(a) * 0.46);
+    const colors = new Float32Array(g.attributes.position!.count * 3);
+    const col = stone[i % stone.length]!;
+    for (let k = 0; k < colors.length; k += 3) col.toArray(colors, k);
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    parts.push(g);
+  }
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI;
+    parts.push(box([0.11, 0.11, 0.7], [0, 0.1 + i * 0.03, 0], WOOD_DARK, [0.25, a, 0]));
+  }
+  const flame = (r: number, h: number, y: number, color: string) => {
+    const g = new THREE.ConeGeometry(r, h, 7);
+    g.translate(0, y + h / 2, 0);
+    const colors = new Float32Array(g.attributes.position!.count * 3);
+    const bright = new THREE.Color(color).multiplyScalar(1.6);
+    for (let k = 0; k < colors.length; k += 3) bright.toArray(colors, k);
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return g;
+  };
+  parts.push(flame(0.2, 0.42, 0.12, '#ff7a1a'), flame(0.13, 0.36, 0.14, '#ffb22e'), flame(0.07, 0.24, 0.16, '#fff1a1'));
+  // 石頭（多面體）沒有索引、木柴與火焰有索引：統一轉成無索引才能合併
+  const flat = parts.map((p) => (p.index ? p.toNonIndexed() : p));
+  const merged = mergeGeometries(flat);
+  new Set([...parts, ...flat]).forEach((p) => p.dispose());
+  if (!merged) throw new Error('營火幾何合併失敗');
+  merged.computeVertexNormals();
+  merged.computeBoundingSphere();
+  return merged;
+}
+
 type Builder = { build: () => THREE.BufferGeometry; kind: 'plant' | 'solid' };
 
 const builders: Record<string, Builder> = {
@@ -242,6 +283,7 @@ const builders: Record<string, Builder> = {
   herb_bush: { build: herbBush, kind: 'plant' },
   wood_bridge: { build: () => woodBridge(false), kind: 'solid' },
   wood_bridge_broken: { build: () => woodBridge(true), kind: 'solid' },
+  campfire: { build: campfire, kind: 'solid' },
 };
 
 export const PROCEDURAL_PREFIX = 'procedural:';

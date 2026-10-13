@@ -1,3 +1,4 @@
+import { parseBuildables, type BuildableCatalog } from '../build/build';
 import { parseCombatData, type CombatData } from '../combat/combat';
 import { parseCompanion, type CompanionDef } from '../companion/companion';
 import { conditionItemIds, conditionQuestIds } from '../dialogue/conditions';
@@ -18,6 +19,7 @@ export type GameData = WorldData & {
   quests: QuestCatalog;
   combat: CombatData;
   companion: CompanionDef;
+  buildables: BuildableCatalog;
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -33,6 +35,7 @@ export function parseGameData(raw: {
   enemies: unknown;
   spawners: unknown;
   companion: unknown;
+  buildables: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -90,5 +93,11 @@ export function parseGameData(raw: {
   for (const questId of [...conditions.flatMap(conditionQuestIds), ...effectQuests]) {
     if (!quests.has(questId)) throw new WorldDataError(`對話參照不存在的任務：${questId}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion };
+  let buildables: BuildableCatalog;
+  try {
+    buildables = parseBuildables(raw.buildables, { prefabs: new Set(world.prefabs.keys()), items: new Set(items.keys()) });
+  } catch (err) {
+    throw new WorldDataError(`buildables 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables };
 }

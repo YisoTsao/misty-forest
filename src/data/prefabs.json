@@ -501,5 +501,124 @@
     "model": "models/kaykit-hexagon/bucket_water.gltf",
     "collider": "none",
     "persists": false
+  },
+  {
+    "id": "build_campfire",
+    "model": "procedural:campfire",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.55,
+      "height": 0.45
+    },
+    "persists": false
+  },
+  {
+    "id": "build_table",
+    "model": "models/kaykit-furniture/table_medium.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        2,
+        1,
+        2
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "build_chair",
+    "model": "models/kaykit-furniture/chair_A_wood.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.4,
+      "height": 1.2
+    },
+    "persists": false
+  },
+  {
+    "id": "build_stool",
+    "model": "models/kaykit-furniture/chair_stool_wood.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.38,
+      "height": 0.5
+    },
+    "persists": false
+  },
+  {
+    "id": "build_bench",
+    "model": "models/kaykit-halloween/bench.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        2,
+        0.5,
+        0.75
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "build_lantern",
+    "model": "models/kaykit-halloween/lantern_standing.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.3,
+      "height": 0.93
+    },
+    "persists": false
+  },
+  {
+    "id": "build_pumpkin",
+    "model": "models/kaykit-halloween/pumpkin_orange.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.5,
+      "height": 0.7
+    },
+    "persists": false
+  },
+  {
+    "id": "build_flower_bed",
+    "model": "procedural:flower_patch",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "build_flag",
+    "model": "models/kaykit-hexagon/flag_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.28
+    },
+    "persists": false
+  },
+  {
+    "id": "build_cottage",
+    "model": "models/kaykit-hexagon/building_home_A_green.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.7,
+        0.9,
+        0.75
+      ],
+      "offset": [
+        0,
+        0,
+        -0.04
+      ]
+    },
+    "persists": false
   }
 ]

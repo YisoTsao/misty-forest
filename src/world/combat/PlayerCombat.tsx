@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import { isInAttackArea, PLAYER_STATS } from '@/game-core/combat/combat';
 import { currentScreen } from '@/game/state/gameStore';
-import { isModalOpen } from '@/game/state/uiStore';
+import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { authority } from '@/game/authority';
 import { combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
@@ -40,6 +40,8 @@ export function PlayerCombat() {
       if (combatRuntime.skillFx.age > 0.7) combatRuntime.skillFx = null;
     }
 
+    // 建造模式中左鍵用來放置（BuildController）
+    if (useUiStore.getState().build) return;
     const attackPressed = input.consumePressed('attack');
     const skillPressed = input.consumePressed('skill');
     if (screen !== 'playing') {

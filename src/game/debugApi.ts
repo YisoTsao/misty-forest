@@ -10,6 +10,7 @@ import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
+import { buildRuntime } from './build/buildRuntime';
 import { combatRuntime, enemyRuntime } from './combat/combatRuntime';
 import { companionRuntime } from './companion/companionRuntime';
 import { input } from './input/inputManager';
@@ -93,6 +94,10 @@ export type MistwoodDebugApi = {
   setPeaceful: (peaceful: boolean) => void;
   /** 星光夥伴：是否解鎖、目前位置 */
   companion: () => { unlocked: boolean; x: number; y: number; z: number };
+  /** 建造模式與預覽 */
+  buildState: () => { mode: { menu: boolean; selected: string | null } | null; ghost: { x: number; z: number; yaw: number; problem: string | null } };
+  /** 已放置的建造物 */
+  buildings: () => { id: string; buildable: string; x: number; z: number; yaw: number }[];
   /** 模擬按一下按鍵代碼（例如 Mouse0），經過按鍵綁定 */
   tap: (code: string) => void;
   /** 讓玩家面向某個位置 */
@@ -202,6 +207,11 @@ export function installDebugApi(): void {
         .map(([id, v]) => ({ id, x: v.ai.x, z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0 })),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
     tap: (code) => input.injectTap(code),
+    buildState: () => ({
+      mode: useUiStore.getState().build,
+      ghost: { x: buildRuntime.x, z: buildRuntime.z, yaw: buildRuntime.yaw, problem: buildRuntime.problem },
+    }),
+    buildings: () => authority.getState().buildings.map((b) => ({ ...b })),
     companion: () => ({ unlocked: authority.getState().companion.unlocked, x: companionRuntime.x, y: companionRuntime.y, z: companionRuntime.z }),
     face: (x, z) => {
       const { position, locomotion } = playerRuntime;

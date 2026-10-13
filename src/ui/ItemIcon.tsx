@@ -35,6 +35,71 @@ const icons: Record<string, ReactNode> = {
       <circle cx="24" cy="7" r="3" fill="#f4fff0" stroke="#7fb27a" strokeWidth="1.2" />
     </>
   ),
+  campfire: (
+    <>
+      <path d="M24 10 Q31 20 28 28 Q34 24 33 18 Q40 27 34 35 L14 35 Q8 26 16 18 Q16 25 21 27 Q17 18 24 10 Z" fill="#ff9a2e" stroke="#c45a10" strokeWidth="1.5" />
+      <path d="M24 20 Q28 27 25 33 L21 33 Q19 27 24 20 Z" fill="#ffe27a" />
+      <rect x="9" y="34" width="30" height="5" rx="2.5" fill="#8a5a33" transform="rotate(-10 24 36)" />
+      <rect x="9" y="34" width="30" height="5" rx="2.5" fill="#a06a3d" transform="rotate(10 24 36)" />
+    </>
+  ),
+  cottage: (
+    <>
+      <path d="M8 24 L24 10 L40 24 Z" fill="#4caf72" stroke="#256b42" strokeWidth="2" strokeLinejoin="round" />
+      <rect x="12" y="24" width="24" height="16" fill="#f3e3c3" stroke="#8a6a44" strokeWidth="2" />
+      <rect x="21" y="30" width="7" height="10" fill="#a06a3d" />
+      <rect x="14" y="27" width="5" height="5" fill="#8fd3ff" stroke="#8a6a44" strokeWidth="1" />
+    </>
+  ),
+  table: (
+    <>
+      <rect x="7" y="16" width="34" height="6" rx="2" fill="#b8834c" stroke="#6e4426" strokeWidth="1.8" />
+      <rect x="11" y="22" width="4" height="16" fill="#966335" />
+      <rect x="33" y="22" width="4" height="16" fill="#966335" />
+    </>
+  ),
+  chair: (
+    <>
+      <rect x="15" y="8" width="5" height="32" rx="1.5" fill="#966335" />
+      <rect x="15" y="10" width="16" height="12" rx="2" fill="#b8834c" stroke="#6e4426" strokeWidth="1.5" />
+      <rect x="15" y="25" width="20" height="5" rx="1.5" fill="#b8834c" stroke="#6e4426" strokeWidth="1.5" />
+      <rect x="30" y="30" width="4" height="10" fill="#966335" />
+    </>
+  ),
+  stool: (
+    <>
+      <ellipse cx="24" cy="18" rx="13" ry="5" fill="#b8834c" stroke="#6e4426" strokeWidth="1.8" />
+      <rect x="14" y="20" width="4" height="18" fill="#966335" transform="rotate(8 16 29)" />
+      <rect x="30" y="20" width="4" height="18" fill="#966335" transform="rotate(-8 32 29)" />
+    </>
+  ),
+  bench: (
+    <>
+      <rect x="5" y="20" width="38" height="6" rx="2" fill="#b8834c" stroke="#6e4426" strokeWidth="1.8" />
+      <rect x="9" y="26" width="4" height="12" fill="#966335" />
+      <rect x="35" y="26" width="4" height="12" fill="#966335" />
+    </>
+  ),
+  lantern: (
+    <>
+      <rect x="22" y="22" width="4" height="20" fill="#5b4a3a" />
+      <path d="M16 10 L32 10 L30 24 L18 24 Z" fill="#ffe27a" stroke="#5b4a3a" strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="24" cy="17" r="10" fill="#fff4b0" opacity="0.35" />
+    </>
+  ),
+  pumpkin: (
+    <>
+      <ellipse cx="24" cy="28" rx="15" ry="11" fill="#ff8a2a" stroke="#b9531a" strokeWidth="2" />
+      <path d="M24 17 Q20 28 24 39 M24 17 Q28 28 24 39" stroke="#b9531a" strokeWidth="1.5" fill="none" />
+      <rect x="22" y="11" width="4" height="7" rx="1.5" fill="#4f8f34" />
+    </>
+  ),
+  flag: (
+    <>
+      <rect x="13" y="8" width="3" height="32" fill="#6e4426" />
+      <path d="M16 9 L36 13 L16 19 Z" fill="#ff5a5a" stroke="#b02a2a" strokeWidth="1.5" strokeLinejoin="round" />
+    </>
+  ),
   starlight: (
     <>
       <circle cx="24" cy="24" r="16" fill="#fff4b0" opacity="0.55" />

@@ -65,11 +65,15 @@ function weightAt(region: RegionDef, x: number, z: number): number {
 export function regionAt(regions: readonly RegionDef[], x: number, z: number): RegionId {
   let best: RegionId = DEFAULT_REGION;
   let bestWeight = 0.5;
+  let bestRadius = Infinity;
   for (const r of regions) {
     const w = weightAt(r, x, z);
-    if (w > bestWeight) {
+    const radius = r.area?.radius ?? Infinity;
+    // 權重相同（例如湖心小島同時在湖與家園範圍內）時，取範圍較小、較具體的區域
+    if (w > bestWeight + 1e-6 || (Math.abs(w - bestWeight) <= 1e-6 && radius < bestRadius)) {
       best = r.id;
       bestWeight = w;
+      bestRadius = radius;
     }
   }
   return best;

@@ -1,0 +1,12 @@
+[
+  {"id": "campfire", "nameKey": "build.campfire", "prefabId": "build_campfire", "scale": 1, "footprint": 0.7, "category": "structure", "icon": "campfire", "cost": [{"itemId": "wood", "count": 4}, {"itemId": "stone", "count": 3}]},
+  {"id": "cottage", "nameKey": "build.cottage", "prefabId": "build_cottage", "scale": 3.4, "footprint": 1.75, "category": "structure", "icon": "cottage", "cost": [{"itemId": "wood", "count": 20}, {"itemId": "stone", "count": 12}, {"itemId": "starlight_shard", "count": 3}]},
+  {"id": "table", "nameKey": "build.table", "prefabId": "build_table", "scale": 0.7, "footprint": 0.8, "category": "furniture", "icon": "table", "cost": [{"itemId": "wood", "count": 5}]},
+  {"id": "chair", "nameKey": "build.chair", "prefabId": "build_chair", "scale": 0.7, "footprint": 0.35, "category": "furniture", "icon": "chair", "cost": [{"itemId": "wood", "count": 2}]},
+  {"id": "stool", "nameKey": "build.stool", "prefabId": "build_stool", "scale": 0.7, "footprint": 0.3, "category": "furniture", "icon": "stool", "cost": [{"itemId": "wood", "count": 1}]},
+  {"id": "bench", "nameKey": "build.bench", "prefabId": "build_bench", "scale": 0.8, "footprint": 0.85, "category": "furniture", "icon": "bench", "cost": [{"itemId": "wood", "count": 4}]},
+  {"id": "lantern", "nameKey": "build.lantern", "prefabId": "build_lantern", "scale": 0.9, "footprint": 0.35, "category": "decoration", "icon": "lantern", "cost": [{"itemId": "wood", "count": 1}, {"itemId": "stone", "count": 1}, {"itemId": "starlight_shard", "count": 1}]},
+  {"id": "flower_bed", "nameKey": "build.flower_bed", "prefabId": "build_flower_bed", "scale": 2, "footprint": 0.55, "category": "decoration", "icon": "flower", "cost": [{"itemId": "flower", "count": 3}]},
+  {"id": "pumpkin", "nameKey": "build.pumpkin", "prefabId": "build_pumpkin", "scale": 0.6, "footprint": 0.35, "category": "decoration", "icon": "pumpkin", "cost": [{"itemId": "herb", "count": 2}]},
+  {"id": "flag", "nameKey": "build.flag", "prefabId": "build_flag", "scale": 5.5, "footprint": 0.3, "category": "decoration", "icon": "flag", "cost": [{"itemId": "wood", "count": 2}, {"itemId": "flower", "count": 2}]}
+]

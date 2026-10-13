@@ -1,6 +1,7 @@
 // 權威規則（規格 3.2：指令 → 權威層 → 事件）。
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
+import { placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
 import { PLAYER_STATS, type CombatData } from '../combat/combat';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
@@ -32,6 +33,9 @@ export type GameState = {
   readonly spawners: Readonly<Record<string, SpawnerRuntime>>;
   /** 星光夥伴（規格 5.2：只持久化解鎖旗標，位置不持久化） */
   readonly companion: { readonly unlocked: boolean };
+  /** 已放置的建造物（規格 6.7）與下一個流水號 */
+  readonly buildings: readonly Building[];
+  readonly nextBuildingId: number;
 };
 
 export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
@@ -49,6 +53,8 @@ export function initialGameState(): GameState {
     enemies: new Map(),
     spawners: {},
     companion: { unlocked: false },
+    buildings: [],
+    nextBuildingId: 1,
   };
 }
 
@@ -68,6 +74,10 @@ export type GameCommand =
   | { type: 'EnemyStrike'; enemyId: string }
   /** 倒下後重新站起來 */
   | { type: 'RespawnPlayer' }
+  /** 放置建造物（位置與角度由規則吸附到網格）；確認後才扣材料 */
+  | { type: 'PlaceBuilding'; buildable: string; x: number; z: number; yaw: number }
+  /** 拆除建造物，退還材料 */
+  | { type: 'RemoveBuilding'; buildingId: string }
   /** 回報任務：目標全部達成時交出物品、領取獎勵 */
   | { type: 'TurnInQuest'; quest: string }
   /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
@@ -89,6 +99,9 @@ export type RejectReason =
   | 'missing-materials'
   | 'unknown-enemy'
   | 'player-defeated'
+  | 'unknown-buildable'
+  | 'unknown-building'
+  | PlacementProblem
   | 'not-allowed'
   | 'invalid-command';
 
@@ -115,6 +128,8 @@ export type GameEvent =
   | { type: 'PlayerRespawned'; hp: number }
   | { type: 'QuestProgressed'; quest: string; objective: number; count: number }
   | { type: 'CompanionUnlocked' }
+  | { type: 'BuildingPlaced'; building: Building; cost: ItemStack[] }
+  | { type: 'BuildingRemoved'; buildingId: string; refund: ItemStack[] }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -125,6 +140,9 @@ export type RulesContext = {
   random: () => number;
   quests: QuestCatalog;
   combat: CombatData;
+  buildables: BuildableCatalog;
+  /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
+  isOccupied?: (x: number, z: number, margin: number) => boolean;
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
   allowDebugCommands?: boolean;
 };
@@ -152,6 +170,20 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'RespawnPlayer':
       if (!state.player.defeated) return reject('RespawnPlayer', 'invalid-command');
       return [{ type: 'PlayerRespawned', hp: PLAYER_STATS.maxHp }];
+    case 'PlaceBuilding':
+      return placeBuilding(state, cmd, ctx);
+    case 'RemoveBuilding': {
+      const building = state.buildings.find((b) => b.id === cmd.buildingId);
+      const def = building && ctx.buildables.get(building.buildable);
+      if (!building || !def) return reject('RemoveBuilding', 'unknown-building');
+      const refund = refundFor(def);
+      // 退還的材料放不下時不能拆（材料不會遺失）
+      if (!addItems(state.inventory, refund, ctx.items)) return reject('RemoveBuilding', 'inventory-full');
+      return [
+        { type: 'BuildingRemoved', buildingId: building.id, refund },
+        { type: 'ItemsGained', items: refund, source: building.id },
+      ];
+    }
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
     case 'TurnInQuest':
@@ -303,6 +335,17 @@ function spawnerEvents(state: GameState, time: number, ctx: RulesContext): GameE
   return events;
 }
 
+function placeBuilding(state: GameState, cmd: Extract<GameCommand, { type: 'PlaceBuilding' }>, ctx: RulesContext): GameEvent[] {
+  const def = ctx.buildables.get(cmd.buildable);
+  if (!def) return reject('PlaceBuilding', 'unknown-buildable');
+  if (![cmd.x, cmd.z, cmd.yaw].every(Number.isFinite)) return reject('PlaceBuilding', 'invalid-command');
+  const at = { x: snapToGrid(cmd.x), z: snapToGrid(cmd.z) };
+  const problem = placementProblem(def, at, state.buildings, ctx.buildables, state.inventory, ctx.isOccupied ?? (() => false));
+  if (problem) return reject('PlaceBuilding', problem);
+  const building: Building = { id: `building_${state.nextBuildingId}`, buildable: def.id, ...at, yaw: snapYaw(cmd.yaw) };
+  return [{ type: 'BuildingPlaced', building, cost: def.cost.map((c) => ({ ...c })) }];
+}
+
 function acceptQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
   const def = ctx.quests.get(questId);
   if (!def) return reject('AcceptQuest', 'unknown-quest');
@@ -352,7 +395,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion } = state;
+  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -440,6 +483,17 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'CompanionUnlocked':
         companion = { unlocked: true };
         break;
+      case 'BuildingPlaced': {
+        const next = removeItems(inventory, e.cost);
+        if (!next) throw new Error('BuildingPlaced 事件的材料超過持有數量（事件與狀態不一致）');
+        inventory = next;
+        buildings = [...buildings, e.building];
+        nextBuildingId += 1;
+        break;
+      }
+      case 'BuildingRemoved':
+        buildings = buildings.filter((b) => b.id !== e.buildingId);
+        break;
       case 'ItemsRemoved': {
         const next = removeItems(inventory, e.items);
         if (!next) throw new Error('ItemsRemoved 事件超過持有數量（事件與狀態不一致）');
@@ -452,5 +506,5 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion };
+  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId };
 }

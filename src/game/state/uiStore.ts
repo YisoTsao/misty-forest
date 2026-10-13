@@ -20,6 +20,8 @@ type UiState = {
   inventoryOpen: boolean;
   /** 設定畫面（從主選單或暫停選單開啟） */
   settingsOpen: boolean;
+  /** 建造模式（規格 6.7）：null 表示不在建造模式；menu 為建造選單是否開啟 */
+  build: { menu: boolean; selected: string | null } | null;
   /** 進行中的 NPC 對話（dialogueController 寫入） */
   dialogue: { npcId: string; dialogueId: string; nodeId: string } | null;
   /** 玩家目前所在區域（RegionTracker 在改變時寫入） */
@@ -33,6 +35,7 @@ type UiState = {
   setSettingsOpen: (open: boolean) => void;
   setCurrentRegion: (region: RegionId) => void;
   setDialogue: (dialogue: UiState['dialogue']) => void;
+  setBuild: (build: UiState['build']) => void;
 };
 
 export const useUiStore = create<UiState>((set, get) => ({
@@ -43,6 +46,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   settingsOpen: false,
   currentRegion: DEFAULT_REGION,
   dialogue: null,
+  build: null,
   setInteractTarget: (target) => {
     if (get().interactTarget?.id === target?.id) return;
     set({ interactTarget: target });
@@ -54,6 +58,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
   setDialogue: (dialogue) => set({ dialogue }),
+  setBuild: (build) => set({ build }),
   setCurrentRegion: (currentRegion) => {
     if (get().currentRegion !== currentRegion) set({ currentRegion });
   },
@@ -61,6 +66,6 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  const { message, inventoryOpen, settingsOpen, dialogue } = useUiStore.getState();
-  return message !== null || inventoryOpen || settingsOpen || dialogue !== null;
+  const { message, inventoryOpen, settingsOpen, dialogue, build } = useUiStore.getState();
+  return message !== null || inventoryOpen || settingsOpen || dialogue !== null || build?.menu === true;
 }

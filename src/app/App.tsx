@@ -6,6 +6,7 @@ import { t } from '@/game/i18n';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { worldDataResult } from '@/game/worldData';
+import { BuildUi } from '@/ui/BuildUi';
 import { CombatHud } from '@/ui/CombatHud';
 import { CompanionBubble } from '@/ui/CompanionBubble';
 import { ControlHint } from '@/ui/ControlHint';
@@ -67,6 +68,7 @@ export function App() {
       <MessageDialog />
       <DialogueBox />
       <InventoryPanel />
+      <BuildUi />
       <TitleScreen />
       <PauseMenu />
       <SettingsPanel />

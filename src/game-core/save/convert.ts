@@ -1,6 +1,7 @@
 // 權威狀態 ⇄ 存檔資料。讀檔時再檢查一次與目前遊戲資料的一致性：
 // 資料檔更新後已不存在的物件或物品不讓整份存檔失效，而是略過並回報。
 import type { EnemyRuntime, GameState } from '../authority/rules';
+import type { BuildableCatalog } from '../build/build';
 import { PLAYER_STATS, type CombatData } from '../combat/combat';
 import { createInventory, type InventorySlot } from '../inventory/inventory';
 import type { ItemCatalog } from '../items/items';
@@ -41,13 +42,14 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
       spawners: Object.fromEntries(Object.entries(state.spawners).map(([id, s]) => [id, { ...s }])),
     },
     companion: { ...state.companion },
+    build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
   };
 }
 
 export type LoadedSave = { state: GameState; player: PlayerSnapshot; savedAt: string; warnings: string[] };
 
 /** 遷移 → zod 驗證 → 轉回權威狀態。格式不符時拋 SaveFormatError。 */
-export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: ItemCatalog; combat: CombatData }): LoadedSave {
+export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: ItemCatalog; combat: CombatData; buildables: BuildableCatalog }): LoadedSave {
   const parsed = saveDataSchema.safeParse(migrateSave(raw));
   if (!parsed.success) throw new SaveFormatError(`存檔格式錯誤：${parsed.error.issues.map((i) => `${i.path.join('.')} ${i.message}`).join('；')}`);
   const data = parsed.data;
@@ -99,6 +101,12 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
       enemies,
       spawners: data.combat.spawners,
       companion: data.companion,
+      buildings: data.build.buildings.filter((b) => {
+        if (ctx.buildables.has(b.buildable)) return true;
+        warnings.push(`略過已不存在的建造物：${b.buildable}`);
+        return false;
+      }),
+      nextBuildingId: data.build.nextBuildingId,
     },
     player: data.player,
     savedAt: data.savedAt,

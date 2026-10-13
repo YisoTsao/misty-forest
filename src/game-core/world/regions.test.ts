@@ -16,6 +16,12 @@ describe('regions', () => {
     expect(parsed.map((r) => r.id).sort()).toEqual([...regionIds].sort());
   });
 
+  it('重疊時取範圍較小、較具體的區域（湖心小島是家園，不是湖）', () => {
+    const parsed = parseRegions(regionsData);
+    expect(regionAt(parsed, 37.5, 8)).toBe('home');
+    expect(regionAt(parsed, 26, 3)).toBe('lake');
+  });
+
   it('區域內為該區域，範圍外為預設的草原', () => {
     expect(regionAt(regions, 100, 0)).toBe('forest');
     expect(regionAt(regions, 0, 0)).toBe('meadow');

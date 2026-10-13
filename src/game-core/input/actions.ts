@@ -13,6 +13,8 @@ export const actionIds = [
   'skill',
   'inventory',
   'companion',
+  'build',
+  'rotate',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];

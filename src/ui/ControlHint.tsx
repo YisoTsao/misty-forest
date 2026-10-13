@@ -12,7 +12,7 @@ export function ControlHint() {
   const playing = useGameStore((s) => s.screen === 'playing');
   const bindings = useBindings();
   // 對話、背包、訊息視窗開啟時不顯示，避免與視窗重疊
-  const modal = useUiStore((s) => s.dialogue !== null || s.inventoryOpen || s.message !== null);
+  const modal = useUiStore((s) => s.dialogue !== null || s.inventoryOpen || s.message !== null || s.build !== null);
   const [locked, setLocked] = useState(() => document.pointerLockElement !== null);
 
   useEffect(() => {

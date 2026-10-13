@@ -10,5 +10,7 @@
   "skill": ["KeyQ"],
   "inventory": ["KeyI", "Tab"],
   "companion": ["KeyH"],
+  "build": ["KeyB"],
+  "rotate": ["KeyR"],
   "pause": ["Escape"]
 }

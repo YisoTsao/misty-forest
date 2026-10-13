@@ -4,6 +4,7 @@ import type { NpcDef } from '@/game-core/npc/npc';
 import type { QuestCatalog } from '@/game-core/quest/quest';
 import type { CombatData } from '@/game-core/combat/combat';
 import type { CompanionDef } from '@/game-core/companion/companion';
+import type { BuildableCatalog } from '@/game-core/build/build';
 import type { RegionDef } from '@/game-core/world/regions';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
@@ -24,6 +25,7 @@ const data = worldDataResult.ok
       quests: new Map() as QuestCatalog,
       combat: { enemies: new Map(), spawners: [] } as CombatData,
       companion: { nameKey: 'companion.name', hints: [{ textKey: 'companion.hint.village' }] } as CompanionDef,
+      buildables: new Map() as BuildableCatalog,
     };
 
 /** NPC 與對話資料 */
@@ -32,6 +34,7 @@ export const dialogues: ReadonlyMap<string, DialogueDef> = data.dialogues;
 export const quests: QuestCatalog = data.quests;
 export const combat: CombatData = data.combat;
 export const companionDef: CompanionDef = data.companion;
+export const buildables: BuildableCatalog = data.buildables;
 
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;
@@ -49,5 +52,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   random: Math.random,
   quests: data.quests,
   combat: data.combat,
+  buildables: data.buildables,
+  isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),
   allowDebugCommands,
 });

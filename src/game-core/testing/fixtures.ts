@@ -3,6 +3,7 @@ import type { RulesContext } from '../authority/rules';
 import type { ItemDef, LootTable } from '../items/items';
 import type { QuestDef } from '../quest/quest';
 import type { EnemyDef, SpawnerDef } from '../combat/combat';
+import type { BuildableDef } from '../build/build';
 import { mulberry32 } from '../util/random';
 import type { WorldLookup } from '../world/objects';
 import type { Placement, Prefab } from '../world/types';
@@ -122,6 +123,11 @@ export const testSpawners: SpawnerDef[] = [
   { id: 'sp', regionId: 'forest', enemy: 'wisp', center: [100, 0], radius: 5, budget: { dense: 2, light: 1, clear: 0 }, respawnSec: 10 },
 ];
 
+export const testBuildables: BuildableDef[] = [
+  { id: 'fire', nameKey: 'b.fire', prefabId: 'rock', scale: 1, footprint: 0.7, category: 'structure', icon: 'campfire', cost: [{ itemId: 'wood', count: 3 }] },
+  { id: 'stool', nameKey: 'b.stool', prefabId: 'rock', scale: 1, footprint: 0.3, category: 'furniture', icon: 'stool', cost: [{ itemId: 'wood', count: 1 }] },
+];
+
 export const testWorld: WorldLookup = {
   placement: (id) => testPlacements.find((p) => p.id === id),
   prefab: (id) => testPrefabs.find((p) => p.id === id),
@@ -135,5 +141,6 @@ export function testContext(seed = 1): RulesContext {
     random: mulberry32(seed),
     quests: new Map(testQuests.map((q) => [q.id, q])),
     combat: { enemies: new Map(testEnemies.map((e) => [e.id, e])), spawners: testSpawners },
+    buildables: new Map(testBuildables.map((b) => [b.id, b])),
   };
 }

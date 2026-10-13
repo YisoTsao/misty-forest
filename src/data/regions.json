@@ -3,7 +3,7 @@
   {"id": "village", "nameKey": "region.village", "area": {"center": [-11, -34], "radius": 19, "blend": 8}},
   {"id": "forest", "nameKey": "region.forest", "area": {"center": [60, -58], "radius": 26, "blend": 12}},
   {"id": "lake", "nameKey": "region.lake", "area": {"center": [34, 8], "radius": 19, "blend": 8}},
-  {"id": "home", "nameKey": "region.home"},
+  {"id": "home", "nameKey": "region.home", "area": {"center": [37.5, 8], "radius": 6, "blend": 3}},
   {"id": "overlook", "nameKey": "region.overlook"},
   {"id": "ruins", "nameKey": "region.ruins"}
 ]

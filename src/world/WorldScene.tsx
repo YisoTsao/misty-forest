@@ -15,6 +15,8 @@ import { RegionTracker } from './RegionTracker';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
+import { BuildController } from './build/BuildController';
+import { BuiltObjects } from './build/BuiltObjects';
 import { CombatEffects } from './combat/CombatEffects';
 import { PlayerCombat } from './combat/PlayerCombat';
 import { Companion } from './entities/companion/Companion';
@@ -53,6 +55,7 @@ export function WorldScene({ data }: { data: WorldData }) {
           <Player def={playerDef} colliderRef={playerCollider} />
           <Npcs />
           <Enemies />
+          <BuiltObjects />
           {cameraMode === 'follow' && !onTitle && <FollowCamera playerCollider={playerCollider} />}
         </Physics>
         <AssetBoundary name="world-placements">
@@ -70,6 +73,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <PlayerCombat />
         <CombatEffects />
         <Companion />
+        <BuildController />
         <SceneReadyProbe />
       </Suspense>
       {cameraMode === 'follow' && onTitle && <TitleCameraRig />}

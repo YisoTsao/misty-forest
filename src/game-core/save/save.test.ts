@@ -199,6 +199,32 @@ describe('版本遷移', () => {
     expect(fromSaveData(v5([]), ctx).state.companion.unlocked).toBe(false);
   });
 
+  it('實際的 v6 存檔：遷移後沒有建造物', () => {
+    const v6 = {
+      version: 6,
+      savedAt: '2026-10-13T07:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 5, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: initialGameState().mist,
+      quests: {},
+      combat: { hp: 100, enemies: [], spawners: {} },
+      companion: { unlocked: true },
+    };
+    const loaded = fromSaveData(v6, ctx).state;
+    expect(loaded.buildings).toEqual([]);
+    expect(loaded.nextBuildingId).toBe(1);
+    expect(loaded.companion.unlocked).toBe(true);
+  });
+
+  it('建造物寫入存檔並讀回（類型、位置、旋轉）', () => {
+    const state = { ...initialGameState(), buildings: [{ id: 'building_3', buildable: 'fire', x: 37.5, z: 8, yaw: Math.PI / 2 }], nextBuildingId: 4 };
+    const loaded = roundTrip(toSaveData(state, player, new Date())).state;
+    expect(loaded.buildings).toEqual(state.buildings);
+    expect(loaded.nextBuildingId).toBe(4);
+  });
+
   it('星光夥伴解鎖旗標寫入存檔並讀回', () => {
     const state = { ...initialGameState(), companion: { unlocked: true } };
     expect(roundTrip(toSaveData(state, player, new Date())).state.companion.unlocked).toBe(true);

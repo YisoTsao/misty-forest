@@ -24,6 +24,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   4: (data) => ({ ...data, combat: { hp: PLAYER_STATS.maxHp, enemies: [], spawners: {} } }),
   // v5 → v6：加入星光夥伴。夥伴從出生草原的寶箱飛出來，已經打開那個寶箱的存檔直接解鎖
   5: (data) => ({ ...data, companion: { unlocked: openedCompanionChest(data) } }),
+  // v6 → v7：加入建造；v6 時還不能建造
+  6: (data) => ({ ...data, build: { buildings: [], nextBuildingId: 1 } }),
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */
