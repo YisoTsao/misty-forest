@@ -134,3 +134,23 @@ describe('canInteract', () => {
     expect(canInteract(prefab('rock'), undefined)).toBe(false);
   });
 });
+
+describe('AdvanceTutorial', () => {
+  it('依序前進：move → interact → harvest → inventory → done', () => {
+    let state = initialGameState();
+    expect(state.tutorial).toBe('move');
+    for (const next of ['interact', 'harvest', 'inventory', 'done'] as const) {
+      const r = run(state, { type: 'AdvanceTutorial', from: state.tutorial });
+      expect(r.events).toEqual([{ type: 'TutorialAdvanced', step: next }]);
+      state = r.state;
+    }
+    expect(state.tutorial).toBe('done');
+  });
+
+  it('from 與目前步驟不同（重複送出或跳步）時拒絕；完成後不再前進', () => {
+    const s = initialGameState();
+    expect(rejectReason(s, { type: 'AdvanceTutorial', from: 'harvest' })).toBe('tutorial-mismatch');
+    const done = { ...s, tutorial: 'done' as const };
+    expect(rejectReason(done, { type: 'AdvanceTutorial', from: 'done' })).toBe('tutorial-mismatch');
+  });
+});

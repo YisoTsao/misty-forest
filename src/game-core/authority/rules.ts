@@ -3,6 +3,7 @@
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
 import { addItems, createInventory, type Inventory } from '../inventory/inventory';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
+import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 
@@ -12,17 +13,21 @@ export type GameState = {
   readonly time: number;
   readonly objects: ObjectRuntimeMap;
   readonly inventory: Inventory;
+  /** 教學引導目前的步驟 */
+  readonly tutorial: TutorialStep;
 };
 
 export function initialGameState(): GameState {
-  return { time: 0, objects: new Map(), inventory: createInventory() };
+  return { time: 0, objects: new Map(), inventory: createInventory(), tutorial: 'move' };
 }
 
 export type GameCommand =
   | { type: 'HarvestObject'; placementId: string }
   | { type: 'OpenChest'; placementId: string }
   /** 遊戲時間前進；player 為玩家目前水平位置（站在重生點上時延後重生，避免卡進碰撞體） */
-  | { type: 'AdvanceTime'; dt: number; player?: { x: number; z: number } };
+  | { type: 'AdvanceTime'; dt: number; player?: { x: number; z: number } }
+  /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
+  | { type: 'AdvanceTutorial'; from: TutorialStep };
 
 export type RejectReason =
   | 'unknown-object'
@@ -30,6 +35,7 @@ export type RejectReason =
   | 'already-open'
   | 'already-harvested'
   | 'inventory-full'
+  | 'tutorial-mismatch'
   | 'invalid-command';
 
 export type GameEvent =
@@ -38,6 +44,7 @@ export type GameEvent =
   | { type: 'ObjectRespawned'; placementId: string }
   | { type: 'ChestOpened'; placementId: string }
   | { type: 'ItemsGained'; items: ItemStack[]; source?: string }
+  | { type: 'TutorialAdvanced'; step: TutorialStep }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -59,6 +66,9 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       return openChest(state, cmd.placementId, ctx);
     case 'AdvanceTime':
       return advanceTime(state, cmd, ctx);
+    case 'AdvanceTutorial':
+      if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
+      return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
   }
 }
 
@@ -127,7 +137,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory } = state;
+  let { time, objects, inventory, tutorial } = state;
   let nextObjects: Map<string, ObjectRuntime> | null = null;
   const mutableObjects = () => (nextObjects ??= new Map(objects));
   const patch = (id: string, change: Partial<ObjectRuntime>) => {
@@ -159,10 +169,13 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         inventory = next;
         break;
       }
+      case 'TutorialAdvanced':
+        tutorial = e.step;
+        break;
       case 'CommandRejected':
         break;
     }
   }
   if (nextObjects) objects = nextObjects;
-  return { time, objects, inventory };
+  return { time, objects, inventory, tutorial };
 }

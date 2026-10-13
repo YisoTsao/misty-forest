@@ -77,5 +77,12 @@
   "save.failed": "存檔失敗",
   "save.exportFailed": "匯出失敗",
   "save.corrupt": "存檔與備份都無法讀取，無法繼續上次的進度。可以開始新遊戲；損壞的檔案會在下次存檔時移到備份位置。",
-  "save.restoredFromBackup": "主存檔損壞，已從備份還原"
+  "save.restoredFromBackup": "主存檔損壞，已從備份還原",
+  "tutorial.title": "旅人的第一步",
+  "tutorial.outroTitle": "準備出發",
+  "tutorial.move": "歡迎來到晨曦谷地！用 W A S D 移動，按住 Shift 跑步。\n點一下畫面就能用滑鼠轉動視角。",
+  "tutorial.interact": "左前方的草地上有一個寶箱，走近後按 E 打開它。",
+  "tutorial.harvest": "樹木、岩石、花叢和草藥都能採集。靠近後按 E 收集材料。",
+  "tutorial.inventory": "按 I 打開背包，看看收集到的東西。",
+  "tutorial.done": "做得好！沿著小路往北走，就能到達村莊。\n迷霧散去之前，晨曦谷地還有很多地方等你探索。"
 }

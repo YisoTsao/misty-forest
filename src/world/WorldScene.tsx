@@ -10,6 +10,7 @@ import { AssetBoundary } from './AssetBoundary';
 import { DebugCameraRig } from './camera/DebugCameraRig';
 import { FollowCamera } from './camera/FollowCamera';
 import { GameClock } from './GameClock';
+import { TutorialSystem } from './TutorialSystem';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
@@ -54,6 +55,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         </AssetBoundary>
         <InteractionSystem index={index} />
         <GameClock />
+        <TutorialSystem />
         <SceneReadyProbe />
       </Suspense>
       {cameraMode === 'follow' && onTitle && <TitleCameraRig />}

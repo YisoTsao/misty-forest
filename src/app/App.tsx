@@ -17,6 +17,7 @@ import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
 import { TitleScreen } from '@/ui/TitleScreen';
 import { Toasts } from '@/ui/Toasts';
+import { TutorialPanel } from '@/ui/TutorialPanel';
 import { WorldScene } from '@/world/WorldScene';
 
 export function App() {
@@ -44,6 +45,7 @@ export function App() {
       </Canvas>
       <InteractPrompt />
       <Toasts />
+      <TutorialPanel />
       <ControlHint />
       {debugEnabled && (
         <>

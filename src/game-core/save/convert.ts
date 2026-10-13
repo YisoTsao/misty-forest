@@ -29,6 +29,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     player: { position: { ...player.position }, facingYaw: player.facingYaw },
     world: { time: state.time, objects },
     inventory: { slots: state.inventory.slots.map((s) => (s ? { ...s } : null)) },
+    tutorial: state.tutorial,
   };
 }
 
@@ -67,7 +68,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
   });
 
   return {
-    state: { time: data.world.time, objects, inventory: { slots } },
+    state: { time: data.world.time, objects, inventory: { slots }, tutorial: data.tutorial },
     player: data.player,
     savedAt: data.savedAt,
     warnings,

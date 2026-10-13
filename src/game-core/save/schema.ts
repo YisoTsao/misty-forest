@@ -1,8 +1,10 @@
 // 存檔格式（規格 6.8）。只存權威狀態與必要的本機狀態（玩家位置），世界物件只存與預設不同的差異（第 4 層）。
 // 每次格式變更：版本號 +1、在 migrate.ts 加入遷移函式與測試。
 import { z } from 'zod';
+import { tutorialSteps } from '../tutorial/tutorial';
 
-export const SAVE_VERSION = 1;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial */
+export const SAVE_VERSION = 2;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 
@@ -30,6 +32,7 @@ export const saveDataSchema = z.object({
   inventory: z.object({
     slots: z.array(z.object({ itemId: z.string().min(1), count: z.number().int().positive() }).nullable()),
   }),
+  tutorial: z.enum(tutorialSteps),
 });
 export type SaveData = z.infer<typeof saveDataSchema>;
 

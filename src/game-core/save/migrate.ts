@@ -10,11 +10,11 @@ export class SaveFormatError extends Error {
   }
 }
 
-/**
- * key = 來源版本，函式把 v 版資料轉成 v + 1 版。
- * 目前只有第 1 版；第一次變更格式時在這裡加入 1: (v1) => v2，並補測試。
- */
-export const saveMigrations: Readonly<Record<number, Migration>> = {};
+/** key = 來源版本，函式把 v 版資料轉成 v + 1 版。每個遷移都要有測試（save.test.ts）。 */
+export const saveMigrations: Readonly<Record<number, Migration>> = {
+  // v1 → v2：加入教學進度。v1 存檔建立時還沒有教學，玩家已經在玩，視為已完成，不再從頭提示
+  1: (data) => ({ ...data, tutorial: 'done' }),
+};
 
 /** 把任何版本的存檔升到 targetVersion。缺版本號、比程式新或缺少遷移函式時拋 SaveFormatError。 */
 export function migrateSave(

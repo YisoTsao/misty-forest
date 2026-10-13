@@ -102,6 +102,27 @@ describe('版本遷移', () => {
     // 真正的遷移鏈：從第 1 版升到目前版本不能中斷
     expect(() => migrateSave({ version: 1 })).not.toThrow(SaveFormatError);
   });
+
+  it('實際的 v1 存檔（任務 2C 格式）可讀入：教學視為已完成，其他內容不變', () => {
+    const v1 = {
+      version: 1,
+      savedAt: '2026-10-13T02:51:00.000Z',
+      player: { position: { x: -6, y: 0.9, z: 30 }, facingYaw: 3.1 },
+      world: { time: 120, objects: [{ placementId: 't1', harvested: true, respawnAt: 700 }, { placementId: 'c1', open: true }] },
+      inventory: { slots: [{ itemId: 'wood', count: 3 }, { itemId: 'shard', count: 1 }, null] },
+    };
+    const loaded = fromSaveData(v1, ctx);
+    expect(loaded.state.tutorial).toBe('done');
+    expect(loaded.state.time).toBe(120);
+    expect(loaded.state.objects.get('t1')).toEqual({ placementId: 't1', harvested: true, respawnAt: 700 });
+    expect(countItem(loaded.state.inventory, 'wood')).toBe(3);
+    expect(loaded.player.position).toEqual({ x: -6, y: 0.9, z: 30 });
+  });
+
+  it('新存檔記錄教學進度，讀回不變', () => {
+    const state = { ...initialGameState(), tutorial: 'harvest' as const };
+    expect(roundTrip(toSaveData(state, player, new Date())).state.tutorial).toBe('harvest');
+  });
 });
 
 describe('loadWithFallback', () => {
