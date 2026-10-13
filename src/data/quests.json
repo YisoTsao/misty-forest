@@ -55,5 +55,43 @@
         }
       ]
     }
+  },
+  {
+    "id": "clear_forest",
+    "nameKey": "quest.forest.name",
+    "descKey": "quest.forest.desc",
+    "giver": "leo",
+    "requires": [
+      "repair_bridge"
+    ],
+    "objectives": [
+      {
+        "type": "defeat",
+        "enemy": "mist_wisp",
+        "count": 6,
+        "descKey": "quest.forest.objective",
+        "milestones": [
+          {
+            "count": 3,
+            "region": "forest",
+            "stage": "light"
+          }
+        ]
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "starlight_shard",
+          "count": 2
+        }
+      ],
+      "mist": [
+        {
+          "region": "forest",
+          "stage": "clear"
+        }
+      ]
+    }
   }
 ]

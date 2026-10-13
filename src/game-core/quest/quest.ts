@@ -13,6 +13,14 @@ export const objectiveSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('collect'), itemId: z.string().min(1), count: z.number().int().positive(), consume: z.boolean() }),
   /** 修好指定的物件（木橋） */
   z.object({ type: z.literal('repair'), placementId: z.string().min(1), descKey: z.string().min(1) }),
+  /** 接取後擊敗指定數量的敵人；達到里程碑時改變區域迷霧 */
+  z.object({
+    type: z.literal('defeat'),
+    enemy: z.string().min(1),
+    count: z.number().int().positive(),
+    descKey: z.string().min(1),
+    milestones: z.array(z.object({ count: z.number().int().positive(), region: z.enum(regionIds), stage: z.enum(mistStages) })).optional(),
+  }),
 ]);
 export type Objective = z.infer<typeof objectiveSchema>;
 
@@ -35,11 +43,14 @@ export const questDefSchema = z.object({
 export type QuestDef = z.infer<typeof questDefSchema>;
 export type QuestCatalog = ReadonlyMap<string, QuestDef>;
 
-/** 權威狀態中的任務紀錄（沒有紀錄 = 尚未接取） */
-export type QuestRecord = { status: 'active' | 'completed' };
+/** 權威狀態中的任務紀錄（沒有紀錄 = 尚未接取）；progress 為擊敗目標等需要累計的進度 */
+export type QuestRecord = { status: 'active' | 'completed'; progress?: number[] };
 export type QuestStatus = 'locked' | 'available' | 'active' | 'completed';
 
-export function parseQuests(raw: unknown, refs: { items: ReadonlySet<string>; npcs: ReadonlySet<string> }): Map<string, QuestDef> {
+export function parseQuests(
+  raw: unknown,
+  refs: { items: ReadonlySet<string>; npcs: ReadonlySet<string>; enemies?: ReadonlySet<string> },
+): Map<string, QuestDef> {
   const list = z.array(questDefSchema).parse(raw);
   const map = new Map<string, QuestDef>();
   for (const q of list) {
@@ -50,6 +61,9 @@ export function parseQuests(raw: unknown, refs: { items: ReadonlySet<string>; np
       ...(q.rewards.items ?? []).map((i) => i.itemId),
     ];
     for (const id of items) if (!refs.items.has(id)) throw new Error(`任務 ${q.id} 參照不存在的物品：${id}`);
+    for (const o of q.objectives) {
+      if (o.type === 'defeat' && refs.enemies && !refs.enemies.has(o.enemy)) throw new Error(`任務 ${q.id} 參照不存在的敵人：${o.enemy}`);
+    }
     map.set(q.id, q);
   }
   for (const q of map.values()) {
@@ -72,12 +86,14 @@ export function questStatus(state: QuestState, def: QuestDef): QuestStatus {
 
 /** 每個目標目前的進度（current 不超過 target） */
 export function objectiveProgress(state: QuestState, def: QuestDef): { current: number; target: number }[] {
-  return def.objectives.map((o) => {
+  return def.objectives.map((o, i) => {
     switch (o.type) {
       case 'collect':
         return { current: Math.min(countItem(state.inventory, o.itemId), o.count), target: o.count };
       case 'repair':
         return { current: state.objects.get(o.placementId)?.repaired ? 1 : 0, target: 1 };
+      case 'defeat':
+        return { current: Math.min(state.quests[def.id]?.progress?.[i] ?? 0, o.count), target: o.count };
     }
   });
 }

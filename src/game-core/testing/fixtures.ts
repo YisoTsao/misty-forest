@@ -2,6 +2,7 @@
 import type { RulesContext } from '../authority/rules';
 import type { ItemDef, LootTable } from '../items/items';
 import type { QuestDef } from '../quest/quest';
+import type { EnemyDef, SpawnerDef } from '../combat/combat';
 import { mulberry32 } from '../util/random';
 import type { WorldLookup } from '../world/objects';
 import type { Placement, Prefab } from '../world/types';
@@ -90,6 +91,35 @@ export const testQuests: QuestDef[] = [
     objectives: [{ type: 'repair', placementId: 'b1', descKey: 'q.mend.obj' }],
     rewards: { mist: [{ region: 'lake', stage: 'clear' }] },
   },
+  {
+    id: 'hunt',
+    nameKey: 'q.hunt',
+    descKey: 'q.hunt.desc',
+    giver: 'npc_a',
+    requires: [],
+    objectives: [{ type: 'defeat', enemy: 'wisp', count: 3, descKey: 'q.hunt.obj', milestones: [{ count: 2, region: 'forest', stage: 'light' }] }],
+    rewards: { mist: [{ region: 'forest', stage: 'clear' }] },
+  },
+];
+
+export const testEnemies: EnemyDef[] = [
+  {
+    id: 'wisp',
+    nameKey: 'enemy.wisp',
+    maxHp: 50,
+    damage: 30,
+    moveSpeed: 3,
+    aggroRadius: 8,
+    attackRange: 1.5,
+    attackWindup: 0.5,
+    attackCooldown: 1.5,
+    leashRadius: 15,
+    lootTableId: 'flower',
+  },
+];
+
+export const testSpawners: SpawnerDef[] = [
+  { id: 'sp', regionId: 'forest', enemy: 'wisp', center: [100, 0], radius: 5, budget: { dense: 2, light: 1, clear: 0 }, respawnSec: 10 },
 ];
 
 export const testWorld: WorldLookup = {
@@ -104,5 +134,6 @@ export function testContext(seed = 1): RulesContext {
     lootTables: new Map(testLootTables.map((t) => [t.id, t])),
     random: mulberry32(seed),
     quests: new Map(testQuests.map((q) => [q.id, q])),
+    combat: { enemies: new Map(testEnemies.map((e) => [e.id, e])), spawners: testSpawners },
   };
 }

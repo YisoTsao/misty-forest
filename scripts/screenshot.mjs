@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --combat：森林裡的迷霧生物、攻擊前搖、玩家攻擊與傷害數字、星光衝擊、受傷與倒下（任務 3E）
 //   --lake：湖泊全景、斷橋、在橋頭修理、修好的木橋（任務 3D）
 //   --npc：村莊 NPC 全身、與長老對話（一般段落與選項）（任務 3B）、任務追蹤（任務 3C）
 //   --region：森林空地在濃霧與迷霧清除後的跟隨視角、區域名稱（任務 3A）
@@ -25,6 +26,7 @@ const withHarvest = flags.has('--harvest');
 const withRegion = flags.has('--region');
 const withNpc = flags.has('--npc');
 const withLake = flags.has('--lake');
+const withCombat = flags.has('--combat');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -155,6 +157,44 @@ try {
     await page.waitForTimeout(300);
     await shot('inventory');
     await page.keyboard.press('KeyI');
+  }
+
+  if (withCombat) {
+    const spawners = JSON.parse(readFileSync('src/data/spawners.json', 'utf8'));
+    const [sx, sz] = spawners[0].center;
+    // 和平模式下先讓生成點補滿，再靠近拍攝
+    await page.evaluate(([x, z]) => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+      d.setPeaceful(true);
+      d.setCameraMode('follow');
+      d.teleport(x - 7, z + 7);
+      d.camera({ yaw: -0.8, pitch: 0.3, distance: 6 });
+    }, [sx, sz]);
+    await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 3, null, { timeout: 30000 });
+    await page.waitForTimeout(1500);
+    await shot('combat_wisps');
+    // 解除和平模式：迷霧生物靠過來，拍攻擊前搖
+    await page.evaluate(() => window.__mistwoodDebug.setPeaceful(false));
+    await page.waitForFunction(() => window.__mistwoodDebug.enemies().some((e) => e.state === 'attack'), null, { timeout: 15000 });
+    await page.waitForTimeout(250);
+    await shot('combat_telegraph');
+    // 面向最近的迷霧生物攻擊，拍傷害數字
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      const p = d.playerState();
+      const near = d.enemies().sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+      if (near) d.face(near.x, near.z);
+    });
+    await page.mouse.click(800, 450);
+    await page.mouse.click(800, 450);
+    await page.waitForTimeout(450);
+    await shot('combat_attack');
+    await page.keyboard.press('KeyQ');
+    await page.waitForTimeout(550);
+    await shot('combat_skill');
+    await page.evaluate(() => window.__mistwoodDebug.setPeaceful(true));
   }
 
   if (withLake) {

@@ -6,6 +6,7 @@ import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 import { useGameStore } from '@/game/state/gameStore';
 import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
+import { occlusionUniforms } from '@/render/occlusion';
 
 const SENSITIVITY = 0.0025; // 弧度 / 像素
 const PITCH_MIN = -0.15;
@@ -40,6 +41,8 @@ export function FollowCamera({ playerCollider }: { playerCollider: RefObject<Rap
     input.setPointerLockEnabled(playing);
     return () => input.setPointerLockEnabled(false);
   }, [playing]);
+  // 離開跟隨攝影機（主選單、自由視角）時停用遮擋鏤空
+  useEffect(() => () => void (occlusionUniforms.uOccEnabled.value = 0), []);
 
   useFrame(({ camera }, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20);
@@ -84,6 +87,10 @@ export function FollowCamera({ playerCollider }: { playerCollider: RefObject<Rap
 
     camera.position.copy(sp).addScaledVector(dir, currentDist.current);
     camera.lookAt(sp);
+    // 攝影機與角色之間的樹冠等物件鏤空（render/occlusion.ts）
+    occlusionUniforms.uOccCam.value.copy(camera.position);
+    occlusionUniforms.uOccFocus.value.copy(sp);
+    occlusionUniforms.uOccEnabled.value = 1;
     Object.assign(cameraRuntime.position, { x: camera.position.x, y: camera.position.y, z: camera.position.z });
   });
 

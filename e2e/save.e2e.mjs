@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { placements, runE2e, standSouthOf, tempSaveDir } from './lib.mjs';
+import { placements, runE2e, SAVE_VERSION, standSouthOf, tempSaveDir } from './lib.mjs';
 
 const saveDir = tempSaveDir();
 const userData = tempSaveDir();
@@ -49,7 +49,7 @@ await runE2e('save e2e（1/5 存檔）', { query: 'debug=1', env }, async ({ pag
     };
     assert.ok(expected.wood >= 2 && expected.shard === 1 && expected.tree?.harvested, JSON.stringify(expected));
     const file = JSON.parse(readFileSync(primary, 'utf8'));
-    assert.equal(file.version, 4);
+    assert.equal(file.version, SAVE_VERSION);
     assert.equal(typeof file.tutorial, 'string');
     assert.ok(file.world.objects.some((o) => o.placementId === chest.id && o.open), '存檔內沒有寶箱狀態');
   });

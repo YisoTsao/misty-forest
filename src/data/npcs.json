@@ -136,6 +136,37 @@
     "interactRadius": 2.4,
     "talk": [
       {
+        "when": {
+          "type": "questReady",
+          "quest": "clear_forest"
+        },
+        "dialogue": "leo_forest_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "clear_forest",
+          "is": "active"
+        },
+        "dialogue": "leo_forest_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "clear_forest",
+          "is": "available"
+        },
+        "dialogue": "leo_forest_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "clear_forest",
+          "is": "completed"
+        },
+        "dialogue": "leo_after_forest"
+      },
+      {
         "dialogue": "leo_intro"
       }
     ],

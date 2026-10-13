@@ -1,0 +1,15 @@
+[
+  {
+    "id": "mist_wisp",
+    "nameKey": "enemy.mist_wisp",
+    "maxHp": 60,
+    "damage": 12,
+    "moveSpeed": 2.8,
+    "aggroRadius": 9,
+    "attackRange": 1.7,
+    "attackWindup": 0.55,
+    "attackCooldown": 1.6,
+    "leashRadius": 20,
+    "lootTableId": "mist_wisp_drop"
+  }
+]

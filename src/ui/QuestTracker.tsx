@@ -59,6 +59,17 @@ function ObjectiveRow({ objective: o, progress, state }: { objective: Objective;
   switch (o.type) {
     case 'collect':
       return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
+    case 'defeat': {
+      const done = progress.current >= progress.target;
+      return (
+        <li className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>
+          <span>{t(o.descKey)}</span>
+          <span className="ml-auto font-mono" data-testid="quest-progress">
+            {progress.current} / {progress.target}
+          </span>
+        </li>
+      );
+    }
     case 'repair': {
       // 修復目標：顯示要做的事；還沒修好時列出需要的材料與目前持有數
       const done = progress.current >= progress.target;

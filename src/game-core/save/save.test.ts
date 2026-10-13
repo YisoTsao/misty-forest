@@ -148,6 +148,41 @@ describe('版本遷移', () => {
     expect(loaded.state.mist.forest).toBe('light');
   });
 
+  it('實際的 v4 存檔（任務 3D 格式）可讀入：滿血、沒有敵人', () => {
+    const v4 = {
+      version: 4,
+      savedAt: '2026-10-13T05:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 5, objects: [{ placementId: 'b1', repaired: true }] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: initialGameState().mist,
+      quests: { mend: { status: 'completed' } },
+    };
+    const loaded = fromSaveData(v4, ctx);
+    expect(loaded.state.player).toEqual({ hp: 100, lastDamagedAt: 5, defeated: false });
+    expect(loaded.state.enemies.size).toBe(0);
+    expect(loaded.state.objects.get('b1')?.repaired).toBe(true);
+  });
+
+  it('戰鬥狀態與擊敗進度寫入存檔並讀回；倒下時存檔讀回為滿血', () => {
+    const base = initialGameState();
+    const state: GameState = {
+      ...base,
+      quests: { hunt: { status: 'active', progress: [2] } },
+      player: { hp: 37, lastDamagedAt: 0, defeated: false },
+      enemies: new Map([['sp#1', { id: 'sp#1', kind: 'wisp', spawner: 'sp', hp: 20 }]]),
+      spawners: { sp: { nextSpawnAt: 12, counter: 1 } },
+    };
+    const loaded = roundTrip(toSaveData(state, player, new Date())).state;
+    expect(loaded.quests.hunt).toEqual({ status: 'active', progress: [2] });
+    expect(loaded.player.hp).toBe(37);
+    expect(loaded.enemies.get('sp#1')?.hp).toBe(20);
+    expect(loaded.spawners.sp).toEqual({ nextSpawnAt: 12, counter: 1 });
+    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true } }, player, new Date())).state;
+    expect(downed.player).toMatchObject({ hp: 100, defeated: false });
+  });
+
   it('任務紀錄寫入存檔並讀回', () => {
     const state = { ...initialGameState(), quests: { gather: { status: 'completed' as const }, clear: { status: 'active' as const } } };
     expect(roundTrip(toSaveData(state, player, new Date())).state.quests).toEqual(state.quests);

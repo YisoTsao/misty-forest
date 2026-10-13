@@ -7,6 +7,8 @@ import { _electron as electron } from 'playwright';
 
 export const prefabs = new Map(JSON.parse(readFileSync('src/data/prefabs.json', 'utf8')).map((p) => [p.id, p]));
 export const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
+/** 目前的存檔版本（取自 game-core 的存檔格式定義，測試不必每次升版都修改） */
+export const SAVE_VERSION = Number(/export const SAVE_VERSION = (\d+);/.exec(readFileSync('src/game-core/save/schema.ts', 'utf8'))?.[1]);
 
 /** 每次啟動使用獨立的暫存存檔資料夾，測試不會讀到或覆蓋玩家的真實存檔 */
 export function tempSaveDir() {

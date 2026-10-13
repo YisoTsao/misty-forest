@@ -89,21 +89,39 @@ try {
     assert.ok(minDist < contact + 0.3, `沒有走到樹幹旁（最近 ${minDist.toFixed(2)}），測試前提不成立`);
   });
 
-  await check('樹木擋在攝影機與角色之間時攝影機自動拉近', async () => {
+  await check('樹幹擋在攝影機與角色之間時攝影機不拉近（樹改為鏤空，T-64）', async () => {
     // 角色在樹的北側，攝影機在角色南側（+Z），中間隔著樹幹
     await teleport(tree.x, tree.z - 2.2);
     await camera({ yaw: 0, pitch: 0.15, distance: 8 });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
     const c = await camera();
     const p = await state();
     const dist = Math.hypot(c.x - p.x, c.y - (p.y + PIVOT_OFFSET_Y), c.z - p.z);
-    assert.ok(dist < 2.2 - tree.radius, `攝影機距離 ${dist.toFixed(2)}，沒有被樹擋住而拉近`);
-    // 換到沒有遮擋的方向後會退回設定距離
-    await camera({ yaw: Math.PI, pitch: 0.15, distance: 8 });
+    assert.ok(dist > 7, `攝影機被樹幹拉近了（${dist.toFixed(2)}）`);
+  });
+
+  await check('建築擋在攝影機與角色之間時攝影機自動拉近，解除後退回', async () => {
+    // 站在酒館正面，攝影機轉到酒館那一側
+    const tavern = placements.find((p) => p.prefabId === 'tavern');
+    const [tx, , tz] = tavern.position;
+    const yaw = tavern.rotation[1];
+    const px = tx + Math.sin(yaw) * 4.5;
+    const pz = tz + Math.cos(yaw) * 4.5;
+    await teleport(px, pz);
+    await camera({ yaw, pitch: 0.12, distance: 8 });
+    // yaw 的方向是酒館朝外；攝影機要在角色往酒館的那一側，所以轉 180°
+    await camera({ yaw: yaw + Math.PI, pitch: 0.12, distance: 8 });
+    await page.waitForTimeout(900);
+    const c = await camera();
+    const p = await state();
+    const dist = Math.hypot(c.x - p.x, c.y - (p.y + PIVOT_OFFSET_Y), c.z - p.z);
+    assert.ok(dist < 4, `攝影機距離 ${dist.toFixed(2)}，沒有被酒館擋住而拉近`);
+    await camera({ yaw, pitch: 0.12, distance: 8 });
     await page.waitForTimeout(1500);
     const c2 = await camera();
     const dist2 = Math.hypot(c2.x - p.x, c2.y - (p.y + PIVOT_OFFSET_Y), c2.z - p.z);
-    assert.ok(dist2 > 7, `解除遮擋後沒有退回（${dist2.toFixed(2)}）`);
+    // 村子裡另一側也可能有房屋，只要求明顯退回
+    assert.ok(dist2 > dist + 2, `解除遮擋後沒有退回（${dist.toFixed(2)} → ${dist2.toFixed(2)}）`);
   });
 
   const prompt = page.locator('[data-testid="interact-prompt"]');

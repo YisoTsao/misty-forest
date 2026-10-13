@@ -2,6 +2,7 @@ import { LocalAuthority } from '@/game-core/authority/authority';
 import type { DialogueDef } from '@/game-core/dialogue/dialogue';
 import type { NpcDef } from '@/game-core/npc/npc';
 import type { QuestCatalog } from '@/game-core/quest/quest';
+import type { CombatData } from '@/game-core/combat/combat';
 import type { RegionDef } from '@/game-core/world/regions';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
@@ -20,12 +21,14 @@ const data = worldDataResult.ok
       dialogues: new Map<string, DialogueDef>(),
       npcs: [] as NpcDef[],
       quests: new Map() as QuestCatalog,
+      combat: { enemies: new Map(), spawners: [] } as CombatData,
     };
 
 /** NPC 與對話資料 */
 export const npcs: readonly NpcDef[] = data.npcs;
 export const dialogues: ReadonlyMap<string, DialogueDef> = data.dialogues;
 export const quests: QuestCatalog = data.quests;
+export const combat: CombatData = data.combat;
 
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;
@@ -42,5 +45,6 @@ export const authority = new LocalAuthority(initialGameState(), {
   lootTables: data.lootTables,
   random: Math.random,
   quests: data.quests,
+  combat: data.combat,
   allowDebugCommands,
 });

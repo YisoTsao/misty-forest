@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const locomotionAnims = ['idle', 'walk', 'run', 'jump', 'fall', 'land'] as const;
 export type LocomotionAnim = (typeof locomotionAnims)[number];
 
-/** 規格 4.6 要求的全部動畫：移動類 + 動作類。 */
-export const requiredClipKeys = [...locomotionAnims, 'attack', 'hit', 'interact'] as const;
+/** 規格 4.6 要求的全部動畫：移動類 + 動作類；加上戰鬥用的技能與倒下（規格 6.6）。 */
+export const requiredClipKeys = [...locomotionAnims, 'attack', 'hit', 'interact', 'skill', 'death'] as const;
 export type ClipKey = (typeof requiredClipKeys)[number];
 
 export const locomotionParamsSchema = z.object({

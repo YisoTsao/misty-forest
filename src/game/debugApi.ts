@@ -1,7 +1,7 @@
 import { requiredClipKeys, type ClipKey } from '@/game-core/character/characterDef';
 import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
 import { parseMistLevel, type MistStage } from '@/game-core/world/mist';
-import { questStatus } from '@/game-core/quest/quest';
+import { objectiveProgress, questStatus } from '@/game-core/quest/quest';
 import { regionAt } from '@/game-core/world/regions';
 import type { RegionId } from '@/game-core/world/types';
 import { initialGameState, type GameCommand } from '@/game-core/authority/rules';
@@ -10,6 +10,8 @@ import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
+import { combatRuntime, enemyRuntime } from './combat/combatRuntime';
+import { input } from './input/inputManager';
 import { npcRuntime } from './npc/npcRuntime';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
@@ -19,7 +21,8 @@ import { saveStorage } from './save/storages';
 import { useGameStore } from './state/gameStore';
 import { useSettingsStore } from './state/settingsStore';
 import { useUiStore } from './state/uiStore';
-import { mistRuntime, mistTargetAt } from './world/mistRuntime';
+import { mistRuntime } from './world/mistRuntime';
+import { mistTargetAt } from './world/mistTarget';
 import { cameraBookmarks } from './worldData';
 
 export type MistwoodDebugApi = {
@@ -81,6 +84,18 @@ export type MistwoodDebugApi = {
   npcState: (id: string) => { x: number; z: number; yaw: number; walking: boolean; talking: boolean } | null;
   /** 任務狀態（locked / available / active / completed） */
   questState: (id: string) => string;
+  /** 任務第一個目標的進度 */
+  questProgress: (id: string) => number;
+  /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
+  enemies: () => { id: string; x: number; z: number; state: string; hp: number }[];
+  /** 和平模式：迷霧生物不追擊、不攻擊（截圖與測試用） */
+  setPeaceful: (peaceful: boolean) => void;
+  /** 模擬按一下按鍵代碼（例如 Mouse0），經過按鍵綁定 */
+  tap: (code: string) => void;
+  /** 讓玩家面向某個位置 */
+  face: (x: number, z: number) => void;
+  /** 玩家戰鬥狀態 */
+  combatState: () => { hp: number; defeated: boolean; attackCooldown: number; skillCooldown: number };
   /** 進行中的對話 */
   dialogue: () => { npcId: string; dialogueId: string; nodeId: string } | null;
   /** 目前畫面上的通知 */
@@ -178,6 +193,25 @@ export function installDebugApi(): void {
       return rt ? { x: rt.x, z: rt.z, yaw: rt.yaw, walking: rt.walking, talking: rt.talking } : null;
     },
     dialogue: () => useUiStore.getState().dialogue,
+    enemies: () =>
+      [...enemyRuntime]
+        .filter(([, v]) => v.vanishing === null)
+        .map(([id, v]) => ({ id, x: v.ai.x, z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0 })),
+    setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
+    tap: (code) => input.injectTap(code),
+    face: (x, z) => {
+      const { position, locomotion } = playerRuntime;
+      locomotion.facingYaw = Math.atan2(x - position.x, z - position.z);
+    },
+    combatState: () => {
+      const { hp, defeated } = authority.getState().player;
+      return { hp, defeated, attackCooldown: combatRuntime.attackCooldown, skillCooldown: combatRuntime.skillCooldown };
+    },
+    questProgress: (id) => {
+      const def = quests.get(id);
+      if (!def) throw new Error(`未知的任務：${id}`);
+      return objectiveProgress(authority.getState(), def)[0]?.current ?? 0;
+    },
     questState: (id) => {
       const def = quests.get(id);
       if (!def) throw new Error(`未知的任務：${id}`);

@@ -14,11 +14,14 @@ type DebugState = {
   mistOverride: number | null;
   /** 每次要求「立即套用、不漸變」時遞增（截圖用） */
   mistSnap: number;
+  /** 和平模式（除錯 / 截圖）：迷霧生物不會追擊或攻擊玩家；?peaceful=1 */
+  peaceful: boolean;
   /** 切到自由視角並套用書籤 */
   requestBookmark: (id: string) => void;
   setCameraMode: (mode: CameraMode) => void;
   setSceneReady: (ready: boolean) => void;
   setMistOverride: (value: number | null, instant?: boolean) => void;
+  setPeaceful: (peaceful: boolean) => void;
 };
 
 export const useDebugStore = create<DebugState>((set) => ({
@@ -27,9 +30,11 @@ export const useDebugStore = create<DebugState>((set) => ({
   sceneReady: false,
   mistOverride: null,
   mistSnap: 0,
+  peaceful: new URLSearchParams(window.location.search).has('peaceful'),
   requestBookmark: (id) => set((s) => ({ cameraMode: 'free', bookmark: { id, nonce: (s.bookmark?.nonce ?? 0) + 1 } })),
   setCameraMode: (cameraMode) => set({ cameraMode }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
+  setPeaceful: (peaceful) => set({ peaceful }),
   setMistOverride: (value, instant = false) =>
     set((s) => ({
       mistOverride: value === null ? null : Math.min(1, Math.max(0, value)),

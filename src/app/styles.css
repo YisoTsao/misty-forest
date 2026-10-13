@@ -43,3 +43,23 @@ body,
 .animate-region {
   animation: region-in 3.2s ease-out forwards;
 }
+
+.damage-number {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 900;
+  font-size: 22px;
+  pointer-events: none;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 0 6px rgba(0, 0, 0, 0.35);
+}
+
+.damage-enemy {
+  color: #fff3b0;
+}
+
+.damage-player {
+  color: #ff6b6b;
+}

@@ -245,5 +245,90 @@
         "textKey": "dlg.balu.island"
       }
     }
+  },
+  {
+    "id": "leo_forest_offer",
+    "start": "praise",
+    "nodes": {
+      "praise": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.praise",
+        "next": "ask"
+      },
+      "ask": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.ask",
+        "options": [
+          {
+            "textKey": "dlg.leo.opt.accept",
+            "next": "brief",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "clear_forest"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.leo.opt.later"
+          }
+        ]
+      },
+      "brief": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.brief",
+        "next": "tips"
+      },
+      "tips": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.tips"
+      }
+    }
+  },
+  {
+    "id": "leo_forest_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.remind"
+      }
+    }
+  },
+  {
+    "id": "leo_forest_turnin",
+    "start": "really",
+    "nodes": {
+      "really": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.really",
+        "options": [
+          {
+            "textKey": "dlg.leo.opt.done",
+            "next": "thanks",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "clear_forest"
+              }
+            ]
+          }
+        ]
+      },
+      "thanks": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.thanks"
+      }
+    }
+  },
+  {
+    "id": "leo_after_forest",
+    "start": "quiet",
+    "nodes": {
+      "quiet": {
+        "speakerKey": "npc.leo",
+        "textKey": "dlg.leo.quiet"
+      }
+    }
   }
 ]

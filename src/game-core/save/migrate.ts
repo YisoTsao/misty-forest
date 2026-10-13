@@ -1,4 +1,5 @@
 // 存檔版本遷移：每個舊版本一個函式，把資料升一版，依序套用到最新版。
+import { PLAYER_STATS } from '../combat/combat';
 import { initialMistStages } from '../world/regions';
 import { SAVE_VERSION } from './schema';
 
@@ -19,6 +20,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   2: (data) => ({ ...data, mist: { ...initialMistStages } }),
   // v3 → v4：加入任務紀錄；v3 時還沒有任務系統，沒有接過任何任務
   3: (data) => ({ ...data, quests: {} }),
+  // v4 → v5：加入戰鬥狀態；v4 時沒有戰鬥，滿血、沒有敵人（讀檔後由生成點補上）
+  4: (data) => ({ ...data, combat: { hp: PLAYER_STATS.maxHp, enemies: [], spawners: {} } }),
 };
 
 /** 把任何版本的存檔升到 targetVersion。缺版本號、比程式新或缺少遷移函式時拋 SaveFormatError。 */

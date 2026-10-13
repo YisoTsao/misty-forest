@@ -6,6 +6,7 @@ import { t } from '@/game/i18n';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { worldDataResult } from '@/game/worldData';
+import { CombatHud } from '@/ui/CombatHud';
 import { ControlHint } from '@/ui/ControlHint';
 import { DebugPanel } from '@/ui/DebugPanel';
 import { DialogueBox } from '@/ui/DialogueBox';
@@ -47,6 +48,8 @@ export function App() {
       >
         <WorldScene data={worldDataResult.data} />
       </Canvas>
+      <div id="damage-layer" className="pointer-events-none absolute inset-0 overflow-hidden" />
+      <CombatHud />
       <InteractPrompt />
       <Toasts />
       <TutorialPanel />

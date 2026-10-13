@@ -1,3 +1,4 @@
+import { parseCombatData, type CombatData } from '../combat/combat';
 import { conditionItemIds, conditionQuestIds } from '../dialogue/conditions';
 import { parseDialogues, type DialogueDef } from '../dialogue/dialogue';
 import { parseItemData, type ItemCatalog, type LootTables } from '../items/items';
@@ -14,6 +15,7 @@ export type GameData = WorldData & {
   dialogues: ReadonlyMap<string, DialogueDef>;
   npcs: readonly NpcDef[];
   quests: QuestCatalog;
+  combat: CombatData;
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -26,6 +28,8 @@ export function parseGameData(raw: {
   dialogues: unknown;
   npcs: unknown;
   quests: unknown;
+  enemies: unknown;
+  spawners: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -57,9 +61,15 @@ export function parseGameData(raw: {
   for (const itemId of conditions.flatMap(conditionItemIds)) {
     if (!items.has(itemId)) throw new WorldDataError(`對話條件參照不存在的物品：${itemId}`);
   }
+  let combat: CombatData;
+  try {
+    combat = parseCombatData(raw.enemies, raw.spawners, new Set(lootTables.keys()));
+  } catch (err) {
+    throw new WorldDataError(`enemies / spawners 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
   let quests: QuestCatalog;
   try {
-    quests = parseQuests(raw.quests, { items: new Set(items.keys()), npcs: new Set(npcs.map((n) => n.id)) });
+    quests = parseQuests(raw.quests, { items: new Set(items.keys()), npcs: new Set(npcs.map((n) => n.id)), enemies: new Set(combat.enemies.keys()) });
   } catch (err) {
     throw new WorldDataError(`quests 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
@@ -70,5 +80,5 @@ export function parseGameData(raw: {
   for (const questId of [...conditions.flatMap(conditionQuestIds), ...effectQuests]) {
     if (!quests.has(questId)) throw new WorldDataError(`對話參照不存在的任務：${questId}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests };
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat };
 }

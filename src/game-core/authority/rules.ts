@@ -1,6 +1,7 @@
 // 權威規則（規格 3.2：指令 → 權威層 → 事件）。
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
+import { PLAYER_STATS, type CombatData } from '../combat/combat';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
 import { questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
@@ -23,10 +24,29 @@ export type GameState = {
   readonly mist: MistStages;
   /** 已接取或完成的任務（規格 6.5）；沒有紀錄表示尚未接取 */
   readonly quests: Readonly<Record<string, QuestRecord>>;
+  /** 玩家的戰鬥狀態（規格 6.6）：血量、上次受傷的遊戲時間、是否倒下 */
+  readonly player: { readonly hp: number; readonly lastDamagedAt: number; readonly defeated: boolean };
+  /** 目前存在的敵人（位置由本機模擬，權威層只管血量與存在） */
+  readonly enemies: ReadonlyMap<string, EnemyRuntime>;
+  /** 各生成點下次可以補充敵人的時間與流水號 */
+  readonly spawners: Readonly<Record<string, SpawnerRuntime>>;
 };
 
+export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
+export type SpawnerRuntime = { readonly nextSpawnAt: number; readonly counter: number };
+
 export function initialGameState(): GameState {
-  return { time: 0, objects: new Map(), inventory: createInventory(), tutorial: 'move', mist: initialMistStages, quests: {} };
+  return {
+    time: 0,
+    objects: new Map(),
+    inventory: createInventory(),
+    tutorial: 'move',
+    mist: initialMistStages,
+    quests: {},
+    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false },
+    enemies: new Map(),
+    spawners: {},
+  };
 }
 
 export type GameCommand =
@@ -39,6 +59,12 @@ export type GameCommand =
   | { type: 'AcceptQuest'; quest: string }
   /** 修復物件（木橋）：消耗材料 */
   | { type: 'RepairObject'; placementId: string }
+  /** 玩家攻擊命中敵人（命中判定在本機以 isInAttackArea 計算，規則驗證目標存在並結算傷害） */
+  | { type: 'AttackEnemy'; enemyId: string; attack: 'attack' | 'skill' }
+  /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
+  | { type: 'EnemyStrike'; enemyId: string }
+  /** 倒下後重新站起來 */
+  | { type: 'RespawnPlayer' }
   /** 回報任務：目標全部達成時交出物品、領取獎勵 */
   | { type: 'TurnInQuest'; quest: string }
   /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
@@ -58,6 +84,8 @@ export type RejectReason =
   | 'quest-incomplete'
   | 'already-repaired'
   | 'missing-materials'
+  | 'unknown-enemy'
+  | 'player-defeated'
   | 'not-allowed'
   | 'invalid-command';
 
@@ -73,6 +101,16 @@ export type GameEvent =
   | { type: 'QuestCompleted'; quest: string }
   | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' }
   | { type: 'ObjectRepaired'; placementId: string }
+  | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
+  | { type: 'EnemyDespawned'; enemyId: string }
+  | { type: 'EnemyDamaged'; enemyId: string; amount: number; hp: number; attack: 'attack' | 'skill' }
+  | { type: 'EnemyDefeated'; enemyId: string; kind: string; spawner: string }
+  | { type: 'SpawnerCooldown'; spawner: string; nextSpawnAt: number }
+  | { type: 'PlayerDamaged'; amount: number; hp: number; enemyId: string }
+  | { type: 'PlayerHealed'; hp: number }
+  | { type: 'PlayerDefeated' }
+  | { type: 'PlayerRespawned'; hp: number }
+  | { type: 'QuestProgressed'; quest: string; objective: number; count: number }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -82,6 +120,7 @@ export type RulesContext = {
   lootTables: LootTables;
   random: () => number;
   quests: QuestCatalog;
+  combat: CombatData;
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
   allowDebugCommands?: boolean;
 };
@@ -102,6 +141,13 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
     case 'RepairObject':
       return repairObject(state, cmd.placementId, ctx);
+    case 'AttackEnemy':
+      return attackEnemy(state, cmd.enemyId, cmd.attack, ctx);
+    case 'EnemyStrike':
+      return enemyStrike(state, cmd.enemyId, ctx);
+    case 'RespawnPlayer':
+      if (!state.player.defeated) return reject('RespawnPlayer', 'invalid-command');
+      return [{ type: 'PlayerRespawned', hp: PLAYER_STATS.maxHp }];
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
     case 'TurnInQuest':
@@ -185,6 +231,72 @@ function repairObject(state: GameState, placementId: string, ctx: RulesContext):
   ];
 }
 
+function attackEnemy(state: GameState, enemyId: string, attack: 'attack' | 'skill', ctx: RulesContext): GameEvent[] {
+  if (state.player.defeated) return reject('AttackEnemy', 'player-defeated');
+  const enemy = state.enemies.get(enemyId);
+  const def = enemy && ctx.combat.enemies.get(enemy.kind);
+  if (!enemy || !def) return reject('AttackEnemy', 'unknown-enemy');
+  const amount = attack === 'skill' ? PLAYER_STATS.skill.damage : PLAYER_STATS.attack.damage;
+  const hp = Math.max(0, enemy.hp - amount);
+  const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount, hp, attack }];
+  if (hp > 0) return events;
+
+  events.push({ type: 'EnemyDefeated', enemyId, kind: enemy.kind, spawner: enemy.spawner });
+  const spawner = ctx.combat.spawners.find((s) => s.id === enemy.spawner);
+  if (spawner) events.push({ type: 'SpawnerCooldown', spawner: spawner.id, nextSpawnAt: state.time + spawner.respawnSec });
+  // 掉落：背包放不下時不掉（不影響擊敗）
+  if (def.lootTableId) {
+    const items = rollIntoInventory(state, def.lootTableId, ctx);
+    if (items && items.length > 0) events.push({ type: 'ItemsGained', items, source: enemyId });
+  }
+  // 任務進度：進行中任務的擊敗目標；達到里程碑時改變區域迷霧（規格 1.4：擊殺迷霧生物會降低迷霧）
+  for (const [questId, record] of Object.entries(state.quests)) {
+    if (record.status !== 'active') continue;
+    const quest = ctx.quests.get(questId);
+    quest?.objectives.forEach((o, i) => {
+      if (o.type !== 'defeat' || o.enemy !== enemy.kind) return;
+      const before = record.progress?.[i] ?? 0;
+      if (before >= o.count) return;
+      const count = before + 1;
+      events.push({ type: 'QuestProgressed', quest: questId, objective: i, count });
+      for (const m of o.milestones ?? []) {
+        if (m.count === count && state.mist[m.region] !== m.stage) events.push({ type: 'MistStageChanged', region: m.region, stage: m.stage });
+      }
+    });
+  }
+  return events;
+}
+
+function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext): GameEvent[] {
+  const enemy = state.enemies.get(enemyId);
+  const def = enemy && ctx.combat.enemies.get(enemy.kind);
+  if (!enemy || !def) return reject('EnemyStrike', 'unknown-enemy');
+  if (state.player.defeated) return reject('EnemyStrike', 'player-defeated');
+  const hp = Math.max(0, state.player.hp - def.damage);
+  const events: GameEvent[] = [{ type: 'PlayerDamaged', amount: def.damage, hp, enemyId }];
+  if (hp <= 0) events.push({ type: 'PlayerDefeated' });
+  return events;
+}
+
+/** 生成點補充與收回（規格 1.4：生成率依區域迷霧；迷霧變淡時多出來的迷霧生物消散） */
+function spawnerEvents(state: GameState, time: number, ctx: RulesContext): GameEvent[] {
+  const events: GameEvent[] = [];
+  for (const spawner of ctx.combat.spawners) {
+    const budget = spawner.budget[state.mist[spawner.regionId]];
+    const alive = [...state.enemies.values()].filter((e) => e.spawner === spawner.id);
+    for (const extra of alive.slice(budget)) events.push({ type: 'EnemyDespawned', enemyId: extra.id });
+    const runtime = state.spawners[spawner.id];
+    if (alive.length >= budget || (runtime && time < runtime.nextSpawnAt)) continue;
+    const def = ctx.combat.enemies.get(spawner.enemy);
+    if (!def) continue;
+    const counter = (runtime?.counter ?? 0) + 1;
+    events.push({ type: 'EnemySpawned', enemyId: `${spawner.id}#${counter}`, kind: def.id, spawner: spawner.id, hp: def.maxHp });
+    // 一次補一隻，下一隻間隔幾秒，避免同時冒出一群
+    events.push({ type: 'SpawnerCooldown', spawner: spawner.id, nextSpawnAt: time + 3 });
+  }
+  return events;
+}
+
 function acceptQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
   const def = ctx.quests.get(questId);
   if (!def) return reject('AcceptQuest', 'unknown-quest');
@@ -223,12 +335,20 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
     if (position && cmd.player && Math.hypot(position[0] - cmd.player.x, position[2] - cmd.player.z) < RESPAWN_CLEARANCE) continue;
     events.push({ type: 'ObjectRespawned', placementId: id });
   }
+  // 脫離戰鬥一段時間後回血
+  const { player } = state;
+  if (!player.defeated && player.hp < PLAYER_STATS.maxHp && time - player.lastDamagedAt >= PLAYER_STATS.regenDelay) {
+    events.push({ type: 'PlayerHealed', hp: Math.min(PLAYER_STATS.maxHp, player.hp + PLAYER_STATS.regenPerSec * cmd.dt) });
+  }
+  events.push(...spawnerEvents(state, time, ctx));
   return events;
 }
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist, quests } = state;
+  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners } = state;
+  let nextEnemies: Map<string, EnemyRuntime> | null = null;
+  const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
   const mutableObjects = () => (nextObjects ??= new Map(objects));
   const patch = (id: string, change: Partial<ObjectRuntime>) => {
@@ -275,6 +395,42 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'QuestCompleted':
         quests = { ...quests, [e.quest]: { status: 'completed' } };
         break;
+      case 'QuestProgressed': {
+        const record = quests[e.quest];
+        if (!record) break;
+        const progress = [...(record.progress ?? [])];
+        progress[e.objective] = e.count;
+        quests = { ...quests, [e.quest]: { ...record, progress: Array.from(progress, (v) => v ?? 0) } };
+        break;
+      }
+      case 'EnemySpawned':
+        mutableEnemies().set(e.enemyId, { id: e.enemyId, kind: e.kind, spawner: e.spawner, hp: e.hp });
+        spawners = { ...spawners, [e.spawner]: { nextSpawnAt: spawners[e.spawner]?.nextSpawnAt ?? 0, counter: (spawners[e.spawner]?.counter ?? 0) + 1 } };
+        break;
+      case 'EnemyDespawned':
+      case 'EnemyDefeated':
+        mutableEnemies().delete(e.enemyId);
+        break;
+      case 'EnemyDamaged': {
+        const enemy = mutableEnemies().get(e.enemyId);
+        if (enemy) mutableEnemies().set(e.enemyId, { ...enemy, hp: e.hp });
+        break;
+      }
+      case 'SpawnerCooldown':
+        spawners = { ...spawners, [e.spawner]: { counter: spawners[e.spawner]?.counter ?? 0, nextSpawnAt: e.nextSpawnAt } };
+        break;
+      case 'PlayerDamaged':
+        player = { ...player, hp: e.hp, lastDamagedAt: time };
+        break;
+      case 'PlayerHealed':
+        player = { ...player, hp: e.hp };
+        break;
+      case 'PlayerDefeated':
+        player = { ...player, hp: 0, defeated: true };
+        break;
+      case 'PlayerRespawned':
+        player = { hp: e.hp, lastDamagedAt: time, defeated: false };
+        break;
       case 'ItemsRemoved': {
         const next = removeItems(inventory, e.items);
         if (!next) throw new Error('ItemsRemoved 事件超過持有數量（事件與狀態不一致）');
@@ -286,5 +442,6 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
     }
   }
   if (nextObjects) objects = nextObjects;
-  return { time, objects, inventory, tutorial, mist, quests };
+  if (nextEnemies) enemies = nextEnemies;
+  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners };
 }

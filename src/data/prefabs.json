@@ -6,7 +6,8 @@
     "collision": {
       "shape": "cylinder",
       "radius": 0.085,
-      "height": 0.6
+      "height": 0.6,
+      "cameraIgnore": true
     },
     "interaction": "harvest",
     "nameKey": "object.tree",
@@ -17,7 +18,8 @@
       "harvestedCollision": {
         "shape": "cylinder",
         "radius": 0.085,
-        "height": 0.22
+        "height": 0.22,
+        "cameraIgnore": true
       },
       "anim": "attack"
     },
@@ -30,7 +32,8 @@
     "collision": {
       "shape": "cylinder",
       "radius": 0.09,
-      "height": 0.6
+      "height": 0.6,
+      "cameraIgnore": true
     },
     "interaction": "harvest",
     "nameKey": "object.tree",
@@ -41,7 +44,8 @@
       "harvestedCollision": {
         "shape": "cylinder",
         "radius": 0.09,
-        "height": 0.13
+        "height": 0.13,
+        "cameraIgnore": true
       },
       "anim": "attack"
     },

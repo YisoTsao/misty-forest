@@ -98,6 +98,15 @@ class InputManager {
     this.target.requestPointerLock().catch((err: unknown) => console.warn('[input] 無法鎖定滑鼠：', err));
   }
 
+  /**
+   * 除錯 / 端對端測試：模擬按下並放開一個按鍵代碼（經過與真實輸入相同的綁定查表）。
+   * 自動化環境常無法鎖定滑鼠，滑鼠左鍵的第一下會被拿去鎖定，需要以此觸發攻擊。
+   */
+  injectTap(code: string): void {
+    this.press(code);
+    this.downCodes.delete(code);
+  }
+
   private press(code: string): void {
     if (this.downCodes.has(code)) return; // 忽略按住時的重複事件
     this.downCodes.add(code);

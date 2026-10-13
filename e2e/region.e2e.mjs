@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { placements, prefabs, runE2e, tempSaveDir } from './lib.mjs';
+import { placements, prefabs, runE2e, SAVE_VERSION, tempSaveDir } from './lib.mjs';
 
 const regions = JSON.parse(readFileSync('src/data/regions.json', 'utf8'));
 const forest = regions.find((r) => r.id === 'forest').area;
@@ -49,7 +49,7 @@ const lookOf = (page) =>
     return { sat: sat / n, val: val / n };
   });
 
-await runE2e('region e2e（1/2）', { env }, async ({ page, check, debug, camera, teleport }) => {
+await runE2e('region e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env }, async ({ page, check, debug, camera, teleport }) => {
   const mist = () => debug(() => window.__mistwoodDebug.mist());
   const region = () => debug(() => window.__mistwoodDebug.region());
   let forestLook = null;
@@ -78,7 +78,7 @@ await runE2e('region e2e（1/2）', { env }, async ({ page, check, debug, camera
   await check('進入新區域時自動存檔', async () => {
     await page.waitForTimeout(500);
     assert.ok(existsSync(primary), '沒有存檔');
-    assert.equal(JSON.parse(readFileSync(primary, 'utf8')).version, 4);
+    assert.equal(JSON.parse(readFileSync(primary, 'utf8')).version, SAVE_VERSION);
   });
 
   await check('區域邊界：迷霧依距離平滑混合（約一半）', async () => {

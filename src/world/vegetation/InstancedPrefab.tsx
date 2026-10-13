@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Placement } from '@/game-core/world/types';
 import { buildProceduralModel, PROCEDURAL_PREFIX, type ModelPart as Part } from '@/render/proceduralModels';
+import { patchOcclusion } from '@/render/occlusion';
 import { toToonMaterial } from '@/render/toon';
 import { assetUrl } from '@/game/worldData';
 
@@ -16,7 +17,8 @@ function useGltfParts(model: string): Part[] {
       if (!(obj instanceof THREE.Mesh)) return;
       const source = Array.isArray(obj.material) ? obj.material[0] : obj.material;
       if (!source) return;
-      list.push({ key: obj.uuid, geometry: obj.geometry, material: toToonMaterial(source), local: obj.matrixWorld.clone() });
+      // 世界物件會在擋住攝影機時鏤空（render/occlusion.ts）
+      list.push({ key: obj.uuid, geometry: obj.geometry, material: patchOcclusion(toToonMaterial(source)), local: obj.matrixWorld.clone() });
     });
     if (list.length === 0) throw new Error(`模型沒有可渲染的 mesh：${model}`);
     return list;

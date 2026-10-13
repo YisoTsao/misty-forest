@@ -21,6 +21,8 @@ export function installEventFeedback(): void {
     for (const e of events) {
       if (e.type === 'ItemsGained') {
         for (const stack of e.items) ui.pushToast({ itemId: stack.itemId, count: stack.count });
+      } else if (e.type === 'MistStageChanged') {
+        ui.pushToast({ textKey: `toast.mist.${e.stage}`, vars: { region: t(`region.${e.region}`) } });
       } else if (e.type === 'ObjectRepaired') {
         ui.pushToast({ textKey: 'toast.bridgeRepaired' });
       } else if (e.type === 'ItemsRemoved') {

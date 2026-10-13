@@ -1,0 +1,4 @@
+[
+  { "id": "forest_north", "regionId": "forest", "enemy": "mist_wisp", "center": [56, -62], "radius": 9, "budget": { "dense": 3, "light": 1, "clear": 0 }, "respawnSec": 20 },
+  { "id": "forest_south", "regionId": "forest", "enemy": "mist_wisp", "center": [64, -50], "radius": 9, "budget": { "dense": 3, "light": 1, "clear": 0 }, "respawnSec": 20 }
+]

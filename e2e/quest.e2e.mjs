@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { placements, runE2e, tempSaveDir } from './lib.mjs';
+import { placements, runE2e, SAVE_VERSION, tempSaveDir } from './lib.mjs';
 
 const npcs = JSON.parse(readFileSync('src/data/npcs.json', 'utf8'));
 const balu = npcs.find((n) => n.id === 'balu');
@@ -92,7 +92,7 @@ await runE2e('quest e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page
   await check('任務完成後自動存檔，存檔內任務為已完成', async () => {
     await page.waitForTimeout(2600);
     const file = JSON.parse(readFileSync(path.join(saveDir, 'slot1.json'), 'utf8'));
-    assert.equal(file.version, 4);
+    assert.equal(file.version, SAVE_VERSION);
     assert.deepEqual(file.quests.wood_for_bridge, { status: 'completed' });
   });
 });

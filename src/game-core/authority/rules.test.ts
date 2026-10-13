@@ -87,7 +87,8 @@ describe('AdvanceTime 與重生', () => {
 
   it('時間前進；未到重生時間不重生', () => {
     const { events, state } = run(harvested(), { type: 'AdvanceTime', dt: 99 });
-    expect(events).toEqual([{ type: 'TimeAdvanced', time: 99 }]);
+    expect(events[0]).toEqual({ type: 'TimeAdvanced', time: 99 });
+    expect(events.some((e) => e.type === 'ObjectRespawned')).toBe(false);
     expect(state.time).toBe(99);
     expect(state.objects.get('t1')?.harvested).toBe(true);
   });

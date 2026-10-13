@@ -10,7 +10,7 @@ import { toToonMaterial } from '@/render/toon';
 
 const FADE = 0.15;
 /** 只播一次並停在最後一格的動畫 */
-const ONE_SHOT: readonly ClipKey[] = ['jump', 'land', 'interact', 'attack'];
+const ONE_SHOT: readonly ClipKey[] = ['jump', 'land', 'interact', 'attack', 'skill', 'hit', 'death'];
 
 /** 複製骨架模型、隱藏武器掛件、材質轉 toon。回傳的材質需由呼叫端釋放。 */
 export function prepareModel(source: THREE.Object3D, hidden: readonly string[]) {

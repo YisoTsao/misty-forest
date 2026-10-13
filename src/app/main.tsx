@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { installDebugApi } from '@/game/debugApi';
+import { installCombatRuntime } from '@/game/combat/combatRuntime';
 import { installEventFeedback } from '@/game/eventFeedback';
 import { loadMainSave } from '@/game/save/saveService';
 import { installAutosave } from '@/game/session';
@@ -13,6 +14,7 @@ import './styles.css';
 document.title = t('app.title');
 installDebugApi();
 installEventFeedback();
+installCombatRuntime();
 installAutosave();
 // 啟動時檢查存檔（主選單顯示「繼續遊戲」或損壞提示）；讀取失敗不影響啟動
 void loadMainSave();

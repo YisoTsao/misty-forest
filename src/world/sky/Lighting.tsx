@@ -5,7 +5,7 @@ import { approachMist } from '@/game-core/world/mist';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen } from '@/game/state/gameStore';
-import { mistTargetAt } from '@/game/world/mistRuntime';
+import { mistTargetAt } from '@/game/world/mistTarget';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { createMistLook, mistLook, uMist } from '@/render/mist';
 import { fogRange, palette } from '@/render/palette';
