@@ -29,6 +29,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       // 新遊戲：世界物件與角色回到初始狀態（Phase 2 改為「新遊戲 / 讀取存檔」）
       authority.replaceState(initialGameState());
       useUiStore.getState().closeMessage();
+      useUiStore.getState().setInventoryOpen(false);
       playerRuntime.newGameRequest = true;
       Object.assign(cameraRuntime, { yaw: 0, pitch: 0.35, distance: 6 });
       set({ screen: next, session: session + 1 });

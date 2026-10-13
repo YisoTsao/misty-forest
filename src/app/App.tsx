@@ -11,6 +11,7 @@ import { DebugPanel } from '@/ui/DebugPanel';
 import { ErrorOverlay } from '@/ui/ErrorOverlay';
 import { FatalScreen } from '@/ui/FatalScreen';
 import { InteractPrompt } from '@/ui/InteractPrompt';
+import { InventoryPanel } from '@/ui/InventoryPanel';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
@@ -51,6 +52,7 @@ export function App() {
         </>
       )}
       <MessageDialog />
+      <InventoryPanel />
       <TitleScreen />
       <PauseMenu />
       <ErrorOverlay />

@@ -15,17 +15,21 @@ type UiState = {
   interactTarget: InteractTarget | null;
   message: UiMessage | null;
   toasts: readonly Toast[];
+  /** 背包視窗（規格 6.3） */
+  inventoryOpen: boolean;
   setInteractTarget: (target: InteractTarget | null) => void;
   showMessage: (message: UiMessage) => void;
   closeMessage: () => void;
   pushToast: (toast: Omit<Toast, 'id'>) => void;
   dismissToast: (id: number) => void;
+  setInventoryOpen: (open: boolean) => void;
 };
 
 export const useUiStore = create<UiState>((set, get) => ({
   interactTarget: null,
   message: null,
   toasts: [],
+  inventoryOpen: false,
   setInteractTarget: (target) => {
     if (get().interactTarget?.id === target?.id) return;
     set({ interactTarget: target });
@@ -34,9 +38,11 @@ export const useUiStore = create<UiState>((set, get) => ({
   closeMessage: () => set({ message: null }),
   pushToast: (toast) => set({ toasts: [...get().toasts, { ...toast, id: nextToastId++ }].slice(-MAX_TOASTS) }),
   dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
+  setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
 }));
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  return useUiStore.getState().message !== null;
+  const { message, inventoryOpen } = useUiStore.getState();
+  return message !== null || inventoryOpen;
 }

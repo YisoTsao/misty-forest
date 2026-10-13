@@ -12,7 +12,7 @@
   "bookmark.overlook": "觀景點",
   "bookmark.character": "角色特寫",
   "hint.clickToPlay": "點擊畫面開始操作",
-  "hint.controls": "WASD 移動 · Shift 跑步 · Space 跳躍 · E 互動 / 採集 · 滑鼠轉視角 · 滾輪縮放 · Esc 暫停選單",
+  "hint.controls": "WASD 移動 · Shift 跑步 · Space 跳躍 · E 互動 / 採集 · I 背包 · 滑鼠轉視角 · 滾輪縮放 · Esc 暫停選單",
   "debug.mist": "迷霧",
   "mist.dense": "濃",
   "mist.light": "淡",
@@ -54,5 +54,13 @@
   "item.starlight_shard.name": "星光碎片",
   "item.starlight_shard.desc": "從星源古樹散落的微光碎片，握在手裡會微微發熱。",
   "toast.obtained": "獲得",
-  "toast.inventoryFull": "背包已滿，放不下了"
+  "toast.inventoryFull": "背包已滿，放不下了",
+  "inventory.title": "背包",
+  "inventory.empty": "背包裡還沒有東西。\n靠近樹木、岩石或花叢按 E 採集吧！",
+  "inventory.owned": "持有",
+  "inventory.closeHint": "I / Tab / Esc 關閉",
+  "inventory.category.material": "材料",
+  "inventory.category.special": "珍貴物品",
+  "inventory.category.quest": "任務物品",
+  "inventory.close": "關閉"
 }

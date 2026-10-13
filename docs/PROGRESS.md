@@ -1,7 +1,7 @@
 # 開發進度
 
 ## 目前階段
-Phase 2（探索、互動與存檔框架）。**任務 2A（Authority、物品、背包、採集）已完成**；下一個是任務 2B（背包介面）。
+Phase 2（探索、互動與存檔框架）。**任務 2A（Authority、物品、背包、採集）、2B（背包介面）已完成**；下一個是任務 2C（存檔框架）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
 **續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
@@ -18,6 +18,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 2B：背包介面（2026-10-13）
+- I / Tab（依 `keybindings.json`，可重新配置）開關背包；Esc 也可關閉且不會同時開啟暫停選單。
+- 24 格、物品圖示與數量、滑過或點選格子顯示名稱、分類、持有數與說明；只讀權威狀態。
+- 開啟時釋放滑鼠、角色停止移動（`isModalOpen`）；關閉時重新鎖定滑鼠；暫停或回主選單時自動關閉。
+- 截圖 `docs/screenshots/phase2/inventory.png`（`--harvest` 一併輸出）。端對端 harvest 新增 5 項。
+
 ### 任務 2A：Authority、物品、背包與採集（2026-10-13）
 - **權威層**（規格 3.2，T-33）：`game-core/authority/rules.ts` 純函式 `handleCommand` / `applyEvents`；指令 `HarvestObject`、`OpenChest`、`AdvanceTime`；事件 `ObjectHarvested`、`ObjectRespawned`、`ChestOpened`、`ItemsGained`、`TimeAdvanced`、`CommandRejected`。`LocalAuthority`（send / subscribe / getState / replaceState）。UI 與 3D 只讀 `useGameStateStore`。
 - **物品與掉落表**：`data/items.json`（木材、石頭、花朵、草藥、星光碎片）、`data/lootTables.json`；zod 驗證並檢查跨檔參照（prefab 的掉落表必須存在）。
@@ -80,10 +86,9 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 （無）
 
 ## 下一步（Phase 2 其餘任務，依序）
-1. **任務 2B 背包介面**：I / Tab 開關、格子、圖示、數量、說明提示；開啟時釋放滑鼠、角色停止。
-2. **任務 2C 存檔框架**（規格 6.8）：`SaveStorage`（Electron 主程序 JSON：原子寫入、`.bak`；網頁開發模式 IndexedDB）、`version` + 遷移 + zod、損壞時嘗試備份 → 仍失敗則提示並允許新遊戲；自動存檔（定時、採集 / 開箱後）、手動存檔、匯出；主選單「繼續 / 新遊戲」；設定值（畫質）存檔。
-3. **任務 2D 教學引導與設定**：出生草原內完成移動、互動、採集的引導；設定畫面（畫質、按鍵重新配置）。
-4. Phase 2 驗收後進入 Phase 3（戰鬥、NPC 與任務）。
+1. **任務 2C 存檔框架**（規格 6.8）：`SaveStorage`（Electron 主程序 JSON：原子寫入、`.bak`；網頁開發模式 IndexedDB）、`version` + 遷移 + zod、損壞時嘗試備份 → 仍失敗則提示並允許新遊戲；自動存檔（定時、採集 / 開箱後）、手動存檔、匯出；主選單「繼續 / 新遊戲」；設定值（畫質）存檔。
+2. **任務 2D 教學引導與設定**：出生草原內完成移動、互動、採集的引導；設定畫面（畫質、按鍵重新配置）。
+3. Phase 2 驗收後進入 Phase 3（戰鬥、NPC 與任務）。
 
 ## 待使用者處理（不阻擋開發）
 1. **風格判定（規格 4.8）**：把參考圖放進 `docs/art/reference/`，與 `docs/screenshots/phase1/`、`phase2/` 並排比對。

@@ -4,7 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單與暫停選單（Phase 1 驗收：可回到主選單）
-//   --harvest：輸出可採集的花叢、草藥特寫與砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）
+//   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
 /* global window -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
 import { mkdirSync, readFileSync } from 'node:fs';
@@ -132,6 +132,20 @@ try {
     await shot('harvest_tree_chop');
     await page.waitForTimeout(700);
     await shot('harvest_tree_stump');
+    // 背包（任務 2B）：再採幾樣東西，開啟後選取草藥
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      for (const id of ['meadow_flower_001', 'meadow_flower_002', 'meadow_herb_001', 'meadow_rock_001']) {
+        d.send({ type: 'HarvestObject', placementId: id });
+      }
+    });
+    await page.waitForTimeout(2800);
+    await page.keyboard.press('KeyI');
+    await page.waitForSelector('[data-testid="inventory"]', { timeout: 5000 });
+    await page.locator('[data-testid="inventory-slot"][data-item="herb"]').hover();
+    await page.waitForTimeout(300);
+    await shot('inventory');
+    await page.keyboard.press('KeyI');
   }
 
   if (withMenu) {

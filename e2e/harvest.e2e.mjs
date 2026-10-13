@@ -1,4 +1,5 @@
-// 端對端：任務 2A — 採集（樹木、岩石、花叢、草藥）、物品進背包、通知、不可重複採集、重生。
+// 端對端：任務 2A — 採集（樹木、岩石、花叢、草藥）、物品進背包、通知、不可重複採集、重生；
+// 任務 2B — 背包介面（開關、格子與數量、說明、開啟時不能移動、Esc 不會觸發暫停）。
 // 用法：pnpm build && node e2e/harvest.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -111,6 +112,56 @@ await runE2e('harvest e2e', {}, async ({ page, check, debug, state, teleport, ob
     await harvest(herb, 1.1, 'interact');
     assert.equal((await objectState(herb.id))?.harvested, true);
     assert.ok((await itemCount('herb')) >= 1);
+  });
+
+  const inventory = page.locator('[data-testid="inventory"]');
+
+  await check('按 I 開啟背包：格子顯示採集到的物品與正確數量', async () => {
+    await page.waitForTimeout(2800); // 等通知消失
+    await page.keyboard.press('KeyI');
+    await inventory.waitFor({ timeout: 2000 });
+    for (const id of ['wood', 'stone', 'flower', 'herb']) {
+      const slot = page.locator(`[data-testid="inventory-slot"][data-item="${id}"]`);
+      assert.equal(await slot.count(), 1, `${id} 不是剛好一格`);
+      assert.equal(Number(await slot.innerText()), await itemCount(id), `${id} 數量不一致`);
+    }
+    assert.equal(await page.locator('[data-testid="inventory-slot"]').count(), 24);
+  });
+
+  await check('滑過格子顯示物品名稱與說明', async () => {
+    await page.locator('[data-testid="inventory-slot"][data-item="herb"]').hover();
+    const detail = await page.locator('[data-testid="inventory-detail"]').innerText();
+    assert.match(detail, /草藥/);
+    assert.match(detail, /藥膏/);
+  });
+
+  await check('背包開啟時角色不會移動', async () => {
+    const before = await state();
+    await page.keyboard.down('KeyW');
+    await page.waitForTimeout(500);
+    await page.keyboard.up('KeyW');
+    const after = await state();
+    assert.ok(Math.hypot(after.x - before.x, after.z - before.z) < 0.02, '背包開啟時角色仍在移動');
+  });
+
+  await check('Tab 關閉背包；再開後 Esc 關閉且不會開啟暫停選單', async () => {
+    await page.keyboard.press('Tab');
+    await inventory.waitFor({ state: 'detached', timeout: 2000 });
+    await page.keyboard.press('Tab');
+    await inventory.waitFor({ timeout: 2000 });
+    await page.keyboard.press('Escape');
+    await inventory.waitFor({ state: 'detached', timeout: 2000 });
+    await page.waitForTimeout(400);
+    assert.equal(await page.locator('[data-testid="pause-menu"]').count(), 0, 'Esc 關背包時也開了暫停選單');
+    assert.equal(await debug(() => window.__mistwoodDebug.flow('resume')), 'playing');
+  });
+
+  await check('暫停中按 I 不會開啟背包', async () => {
+    await debug(() => window.__mistwoodDebug.flow('pause'));
+    await page.keyboard.press('KeyI');
+    await page.waitForTimeout(300);
+    assert.equal(await inventory.count(), 0);
+    await debug(() => window.__mistwoodDebug.flow('resume'));
   });
 
   await check('遊戲時間只在遊玩中前進，暫停時停止', async () => {

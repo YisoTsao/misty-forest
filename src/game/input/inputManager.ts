@@ -49,6 +49,11 @@ class InputManager {
     };
   }
 
+  /** 這個按鍵代碼是否綁定到指定動作（UI 以鍵盤事件直接處理的動作使用，例如開關背包）。 */
+  isBound(code: string, action: ActionId): boolean {
+    return this.lookup.get(code)?.includes(action) === true;
+  }
+
   isDown(action: ActionId): boolean {
     for (const code of this.downCodes) {
       if (this.lookup.get(code)?.includes(action)) return true;
