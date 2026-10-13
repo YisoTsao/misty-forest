@@ -25,3 +25,21 @@ body,
 .animate-toast {
   animation: toast-in 0.25s ease-out;
 }
+
+@keyframes region-in {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.6em;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-region {
+  animation: region-in 3.2s ease-out forwards;
+}

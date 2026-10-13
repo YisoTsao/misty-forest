@@ -132,5 +132,17 @@
   "key.mouse2": "滑鼠右鍵",
   "key.mouse": "滑鼠",
   "key.numpad": "數字鍵",
-  "key.unbound": "未設定"
+  "key.unbound": "未設定",
+  "region.meadow": "晨曦草原",
+  "region.village": "星光村",
+  "region.forest": "迷霧森林",
+  "region.lake": "鏡湖",
+  "region.home": "旅人小屋",
+  "region.overlook": "望星丘",
+  "region.ruins": "古樹遺跡",
+  "regionMist.dense": "濃霧籠罩",
+  "regionMist.light": "薄霧瀰漫",
+  "regionMist.clear": "天色晴朗",
+  "debug.mistByRegion": "依區域",
+  "debug.regionStage": "{region}的迷霧"
 }

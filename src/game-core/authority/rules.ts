@@ -4,6 +4,9 @@
 import { addItems, createInventory, type Inventory } from '../inventory/inventory';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
+import type { MistStage } from '../world/mist';
+import { initialMistStages, type MistStages } from '../world/regions';
+import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 
@@ -15,10 +18,12 @@ export type GameState = {
   readonly inventory: Inventory;
   /** 教學引導目前的步驟 */
   readonly tutorial: TutorialStep;
+  /** 各區域的迷霧階段（規格 1.4） */
+  readonly mist: MistStages;
 };
 
 export function initialGameState(): GameState {
-  return { time: 0, objects: new Map(), inventory: createInventory(), tutorial: 'move' };
+  return { time: 0, objects: new Map(), inventory: createInventory(), tutorial: 'move', mist: initialMistStages };
 }
 
 export type GameCommand =
@@ -27,7 +32,9 @@ export type GameCommand =
   /** 遊戲時間前進；player 為玩家目前水平位置（站在重生點上時延後重生，避免卡進碰撞體） */
   | { type: 'AdvanceTime'; dt: number; player?: { x: number; z: number } }
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
-  | { type: 'AdvanceTutorial'; from: TutorialStep };
+  | { type: 'AdvanceTutorial'; from: TutorialStep }
+  /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
+  | { type: 'DebugSetMistStage'; region: RegionId; stage: MistStage };
 
 export type RejectReason =
   | 'unknown-object'
@@ -36,6 +43,7 @@ export type RejectReason =
   | 'already-harvested'
   | 'inventory-full'
   | 'tutorial-mismatch'
+  | 'not-allowed'
   | 'invalid-command';
 
 export type GameEvent =
@@ -45,6 +53,7 @@ export type GameEvent =
   | { type: 'ChestOpened'; placementId: string }
   | { type: 'ItemsGained'; items: ItemStack[]; source?: string }
   | { type: 'TutorialAdvanced'; step: TutorialStep }
+  | { type: 'MistStageChanged'; region: RegionId; stage: MistStage }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -53,6 +62,8 @@ export type RulesContext = {
   items: ItemCatalog;
   lootTables: LootTables;
   random: () => number;
+  /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
+  allowDebugCommands?: boolean;
 };
 
 /** 玩家站在此距離內時，物件延後重生 */
@@ -69,6 +80,10 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'AdvanceTutorial':
       if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
+    case 'DebugSetMistStage':
+      if (!ctx.allowDebugCommands) return reject('DebugSetMistStage', 'not-allowed');
+      if (state.mist[cmd.region] === cmd.stage) return [];
+      return [{ type: 'MistStageChanged', region: cmd.region, stage: cmd.stage }];
   }
 }
 
@@ -137,7 +152,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial } = state;
+  let { time, objects, inventory, tutorial, mist } = state;
   let nextObjects: Map<string, ObjectRuntime> | null = null;
   const mutableObjects = () => (nextObjects ??= new Map(objects));
   const patch = (id: string, change: Partial<ObjectRuntime>) => {
@@ -172,10 +187,13 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'TutorialAdvanced':
         tutorial = e.step;
         break;
+      case 'MistStageChanged':
+        mist = { ...mist, [e.region]: e.stage };
+        break;
       case 'CommandRejected':
         break;
     }
   }
   if (nextObjects) objects = nextObjects;
-  return { time, objects, inventory, tutorial };
+  return { time, objects, inventory, tutorial, mist };
 }

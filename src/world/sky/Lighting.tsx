@@ -2,7 +2,10 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { approachMist } from '@/game-core/world/mist';
+import { playerRuntime } from '@/game/player/localRuntime';
 import { useDebugStore } from '@/game/state/debugStore';
+import { currentScreen } from '@/game/state/gameStore';
+import { mistTargetAt } from '@/game/world/mistRuntime';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { createMistLook, mistLook, uMist } from '@/render/mist';
 import { fogRange, palette } from '@/render/palette';
@@ -41,7 +44,10 @@ export function Lighting() {
   }, [preset.shadowMapSize]);
 
   useFrame(({ camera }, dt) => {
-    const { mistTarget, mistSnap } = useDebugStore.getState();
+    const { mistSnap, cameraMode } = useDebugStore.getState();
+    // 遊玩中依玩家位置；主選單與自由視角依攝影機位置
+    const viewer = cameraMode === 'follow' && currentScreen() !== 'title' ? playerRuntime.position : camera.position;
+    const mistTarget = mistTargetAt(viewer.x, viewer.z);
     if (mistSnap !== lastSnap.current) {
       lastSnap.current = mistSnap;
       uMist.value = mistTarget;

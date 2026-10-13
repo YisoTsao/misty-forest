@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { InteractionKind } from '@/game-core/world/types';
+import { DEFAULT_REGION } from '@/game-core/world/regions';
+import type { InteractionKind, RegionId } from '@/game-core/world/types';
 
 export type InteractTarget = { id: string; kind: InteractionKind; nameKey: string };
 export type UiMessage = { titleKey: string; bodyKey: string };
@@ -19,6 +20,8 @@ type UiState = {
   inventoryOpen: boolean;
   /** 設定畫面（從主選單或暫停選單開啟） */
   settingsOpen: boolean;
+  /** 玩家目前所在區域（RegionTracker 在改變時寫入） */
+  currentRegion: RegionId;
   setInteractTarget: (target: InteractTarget | null) => void;
   showMessage: (message: UiMessage) => void;
   closeMessage: () => void;
@@ -26,6 +29,7 @@ type UiState = {
   dismissToast: (id: number) => void;
   setInventoryOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
+  setCurrentRegion: (region: RegionId) => void;
 };
 
 export const useUiStore = create<UiState>((set, get) => ({
@@ -34,6 +38,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   toasts: [],
   inventoryOpen: false,
   settingsOpen: false,
+  currentRegion: DEFAULT_REGION,
   setInteractTarget: (target) => {
     if (get().interactTarget?.id === target?.id) return;
     set({ interactTarget: target });
@@ -44,6 +49,9 @@ export const useUiStore = create<UiState>((set, get) => ({
   dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
+  setCurrentRegion: (currentRegion) => {
+    if (get().currentRegion !== currentRegion) set({ currentRegion });
+  },
 }));
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */

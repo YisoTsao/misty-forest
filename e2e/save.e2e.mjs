@@ -49,7 +49,7 @@ await runE2e('save e2e（1/5 存檔）', { query: 'debug=1', env }, async ({ pag
     };
     assert.ok(expected.wood >= 2 && expected.shard === 1 && expected.tree?.harvested, JSON.stringify(expected));
     const file = JSON.parse(readFileSync(primary, 'utf8'));
-    assert.equal(file.version, 2);
+    assert.equal(file.version, 3);
     assert.equal(typeof file.tutorial, 'string');
     assert.ok(file.world.objects.some((o) => o.placementId === chest.id && o.open), '存檔內沒有寶箱狀態');
   });

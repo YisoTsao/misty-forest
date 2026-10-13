@@ -154,3 +154,22 @@ describe('AdvanceTutorial', () => {
     expect(rejectReason(done, { type: 'AdvanceTutorial', from: 'done' })).toBe('tutorial-mismatch');
   });
 });
+
+describe('DebugSetMistStage', () => {
+  it('允許除錯指令時改變區域迷霧；與目前相同時不產生事件', () => {
+    const debugCtx = { ...ctx, allowDebugCommands: true };
+    const s = initialGameState();
+    expect(s.mist.forest).toBe('dense');
+    const events = handleCommand(s, { type: 'DebugSetMistStage', region: 'forest', stage: 'clear' }, debugCtx);
+    expect(events).toEqual([{ type: 'MistStageChanged', region: 'forest', stage: 'clear' }]);
+    const next = applyEvents(s, events, debugCtx);
+    expect(next.mist.forest).toBe('clear');
+    expect(next.mist.village).toBe(s.mist.village);
+    expect(s.mist.forest).toBe('dense'); // 不修改輸入
+    expect(handleCommand(next, { type: 'DebugSetMistStage', region: 'forest', stage: 'clear' }, debugCtx)).toEqual([]);
+  });
+
+  it('不允許除錯指令時拒絕', () => {
+    expect(rejectReason(initialGameState(), { type: 'DebugSetMistStage', region: 'forest', stage: 'clear' })).toBe('not-allowed');
+  });
+});

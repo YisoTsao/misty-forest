@@ -2,9 +2,10 @@
 // 每次格式變更：版本號 +1、在 migrate.ts 加入遷移函式與測試。
 import { z } from 'zod';
 import { tutorialSteps } from '../tutorial/tutorial';
+import { mistStagesSchema } from '../world/regions';
 
-/** v1：Phase 2 第一版。v2：加入教學進度 tutorial */
-export const SAVE_VERSION = 2;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist */
+export const SAVE_VERSION = 3;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 
@@ -33,6 +34,7 @@ export const saveDataSchema = z.object({
     slots: z.array(z.object({ itemId: z.string().min(1), count: z.number().int().positive() }).nullable()),
   }),
   tutorial: z.enum(tutorialSteps),
+  mist: mistStagesSchema,
 });
 export type SaveData = z.infer<typeof saveDataSchema>;
 

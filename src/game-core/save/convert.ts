@@ -30,6 +30,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     world: { time: state.time, objects },
     inventory: { slots: state.inventory.slots.map((s) => (s ? { ...s } : null)) },
     tutorial: state.tutorial,
+    mist: { ...state.mist },
   };
 }
 
@@ -68,7 +69,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
   });
 
   return {
-    state: { time: data.world.time, objects, inventory: { slots }, tutorial: data.tutorial },
+    state: { time: data.world.time, objects, inventory: { slots }, tutorial: data.tutorial, mist: data.mist },
     player: data.player,
     savedAt: data.savedAt,
     warnings,

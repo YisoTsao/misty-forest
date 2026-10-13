@@ -1,4 +1,5 @@
 import { LocalAuthority } from '@/game-core/authority/authority';
+import type { RegionDef } from '@/game-core/world/regions';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
 import { worldDataResult } from './worldData';
@@ -7,7 +8,13 @@ import { worldDataResult } from './worldData';
 // 世界資料驗證失敗時 App 會顯示錯誤畫面，不會進入遊戲；此時以空資料建立，避免模組載入就拋錯。
 const data = worldDataResult.ok
   ? worldDataResult.data
-  : { prefabs: new Map(), placements: [], items: new Map(), lootTables: new Map() };
+  : { prefabs: new Map(), placements: [], items: new Map(), lootTables: new Map(), regions: [] as RegionDef[] };
+
+/** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
+export const regions: readonly RegionDef[] = data.regions;
+
+/** 除錯指令只在開發模式或帶 ?debug 時接受（與除錯 API 相同條件） */
+const allowDebugCommands = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
 
 /** 世界查詢索引（啟動時建立一次，之後唯讀） */
 export const worldIndex = new WorldIndex(data);
@@ -17,4 +24,5 @@ export const authority = new LocalAuthority(initialGameState(), {
   items: data.items,
   lootTables: data.lootTables,
   random: Math.random,
+  allowDebugCommands,
 });

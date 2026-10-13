@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --region：森林空地在濃霧與迷霧清除後的跟隨視角、區域名稱（任務 3A）
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
 /* global window -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
@@ -19,6 +20,7 @@ const withMist = flags.has('--mist');
 const withInteract = flags.has('--interact');
 const withMenu = flags.has('--menu');
 const withHarvest = flags.has('--harvest');
+const withRegion = flags.has('--region');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -50,6 +52,8 @@ try {
     await page.waitForTimeout(300);
   };
 
+  // 晴朗版一律以迷霧 0 拍攝（不受各區域迷霧階段影響），迷霧版以 1 拍攝，方便並排比對
+  await setMist(0);
   // 預設的跟隨相機視角
   await page.waitForTimeout(800);
   await shot('follow');
@@ -147,6 +151,38 @@ try {
     await page.waitForTimeout(300);
     await shot('inventory');
     await page.keyboard.press('KeyI');
+  }
+
+  if (withRegion) {
+    const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
+    const prefabs = new Map(JSON.parse(readFileSync('src/data/prefabs.json', 'utf8')).map((p) => [p.id, p]));
+    const forest = JSON.parse(readFileSync('src/data/regions.json', 'utf8')).find((r) => r.id === 'forest').area;
+    // 森林裡 3.6 m 內沒有樹的空地
+    let spot = null;
+    for (let r = 0; r < forest.radius * 0.8 && !spot; r += 1) {
+      for (let a = 0; a < Math.PI * 2 && !spot; a += 0.4) {
+        const x = forest.center[0] + Math.cos(a) * r;
+        const z = forest.center[1] + Math.sin(a) * r;
+        const blocked = placements.some((p) => prefabs.get(p.prefabId).collider === 'static' && Math.hypot(p.position[0] - x, p.position[2] - z) < 3.6);
+        if (!blocked) spot = [x, z];
+      }
+    }
+    await page.evaluate(([x, z]) => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setCameraMode('follow');
+      d.setMist(null);
+      d.teleport(x, z);
+      d.camera({ yaw: 0.5, pitch: 0.4, distance: 6 });
+    }, spot);
+    await page.waitForTimeout(600);
+    await shot('region_forest_enter');
+    await page.waitForTimeout(2600);
+    await shot('region_forest_dense');
+    await page.evaluate(() => window.__mistwoodDebug.setMistStage('forest', 'clear'));
+    await page.waitForTimeout(3000);
+    await shot('region_forest_clear');
+    await page.evaluate(() => window.__mistwoodDebug.setMist(0));
   }
 
   if (withMenu) {

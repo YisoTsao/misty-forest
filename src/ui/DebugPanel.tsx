@@ -1,17 +1,22 @@
 import { mistLevelOf, mistStages } from '@/game-core/world/mist';
-import { useDebugStore } from '@/game/state/debugStore';
+import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
+import { useDebugStore } from '@/game/state/debugStore';
+import { useGameStateStore } from '@/game/state/gameStateStore';
+import { useUiStore } from '@/game/state/uiStore';
 import { cameraBookmarks } from '@/game/worldData';
 import { QualitySelector } from './QualitySelector';
 
-/** 攝影機書籤切換（截圖驗收與美術比對用）。 */
+/** 除錯面板：攝影機書籤、迷霧（畫面覆寫與區域階段）、畫質（截圖驗收與美術比對用）。 */
 export function DebugPanel() {
   const mode = useDebugStore((s) => s.cameraMode);
   const current = useDebugStore((s) => (s.cameraMode === 'free' ? s.bookmark?.id : undefined));
   const requestBookmark = useDebugStore((s) => s.requestBookmark);
   const setCameraMode = useDebugStore((s) => s.setCameraMode);
-  const mist = useDebugStore((s) => s.mistTarget);
-  const setMist = useDebugStore((s) => s.setMistTarget);
+  const override = useDebugStore((s) => s.mistOverride);
+  const setOverride = useDebugStore((s) => s.setMistOverride);
+  const region = useUiStore((s) => s.currentRegion);
+  const stage = useGameStateStore((s) => s.state.mist[region]);
 
   return (
     <div className="absolute top-3 right-3 flex flex-col gap-1 rounded-lg bg-black/55 p-2 text-xs text-white">
@@ -33,10 +38,10 @@ export function DebugPanel() {
           {t(`bookmark.${b.id}`)}
         </button>
       ))}
-      {/* 規格 4.5：Phase 1 以除錯滑桿切換晴朗 / 迷霧；Phase 3 才接任務 */}
+      {/* 規格 4.5：畫面迷霧可直接覆寫（美術驗收）；平常依所在區域的迷霧階段 */}
       <label htmlFor="debug-mist" className="mt-2 flex justify-between px-1 opacity-70">
         <span>{t('debug.mist')}</span>
-        <span className="font-mono">{mist.toFixed(2)}</span>
+        <span className="font-mono">{override === null ? t('debug.mistByRegion') : override.toFixed(2)}</span>
       </label>
       <input
         id="debug-mist"
@@ -45,19 +50,32 @@ export function DebugPanel() {
         min={0}
         max={1}
         step={0.01}
-        value={mist}
-        onChange={(e) => setMist(Number(e.target.value))}
+        value={override ?? 0}
+        onChange={(e) => setOverride(Number(e.target.value))}
         className="mx-1 accent-sky-300"
       />
+      <button
+        type="button"
+        data-testid="mist-by-region"
+        onClick={() => setOverride(null)}
+        className={`rounded px-2 py-1 hover:bg-white/20 ${override === null ? 'bg-white/25' : ''}`}
+      >
+        {t('debug.mistByRegion')}
+      </button>
+      <span className="mt-1 px-1 opacity-70">
+        {t('debug.regionStage', { region: t(`region.${region}`) })}
+      </span>
       <div className="flex gap-1">
-        {mistStages.map((stage) => (
+        {mistStages.map((s) => (
           <button
-            key={stage}
+            key={s}
             type="button"
-            onClick={() => setMist(mistLevelOf(stage))}
-            className={`flex-1 rounded px-1 py-1 hover:bg-white/20 ${mist === mistLevelOf(stage) ? 'bg-white/25' : ''}`}
+            data-testid={`region-stage-${s}`}
+            title={String(mistLevelOf(s))}
+            onClick={() => authority.send({ type: 'DebugSetMistStage', region, stage: s })}
+            className={`flex-1 rounded px-1 py-1 hover:bg-white/20 ${stage === s ? 'bg-white/25' : ''}`}
           >
-            {t(`mist.${stage}`)}
+            {t(`mist.${s}`)}
           </button>
         ))}
       </div>

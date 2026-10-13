@@ -15,6 +15,7 @@ import { InventoryPanel } from '@/ui/InventoryPanel';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
+import { RegionBanner } from '@/ui/RegionBanner';
 import { SettingsPanel } from '@/ui/SettingsPanel';
 import { TitleScreen } from '@/ui/TitleScreen';
 import { Toasts } from '@/ui/Toasts';
@@ -29,7 +30,7 @@ export function App() {
     if (cam) useDebugStore.getState().requestBookmark(cam);
     // ?mist=0–1 設定迷霧程度（截圖驗收晴朗 / 迷霧兩種外觀）
     const mist = initialMistFromUrl();
-    if (mist !== null) useDebugStore.getState().setMistTarget(mist, true);
+    if (mist !== null) useDebugStore.getState().setMistOverride(mist, true);
   }, []);
 
   if (!worldDataResult.ok) return <FatalScreen title={t('error.worldData')} detail={worldDataResult.error} />;
@@ -47,6 +48,7 @@ export function App() {
       <InteractPrompt />
       <Toasts />
       <TutorialPanel />
+      <RegionBanner />
       <ControlHint />
       {debugEnabled && (
         <>

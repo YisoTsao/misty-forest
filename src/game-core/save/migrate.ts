@@ -1,4 +1,5 @@
 // 存檔版本遷移：每個舊版本一個函式，把資料升一版，依序套用到最新版。
+import { initialMistStages } from '../world/regions';
 import { SAVE_VERSION } from './schema';
 
 export type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
@@ -14,6 +15,8 @@ export class SaveFormatError extends Error {
 export const saveMigrations: Readonly<Record<number, Migration>> = {
   // v1 → v2：加入教學進度。v1 存檔建立時還沒有教學，玩家已經在玩，視為已完成，不再從頭提示
   1: (data) => ({ ...data, tutorial: 'done' }),
+  // v2 → v3：加入各區域迷霧。v2 時還沒有任何會改變迷霧的任務，所以就是新遊戲的初始值
+  2: (data) => ({ ...data, mist: { ...initialMistStages } }),
 };
 
 /** 把任何版本的存檔升到 targetVersion。缺版本號、比程式新或缺少遷移函式時拋 SaveFormatError。 */

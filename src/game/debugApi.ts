@@ -1,11 +1,13 @@
 import { requiredClipKeys, type ClipKey } from '@/game-core/character/characterDef';
 import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
-import { parseMistLevel } from '@/game-core/world/mist';
+import { parseMistLevel, type MistStage } from '@/game-core/world/mist';
+import { regionAt } from '@/game-core/world/regions';
+import type { RegionId } from '@/game-core/world/types';
 import { initialGameState, type GameCommand } from '@/game-core/authority/rules';
 import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
-import { authority } from './authority';
+import { authority, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
@@ -15,7 +17,7 @@ import { saveStorage } from './save/storages';
 import { useGameStore } from './state/gameStore';
 import { useSettingsStore } from './state/settingsStore';
 import { useUiStore } from './state/uiStore';
-import { mistRuntime } from './world/mistRuntime';
+import { mistRuntime, mistTargetAt } from './world/mistRuntime';
 import { cameraBookmarks } from './worldData';
 
 export type MistwoodDebugApi = {
@@ -44,10 +46,16 @@ export type MistwoodDebugApi = {
   cameraAngles: () => { yaw: number; pitch: number; distance: number };
   /** 設定跟隨相機的角度與距離（省略的欄位不變），回傳目前相機位置 */
   camera: (set?: { yaw?: number; pitch?: number; distance?: number }) => { x: number; y: number; z: number };
-  /** 設定迷霧目標（0–1）；instant 預設 true（截圖用，不漸變） */
-  setMist: (value: number, instant?: boolean) => void;
-  /** 目前畫面上的迷霧值與目標值 */
-  mist: () => { current: number; target: number };
+  /** 覆寫畫面迷霧（0–1）；null 回到依區域迷霧。instant 預設 true（截圖用，不漸變） */
+  setMist: (value: number | null, instant?: boolean) => void;
+  /** 目前畫面上的迷霧值、目標值（依玩家位置）與覆寫值 */
+  mist: () => { current: number; target: number; override: number | null };
+  /** 設定區域的迷霧階段（權威狀態，經除錯指令） */
+  setMistStage: (region: RegionId, stage: MistStage) => void;
+  /** 各區域的迷霧階段 */
+  mistStages: () => Record<RegionId, MistStage>;
+  /** 玩家目前所在區域 */
+  region: () => RegionId;
   /** 目前顯示互動提示的物件 id */
   interactTarget: () => string | null;
   objectState: (placementId: string) => ObjectRuntime | null;
@@ -128,11 +136,21 @@ export function installDebugApi(): void {
       return { ...cameraRuntime.position };
     },
     setMist: (value, instant = true) => {
+      if (value === null) {
+        useDebugStore.getState().setMistOverride(null, instant);
+        return;
+      }
       const level = parseMistLevel(value);
       if (level === null) throw new Error(`迷霧值必須是數字：${value}`);
-      useDebugStore.getState().setMistTarget(level, instant);
+      useDebugStore.getState().setMistOverride(level, instant);
     },
-    mist: () => ({ current: mistRuntime.value, target: useDebugStore.getState().mistTarget }),
+    mist: () => {
+      const { x, z } = playerRuntime.position;
+      return { current: mistRuntime.value, target: mistTargetAt(x, z), override: useDebugStore.getState().mistOverride };
+    },
+    setMistStage: (region, stage) => authority.send({ type: 'DebugSetMistStage', region, stage }),
+    mistStages: () => ({ ...authority.getState().mist }),
+    region: () => regionAt(regions, playerRuntime.position.x, playerRuntime.position.z),
     interactTarget: () => useUiStore.getState().interactTarget?.id ?? null,
     objectState: (id) => authority.getState().objects.get(id) ?? null,
     resetWorld: () => {

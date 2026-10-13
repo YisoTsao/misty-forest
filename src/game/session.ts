@@ -24,6 +24,11 @@ export async function returnToTitle(): Promise<void> {
   useGameStore.getState().send('returnToTitle');
 }
 
+/** 進入新區域時自動存檔（規格 6.8：區域切換時自動存檔）。區域名稱由 RegionBanner 顯示。 */
+export function onRegionChanged(): void {
+  if (currentScreen() === 'playing') void saveGame();
+}
+
 /** 世界或背包改變後多久自動存檔（秒）：連續採集時合併成一次 */
 const CHANGE_DEBOUNCE_MS = 2000;
 /** 遊玩中的定時存檔間隔 */

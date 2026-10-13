@@ -119,6 +119,25 @@ describe('版本遷移', () => {
     expect(loaded.player.position).toEqual({ x: -6, y: 0.9, z: 30 });
   });
 
+  it('實際的 v2 存檔（任務 2D 格式）可讀入：迷霧為新遊戲的初始值', () => {
+    const v2 = {
+      version: 2,
+      savedAt: '2026-10-13T03:30:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 3.14 },
+      world: { time: 10, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'harvest',
+    };
+    const loaded = fromSaveData(v2, ctx);
+    expect(loaded.state.mist).toEqual(initialGameState().mist);
+    expect(loaded.state.tutorial).toBe('harvest');
+  });
+
+  it('各區域迷霧寫入存檔並讀回', () => {
+    const state = { ...initialGameState(), mist: { ...initialGameState().mist, forest: 'clear' as const } };
+    expect(roundTrip(toSaveData(state, player, new Date())).state.mist.forest).toBe('clear');
+  });
+
   it('新存檔記錄教學進度，讀回不變', () => {
     const state = { ...initialGameState(), tutorial: 'harvest' as const };
     expect(roundTrip(toSaveData(state, player, new Date())).state.tutorial).toBe('harvest');
