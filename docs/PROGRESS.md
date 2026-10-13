@@ -261,6 +261,16 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. 任務 5E 效能與發行：B 級畫質校正、資產壓縮、Windows 安裝檔、macOS 打包（D-04）、乾淨環境安裝測試；Phase 5、6 驗收。
 8. Phase 7 晨曦谷地完整 MVP（§9）。
 
+## 使用者新指示（2026-10-14，優先於上方順序）：擴大第一章地圖、建立第二章（尚未開始實作）
+已完成調查，規劃如下（單次一個任務，每個都要通過全部檢查）：
+- **任務 7A 晨曦谷地擴大**：`TERRAIN_SIZE` 160 → 320（Bible §5.2），可玩區 ±148、圓角 18；地形網格 320 段。既有中心內容（出生點、村莊、湖、森林）座標不變，`gen-placements.ts` 舊散佈保留原 `half = 74` 以維持 id/位置，舊邊界樹移除、新邊界重新產生。
+  - 地形：北方高地（懸崖線 `cliffZ(x) = 95 + 6 sin(0.05x) + max(0, x−60)²·0.02`，高 10 m，主路處做緩坡）、東側河谷（折線河道，下切到湖底高度，兩處淺灘＋一座木橋，水面改為沿河道的帶狀網格、水深改用頂點屬性）、望星丘（−85, 88，高約 16 m）、數個小丘、西坊農田平台、古樹遺跡（88, 95）；`distanceToPath` 改為主路＋支線折線網路；`FLAT_PADS` 給房屋用的整平區；落水判定改為一般化的「低於水面」。
+  - 區域：新增 `highland`、`farmland`、`river`，`overlook`、`ruins` 補上範圍 → 存檔 v10 遷移（補齊缺少的區域迷霧階段）。
+  - 房屋與裝飾：KayKit 六角包（home_A_red、home_B 各色、blacksmith、lumbermill＝波木木工坊、market、church、watermill、grain、tower_A＝燈塔暫用、destroyed、wall、fence_stone、target、tent）＋ Kenney Nature Kit CC0（橡樹/松樹/秋色樹、作物、懸崖、瀑布、石柱/石環/方尖碑、樹樁、圓木、蘑菇、睡蓮、灌木）。下載來源：GitHub `KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0`、`https://kenney.nl/media/pages/assets/nature-kit/37ac38a37b-1677698939/kenney_nature-kit.zip`；需登記到 `ASSETS.md`。
+  - 其他要跟著改：`Backdrop` 山脈半徑（240/330 → 約 300/420）、`safePoints` halfExtent、`e2e/bounds.e2e.mjs` 的 HALF/CORNER、`e2e/movement.e2e.mjs` 東邊界判定、新攝影機書籤；物件變多後量測三角面（目前約 46 萬），必要時把 InstancedPrefab 依空間分塊做剔除。
+- **任務 8A–8D 螢苔祕林**（Bible §6）：同一物理世界的遠處偏移座標（例如原點 x = 2000，比照室內子場景），`terrainHeight`、邊界、區域依座標分派到各地圖；8A 地圖切換與場景景觀、8B 三種怪物、8C 琳娜/奇奇與水道謎題任務、8D 頭目苔咚。決策需記入 `DECISIONS.md`。
+- 基準截圖：`docs/screenshots/baseline7/`。
+
 ## 待使用者處理（不阻擋開發）
 0. **Phase 6 效能重測**：在無人操作電腦時執行 `node scripts/perf.mjs` 與 `node scripts/perf.mjs --magic`，補進 `PERF.md`（6E 的量測受到干擾）。
 1. **風格判定（規格 4.8）**：把參考圖放進 `docs/art/reference/`，與 `docs/screenshots/phase1/`、`phase2/` 並排比對。
