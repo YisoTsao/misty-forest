@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { tutorialSteps } from '@/game-core/tutorial/tutorial';
 import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
+import { keyVars } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
+import { useBindings } from '@/game/state/settingsStore';
 
 /** 完成全部步驟後，結語顯示多久（毫秒） */
 const OUTRO_MS = 9000;
@@ -14,6 +16,7 @@ export function TutorialPanel() {
   const step = useGameStateStore((s) => s.state.tutorial);
   const playing = useGameStore((s) => s.screen === 'playing');
   const session = useGameStore((s) => s.session);
+  const bindings = useBindings();
   /** 結語：記錄是在哪一局完成的，換局（回主選單再開始）後不再顯示 */
   const [outro, setOutro] = useState<{ session: number } | null>(null);
 
@@ -52,7 +55,7 @@ export function TutorialPanel() {
             </span>
           )}
         </div>
-        <p className="leading-6 whitespace-pre-line">{t(`tutorial.${step}`)}</p>
+        <p className="leading-6 whitespace-pre-line">{t(`tutorial.${step}`, keyVars(bindings))}</p>
       </div>
     </div>
   );

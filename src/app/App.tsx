@@ -15,6 +15,7 @@ import { InventoryPanel } from '@/ui/InventoryPanel';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
+import { SettingsPanel } from '@/ui/SettingsPanel';
 import { TitleScreen } from '@/ui/TitleScreen';
 import { Toasts } from '@/ui/Toasts';
 import { TutorialPanel } from '@/ui/TutorialPanel';
@@ -57,6 +58,7 @@ export function App() {
       <InventoryPanel />
       <TitleScreen />
       <PauseMenu />
+      <SettingsPanel />
       <ErrorOverlay />
     </div>
   );

@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import type { InventorySlot } from '@/game-core/inventory/inventory';
 import { t } from '@/game/i18n';
 import { input } from '@/game/input/inputManager';
+import { actionKey } from '@/game/input/keyLabels';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
+import { useBindings } from '@/game/state/settingsStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { worldDataResult } from '@/game/worldData';
 import { ItemIcon } from './ItemIcon';
@@ -50,6 +52,7 @@ export function InventoryPanel() {
 function InventoryWindow() {
   const slots = useGameStateStore((s) => s.state.inventory.slots);
   const [selected, setSelected] = useState<number | null>(null);
+  const inventoryKey = actionKey(useBindings(), 'inventory');
   const close = () => useUiStore.getState().setInventoryOpen(false);
   // 預設選取第一個有物品的格子
   const index = selected ?? slots.findIndex((s) => s !== null);
@@ -89,7 +92,7 @@ function InventoryWindow() {
             <p className="mt-16 text-center text-sm whitespace-pre-line opacity-60">{t('inventory.empty')}</p>
           )}
           <div className="mt-auto flex items-center justify-end gap-3 pt-4">
-            <span className="text-xs opacity-60">{t('inventory.closeHint')}</span>
+            <span className="text-xs opacity-60">{t('inventory.closeHint', { inventory: inventoryKey })}</span>
             <button type="button" onClick={close} className="rounded-full bg-amber-500 px-5 py-1.5 font-bold text-white hover:bg-amber-600">
               {t('inventory.close')}
             </button>

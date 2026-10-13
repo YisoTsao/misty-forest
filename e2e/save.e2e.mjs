@@ -36,7 +36,9 @@ await runE2e('save e2e（1/5 存檔）', { query: 'debug=1', env }, async ({ pag
     await debug((id) => window.__mistwoodDebug.send({ type: 'OpenChest', placementId: id }), chest.id);
     await teleport(SAVED_AT.x, SAVED_AT.z);
     await debug(() => window.__mistwoodDebug.flow('pause'));
-    await page.locator('[data-testid="pause-menu"] [data-testid="quality-low"]').click();
+    await page.locator('[data-testid="pause-settings"]').click();
+    await page.locator('[data-testid="settings"] [data-testid="quality-low"]').click();
+    await page.locator('[data-testid="settings-close"]').click();
     await page.locator('[data-testid="pause-save"]').click();
     await page.locator('[data-testid="save-status"]', { hasText: '已儲存' }).waitFor({ timeout: 3000 });
     expected = {

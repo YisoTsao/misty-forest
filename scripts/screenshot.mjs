@@ -3,7 +3,7 @@
 //   --anim：另外輸出角色每個必要動畫的定格圖（動畫來源驗證，規格 4.6）
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
-//   --menu：輸出主選單與暫停選單（Phase 1 驗收：可回到主選單）
+//   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
 /* global window -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
@@ -163,6 +163,11 @@ try {
     await page.waitForSelector('[data-testid="save-status"]:has-text("已儲存")', { timeout: 5000 });
     await page.waitForTimeout(600);
     await shot('menu_pause');
+    await page.locator('[data-testid="pause-settings"]').click();
+    await page.waitForSelector('[data-testid="settings"]', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    await shot('menu_settings');
+    await page.locator('[data-testid="settings-close"]').click();
     await page.evaluate(() => window.__mistwoodDebug.flow('returnToTitle'));
     await page.waitForSelector('[data-testid="title-continue"]', { timeout: 5000 });
     await page.waitForTimeout(1500);

@@ -3,7 +3,7 @@ import { t } from '@/game/i18n';
 import { continueGame, startNewGame } from '@/game/session';
 import { useGameStore } from '@/game/state/gameStore';
 import { useSaveStore } from '@/game/state/saveStore';
-import { QualitySelector } from './QualitySelector';
+import { useUiStore } from '@/game/state/uiStore';
 import { formatPlayTime, formatSavedAt } from './saveFormat';
 
 /** 主選單（規格 6.9）：繼續遊戲、新遊戲、畫質、離開。背景是緩慢環繞的實際場景。 */
@@ -93,10 +93,14 @@ function TitleMenu() {
             {t('save.corrupt')}
           </p>
         )}
-        <div className="mt-1 text-sm">
-          <span className="mb-1 block px-1 opacity-80">{t('settings.quality')}</span>
-          <QualitySelector className="text-sm" />
-        </div>
+        <button
+          type="button"
+          data-testid="title-settings"
+          onClick={() => useUiStore.getState().setSettingsOpen(true)}
+          className="rounded-full bg-white/15 py-2 hover:bg-white/25"
+        >
+          {t('settings.open')}
+        </button>
         <button type="button" data-testid="title-quit" onClick={() => window.close()} className="mt-1 rounded-full bg-white/15 py-2 hover:bg-white/25">
           {t('title.quit')}
         </button>
