@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { _electron as electron } from 'playwright';
-import { tempSaveDir } from './lib.mjs';
+import { appEnv, focusGame, tempSaveDir } from './lib.mjs';
 
 const prefabs = new Map(JSON.parse(readFileSync('src/data/prefabs.json', 'utf8')).map((p) => [p.id, p]));
 const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
@@ -32,7 +32,7 @@ function isolatedTree() {
 const chest = placements.find((p) => p.prefabId === 'chest_wood');
 assert.ok(chest, 'placements 內沒有寶箱');
 
-const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() } });
+const app = await electron.launch({ args: ['.'], env: appEnv({ MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() }) });
 const results = [];
 let failed = false;
 
@@ -50,8 +50,7 @@ try {
   const page = await app.firstWindow();
   page.on('pageerror', (err) => console.error(`[renderer] ${err.message}`));
   await page.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 60_000 });
-  await page.bringToFront();
-  await page.locator('canvas').focus().catch(() => {});
+  await focusGame(page);
   const debug = (fn, arg) => page.evaluate(fn, arg);
   const state = () => debug(() => window.__mistwoodDebug.playerState());
   const camera = (set) => debug((s) => window.__mistwoodDebug.camera(s), set);

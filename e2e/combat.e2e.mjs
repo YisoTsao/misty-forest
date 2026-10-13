@@ -33,17 +33,22 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
   });
 
   await check('左鍵攻擊：面前的迷霧生物扣 25 血、出現傷害數字、進入冷卻', async () => {
-    const [target] = await enemies();
-    await approach(target);
-    await camera({ yaw: (await state()).facingYaw + Math.PI, pitch: 0.35, distance: 5 });
-    await page.mouse.click(800, 450); // 第一下用來鎖定滑鼠
-    await page.waitForTimeout(80);
-    if ((await combat()).attackCooldown === 0) await page.mouse.click(800, 450);
-    await page.waitForTimeout(80);
-    // 自動化環境無法鎖定滑鼠時，點擊都會被拿去嘗試鎖定；改以除錯 API 送出同一個按鍵代碼
-    if ((await combat()).attackCooldown === 0) await debug(() => window.__mistwoodDebug.tap('Mouse0'));
-    await page.waitForTimeout(400);
-    const after = (await enemies()).find((e) => e.id === target.id);
+    const [first] = await enemies();
+    const hp = async () => (await enemies()).find((e) => e.id === first.id)?.hp;
+    // 和平模式的迷霧生物會巡邏：站定到出手之間可能走開，每次出手前重新靠近（最多三次）
+    for (let attempt = 0; attempt < 3 && (await hp()) === 60; attempt++) {
+      await page.waitForTimeout(700); // 等上一次攻擊的冷卻結束
+      await approach((await enemies()).find((e) => e.id === first.id));
+      await camera({ yaw: (await state()).facingYaw + Math.PI, pitch: 0.35, distance: 5 });
+      await page.mouse.click(800, 450); // 第一下用來鎖定滑鼠
+      await page.waitForTimeout(80);
+      if ((await combat()).attackCooldown === 0) await page.mouse.click(800, 450);
+      await page.waitForTimeout(80);
+      // 自動化環境無法鎖定滑鼠時，點擊都會被拿去嘗試鎖定；改以除錯 API 送出同一個按鍵代碼
+      if ((await combat()).attackCooldown === 0) await debug(() => window.__mistwoodDebug.tap('Mouse0'));
+      await page.waitForTimeout(400);
+    }
+    const after = (await enemies()).find((e) => e.id === first.id);
     assert.equal(after?.hp, 35, JSON.stringify(after));
     assert.ok((await combat()).attackCooldown >= 0, 'no cooldown');
     assert.ok((await page.locator('[data-testid="damage-number"]').count()) >= 1, '沒有傷害數字');

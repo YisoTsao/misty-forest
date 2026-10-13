@@ -10,6 +10,23 @@ export const placements = JSON.parse(readFileSync('src/data/placements.json', 'u
 /** 目前的存檔版本（取自 game-core 的存檔格式定義，測試不必每次升版都修改） */
 export const SAVE_VERSION = Number(/export const SAVE_VERSION = (\d+);/.exec(readFileSync('src/game-core/save/schema.ts', 'utf8'))?.[1]);
 
+/**
+ * 背景執行（預設）：遊戲視窗不搶焦點、不跳到最前面，開發時不打斷使用者目前的畫面。
+ * 設 MISTWOOD_FOREGROUND=1 改回前景（例如要實際檢查滑鼠鎖定，T-32）。
+ */
+export const BACKGROUND = process.env.MISTWOOD_FOREGROUND !== '1';
+
+/** Electron 的環境變數：帶上背景執行旗標 */
+export function appEnv(extra = {}) {
+  return { ...process.env, ...(BACKGROUND ? { MISTWOOD_BACKGROUND: '1' } : {}), ...extra };
+}
+
+/** 讓鍵盤輸入送到遊戲畫布；背景執行時不把視窗拉到最前面 */
+export async function focusGame(page) {
+  if (!BACKGROUND) await page.bringToFront();
+  await page.locator('canvas').focus().catch(() => {});
+}
+
 /** 每次啟動使用獨立的暫存存檔資料夾，測試不會讀到或覆蓋玩家的真實存檔 */
 export function tempSaveDir() {
   return mkdtempSync(path.join(tmpdir(), 'mistwood-e2e-'));
@@ -22,7 +39,7 @@ export function tempSaveDir() {
 export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {}, body) {
   const app = await electron.launch({
     args: ['.'],
-    env: { ...process.env, MISTWOOD_START_QUERY: query, MISTWOOD_SAVE_DIR: tempSaveDir(), MISTWOOD_USER_DATA_DIR: tempSaveDir(), ...env },
+    env: appEnv({ MISTWOOD_START_QUERY: query, MISTWOOD_SAVE_DIR: tempSaveDir(), MISTWOOD_USER_DATA_DIR: tempSaveDir(), ...env }),
   });
   const results = [];
   let failed = false;
@@ -39,8 +56,7 @@ export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {},
     const page = await app.firstWindow();
     page.on('pageerror', (err) => console.error(`[renderer] ${err.message}`));
     await page.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 60_000 });
-    await page.bringToFront();
-    await page.locator('canvas').focus().catch(() => {});
+    await focusGame(page);
     const debug = (fn, arg) => page.evaluate(fn, arg);
     const t = {
       app,

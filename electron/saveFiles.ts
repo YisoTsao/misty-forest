@@ -1,6 +1,6 @@
 // 存檔檔案操作（主程序，規格 6.8）：原子寫入 + 滾動備份。
 // <dir>/<slot>.json 為主檔、<slot>.bak.json 為上一版、<slot>.tmp 為寫入中的暫存檔。
-import { mkdir, open, readdir, readFile, rename, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, open, readdir, readFile, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 /** 與 game-core/save/schema.ts 的 SLOT_PATTERN 相同（主程序不 import renderer 程式碼） */
@@ -79,7 +79,8 @@ export async function writeSave(dir: string, slot: unknown, data: unknown): Prom
   } finally {
     await handle.close();
   }
-  if (await exists(primary)) await rename(primary, backup);
+  // 先複製舊主檔為備份，再以 rename 原子取代主檔：任何時刻主檔都存在（不會有讀到「沒有主檔」的空窗）
+  if (await exists(primary)) await copyFile(primary, backup);
   await rename(temp, primary);
 }
 

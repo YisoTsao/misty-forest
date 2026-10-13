@@ -6,7 +6,7 @@
 /* global window, document, requestAnimationFrame */
 import assert from 'node:assert/strict';
 import { _electron as electron } from 'playwright';
-import { tempSaveDir } from './lib.mjs';
+import { appEnv, BACKGROUND, tempSaveDir } from './lib.mjs';
 import { createServer } from 'vite';
 
 const server = await createServer({ logLevel: 'error', server: { port: 5299, strictPort: false } });
@@ -14,7 +14,7 @@ await server.listen();
 const url = server.resolvedUrls?.local[0];
 assert.ok(url, 'Vite dev server 未回傳網址');
 
-const app = await electron.launch({ args: ['.'], env: { ...process.env, VITE_DEV_SERVER_URL: url, MISTWOOD_SAVE_DIR: tempSaveDir() } });
+const app = await electron.launch({ args: ['.'], env: appEnv({ VITE_DEV_SERVER_URL: url, MISTWOOD_SAVE_DIR: tempSaveDir() }) });
 const results = [];
 const pageErrors = [];
 let failed = false;
@@ -38,7 +38,7 @@ try {
   const page = await app.firstWindow();
   page.on('pageerror', (err) => pageErrors.push(err.message));
   await page.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 90_000 });
-  await page.bringToFront();
+  if (!BACKGROUND) await page.bringToFront();
   await page.evaluate(() => {
     window.__frames = 0;
     const tick = () => {

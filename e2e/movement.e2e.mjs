@@ -3,10 +3,10 @@
 /* global window */
 import assert from 'node:assert/strict';
 import { _electron as electron } from 'playwright';
-import { tempSaveDir } from './lib.mjs';
+import { appEnv, focusGame, tempSaveDir } from './lib.mjs';
 import { terrainHeight } from '../src/game-core/world/terrain.ts';
 
-const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() } });
+const app = await electron.launch({ args: ['.'], env: appEnv({ MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() }) });
 const results = [];
 let failed = false;
 
@@ -23,8 +23,7 @@ async function check(name, fn) {
 try {
   const page = await app.firstWindow();
   await page.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 60_000 });
-  await page.bringToFront();
-  await page.locator('canvas').focus().catch(() => {});
+  await focusGame(page);
   const state = () => page.evaluate(() => window.__mistwoodDebug.playerState());
   const wait = (ms) => page.waitForTimeout(ms);
 
