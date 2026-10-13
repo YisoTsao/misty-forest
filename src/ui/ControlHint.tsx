@@ -27,7 +27,7 @@ export function ControlHint() {
   if (mode !== 'follow' || locked || !playing || modal || gamepad) return null;
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center">
-      <div data-testid="control-hint" className="rounded-full bg-black/45 px-5 py-2 text-sm text-white shadow">
+      <div data-testid="control-hint" className="max-w-[52%] rounded-2xl bg-black/45 px-5 py-2 text-center text-[13px] leading-6 text-white shadow">
         <span className="font-bold">{t('hint.clickToPlay')}</span>
         <span className="ml-3 opacity-85">{t('hint.controls', keyVars(bindings))}</span>
       </div>

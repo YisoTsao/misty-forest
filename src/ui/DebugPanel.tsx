@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react';
 import { mistLevelOf, mistStages } from '@/game-core/world/mist';
+import { formatClock } from '@/game-core/world/timeOfDay';
 import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
+import { timeRuntime } from '@/game/world/timeRuntime';
 import { cameraBookmarks } from '@/game/worldData';
 import { QualitySelector } from './QualitySelector';
 
@@ -79,8 +82,41 @@ export function DebugPanel() {
           </button>
         ))}
       </div>
+      <ClockControl />
       <span className="mt-2 px-1 opacity-70">{t('settings.quality')}</span>
       <QualitySelector />
     </div>
+  );
+}
+
+/** 日夜（GAME_DESIGN 5.2）：時段滑桿。拖動時以除錯指令把時間往前推到該時刻（只往前，不倒轉）。 */
+function ClockControl() {
+  const [hour, setHour] = useState(timeRuntime.hour);
+  useEffect(() => {
+    const timer = window.setInterval(() => setHour(timeRuntime.hour), 500);
+    return () => window.clearInterval(timer);
+  }, []);
+  return (
+    <>
+      <label htmlFor="debug-clock" className="mt-2 flex justify-between px-1 opacity-70">
+        <span>{t('debug.clock')}</span>
+        <span className="font-mono">{formatClock(hour)}</span>
+      </label>
+      <input
+        id="debug-clock"
+        data-testid="clock-slider"
+        type="range"
+        min={0}
+        max={23.75}
+        step={0.25}
+        value={Math.floor(hour * 4) / 4}
+        onChange={(e) => {
+          const h = Number(e.target.value);
+          authority.send({ type: 'DebugSetClock', hour: h });
+          setHour(h);
+        }}
+        className="mx-1 accent-amber-300"
+      />
+    </>
   );
 }

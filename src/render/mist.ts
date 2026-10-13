@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mistRuntime } from '@/game/world/mistRuntime';
-import { fogRange, palette } from './palette';
+import { currentTimeLook } from './timeLook';
 
 /**
  * 迷霧外觀（規格 4.5）：單一 uniform `uMist`（0 = 晴朗，1 = 迷霧）驅動所有外觀，
@@ -21,20 +21,10 @@ type LookEnds = {
   sunIntensity: number;
 };
 
-/** 晴朗與迷霧兩端的外觀參數，中間值由 mistLook 插值。 */
-const clear: LookEnds = {
-  fogColor: palette.skyHorizon,
-  fogNear: fogRange.near,
-  fogFar: fogRange.far,
-  skyZenith: palette.skyZenith,
-  skyHorizon: palette.skyHorizon,
-  hemiSky: palette.hemiSky,
-  hemiGround: palette.hemiGround,
-  hemiIntensity: 1.4,
-  sunColor: palette.sun,
-  sunIntensity: 2.4,
-};
-
+/**
+ * 迷霧端的外觀參數（白天）。晴朗端來自目前時段的外觀（timeLook.ts，白天即原本的晴朗色票）；
+ * 迷霧端的顏色乘上時段色調、強度依時段等比例縮放，夜晚的霧不會發亮。
+ */
 const misty: LookEnds = {
   fogColor: '#b3bdc6',
   fogNear: 3,
@@ -57,8 +47,15 @@ export type MistLook = {
   hemiSky: THREE.Color;
   hemiGround: THREE.Color;
   hemiIntensity: number;
+  /** 方向光（白天太陽、夜晚月亮）的顏色與強度 */
   sunColor: THREE.Color;
   sunIntensity: number;
+  /** 不受光照材質（遠山、地面延伸）乘上的顏色 */
+  ambient: THREE.Color;
+  /** 星空亮度 0–1（迷霧時看不到） */
+  stars: number;
+  /** 太陽方向地平線暖光暈強度 */
+  glow: number;
 };
 
 export function createMistLook(): MistLook {
@@ -73,29 +70,43 @@ export function createMistLook(): MistLook {
     hemiIntensity: 0,
     sunColor: new THREE.Color(),
     sunIntensity: 0,
+    ambient: new THREE.Color(),
+    stars: 0,
+    glow: 0,
   };
 }
 
-const ca = new THREE.Color();
-const cb = new THREE.Color();
-function lerpColor(out: THREE.Color, a: string, b: string, t: number): void {
-  out.copy(ca.set(a)).lerp(cb.set(b), t);
+/** 白天晴朗端的強度：迷霧端強度依目前時段等比例縮放 */
+const DAY_HEMI = 1.4;
+const DAY_SUN = 2.4;
+
+const cm = new THREE.Color();
+function lerpToMisty(out: THREE.Color, clear: THREE.Color, mistyHex: string, tint: THREE.Color, t: number): void {
+  out.copy(clear).lerp(cm.set(mistyHex).multiply(tint), t);
 }
 
-/** 依 m（0–1）計算外觀，寫入 out（每幀呼叫，不配置新物件）。 */
+/**
+ * 依 m（0–1）計算外觀，寫入 out（每幀呼叫，不配置新物件）。
+ * 晴朗端為目前時段的外觀（Lighting 每幀以 updateTimeLook 更新；預設白天）。
+ */
 export function mistLook(m: number, out: MistLook): MistLook {
   const t = THREE.MathUtils.clamp(m, 0, 1);
-  lerpColor(out.fogColor, clear.fogColor, misty.fogColor, t);
-  lerpColor(out.skyZenith, clear.skyZenith, misty.skyZenith, t);
-  lerpColor(out.skyHorizon, clear.skyHorizon, misty.skyHorizon, t);
-  lerpColor(out.hemiSky, clear.hemiSky, misty.hemiSky, t);
-  lerpColor(out.hemiGround, clear.hemiGround, misty.hemiGround, t);
-  lerpColor(out.sunColor, clear.sunColor, misty.sunColor, t);
+  const time = currentTimeLook;
+  const tint = time.mistTint;
+  lerpToMisty(out.fogColor, time.fog, misty.fogColor, tint, t);
+  lerpToMisty(out.skyZenith, time.zenith, misty.skyZenith, tint, t);
+  lerpToMisty(out.skyHorizon, time.horizon, misty.skyHorizon, tint, t);
+  lerpToMisty(out.hemiSky, time.hemiSky, misty.hemiSky, tint, t);
+  lerpToMisty(out.hemiGround, time.hemiGround, misty.hemiGround, tint, t);
+  lerpToMisty(out.sunColor, time.light, misty.sunColor, tint, t);
   // 可見距離以幾何插值：體感上霧是「均勻變濃」，線性插值會在前半段幾乎沒變化
-  out.fogNear = clear.fogNear * (misty.fogNear / clear.fogNear) ** t;
-  out.fogFar = clear.fogFar * (misty.fogFar / clear.fogFar) ** t;
-  out.hemiIntensity = THREE.MathUtils.lerp(clear.hemiIntensity, misty.hemiIntensity, t);
-  out.sunIntensity = THREE.MathUtils.lerp(clear.sunIntensity, misty.sunIntensity, t);
+  out.fogNear = time.fogNear * (misty.fogNear / time.fogNear) ** t;
+  out.fogFar = time.fogFar * (misty.fogFar / time.fogFar) ** t;
+  out.hemiIntensity = THREE.MathUtils.lerp(time.hemiIntensity, misty.hemiIntensity * (time.hemiIntensity / DAY_HEMI), t);
+  out.sunIntensity = THREE.MathUtils.lerp(time.lightIntensity, misty.sunIntensity * (time.lightIntensity / DAY_SUN), t);
+  out.ambient.copy(time.ambient);
+  out.stars = time.stars * (1 - t);
+  out.glow = time.glow * (1 - t * 0.8);
   return out;
 }
 

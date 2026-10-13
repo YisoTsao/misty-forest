@@ -89,7 +89,12 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     }
 
     const action = playerRuntime.action;
+    // 近戰招式出手時往前衝（GAME_DESIGN 5.3）：命中前沿面向方向位移，碰撞照常由控制器處理
+    let lunge = 0;
     if (action) {
+      const elapsed = action.elapsed ?? 0;
+      if (action.lunge && elapsed < (action.lungeTime ?? 0)) lunge = action.lunge * Math.min(dt, (action.lungeTime ?? 0) - elapsed);
+      action.elapsed = elapsed + dt;
       action.remaining -= dt;
       if (action.remaining <= 0) playerRuntime.action = null;
     }
@@ -108,6 +113,10 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       dt,
     );
 
+    if (lunge > 0) {
+      delta.x += Math.sin(state.facingYaw) * lunge;
+      delta.z += Math.cos(state.facingYaw) * lunge;
+    }
     controller.computeColliderMovement(collider, delta);
     const moved = controller.computedMovement();
     state.grounded = controller.computedGrounded();

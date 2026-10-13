@@ -958,5 +958,17 @@
       "bodyKey": "sign.lake.body"
     },
     "persists": false
+  },
+  {
+    "id": "tree_edge_round",
+    "model": "models/kaykit-hexagon/tree_single_A.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "tree_edge_tall",
+    "model": "models/kaykit-hexagon/tree_single_B.gltf",
+    "collider": "none",
+    "persists": false
   }
 ]

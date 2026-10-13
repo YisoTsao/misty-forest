@@ -22,7 +22,8 @@ const CLOUD_MODELS = ['models/kaykit-hexagon/cloud_big.gltf', 'models/kaykit-hex
 const CLOUD_SPEED = 1.6;
 const CLOUD_SPAN = 640;
 
-type HazeUniforms = { uHazeColor: { value: THREE.Color }; uHaze: { value: number }; uLift: { value: number } };
+/** uDim：不受光照的材質乘上的時段色調（夜晚變暗偏藍，GAME_DESIGN 5.2） */
+type HazeUniforms = { uHazeColor: { value: THREE.Color }; uHaze: { value: number }; uLift: { value: number }; uDim: { value: THREE.Color } };
 
 /** 遠景材質：toon + 空氣透視混色（取代霧） */
 function createBackdropMaterial(source: THREE.Material, haze: HazeUniforms): THREE.MeshToonMaterial {
@@ -34,11 +35,11 @@ function createBackdropMaterial(source: THREE.Material, haze: HazeUniforms): THR
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, haze);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uHazeColor;\nuniform float uHaze;\nuniform float uLift;')
+      .replace('#include <common>', '#include <common>\nuniform vec3 uHazeColor;\nuniform float uHaze;\nuniform float uLift;\nuniform vec3 uDim;')
       .replace(
         '#include <fog_fragment>',
         // uLift：雲用來提亮暗面，保持蓬鬆的白
-        'gl_FragColor.rgb = mix(gl_FragColor.rgb + uLift, uHazeColor, uHaze);\n#include <fog_fragment>',
+        'gl_FragColor.rgb = mix(gl_FragColor.rgb + uLift * uDim, uHazeColor, uHaze);\n#include <fog_fragment>',
       );
   };
   material.customProgramCacheKey = () => 'backdrop-haze';
@@ -203,8 +204,8 @@ function createRangeMaterial(haze: HazeUniforms): THREE.MeshBasicMaterial {
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, haze);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uHazeColor;\nuniform float uHaze;\nuniform float uLift;')
-      .replace('#include <fog_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, uHazeColor, uHaze);\n#include <fog_fragment>');
+      .replace('#include <common>', '#include <common>\nuniform vec3 uHazeColor;\nuniform float uHaze;\nuniform float uLift;\nuniform vec3 uDim;')
+      .replace('#include <fog_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb * uDim, uHazeColor, uHaze);\n#include <fog_fragment>');
   };
   material.customProgramCacheKey = () => 'backdrop-range';
   return material;
@@ -291,15 +292,15 @@ function cloudField(): Item[] {
 
 export function Backdrop() {
   const farHaze = useMemo<HazeUniforms>(
-    () => ({ uHazeColor: { value: new THREE.Color() }, uHaze: { value: 0.4 }, uLift: { value: 0 } }),
+    () => ({ uHazeColor: { value: new THREE.Color() }, uHaze: { value: 0.4 }, uLift: { value: 0 }, uDim: { value: new THREE.Color(1, 1, 1) } }),
     [],
   );
   const nearHaze = useMemo<HazeUniforms>(
-    () => ({ uHazeColor: { value: new THREE.Color() }, uHaze: { value: 0.2 }, uLift: { value: 0 } }),
+    () => ({ uHazeColor: { value: new THREE.Color() }, uHaze: { value: 0.2 }, uLift: { value: 0 }, uDim: { value: new THREE.Color(1, 1, 1) } }),
     [],
   );
   const cloudHaze = useMemo<HazeUniforms>(
-    () => ({ uHazeColor: { value: new THREE.Color() }, uHaze: { value: 0.15 }, uLift: { value: 0.18 } }),
+    () => ({ uHazeColor: { value: new THREE.Color() }, uHaze: { value: 0.15 }, uLift: { value: 0.18 }, uDim: { value: new THREE.Color(1, 1, 1) } }),
     [],
   );
   const cloudParts = useParts(CLOUD_MODELS, cloudHaze);
@@ -317,6 +318,9 @@ export function Backdrop() {
     nearHaze.uHaze.value = THREE.MathUtils.lerp(0.22, 0.95, m);
     cloudHaze.uHazeColor.value.copy(look.skyHorizon);
     cloudHaze.uHaze.value = THREE.MathUtils.lerp(0.12, 0.9, m);
+    farHaze.uDim.value.copy(look.ambient);
+    nearHaze.uDim.value.copy(look.ambient);
+    cloudHaze.uDim.value.copy(look.ambient);
 
     clouds.forEach((c, i) => {
       c.x += CLOUD_SPEED * dt;

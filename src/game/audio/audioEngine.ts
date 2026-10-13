@@ -8,7 +8,8 @@ import { sounds, type SoundId } from './sounds';
 export type Volumes = { master: number; music: number; sfx: number };
 
 /** 環境音各層的目標音量（0–1），由 AudioSystem 每幀依場景計算 */
-export type AmbienceMix = { wind: number; birds: number; drone: number; water: number };
+/** crickets：夜晚的蟲鳴（GAME_DESIGN 5.2），白天由鳥叫取代 */
+export type AmbienceMix = { wind: number; birds: number; drone: number; water: number; crickets: number };
 
 const C_MAJOR = [
   [60, 64, 67],
@@ -40,6 +41,7 @@ class AudioEngine {
   private volumes: Volumes = { master: 0.8, music: 0.5, sfx: 0.8 };
   private layers: { wind: GainNode; drone: GainNode; water: GainNode } | null = null;
   private birdsLevel = 0;
+  private cricketsLevel = 0;
   private mist = 0;
   private musicOn = false;
   private nextBar = 0;
@@ -230,6 +232,38 @@ class AudioEngine {
     this.musicFilter.frequency.setTargetAtTime(6000 * (1 - mist) + 900 * mist, t, 0.8);
     this.birdsLevel = mix.birds;
     if (mix.birds > 0.05 && Math.random() < dt * 0.35 * mix.birds) this.chirp(mix.birds);
+    this.cricketsLevel = mix.crickets;
+    if (mix.crickets > 0.05 && Math.random() < dt * 1.1 * mix.crickets) this.cricket(mix.crickets);
+  }
+
+  /** 程式合成的蟲鳴：高頻短脈衝連續 3–6 下（蟋蟀的「唧唧唧」） */
+  private cricket(level: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const freq = 4200 + Math.random() * 900;
+    const pulses = 3 + Math.floor(Math.random() * 4);
+    const pan = ctx.createStereoPanner();
+    pan.pan.value = Math.random() * 1.8 - 0.9;
+    pan.connect(this.ambience);
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.value = 0;
+    for (let i = 0; i < pulses; i++) {
+      const start = t + i * 0.055;
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(0.022 * level, start + 0.008);
+      g.gain.linearRampToValueAtTime(0, start + 0.035);
+    }
+    osc.connect(g).connect(pan);
+    osc.start(t);
+    osc.stop(t + pulses * 0.055 + 0.05);
+  }
+
+  get crickets(): number {
+    return this.cricketsLevel;
   }
 
   /** 程式合成的鳥叫：快速上下滑的短音 2–4 聲 */

@@ -61,12 +61,12 @@ await runE2e('region e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env },
     assert.ok(m.current < 0.05, `current=${m.current}`);
   });
 
-  await check('進入森林：顯示「迷霧森林 濃霧籠罩」，迷霧平滑升到 1', async () => {
+  await check('進入森林：顯示「霧林邊緣 濃霧籠罩」，迷霧平滑升到 1', async () => {
     await teleport(...clearing, 200);
     await camera({ yaw: 0.5, pitch: 0.55, distance: 5 });
     const banner = page.locator('[data-testid="region-banner"]');
     await banner.waitFor({ timeout: 2000 });
-    assert.match(await banner.innerText(), /迷霧森林[\s\S]*濃霧籠罩/);
+    assert.match(await banner.innerText(), /霧林邊緣[\s\S]*濃霧籠罩/);
     assert.equal(await region(), 'forest');
     const early = await mist();
     assert.ok(early.current < 0.95, `沒有漸變：${early.current}`);

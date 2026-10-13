@@ -16,16 +16,21 @@ import { RegionTracker } from './RegionTracker';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
+import { BoundaryColliders, BoundaryWatcher, MistWall } from './boundary/WorldBoundary';
 import { BuildController } from './build/BuildController';
 import { BuiltObjects } from './build/BuiltObjects';
 import { CombatEffects } from './combat/CombatEffects';
+import { MeleeEffects } from './combat/MeleeEffects';
 import { PlayerCombat } from './combat/PlayerCombat';
+import { PlayerSpells } from './combat/PlayerSpells';
+import { VfxSystem } from './vfx/VfxSystem';
 import { Companion } from './entities/companion/Companion';
 import { Enemies } from './entities/enemy/Enemies';
 import { Npcs } from './entities/npc/Npcs';
 import { Player } from './entities/player/Player';
 import { InputBinder } from './InputBinder';
 import { ChimneySmoke } from './ambient/ChimneySmoke';
+import { Fireflies } from './ambient/Fireflies';
 import { Flocks } from './ambient/Flock';
 import { InteriorLights, OutdoorOnly } from './LocationVisibility';
 import { InteractionSystem } from './interaction/InteractionSystem';
@@ -61,6 +66,7 @@ export function WorldScene({ data }: { data: WorldData }) {
             <Terrain />
           </OutdoorOnly>
           <EnvironmentColliders index={index} />
+          <BoundaryColliders />
           <Player def={playerDef} colliderRef={playerCollider} />
           <OutdoorOnly>
             <Flocks />
@@ -76,6 +82,8 @@ export function WorldScene({ data }: { data: WorldData }) {
         <OutdoorOnly>
           <GrassField index={index} />
           <Lake />
+          <MistWall />
+          <Fireflies />
           <ChimneySmoke data={data} />
           <AssetBoundary name="backdrop">
             <Backdrop />
@@ -85,8 +93,12 @@ export function WorldScene({ data }: { data: WorldData }) {
         <GameClock />
         <TutorialSystem />
         <RegionTracker />
+        <BoundaryWatcher />
         <PlayerCombat />
+        <PlayerSpells />
         <CombatEffects />
+        <MeleeEffects />
+        <VfxSystem />
         <Companion />
         <BuildController />
         <SceneReadyProbe />

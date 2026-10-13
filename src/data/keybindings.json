@@ -1,16 +1,71 @@
 {
-  "moveForward": ["KeyW", "ArrowUp"],
-  "moveBack": ["KeyS", "ArrowDown"],
-  "moveLeft": ["KeyA", "ArrowLeft"],
-  "moveRight": ["KeyD", "ArrowRight"],
-  "run": ["ShiftLeft", "ShiftRight"],
-  "jump": ["Space"],
-  "interact": ["KeyE"],
-  "attack": ["Mouse0"],
-  "skill": ["KeyQ"],
-  "inventory": ["KeyI", "Tab"],
-  "companion": ["KeyH"],
-  "build": ["KeyB"],
-  "rotate": ["KeyR"],
-  "pause": ["Escape"]
+  "moveForward": [
+    "KeyW",
+    "ArrowUp"
+  ],
+  "moveBack": [
+    "KeyS",
+    "ArrowDown"
+  ],
+  "moveLeft": [
+    "KeyA",
+    "ArrowLeft"
+  ],
+  "moveRight": [
+    "KeyD",
+    "ArrowRight"
+  ],
+  "run": [
+    "ShiftLeft",
+    "ShiftRight"
+  ],
+  "jump": [
+    "Space"
+  ],
+  "interact": [
+    "KeyE"
+  ],
+  "attack": [
+    "Mouse0"
+  ],
+  "heavyAttack": [
+    "Mouse2"
+  ],
+  "skill": [
+    "KeyQ"
+  ],
+  "spell2": [
+    "KeyF"
+  ],
+  "spell3": [
+    "KeyC"
+  ],
+  "inventory": [
+    "KeyI",
+    "Tab"
+  ],
+  "companion": [
+    "KeyH"
+  ],
+  "build": [
+    "KeyB"
+  ],
+  "rotate": [
+    "KeyR"
+  ],
+  "weapon1": [
+    "Digit1"
+  ],
+  "weapon2": [
+    "Digit2"
+  ],
+  "weapon3": [
+    "Digit3"
+  ],
+  "cycleWeapon": [
+    "KeyV"
+  ],
+  "pause": [
+    "Escape"
+  ]
 }

@@ -12,6 +12,8 @@ export const settingsDataSchema = z.object({
   volumes: z.object({ master: z.number().min(0).max(1), music: z.number().min(0).max(1), sfx: z.number().min(0).max(1) }).optional(),
   /** 按鍵設定；省略表示使用預設（data/keybindings.json）。只驗證格式，缺少的動作在讀取時以預設補上 */
   bindings: z.partialRecord(z.enum(actionIds), z.array(z.string().min(1))).optional(),
+  /** 命中時鏡頭震動（GAME_DESIGN 5.3）；省略表示開啟 */
+  cameraShake: z.boolean().optional(),
 });
 export type SettingsData = z.infer<typeof settingsDataSchema>;
 

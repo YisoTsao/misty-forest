@@ -349,6 +349,21 @@
             ]
           },
           {
+            "textKey": "dlg.molly.opt.sleep",
+            "next": "slept",
+            "when": {
+              "type": "timeRange",
+              "from": 19,
+              "to": 5
+            },
+            "effects": [
+              {
+                "type": "sleep",
+                "untilHour": 7
+              }
+            ]
+          },
+          {
             "textKey": "dlg.molly.opt.rumor",
             "next": "rumor"
           },
@@ -374,6 +389,10 @@
         "speakerKey": "npc.molly",
         "textKey": "dlg.molly.tree",
         "next": "greet"
+      },
+      "slept": {
+        "speakerKey": "npc.molly",
+        "textKey": "dlg.molly.slept"
       }
     }
   }

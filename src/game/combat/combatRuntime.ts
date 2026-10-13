@@ -3,8 +3,9 @@
 import { create } from 'zustand';
 import type { GameState } from '@/game-core/authority/rules';
 import { createEnemyAi, type EnemyAi } from '@/game-core/combat/enemyAi';
+import { createCombo, DEFAULT_WEAPON, type ComboState } from '@/game-core/combat/weapons';
 import { terrainHeight } from '@/game-core/world/terrain';
-import { authority, combat } from '../authority';
+import { authority, combat, spells, weapons } from '../authority';
 import { playerRuntime } from '../player/localRuntime';
 
 export type EnemyVisual = {
@@ -38,10 +39,40 @@ export const combatRuntime = {
   hurtFlash: 0,
   /** 倒下後經過的時間 */
   defeatedFor: 0,
-  /** 技能特效（星光衝擊）播放進度：null 表示沒有播放 */
-  skillFx: null as { x: number; y: number; z: number; age: number } | null,
   damageNumbers: [] as DamageNumber[],
+  /** 近戰（GAME_DESIGN 5.3）：連段、重擊冷卻、命中停頓、切換武器的出現動畫 */
+  melee: {
+    combo: createCombo(DEFAULT_WEAPON) as ComboState,
+    /** 本機時鐘（秒）：連段期限以此計算，暫停時不前進 */
+    clock: 0,
+    /** HUD：目前連段的第幾招（0 表示沒有），顯示到 comboUntil */
+    comboCount: 0,
+    comboUntil: 0,
+    heavyCooldown: 0,
+    heavyCooldownTotal: 1,
+    /** 目前輕擊動作的長度（HUD 冷卻遮罩用） */
+    lightTotal: 1,
+    /** 命中停頓剩餘時間（秒）：角色動畫暫停，打擊感 */
+    hitStop: 0,
+    /** 切換武器後的出現動畫進度（0 → 1） */
+    equipPop: 1,
+    /** 角色模型手上實際顯示的武器（CharacterModel 寫入；除錯與測試用） */
+    shown: null as string | null,
+  },
+  /** 揮砍拖尾的取樣（世界座標，最新在後）；CharacterModel 寫入、WeaponTrail 渲染 */
+  trail: [] as TrailSample[],
+  /** 命中特效（火花 / 拳腳的衝擊塵）：位置與經過時間 */
+  impacts: [] as Impact[],
 };
+
+export type TrailSample = { tip: [number, number, number]; base: [number, number, number]; age: number };
+export type Impact = { id: number; x: number; y: number; z: number; age: number; kind: 'spark' | 'dust'; power: number };
+let nextImpactId = 1;
+
+export function pushImpact(i: Omit<Impact, 'id' | 'age'>): void {
+  combatRuntime.impacts.push({ ...i, id: nextImpactId++, age: 0 });
+  if (combatRuntime.impacts.length > 12) combatRuntime.impacts.shift();
+}
 let nextNumberId = 1;
 
 export function pushDamageNumber(n: Omit<DamageNumber, 'id' | 'age'>): void {
@@ -49,8 +80,6 @@ export function pushDamageNumber(n: Omit<DamageNumber, 'id' | 'age'>): void {
   if (combatRuntime.damageNumbers.length > 24) combatRuntime.damageNumbers.shift();
 }
 
-/** 擊退強度（公尺 / 秒） */
-const KNOCKBACK = { attack: 5, skill: 8 } as const;
 /** 新生成的敵人離玩家至少這麼遠，避免在眼前冒出來 */
 const SPAWN_MIN_PLAYER_DIST = 8;
 
@@ -118,8 +147,9 @@ export function installCombatRuntime(): void {
           const dx = v.ai.x - x;
           const dz = v.ai.z - z;
           const d = Math.hypot(dx, dz) || 1;
-          v.ai.knockback.x = (dx / d) * KNOCKBACK[e.attack];
-          v.ai.knockback.z = (dz / d) * KNOCKBACK[e.attack];
+          const knockback = spells.get(e.attack)?.knockback ?? weapons.moves.get(e.attack)?.move.knockback ?? 0;
+          v.ai.knockback.x = (dx / d) * knockback;
+          v.ai.knockback.z = (dz / d) * knockback;
           if (v.ai.state !== 'attack') {
             v.ai.state = 'chase';
             v.ai.timer = 0;

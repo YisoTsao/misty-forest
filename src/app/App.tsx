@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
-import { debugEnabled, initialBookmarkFromUrl, initialMistFromUrl } from '@/game/debugApi';
+import { debugEnabled, initialBookmarkFromUrl, initialClockFromUrl, initialMistFromUrl } from '@/game/debugApi';
 import { t } from '@/game/i18n';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useQualityPreset } from '@/game/state/settingsStore';
@@ -37,6 +37,9 @@ export function App() {
     // ?mist=0–1 設定迷霧程度（截圖驗收晴朗 / 迷霧兩種外觀）
     const mist = initialMistFromUrl();
     if (mist !== null) useDebugStore.getState().setMistOverride(mist, true);
+    // ?clock=0–24 固定畫面時段（截圖驗收日夜外觀，GAME_DESIGN 5.2）
+    const clock = initialClockFromUrl();
+    if (clock !== null) useDebugStore.getState().setClockOverride(clock);
   }, []);
 
   if (!worldDataResult.ok) return <FatalScreen title={t('error.worldData')} detail={worldDataResult.error} />;

@@ -3,11 +3,14 @@
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
 import { placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
 import { PLAYER_STATS, type CombatData } from '../combat/combat';
+import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
+import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
 import { questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { MistStage } from '../world/mist';
+import { secondsUntilHour } from '../world/timeOfDay';
 import { initialMistStages, type MistStages } from '../world/regions';
 import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
@@ -26,7 +29,8 @@ export type GameState = {
   /** 已接取或完成的任務（規格 6.5）；沒有紀錄表示尚未接取 */
   readonly quests: Readonly<Record<string, QuestRecord>>;
   /** 玩家的戰鬥狀態（規格 6.6）：血量、上次受傷的遊戲時間、是否倒下 */
-  readonly player: { readonly hp: number; readonly lastDamagedAt: number; readonly defeated: boolean };
+  /** weapon：目前裝備的近戰武器（GAME_DESIGN 5.3，存檔 v8）；mp：星光值（GAME_DESIGN 5.4，存檔 v9） */
+  readonly player: { readonly hp: number; readonly lastDamagedAt: number; readonly defeated: boolean; readonly weapon: WeaponId; readonly mp: number };
   /** 目前存在的敵人（位置由本機模擬，權威層只管血量與存在） */
   readonly enemies: ReadonlyMap<string, EnemyRuntime>;
   /** 各生成點下次可以補充敵人的時間與流水號 */
@@ -49,7 +53,7 @@ export function initialGameState(): GameState {
     tutorial: 'move',
     mist: initialMistStages,
     quests: {},
-    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false },
+    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP },
     enemies: new Map(),
     spawners: {},
     companion: { unlocked: false },
@@ -68,14 +72,23 @@ export type GameCommand =
   | { type: 'AcceptQuest'; quest: string }
   /** 修復物件（木橋）：消耗材料 */
   | { type: 'RepairObject'; placementId: string }
-  /** 玩家攻擊命中敵人（命中判定在本機以 isInAttackArea 計算，規則驗證目標存在並結算傷害） */
-  | { type: 'AttackEnemy'; enemyId: string; attack: 'attack' | 'skill' }
+  /**
+   * 玩家攻擊命中敵人（命中判定在本機以招式範圍計算，規則驗證目標存在並結算傷害）。
+   * attack：近戰招式 id（必須屬於目前裝備的武器，data/weapons.json），或法術 id（data/spells.json）
+   */
+  | { type: 'AttackEnemy'; enemyId: string; attack: string }
+  /** 施放法術：扣除星光值（GAME_DESIGN 5.4）；冷卻在本機計算 */
+  | { type: 'CastSpell'; spell: string }
+  /** 切換近戰武器（GAME_DESIGN 5.3） */
+  | { type: 'EquipWeapon'; weapon: WeaponId }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   | { type: 'EnemyStrike'; enemyId: string }
   /** 倒下後重新站起來 */
   | { type: 'RespawnPlayer' }
   /** 在酒館休息（對話選項）：體力回滿 */
   | { type: 'Rest' }
+  /** 在酒館睡到指定時刻（對話選項，GAME_DESIGN 5.2）：體力回滿、時間往前推進到 untilHour */
+  | { type: 'Sleep'; untilHour: number }
   /** 放置建造物（位置與角度由規則吸附到網格）；確認後才扣材料 */
   | { type: 'PlaceBuilding'; buildable: string; x: number; z: number; yaw: number }
   /** 拆除建造物，退還材料 */
@@ -85,7 +98,11 @@ export type GameCommand =
   /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
   | { type: 'DebugSetMistStage'; region: RegionId; stage: MistStage }
   /** 除錯 / 測試：直接放入物品（ctx.allowDebugCommands 為 true 時才接受） */
-  | { type: 'DebugGiveItems'; items: ItemStack[] };
+  | { type: 'DebugGiveItems'; items: ItemStack[] }
+  /** 除錯 / 美術驗收：時間往前推進到指定時刻（只往前，不倒轉；ctx.allowDebugCommands 為 true 時才接受） */
+  | { type: 'DebugSetClock'; hour: number }
+  /** 除錯 / 測試：直接設定星光值（ctx.allowDebugCommands 為 true 時才接受） */
+  | { type: 'DebugSetMp'; mp: number };
 
 export type RejectReason =
   | 'unknown-object'
@@ -105,6 +122,10 @@ export type RejectReason =
   | 'unknown-building'
   | PlacementProblem
   | 'not-allowed'
+  | 'unknown-move'
+  | 'weapon-not-equipped'
+  | 'unknown-spell'
+  | 'not-enough-mp'
   | 'invalid-command';
 
 export type GameEvent =
@@ -121,7 +142,13 @@ export type GameEvent =
   | { type: 'ObjectRepaired'; placementId: string }
   | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
   | { type: 'EnemyDespawned'; enemyId: string }
-  | { type: 'EnemyDamaged'; enemyId: string; amount: number; hp: number; attack: 'attack' | 'skill' }
+  /** attack：招式 id 或 'skill' */
+  | { type: 'EnemyDamaged'; enemyId: string; amount: number; hp: number; attack: string }
+  | { type: 'WeaponEquipped'; weapon: WeaponId }
+  /** mp：施放後剩下的星光值 */
+  | { type: 'SpellCast'; spell: string; mp: number }
+  /** 星光值回復或除錯設定 */
+  | { type: 'MpChanged'; mp: number }
   | { type: 'EnemyDefeated'; enemyId: string; kind: string; spawner: string }
   | { type: 'SpawnerCooldown'; spawner: string; nextSpawnAt: number }
   | { type: 'PlayerDamaged'; amount: number; hp: number; enemyId: string }
@@ -142,6 +169,8 @@ export type RulesContext = {
   random: () => number;
   quests: QuestCatalog;
   combat: CombatData;
+  weapons: WeaponCatalog;
+  spells: SpellCatalog;
   buildables: BuildableCatalog;
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
   isOccupied?: (x: number, z: number, margin: number) => boolean;
@@ -167,6 +196,21 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       return repairObject(state, cmd.placementId, ctx);
     case 'AttackEnemy':
       return attackEnemy(state, cmd.enemyId, cmd.attack, ctx);
+    case 'CastSpell': {
+      if (state.player.defeated) return reject('CastSpell', 'player-defeated');
+      const spell = ctx.spells.get(cmd.spell);
+      if (!spell) return reject('CastSpell', 'unknown-spell');
+      if (state.player.mp < spell.mpCost) return reject('CastSpell', 'not-enough-mp');
+      return [{ type: 'SpellCast', spell: spell.id, mp: state.player.mp - spell.mpCost }];
+    }
+    case 'DebugSetMp':
+      if (!ctx.allowDebugCommands) return reject('DebugSetMp', 'not-allowed');
+      if (!Number.isFinite(cmd.mp)) return reject('DebugSetMp', 'invalid-command');
+      return [{ type: 'MpChanged', mp: Math.min(MAX_MP, Math.max(0, cmd.mp)) }];
+    case 'EquipWeapon':
+      if (!ctx.weapons.weapons.has(cmd.weapon)) return reject('EquipWeapon', 'invalid-command');
+      if (state.player.weapon === cmd.weapon) return [];
+      return [{ type: 'WeaponEquipped', weapon: cmd.weapon }];
     case 'EnemyStrike':
       return enemyStrike(state, cmd.enemyId, ctx);
     case 'RespawnPlayer':
@@ -175,6 +219,11 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'Rest':
       if (state.player.defeated) return reject('Rest', 'player-defeated');
       return [{ type: 'PlayerHealed', hp: PLAYER_STATS.maxHp }];
+    case 'Sleep': {
+      if (state.player.defeated) return reject('Sleep', 'player-defeated');
+      if (!validHour(cmd.untilHour)) return reject('Sleep', 'invalid-command');
+      return [...skipToHour(state, cmd.untilHour, ctx), { type: 'PlayerHealed', hp: PLAYER_STATS.maxHp }];
+    }
     case 'PlaceBuilding':
       return placeBuilding(state, cmd, ctx);
     case 'RemoveBuilding': {
@@ -197,6 +246,10 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       if (!ctx.allowDebugCommands) return reject('DebugGiveItems', 'not-allowed');
       if (!addItems(state.inventory, cmd.items, ctx.items)) return reject('DebugGiveItems', 'inventory-full');
       return [{ type: 'ItemsGained', items: cmd.items, source: 'debug' }];
+    case 'DebugSetClock':
+      if (!ctx.allowDebugCommands) return reject('DebugSetClock', 'not-allowed');
+      if (!validHour(cmd.hour)) return reject('DebugSetClock', 'invalid-command');
+      return skipToHour(state, cmd.hour, ctx);
     case 'DebugSetMistStage':
       if (!ctx.allowDebugCommands) return reject('DebugSetMistStage', 'not-allowed');
       if (state.mist[cmd.region] === cmd.stage) return [];
@@ -274,12 +327,23 @@ function repairObject(state: GameState, placementId: string, ctx: RulesContext):
   ];
 }
 
-function attackEnemy(state: GameState, enemyId: string, attack: 'attack' | 'skill', ctx: RulesContext): GameEvent[] {
+/** 招式的傷害：近戰招式必須屬於目前裝備的武器 */
+function attackDamage(state: GameState, attack: string, ctx: RulesContext): number | RejectReason {
+  const spell = ctx.spells.get(attack);
+  if (spell) return spell.damage;
+  const entry = ctx.weapons.moves.get(attack);
+  if (!entry) return 'unknown-move';
+  if (entry.weapon !== state.player.weapon) return 'weapon-not-equipped';
+  return entry.move.damage;
+}
+
+function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: RulesContext): GameEvent[] {
   if (state.player.defeated) return reject('AttackEnemy', 'player-defeated');
   const enemy = state.enemies.get(enemyId);
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('AttackEnemy', 'unknown-enemy');
-  const amount = attack === 'skill' ? PLAYER_STATS.skill.damage : PLAYER_STATS.attack.damage;
+  const amount = attackDamage(state, attack, ctx);
+  if (typeof amount === 'string') return reject('AttackEnemy', amount);
   const hp = Math.max(0, enemy.hp - amount);
   const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount, hp, attack }];
   if (hp > 0) return events;
@@ -384,6 +448,16 @@ function turnInQuest(state: GameState, questId: string, ctx: RulesContext): Game
   return events;
 }
 
+function validHour(hour: number): boolean {
+  return Number.isFinite(hour) && hour >= 0 && hour < 24;
+}
+
+/** 時間往前推進到下一個 hour 時刻：與一般的時間前進相同（物件重生、回血、生成都照常結算） */
+function skipToHour(state: GameState, hour: number, ctx: RulesContext): GameEvent[] {
+  const dt = secondsUntilHour(state.time, hour);
+  return dt > 0 ? advanceTime(state, { type: 'AdvanceTime', dt }, ctx) : [];
+}
+
 function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'AdvanceTime' }>, ctx: RulesContext): GameEvent[] {
   if (!(cmd.dt > 0) || !Number.isFinite(cmd.dt)) return reject('AdvanceTime', 'invalid-command');
   const time = state.time + cmd.dt;
@@ -401,6 +475,8 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
   if (!player.defeated && player.hp < PLAYER_STATS.maxHp && time - player.lastDamagedAt >= regen.regenDelay) {
     events.push({ type: 'PlayerHealed', hp: Math.min(PLAYER_STATS.maxHp, player.hp + regen.regenPerSec * cmd.dt) });
   }
+  // 星光值隨時間回復（GAME_DESIGN 5.4）
+  if (player.mp < MAX_MP) events.push({ type: 'MpChanged', mp: regenMp(player.mp, cmd.dt) });
   events.push(...spawnerEvents(state, time, ctx));
   return events;
 }
@@ -490,10 +566,17 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         player = { ...player, hp: 0, defeated: true };
         break;
       case 'PlayerRespawned':
-        player = { hp: e.hp, lastDamagedAt: time, defeated: false };
+        player = { ...player, hp: e.hp, lastDamagedAt: time, defeated: false };
         break;
       case 'CompanionUnlocked':
         companion = { unlocked: true };
+        break;
+      case 'WeaponEquipped':
+        player = { ...player, weapon: e.weapon };
+        break;
+      case 'SpellCast':
+      case 'MpChanged':
+        player = { ...player, mp: e.mp };
         break;
       case 'BuildingPlaced': {
         const next = removeItems(inventory, e.cost);

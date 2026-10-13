@@ -10,8 +10,10 @@ import { buildables, worldIndex } from '@/game/authority';
 import { buildRuntime, REMOVE_TOOL } from '@/game/build/buildRuntime';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
+import { timeRuntime } from '@/game/world/timeRuntime';
 import { assetUrl } from '@/game/worldData';
 import { buildProceduralModel, PROCEDURAL_PREFIX } from '@/render/proceduralModels';
+import { sparkTexture } from '@/render/sparkTexture';
 import { MAX_CLEARINGS, vegetationUniforms } from '@/render/vegetation';
 import { InstancedPrefab } from '../vegetation/InstancedPrefab';
 
@@ -64,6 +66,7 @@ export function BuiltObjects() {
       })}
       <BuildingColliders buildings={buildings} />
       <CampfireFlames buildings={buildings} />
+      <NightGlows buildings={buildings} />
       <GhostPreview />
     </>
   );
@@ -113,6 +116,85 @@ function BuildingColliders({ buildings }: { buildings: readonly Building[] }) {
     [world, active],
   );
   return null;
+}
+
+/** 會發光的建造物：光暈中心的高度（以建造物縮放前的模型高度計）、大小（公尺）與 HDR 顏色 */
+const GLOWS: Record<string, { height: number; size: number; color: [number, number, number] }> = {
+  lantern: { height: 0.95, size: 2.2, color: [2.2, 1.7, 0.7] },
+  campfire: { height: 0.45, size: 3.2, color: [2.4, 1.2, 0.35] },
+};
+
+/**
+ * 夜晚光暈（GAME_DESIGN 5.2）：星光燈與營火上方的柔和光點，夜晚變大變亮、觸發 Bloom。
+ * 不用即時點光源（效能預算：動態光最多 2 盞留給魔法），全部建造物共用一個 Points。
+ */
+function NightGlows({ buildings }: { buildings: readonly Building[] }) {
+  const glowing = buildings.filter((b) => GLOWS[b.buildable]);
+  const geometry = useMemo(() => {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const sizes: number[] = [];
+    for (const b of glowing) {
+      const glow = GLOWS[b.buildable]!;
+      const scale = buildables.get(b.buildable)?.scale ?? 1;
+      positions.push(b.x, terrainHeight(b.x, b.z) + glow.height * scale, b.z);
+      colors.push(...glow.color);
+      sizes.push(glow.size);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    g.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));
+    return g;
+    // glowing 由 buildings 推導
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buildings]);
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        uniforms: { uMap: { value: sparkTexture() }, uStrength: { value: 0 }, uScale: { value: 400 }, uTime: { value: 0 } },
+        vertexShader: /* glsl */ `
+          uniform float uScale;
+          uniform float uStrength;
+          uniform float uTime;
+          attribute float aSize;
+          varying vec3 vColor;
+          void main() {
+            vColor = color;
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            float flicker = 1.0 + sin(uTime * 7.0 + position.x * 3.0) * 0.05;
+            gl_PointSize = aSize * (0.55 + 0.45 * uStrength) * flicker * uScale / -mv.z;
+            gl_Position = projectionMatrix * mv;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          uniform sampler2D uMap;
+          uniform float uStrength;
+          varying vec3 vColor;
+          void main() {
+            float a = texture2D(uMap, gl_PointCoord).a;
+            gl_FragColor = vec4(vColor, a * a * (0.18 + 0.6 * uStrength));
+          }
+        `,
+        vertexColors: true,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        toneMapped: false,
+        fog: false,
+      }),
+    [],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => material.dispose(), [material]);
+  useFrame(({ gl }, dt) => {
+    const u = material.uniforms;
+    u.uStrength!.value = timeRuntime.night;
+    u.uScale!.value = gl.domElement.height * 0.5;
+    u.uTime!.value += Math.min(dt, 0.1);
+  });
+  if (glowing.length === 0) return null;
+  return <points name="night-glows" geometry={geometry} material={material} renderOrder={3} frustumCulled={false} />;
 }
 
 /** 營火的火焰：在模型的火焰上方疊一層會跳動的發光錐體 */

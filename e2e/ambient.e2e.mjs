@@ -58,12 +58,12 @@ await runE2e('ambient e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pag
     assert.match(await prompt.innerText(), /閱讀\s*路標/);
     await page.keyboard.press('KeyE');
     await dialog.waitFor({ timeout: 2000 });
-    assert.match(await dialog.innerText(), /星光村/);
+    assert.match(await dialog.innerText(), /晨曦村/);
     await page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'detached', timeout: 2000 });
   });
 
-  await check('告示板：可閱讀，內容提到木匠巴魯與羊群', async () => {
+  await check('告示板：可閱讀，內容提到木匠波木與羊群', async () => {
     const yaw = board.rotation[1];
     await teleport(board.position[0] + Math.sin(yaw) * 1.6, board.position[2] + Math.cos(yaw) * 1.6);
     await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [board.position[0], board.position[2]]);
@@ -71,7 +71,7 @@ await runE2e('ambient e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pag
     await page.keyboard.press('KeyE');
     await dialog.waitFor({ timeout: 2000 });
     const text = await dialog.innerText();
-    assert.match(text, /巴魯/);
+    assert.match(text, /波木/);
     assert.match(text, /羊群/);
     await page.keyboard.press('Escape');
   });

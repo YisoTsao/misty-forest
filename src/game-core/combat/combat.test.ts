@@ -7,7 +7,8 @@ import { countItem } from '../inventory/inventory';
 import { objectiveProgress } from '../quest/quest';
 import { testContext } from '../testing/fixtures';
 import { mulberry32 } from '../util/random';
-import { isInAttackArea, parseCombatData, PLAYER_STATS } from './combat';
+import { parseCombatData, PLAYER_STATS } from './combat';
+import { MAX_MP, MP_REGEN_PER_SEC } from './spells';
 import { aiUpdateInterval, applyHitReaction, createEnemyAi, stepEnemyAi } from './enemyAi';
 
 const ctx = testContext();
@@ -66,16 +67,38 @@ describe('玩家攻擊', () => {
   it('命中扣血；歸零時擊敗、掉落、生成點進入冷卻', () => {
     let s = withEnemies(1);
     const [id] = [...s.enemies.keys()];
-    const r1 = run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'attack' });
-    expect(r1.events).toEqual([{ type: 'EnemyDamaged', enemyId: id, amount: PLAYER_STATS.attack.damage, hp: wisp.maxHp - PLAYER_STATS.attack.damage, attack: 'attack' }]);
+    // 預設裝備單手劍：第一招斜斬的傷害來自 data/weapons.json
+    const slash = ctx.weapons.moves.get('sword_slash_diag')!.move;
+    const r1 = run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'sword_slash_diag' });
+    expect(r1.events).toEqual([{ type: 'EnemyDamaged', enemyId: id, amount: slash.damage, hp: wisp.maxHp - slash.damage, attack: 'sword_slash_diag' }]);
     s = r1.state;
-    const r2 = run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'skill' });
+    const r2 = run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'spell_starlight_burst' });
     expect(r2.events.map((e) => e.type)).toEqual(['EnemyDamaged', 'EnemyDefeated', 'SpawnerCooldown', 'ItemsGained']);
     s = r2.state;
     expect(s.enemies.has(id!)).toBe(false);
     expect(countItem(s.inventory, 'flower')).toBe(1);
     expect(s.spawners.sp?.nextSpawnAt).toBe(s.time + 10);
-    expect(run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'attack' }).events[0]).toMatchObject({ reason: 'unknown-enemy' });
+    expect(run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'sword_chop' }).events[0]).toMatchObject({ reason: 'unknown-enemy' });
+  });
+
+  it('近戰招式必須屬於目前裝備的武器；切換武器後換成該武器的招式', () => {
+    let s = withEnemies(1);
+    const [id] = [...s.enemies.keys()];
+    expect(s.player.weapon).toBe('sword');
+    expect(run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'fist_kick' }).events[0]).toMatchObject({ reason: 'weapon-not-equipped' });
+    expect(run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'attack' }).events[0]).toMatchObject({ reason: 'unknown-move' });
+    const equipped = run(s, { type: 'EquipWeapon', weapon: 'fist' });
+    expect(equipped.events).toEqual([{ type: 'WeaponEquipped', weapon: 'fist' }]);
+    s = equipped.state;
+    expect(run(s, { type: 'EquipWeapon', weapon: 'fist' }).events).toEqual([]);
+    const kick = ctx.weapons.moves.get('fist_kick')!.move;
+    expect(run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'fist_kick' }).events[0]).toMatchObject({ type: 'EnemyDamaged', amount: kick.damage });
+    expect(run(s, { type: 'AttackEnemy', enemyId: id!, attack: 'sword_chop' }).events[0]).toMatchObject({ reason: 'weapon-not-equipped' });
+  });
+
+  it('倒下後重新站起來仍保留裝備', () => {
+    const down = { ...initialGameState(), player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'knife' as const, mp: 50 } };
+    expect(run(down, { type: 'RespawnPlayer' }).state.player).toMatchObject({ defeated: false, weapon: 'knife' });
   });
 
   it('擊敗目標的任務進度只在接取後累計，並在里程碑改變迷霧', () => {
@@ -83,8 +106,8 @@ describe('玩家攻擊', () => {
     s = run(s, { type: 'AcceptQuest', quest: 'hunt' }).state;
     const ids = [...s.enemies.keys()];
     for (const id of ids) {
-      s = run(s, { type: 'AttackEnemy', enemyId: id, attack: 'skill' }).state;
-      s = run(s, { type: 'AttackEnemy', enemyId: id, attack: 'skill' }).state;
+      s = run(s, { type: 'AttackEnemy', enemyId: id, attack: 'spell_starlight_burst' }).state;
+      s = run(s, { type: 'AttackEnemy', enemyId: id, attack: 'spell_starlight_burst' }).state;
     }
     const quest = ctx.quests.get('hunt')!;
     expect(objectiveProgress(s, quest)).toEqual([{ current: 2, target: 3 }]);
@@ -134,20 +157,6 @@ describe('敵人攻擊與玩家倒下', () => {
   });
 });
 
-describe('命中範圍', () => {
-  const player = { x: 0, z: 0, facingYaw: 0 }; // 面向 +Z
-  it('攻擊：前方扇形', () => {
-    expect(isInAttackArea('attack', player, { x: 0, z: 2, radius: 0.3 })).toBe(true);
-    expect(isInAttackArea('attack', player, { x: 0, z: -1.5, radius: 0.3 })).toBe(false); // 背後
-    expect(isInAttackArea('attack', player, { x: 0, z: 3, radius: 0.3 })).toBe(false); // 太遠
-    expect(isInAttackArea('attack', player, { x: 1.2, z: 1.2, radius: 0.3 })).toBe(true); // 45°
-  });
-  it('技能：周圍圓形（背後也打得到）', () => {
-    expect(isInAttackArea('skill', player, { x: 0, z: -3, radius: 0.3 })).toBe(true);
-    expect(isInAttackArea('skill', player, { x: 5, z: 0, radius: 0.3 })).toBe(false);
-  });
-});
-
 describe('enemy AI 狀態機', () => {
   const home = { x: 0, z: 0, radius: 5 };
   const input = (px: number, pz: number, dt = 0.1, alive = true) => ({ dt, player: { x: px, z: pz, alive }, home, random: mulberry32(1) });
@@ -193,5 +202,43 @@ describe('enemy AI 狀態機', () => {
     expect(aiUpdateInterval(10)).toBe(0);
     expect(aiUpdateInterval(40)).toBe(0.25);
     expect(aiUpdateInterval(80)).toBeNull();
+  });
+});
+
+describe('魔法與星光值（GAME_DESIGN 5.4）', () => {
+  it('施放扣除星光值；不足時拒絕；倒下時不能施放', () => {
+    const start = initialGameState();
+    expect(start.player.mp).toBe(MAX_MP);
+    const burst = ctx.spells.get('spell_starlight_burst')!;
+    const cast = run(start, { type: 'CastSpell', spell: burst.id });
+    expect(cast.events).toEqual([{ type: 'SpellCast', spell: burst.id, mp: MAX_MP - burst.mpCost }]);
+    const low = { ...start, player: { ...start.player, mp: burst.mpCost - 1 } };
+    expect(run(low, { type: 'CastSpell', spell: burst.id }).events[0]).toMatchObject({ reason: 'not-enough-mp' });
+    expect(run(start, { type: 'CastSpell', spell: 'spell_nope' }).events[0]).toMatchObject({ reason: 'unknown-spell' });
+    const down = { ...start, player: { ...start.player, defeated: true } };
+    expect(run(down, { type: 'CastSpell', spell: burst.id }).events[0]).toMatchObject({ reason: 'player-defeated' });
+  });
+
+  it('星光值隨時間回復到上限', () => {
+    const start = initialGameState();
+    const low = { ...start, player: { ...start.player, mp: 10 } };
+    const after = run(low, { type: 'AdvanceTime', dt: 2 }).state;
+    expect(after.player.mp).toBeCloseTo(10 + MP_REGEN_PER_SEC * 2);
+    expect(run(start, { type: 'AdvanceTime', dt: 2 }).events.some((e) => e.type === 'MpChanged')).toBe(false);
+  });
+
+  it('法術傷害來自資料（星屑飛彈每發）', () => {
+    let s = withEnemies(1);
+    const [id] = [...s.enemies.keys()];
+    const bolt = ctx.spells.get('spell_star_bolt')!;
+    s = run(s, { type: 'AttackEnemy', enemyId: id!, attack: bolt.id }).state;
+    expect(s.enemies.get(id!)?.hp).toBe(wisp.maxHp - bolt.damage);
+  });
+
+  it('除錯設定星光值：只在允許除錯時、夾在 0 到上限之間', () => {
+    expect(run(initialGameState(), { type: 'DebugSetMp', mp: 5 }).events[0]).toMatchObject({ reason: 'not-allowed' });
+    const debugCtx = { ...ctx, allowDebugCommands: true };
+    const events = handleCommand(initialGameState(), { type: 'DebugSetMp', mp: 500 }, debugCtx);
+    expect(events).toEqual([{ type: 'MpChanged', mp: MAX_MP }]);
   });
 });

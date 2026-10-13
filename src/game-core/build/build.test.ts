@@ -87,7 +87,7 @@ describe('RemoveBuilding', () => {
 });
 
 describe('營火效果與建造條件', () => {
-  const hurt = (s: GameState): GameState => ({ ...s, player: { hp: 40, lastDamagedAt: s.time, defeated: false } });
+  const hurt = (s: GameState): GameState => ({ ...s, player: { ...s.player, hp: 40, lastDamagedAt: s.time, defeated: false } });
   const withFire: GameState = { ...initialGameState(), buildings: [{ id: 'building_1', buildable: 'campfire', ...center, yaw: 0 }] };
 
   it('在營火旁回血開始得更快、速度更高', () => {

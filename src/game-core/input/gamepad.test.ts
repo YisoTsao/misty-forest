@@ -16,11 +16,11 @@ import {
 } from './gamepad';
 
 describe('手把配置', () => {
-  it('專案的手把配置合法：每個鍵盤動作都有手把按鈕（移動由搖桿、暫停由 Start）', () => {
+  it('專案的手把配置合法：每個鍵盤動作都有手把按鈕（移動由搖桿、暫停由 Start、指定武器由「切換武器」依序切換）', () => {
     const pad = parsePadBindings(padData);
     const keyboard = parseBindings(keybindings);
     for (const action of Object.keys(keyboard)) {
-      if (action.startsWith('move') || action === 'pause') continue;
+      if (action.startsWith('move') || action === 'pause' || /^weapon\d$/.test(action)) continue;
       expect(pad[action as keyof typeof pad]?.length, action).toBeGreaterThan(0);
     }
   });

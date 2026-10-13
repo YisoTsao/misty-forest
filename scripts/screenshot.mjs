@@ -4,6 +4,10 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
+//   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
+//   --daynight：日夜：三個書籤 × 06 / 12 / 18 / 21 / 00 時、夜晚迷霧、夜晚草原（螢火蟲、月亮）、日出與夕陽（任務 6B）
+//   --bounds：地圖邊界：邊界前、遠看迷霧牆、角落、俯瞰、濃霧時（任務 6A）
 //   --ambient：環境生命感：羊群、炊煙、風車（兩張比對扇葉角度）、曬衣繩、路標與告示板（任務 5D）
 //   --gamepad：手把模式的互動提示（Y）、暫停選單的手把選取外框、設定畫面的手把配置（任務 5C）
 //   --tavern：酒館門口的提示、室內、和老闆娘對話（任務 5B）
@@ -15,7 +19,7 @@
 //   --region：森林空地在濃霧與迷霧清除後的跟隨視角、區域名稱（任務 3A）
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
-/* global window -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
+/* global window, document -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -38,6 +42,10 @@ const withBuild = flags.has('--build');
 const withTavern = flags.has('--tavern');
 const withGamepad = flags.has('--gamepad');
 const withAmbient = flags.has('--ambient');
+const withBounds = flags.has('--bounds');
+const withDaynight = flags.has('--daynight');
+const withMelee = flags.has('--melee');
+const withMagic = flags.has('--magic');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -235,6 +243,270 @@ try {
     await shot('ambient_signpost_read');
     await page.keyboard.press('Escape');
     await view('ambient_notice_board', -9.6 + Math.sin(0.45) * 1.8, -26.4 + Math.cos(0.45) * 1.8, -9.6, -26.4, { yaw: 0.45, pitch: 0.2, distance: 4.5 });
+  }
+
+  if (withMelee) {
+    // 近戰（任務 6C）：每一招在命中瞬間的定格（武器在手上、動作不變形），拼成一張總覽；再拍實際打中迷霧生物的拖尾與衝擊
+    const weaponsData = JSON.parse(readFileSync('src/data/weapons.json', 'utf8'));
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(0, true);
+      d.setBookmark('character');
+    });
+    await page.waitForTimeout(1200);
+    const frames = [];
+    for (const w of weaponsData) {
+      await page.evaluate((id) => window.__mistwoodDebug.equip(id), w.id);
+      await page.waitForTimeout(400);
+      for (const m of [...w.light, w.heavy]) {
+        // 命中瞬間在動畫中的位置：hitDelay × 播放速度（片段長度約 1 秒，取 0.25–0.7 之間）
+        const fraction = Math.min(0.7, Math.max(0.25, m.hitDelay * m.speed));
+        await page.evaluate(([clip, f]) => window.__mistwoodDebug.previewClip(clip, f), [m.clip, fraction]);
+        await page.waitForTimeout(250);
+        const name = `melee_${m.id}`;
+        await shot(name);
+        frames.push({ name, label: `${w.id} · ${m.id}` });
+      }
+    }
+    await page.evaluate(() => window.__mistwoodDebug.previewAnimation(null));
+    // 總覽：在遊戲視窗上疊一層圖片格子再截圖（不需要額外的影像處理套件）
+    const images = frames.map((f) => ({ label: f.label, src: `data:image/png;base64,${readFileSync(path.join(outDir, `${f.name}.png`)).toString('base64')}` }));
+    await page.evaluate((list) => {
+      const grid = document.createElement('div');
+      grid.id = 'contact-sheet';
+      grid.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#222;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px';
+      for (const item of list) {
+        const cell = document.createElement('div');
+        cell.style.cssText = 'position:relative;overflow:hidden;background:#000';
+        const img = document.createElement('img');
+        img.src = item.src;
+        // 只取畫面中央（角色）的部分
+        img.style.cssText = 'position:absolute;max-width:none;width:250%;left:-75%;top:-40%';
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        label.style.cssText = 'position:absolute;left:6px;bottom:4px;color:#fff;font:bold 14px sans-serif;text-shadow:0 0 4px #000';
+        cell.append(img, label);
+        grid.append(cell);
+      }
+      document.body.append(grid);
+    }, images);
+    await page.waitForTimeout(500);
+    await shot('melee_contact_sheet');
+    await page.evaluate(() => document.getElementById('contact-sheet')?.remove());
+
+    // 實戰：森林的迷霧生物，三種武器各打一套連段，拍拖尾與命中衝擊
+    const spawners = JSON.parse(readFileSync('src/data/spawners.json', 'utf8'));
+    const [sx, sz] = spawners[0].center;
+    await page.evaluate(([x, z]) => {
+      const d = window.__mistwoodDebug;
+      d.setPeaceful(true);
+      d.setCameraMode('follow');
+      d.teleport(x - 4, z + 4);
+    }, [sx, sz]);
+    await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 2, null, { timeout: 30000 });
+    for (const [weapon, shots] of [
+      ['sword', [0.2, 0.25]],
+      ['knife', [0.15, 0.2]],
+      ['fist', [0.2, 0.28]],
+    ]) {
+      await page.evaluate((w) => {
+        const d = window.__mistwoodDebug;
+        d.equip(w);
+        const near = d.enemies()[0];
+        d.teleport(near.x - 1.4, near.z + 1.4);
+        d.face(near.x, near.z);
+        d.camera({ yaw: -2.2, pitch: 0.25, distance: 5 });
+      }, weapon);
+      await page.waitForTimeout(700);
+      for (let i = 0; i < shots.length; i++) {
+        await page.evaluate(() => window.__mistwoodDebug.tap('Mouse0'));
+        await page.waitForTimeout(shots[i] * 1000);
+        await shot(`melee_live_${weapon}_${i + 1}`);
+        await page.waitForTimeout(450);
+      }
+      await page.evaluate(() => window.__mistwoodDebug.tap('Mouse2'));
+      await page.waitForTimeout(380);
+      await shot(`melee_live_${weapon}_heavy`);
+      await page.waitForTimeout(900);
+    }
+  }
+
+  if (withMagic) {
+    // 魔法（任務 6D）：森林的迷霧生物前，白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中，以及魔法擊敗的淨化
+    const spawners = JSON.parse(readFileSync('src/data/spawners.json', 'utf8'));
+    const [sx, sz] = spawners[0].center;
+    const stage = async () => {
+      await page.evaluate(([x, z]) => {
+        const d = window.__mistwoodDebug;
+        d.setPeaceful(true);
+        d.setCameraMode('follow');
+        d.setMp(100);
+        d.teleport(x - 3, z + 5);
+      }, [sx, sz]);
+      await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 2, null, { timeout: 30000 });
+      await page.waitForTimeout(150);
+      await page.evaluate(() => {
+        const d = window.__mistwoodDebug;
+        const e = d.enemies()[0];
+        d.face(e.x, e.z);
+        const p = d.playerState();
+        // 攝影機在角色斜後方偏高，看得到腳下的魔法陣與前方的迷霧生物
+        d.camera({ yaw: p.facingYaw + Math.PI + 0.6, pitch: 0.45, distance: 7 });
+      });
+      await page.waitForTimeout(600);
+    };
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(0, true);
+    });
+    for (const [label, hour] of [
+      ['day', 12],
+      ['night', 22],
+    ]) {
+      await page.evaluate((h) => window.__mistwoodDebug.setClock(h), hour);
+      await stage();
+      await page.evaluate(() => window.__mistwoodDebug.tap('KeyQ'));
+      await page.waitForTimeout(220);
+      await shot(`magic_${label}_burst_charge`);
+      await page.waitForTimeout(220);
+      await shot(`magic_${label}_burst_release`);
+      await page.waitForTimeout(400);
+      await shot(`magic_${label}_burst_after`);
+      await page.waitForTimeout(900);
+      await stage();
+      await page.evaluate(() => window.__mistwoodDebug.tap('KeyF'));
+      await page.waitForTimeout(260);
+      await shot(`magic_${label}_bolt_release`);
+      await page.waitForTimeout(160);
+      await shot(`magic_${label}_bolt_flight`);
+      await page.waitForTimeout(350);
+      await shot(`magic_${label}_bolt_hit`);
+      await page.waitForTimeout(1500);
+    }
+    // 流星雨（任務 6E）：開闊的草原上（攝影機不會被樹擋住），落點魔法陣預警 → 流星斜落 → 最後一顆光爆
+    for (const [label, hour] of [
+      ['night', 22],
+      ['day', 12],
+    ]) {
+      await page.evaluate((h) => {
+        const d = window.__mistwoodDebug;
+        d.setClock(h);
+        d.resetSpellCooldowns();
+        d.setMp(100);
+        d.setCameraMode('follow');
+        d.teleport(3, 6);
+      }, hour);
+      await page.waitForTimeout(150);
+      await page.evaluate(() => {
+        const d = window.__mistwoodDebug;
+        d.face(3, -10);
+        // 攝影機在角色右後方高處，看得到前方 7 m 的落點
+        d.camera({ yaw: 0.45, pitch: 0.42, distance: 12 });
+      });
+      await page.waitForTimeout(500);
+      await page.evaluate(() => window.__mistwoodDebug.tap('KeyC'));
+      await page.waitForTimeout(500);
+      await shot(`magic_${label}_meteor_target`);
+      await page.waitForTimeout(650);
+      await shot(`magic_${label}_meteor_falling`);
+      await page.waitForTimeout(450);
+      await shot(`magic_${label}_meteor_impacts`);
+      await page.waitForTimeout(600);
+      await shot(`magic_${label}_meteor_final`);
+      await page.waitForTimeout(1500);
+    }
+    await page.evaluate(() => window.__mistwoodDebug.setClock(22));
+    // 淨化：把一隻迷霧生物打到剩一點血，再以星光衝擊擊敗
+    await stage();
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      const e = d.enemies()[0];
+      for (let i = 0; i < 3; i++) d.send({ type: 'AttackEnemy', enemyId: e.id, attack: 'spell_star_bolt' });
+    });
+    await page.evaluate(() => window.__mistwoodDebug.tap('KeyQ'));
+    await page.waitForTimeout(900);
+    await shot('magic_night_purify');
+    await page.evaluate(() => window.__mistwoodDebug.setClock(12));
+  }
+
+  if (withDaynight) {
+    // 日夜（任務 6B）：三個書籤 × 06 / 12 / 18 / 21 / 00 時，另拍夜晚迷霧與跟隨視角的夜晚草原（螢火蟲）
+    const hours = [6, 12, 18, 21, 0];
+    const setClock = (h) => page.evaluate((v) => window.__mistwoodDebug.setClock(v), h);
+    await page.evaluate(() => window.__mistwoodDebug.setMist(0, true));
+    for (const id of ['meadow', 'village', 'lake']) {
+      await page.evaluate((b) => window.__mistwoodDebug.setBookmark(b), id);
+      for (const h of hours) {
+        await setClock(h);
+        await page.waitForTimeout(900);
+        await shot(`daynight_${id}_${String(h).padStart(2, '0')}`);
+      }
+    }
+    await setClock(21);
+    await page.evaluate(() => window.__mistwoodDebug.setMist(1, true));
+    await page.evaluate(() => window.__mistwoodDebug.setBookmark('meadow'));
+    await page.waitForTimeout(900);
+    await shot('daynight_meadow_21_mist');
+    await page.evaluate(() => window.__mistwoodDebug.setMist(0, true));
+    // 跟隨視角：夜晚的出生草原（螢火蟲、月亮、星空）與黃昏的夕陽
+    const follow = async (name, h, cam) => {
+      await setClock(h);
+      await page.evaluate(
+        (c) => {
+          const d = window.__mistwoodDebug;
+          d.setCameraMode('follow');
+          d.teleport(2, 26);
+          d.face(2, 0);
+          d.camera(c);
+        },
+        cam,
+      );
+      await page.waitForTimeout(1500);
+      await shot(name);
+    };
+    await follow('daynight_follow_22', 22, { yaw: 0.2, pitch: -0.05, distance: 6 });
+    await follow('daynight_follow_moon_01', 1, { yaw: Math.PI * 0.85, pitch: -0.45, distance: 7 });
+    // 攝影機在角色後方 (sin yaw, cos yaw)：看向西方（夕陽）時 yaw = π/2、看向東方（日出）時 yaw = −π/2
+    await follow('daynight_follow_sunset_18', 18, { yaw: Math.PI / 2, pitch: -0.12, distance: 7 });
+    await follow('daynight_follow_sunrise_06', 6, { yaw: -Math.PI / 2, pitch: -0.1, distance: 7 });
+    await setClock(12);
+  }
+
+  if (withBounds) {
+    // 地圖邊界（任務 6A）：角色站在邊界前、從遠處看迷霧牆、角落、濃霧時、高處俯瞰整圈
+    const view = async (name, px, pz, fx, fz, cam, wait = 1500) => {
+      await page.evaluate(
+        ([x, z, tx, tz, c]) => {
+          const d = window.__mistwoodDebug;
+          d.setCameraMode('follow');
+          d.teleport(x, z);
+          d.face(tx, tz);
+          d.camera(c);
+        },
+        [px, pz, fx, fz, cam],
+      );
+      await page.waitForTimeout(wait);
+      await shot(name);
+    };
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(0, true);
+    });
+    // 攝影機在角色後方 (sin yaw, cos yaw)：往東看時 yaw = −π/2
+    await view('bounds_edge_east', 72.4, 3, 90, 3, { yaw: -Math.PI / 2, pitch: 0.25, distance: 6 });
+    await view('bounds_far_east', 50, 3, 90, 3, { yaw: -Math.PI / 2, pitch: 0.18, distance: 7 });
+    await view('bounds_edge_south', -6, 72.4, -6, 90, { yaw: Math.PI, pitch: 0.3, distance: 6 });
+    await view('bounds_corner_ne', 68, -68, 90, -90, { yaw: -Math.PI / 4, pitch: 0.3, distance: 7 });
+    // 俯瞰：觀景點書籤在南邊界外的高處，看得到整道南側迷霧牆
+    await page.evaluate(() => window.__mistwoodDebug.setBookmark('overlook'));
+    await page.waitForTimeout(1500);
+    await shot('bounds_overview');
+    await page.evaluate(() => window.__mistwoodDebug.setMist(1, true));
+    await view('bounds_edge_east_mist', 72.4, 3, 90, 3, { yaw: -Math.PI / 2, pitch: 0.25, distance: 6 });
+    await page.evaluate(() => window.__mistwoodDebug.setMist(0, true));
   }
 
   if (withGamepad) {

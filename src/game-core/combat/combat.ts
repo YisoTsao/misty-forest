@@ -59,13 +59,9 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
   return { enemies, spawners };
 }
 
-/** 玩家的戰鬥數值（第一版固定；之後可隨裝備成長） */
+/** 玩家的戰鬥數值。近戰招式在 data/weapons.json（GAME_DESIGN 5.3），法術在 data/spells.json（5.4）。 */
 export const PLAYER_STATS = {
   maxHp: 100,
-  /** 主要攻擊：前方扇形 */
-  attack: { damage: 25, range: 2.1, arcDeg: 110, cooldown: 0.55, hitDelay: 0.22 },
-  /** 特殊技能「星光衝擊」：以自己為中心的範圍攻擊 */
-  skill: { damage: 40, radius: 3.6, cooldown: 6, hitDelay: 0.35 },
   /** 脫離戰鬥多久後開始回血，以及每秒回復量 */
   regenDelay: 5,
   regenPerSec: 4,
@@ -74,23 +70,3 @@ export const PLAYER_STATS = {
   /** 在自己蓋的營火旁：回血開始得更快、速度更高 */
   campfire: { radius: 3.5, regenDelay: 1, regenPerSec: 14 },
 } as const;
-
-/**
- * 命中判定（規格 6.6：不依賴動畫事件）：目標的水平位置是否在攻擊範圍內。
- * attack：以玩家面向為中心的扇形；skill：圓形。目標有半徑（身體大小）。
- */
-export function isInAttackArea(
-  kind: 'attack' | 'skill',
-  player: { x: number; z: number; facingYaw: number },
-  target: { x: number; z: number; radius: number },
-): boolean {
-  const dx = target.x - player.x;
-  const dz = target.z - player.z;
-  const dist = Math.hypot(dx, dz);
-  if (kind === 'skill') return dist <= PLAYER_STATS.skill.radius + target.radius;
-  if (dist > PLAYER_STATS.attack.range + target.radius) return false;
-  if (dist < target.radius) return true;
-  const facing = Math.atan2(dx, dz);
-  const diff = Math.atan2(Math.sin(facing - player.facingYaw), Math.cos(facing - player.facingYaw));
-  return Math.abs(diff) <= ((PLAYER_STATS.attack.arcDeg / 2) * Math.PI) / 180;
-}

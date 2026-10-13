@@ -33,7 +33,7 @@ await runE2e('lake e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page,
     assert.ok(s.x < 20, `重生在水裡：(${s.x.toFixed(1)}, ${s.z.toFixed(1)})`);
   });
 
-  await check('進入湖區顯示「鏡湖」，任務未接取時斷橋沒有互動提示', async () => {
+  await check('進入湖區顯示「晨露湖」，任務未接取時斷橋沒有互動提示', async () => {
     await teleportOnto(20.6, 8, DECK_Y);
     await page.waitForTimeout(800);
     assert.equal(await debug(() => window.__mistwoodDebug.region()), 'lake');
@@ -55,7 +55,7 @@ await runE2e('lake e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page,
     assert.ok(s.x < 30, '竟然走到了小島');
   });
 
-  await check('向巴魯接取「修復湖邊的木橋」（完成木材任務後）', async () => {
+  await check('向波木接取「一座橋的距離：修好木橋」（完成木材任務後）', async () => {
     await give([{ itemId: 'wood', count: 6 }]);
     await send({ type: 'AcceptQuest', quest: 'wood_for_bridge' });
     await send({ type: 'TurnInQuest', quest: 'wood_for_bridge' });
@@ -106,7 +106,7 @@ await runE2e('lake e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page,
     assert.ok(s.grounded);
   });
 
-  await check('向巴魯回報：獲得獎勵，湖的迷霧變為晴朗', async () => {
+  await check('向波木回報：獲得獎勵，湖的迷霧變為晴朗', async () => {
     const [bx, bz] = balu.position;
     await teleport(bx + Math.sin(balu.facingYaw) * 1.8, bz + Math.cos(balu.facingYaw) * 1.8, 500);
     await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'npc:balu', null, { timeout: 3000 });

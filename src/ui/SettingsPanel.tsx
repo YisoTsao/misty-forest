@@ -34,8 +34,29 @@ function VolumeSliders() {
             <span className="w-10 text-right font-mono text-xs">{Math.round(volumes[channel] * 100)}</span>
           </label>
         ))}
+        <CameraShakeToggle />
       </div>
     </section>
+  );
+}
+
+/** 命中時的鏡頭震動（GAME_DESIGN 5.3：可關閉，避免暈眩） */
+function CameraShakeToggle() {
+  const on = useSettingsStore((s) => s.cameraShake);
+  const setOn = useSettingsStore((s) => s.setCameraShake);
+  return (
+    <label className="mt-1 flex items-center gap-3">
+      <span className="w-14 shrink-0 opacity-80">{t('settings.cameraShake')}</span>
+      <button
+        type="button"
+        data-testid="camera-shake"
+        aria-pressed={on}
+        onClick={() => setOn(!on)}
+        className={`rounded-full px-3 py-0.5 text-xs font-bold ${on ? 'bg-amber-400 text-amber-950' : 'bg-white/15'}`}
+      >
+        {t(on ? 'settings.on' : 'settings.off')}
+      </button>
+    </label>
   );
 }
 

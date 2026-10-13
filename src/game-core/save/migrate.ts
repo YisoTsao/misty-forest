@@ -1,5 +1,7 @@
 // 存檔版本遷移：每個舊版本一個函式，把資料升一版，依序套用到最新版。
 import { PLAYER_STATS } from '../combat/combat';
+import { DEFAULT_WEAPON } from '../combat/weapons';
+import { MAX_MP } from '../combat/spells';
 import { initialMistStages } from '../world/regions';
 import { SAVE_VERSION } from './schema';
 
@@ -26,6 +28,10 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   5: (data) => ({ ...data, companion: { unlocked: openedCompanionChest(data) } }),
   // v6 → v7：加入建造；v6 時還不能建造
   6: (data) => ({ ...data, build: { buildings: [], nextBuildingId: 1 } }),
+  // v7 → v8：加入裝備（近戰武器，GAME_DESIGN 5.3）；v7 的攻擊是單手武器揮砍，對應預設的單手劍
+  7: (data) => ({ ...data, loadout: { weapon: DEFAULT_WEAPON } }),
+  // v8 → v9：加入星光值（魔法，GAME_DESIGN 5.4）；v8 時還沒有魔法，給滿
+  8: (data) => ({ ...data, combat: { ...(data.combat as Record<string, unknown>), mp: MAX_MP } }),
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

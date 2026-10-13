@@ -1,5 +1,5 @@
-// 端對端：任務 3E — 戰鬥與迷霧生物：生成、左鍵攻擊與 Q 技能（實際按鍵）、冷卻、傷害數字、擊敗與掉落、
-// 敵人攻擊、玩家倒下與重生、任務「驅散森林的迷霧」（擊敗里程碑讓迷霧變淡、回報後森林晴朗、迷霧生物消散）。
+// 端對端：任務 3E — 戰鬥與迷霧噗啾：生成、左鍵攻擊與 Q 技能（實際按鍵）、冷卻、傷害數字、擊敗與掉落、
+// 敵人攻擊、玩家倒下與重生、任務「驅散林緣的迷霧」（擊敗里程碑讓迷霧變淡、回報後森林晴朗、迷霧噗啾消散）。
 // 用法：pnpm build && node e2e/combat.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -10,6 +10,9 @@ import { runE2e, SAVE_VERSION, tempSaveDir } from './lib.mjs';
 const spawners = JSON.parse(readFileSync('src/data/spawners.json', 'utf8'));
 const npcs = JSON.parse(readFileSync('src/data/npcs.json', 'utf8'));
 const leo = npcs.find((n) => n.id === 'leo');
+// 預設裝備單手劍（GAME_DESIGN 5.3）：左鍵第一招是斜斬
+const weapons = JSON.parse(readFileSync('src/data/weapons.json', 'utf8'));
+const firstSlash = weapons.find((w) => w.id === 'sword').light[0];
 const saveDir = tempSaveDir();
 
 await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page, check, debug, state, camera, teleport }) => {
@@ -17,7 +20,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
   const combat = () => debug(() => window.__mistwoodDebug.combatState());
   const send = (cmd) => debug((c) => window.__mistwoodDebug.send(c), cmd);
   const [sx, sz] = spawners[0].center;
-  /** 站到某隻迷霧生物旁邊並面向它 */
+  /** 站到某隻迷霧噗啾旁邊並面向它 */
   const approach = async (e, dist = 1.4) => {
     const p = await state();
     const d = Math.hypot(e.x - p.x, e.z - p.z) || 1;
@@ -25,17 +28,17 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [e.x, e.z]);
   };
 
-  await check('森林濃霧時迷霧生物陸續出現（兩個生成點各 3 隻）', async () => {
+  await check('森林濃霧時迷霧噗啾陸續出現（兩個生成點各 3 隻）', async () => {
     await teleport(sx - 6, sz + 6);
     await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 6, null, { timeout: 30_000 });
     const list = await enemies();
     assert.ok(list.every((e) => e.hp === 60), JSON.stringify(list));
   });
 
-  await check('左鍵攻擊：面前的迷霧生物扣 25 血、出現傷害數字、進入冷卻', async () => {
+  await check(`左鍵攻擊：面前的迷霧噗啾扣 ${firstSlash.damage} 血（單手劍斜斬）、出現傷害數字、進入冷卻`, async () => {
     const [first] = await enemies();
     const hp = async () => (await enemies()).find((e) => e.id === first.id)?.hp;
-    // 和平模式的迷霧生物會巡邏：站定到出手之間可能走開，每次出手前重新靠近（最多三次）
+    // 和平模式的迷霧噗啾會巡邏：站定到出手之間可能走開，每次出手前重新靠近（最多三次）
     for (let attempt = 0; attempt < 3 && (await hp()) === 60; attempt++) {
       await page.waitForTimeout(700); // 等上一次攻擊的冷卻結束
       await approach((await enemies()).find((e) => e.id === first.id));
@@ -49,21 +52,21 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
       await page.waitForTimeout(400);
     }
     const after = (await enemies()).find((e) => e.id === first.id);
-    assert.equal(after?.hp, 35, JSON.stringify(after));
+    assert.equal(after?.hp, 60 - firstSlash.damage, JSON.stringify(after));
     assert.ok((await combat()).attackCooldown >= 0, 'no cooldown');
     assert.ok((await page.locator('[data-testid="damage-number"]').count()) >= 1, '沒有傷害數字');
   });
 
-  await check('Q 技能：周圍的迷霧生物一起受傷，進入 6 秒冷卻', async () => {
+  await check('Q 技能：周圍的迷霧噗啾一起受傷，進入 6 秒冷卻', async () => {
     // 攻擊動作進行中不能放技能，等動作結束
     await page.waitForFunction(() => window.__mistwoodDebug.playerState().action === null, null, { timeout: 2000 });
-    // 站到一隻迷霧生物旁邊再施放；技能範圍 3.6 m + 身體 0.5 m，巡邏中的迷霧生物在前搖期間會移動，只檢查明顯在範圍內的
+    // 站到一隻迷霧噗啾旁邊再施放；技能範圍 3.6 m + 身體 0.5 m，巡邏中的迷霧噗啾在前搖期間會移動，只檢查明顯在範圍內的
     const [target] = await enemies();
     await approach(target, 1.2);
     const list = await enemies();
     const p = await state();
     const near = list.filter((e) => Math.hypot(e.x - p.x, e.z - p.z) < 3.2);
-    assert.ok(near.length >= 1, '身邊沒有迷霧生物，測試前提不成立');
+    assert.ok(near.length >= 1, '身邊沒有迷霧噗啾，測試前提不成立');
     await page.keyboard.press('KeyQ');
     await page.waitForTimeout(600);
     const cd = (await combat()).skillCooldown;
@@ -75,14 +78,14 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     }
   });
 
-  await check('擊敗：迷霧生物消散、權威狀態移除', async () => {
+  await check('擊敗：迷霧噗啾消散、權威狀態移除', async () => {
     const [target] = await enemies();
-    for (let i = 0; i < 3; i++) await send({ type: 'AttackEnemy', enemyId: target.id, attack: 'attack' });
+    for (let i = 0; i < 3; i++) await send({ type: 'AttackEnemy', enemyId: target.id, attack: firstSlash.id });
     await page.waitForTimeout(1200);
     assert.equal((await enemies()).some((e) => e.id === target.id), false);
   });
 
-  await check('非和平模式：迷霧生物靠近並攻擊，玩家扣血', async () => {
+  await check('非和平模式：迷霧噗啾靠近並攻擊，玩家扣血', async () => {
     const before = (await combat()).hp;
     await debug(() => window.__mistwoodDebug.setPeaceful(false));
     await page.waitForFunction((hp) => window.__mistwoodDebug.combatState().hp < hp, before, { timeout: 15_000 });
@@ -100,7 +103,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     await debug(() => window.__mistwoodDebug.setPeaceful(true));
   });
 
-  await check('任務「驅散森林的迷霧」：擊敗 3 隻後森林迷霧變淡', async () => {
+  await check('任務「驅散林緣的迷霧」：擊敗 3 隻後森林迷霧變淡', async () => {
     await send({ type: 'DebugGiveItems', items: [{ itemId: 'wood', count: 14 }, { itemId: 'stone', count: 4 }] });
     for (const cmd of [
       { type: 'AcceptQuest', quest: 'wood_for_bridge' },
@@ -120,7 +123,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     let killed = 0;
     for (const e of await enemies()) {
       if (killed >= 3) break;
-      for (let i = 0; i < 3; i++) await send({ type: 'AttackEnemy', enemyId: e.id, attack: 'attack' });
+      for (let i = 0; i < 3; i++) await send({ type: 'AttackEnemy', enemyId: e.id, attack: firstSlash.id });
       killed++;
     }
     assert.equal((await debug(() => window.__mistwoodDebug.mistStages())).forest, 'light');
@@ -128,7 +131,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     assert.equal((await tracker.locator('[data-testid="quest-progress"]').innerText()).replace(/\s/g, ''), '3/6');
   });
 
-  await check('擊敗 6 隻後向雷歐回報：森林晴朗、迷霧生物全部消散、獲得星光碎片', async () => {
+  await check('擊敗 6 隻後向雷歐回報：森林晴朗、迷霧噗啾全部消散、獲得星光碎屑', async () => {
     for (let round = 0; round < 6; round++) {
       const progress = await debug(() => window.__mistwoodDebug.questProgress('clear_forest'));
       if (progress >= 6) break;
@@ -136,7 +139,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
       await send({ type: 'AdvanceTime', dt: 5, player: { x: 0, z: 0 } });
       for (const e of await enemies()) {
         if ((await debug(() => window.__mistwoodDebug.questProgress('clear_forest'))) >= 6) break;
-        for (let i = 0; i < 3; i++) await send({ type: 'AttackEnemy', enemyId: e.id, attack: 'attack' });
+        for (let i = 0; i < 3; i++) await send({ type: 'AttackEnemy', enemyId: e.id, attack: firstSlash.id });
       }
     }
     assert.equal(await debug(() => window.__mistwoodDebug.questProgress('clear_forest')), 6);
@@ -156,7 +159,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     await page.keyboard.press('Escape');
     await send({ type: 'AdvanceTime', dt: 1, player: { x: 0, z: 0 } });
     await page.waitForTimeout(1200);
-    assert.equal((await enemies()).length, 0, '森林晴朗後仍有迷霧生物');
+    assert.equal((await enemies()).length, 0, '森林晴朗後仍有迷霧噗啾');
   });
 
   await check('戰鬥狀態與任務寫入存檔', async () => {

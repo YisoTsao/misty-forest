@@ -3,6 +3,9 @@ import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
 import { parseMistLevel, type MistStage } from '@/game-core/world/mist';
 import { objectiveProgress, questStatus } from '@/game-core/quest/quest';
 import { regionAt } from '@/game-core/world/regions';
+import { boundaryDistance } from '@/game-core/world/bounds';
+import { timePhase, type CelestialPosition, type TimePhase } from '@/game-core/world/timeOfDay';
+import type { WeaponId } from '@/game-core/combat/weapons';
 import type { RegionId } from '@/game-core/world/types';
 import { initialGameState, type GameCommand } from '@/game-core/authority/rules';
 import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
@@ -27,6 +30,10 @@ import { saveStorage } from './save/storages';
 import { useGameStore } from './state/gameStore';
 import { useSettingsStore } from './state/settingsStore';
 import { useUiStore } from './state/uiStore';
+import { boundaryRuntime } from './world/boundaryRuntime';
+import { timeRuntime, updateTimeRuntime } from './world/timeRuntime';
+import { spellRuntime } from './combat/spellRuntime';
+import { vfxStats } from './vfx/vfxQueue';
 import { mistRuntime } from './world/mistRuntime';
 import { mistTargetAt } from './world/mistTarget';
 import { cameraBookmarks } from './worldData';
@@ -40,6 +47,10 @@ export type MistwoodDebugApi = {
   animKeys: () => readonly string[];
   /** 讓玩家角色停在指定動畫的某個時間比例（0–1）；傳 null 恢復正常。 */
   previewAnimation: (key: string | null, fraction?: number) => void;
+  /** 以動畫片段名稱定格（近戰招式的截圖檢查，GAME_DESIGN 5.3） */
+  previewClip: (clip: string, fraction: number) => void;
+  /** 裝備近戰武器（經權威層指令） */
+  equip: (weapon: WeaponId) => void;
   /** 唯讀快照：端對端測試用 */
   playerState: () => {
     x: number;
@@ -68,6 +79,40 @@ export type MistwoodDebugApi = {
   mistStages: () => Record<RegionId, MistStage>;
   /** 玩家目前所在區域 */
   region: () => RegionId;
+  /** 近戰（GAME_DESIGN 5.3）：裝備、手上顯示的武器、連段、重擊冷卻、目前的招式動畫 */
+  melee: () => { weapon: string; shown: string | null; comboCount: number; heavyCooldown: number; actionClip: string | null; hitStop: number; trail: number };
+  /** 魔法（GAME_DESIGN 5.4）：星光值、各法術冷卻、施法中、飛行中的彈體、施放與命中次數、特效系統狀態 */
+  magic: () => {
+    mp: number;
+    cooldowns: Record<string, number>;
+    casting: string | null;
+    released: boolean;
+    projectiles: number;
+    casts: number;
+    hits: number;
+    vfx: { capacity: number; emitted: number; alive: number; circles: number; shockwaves: number; lights: number };
+  };
+  /** 直接設定星光值（經權威層除錯指令） */
+  setMp: (mp: number) => void;
+  /** 清除所有法術冷卻（截圖與測試用） */
+  resetSpellCooldowns: () => void;
+  /** 日夜（GAME_DESIGN 5.2）：遊玩秒數、時鐘、第幾天、時段、方向光是否為月亮、強度、日月位置、畫面使用的時段 */
+  clock: () => {
+    time: number;
+    hour: number;
+    day: number;
+    phase: TimePhase;
+    moonLight: boolean;
+    lightIntensity: number;
+    sun: CelestialPosition;
+    moon: CelestialPosition;
+    lookHour: number;
+    night: number;
+  };
+  /** 時間往前推進到指定時刻（0–24，經權威層除錯指令；只往前） */
+  setClock: (hour: number) => void;
+  /** 地圖邊界：玩家到邊界的距離（界內為正）、是否在提示範圍、提示次數、碰撞體數量 */
+  boundary: () => { distance: number; near: boolean; warnings: number; colliders: number };
   /** 目前顯示互動提示的物件 id */
   interactTarget: () => string | null;
   objectState: (placementId: string) => ObjectRuntime | null;
@@ -103,7 +148,7 @@ export type MistwoodDebugApi = {
   /** 已放置的建造物 */
   buildings: () => { id: string; buildable: string; x: number; z: number; yaw: number }[];
   /** 音效狀態：AudioContext、各音效播放次數、音樂是否播放、鳥叫強度 */
-  audio: () => { state: string; played: Record<string, number>; music: boolean; birds: number };
+  audio: () => { state: string; played: Record<string, number>; music: boolean; birds: number; crickets: number };
   /** 目前所在的場景（overworld 或室內 id） */
   location: () => string;
   /** 羊群：每隻羊的位置與狀態、整群是否暫停（玩家太遠） */
@@ -155,6 +200,10 @@ export function installDebugApi(): void {
     },
     setCameraMode: (mode) => useDebugStore.getState().setCameraMode(mode),
     animKeys: () => requiredClipKeys,
+    previewClip: (clip, fraction) => {
+      playerRuntime.animPreview = { clip, fraction };
+    },
+    equip: (weapon) => authority.send({ type: 'EquipWeapon', weapon }),
     previewAnimation: (key, fraction = 0.4) => {
       if (key === null) {
         playerRuntime.animPreview = null;
@@ -199,6 +248,55 @@ export function installDebugApi(): void {
     setMistStage: (region, stage) => authority.send({ type: 'DebugSetMistStage', region, stage }),
     mistStages: () => ({ ...authority.getState().mist }),
     region: () => regionAt(regions, playerRuntime.position.x, playerRuntime.position.z),
+    magic: () => ({
+      mp: authority.getState().player.mp,
+      cooldowns: Object.fromEntries(spellRuntime.cooldowns),
+      casting: spellRuntime.casting?.spell.id ?? null,
+      released: spellRuntime.casting?.released ?? false,
+      projectiles: spellRuntime.projectiles.length,
+      casts: spellRuntime.casts,
+      hits: spellRuntime.hits,
+      vfx: { ...vfxStats },
+    }),
+    setMp: (mp) => authority.send({ type: 'DebugSetMp', mp }),
+    resetSpellCooldowns: () => spellRuntime.cooldowns.clear(),
+    melee: () => {
+      const m = combatRuntime.melee;
+      return {
+        weapon: authority.getState().player.weapon,
+        shown: m.shown,
+        comboCount: m.comboCount,
+        heavyCooldown: m.heavyCooldown,
+        actionClip: playerRuntime.action?.clipName ?? null,
+        hitStop: m.hitStop,
+        trail: combatRuntime.trail.length,
+      };
+    },
+    clock: () => {
+      const r = timeRuntime;
+      return {
+        time: r.time,
+        hour: r.hour,
+        day: r.day,
+        phase: timePhase(r.hour),
+        moonLight: r.moonLight,
+        lightIntensity: r.lightIntensity,
+        sun: { ...r.sun },
+        moon: { ...r.moon },
+        lookHour: r.lookHour,
+        night: r.night,
+      };
+    },
+    setClock: (hour) => {
+      authority.send({ type: 'DebugSetClock', hour: ((hour % 24) + 24) % 24 });
+      updateTimeRuntime(authority.getState().time);
+    },
+    boundary: () => ({
+      distance: boundaryDistance(playerRuntime.position.x, playerRuntime.position.z),
+      near: boundaryRuntime.near,
+      warnings: boundaryRuntime.warnings,
+      colliders: boundaryRuntime.colliders,
+    }),
     interactTarget: () => useUiStore.getState().interactTarget?.id ?? null,
     objectState: (id) => authority.getState().objects.get(id) ?? null,
     resetWorld: () => {
@@ -234,7 +332,7 @@ export function installDebugApi(): void {
     inputDevice: () => useInputDeviceStore.getState().device,
     padFocus: () => document.querySelector('.pad-focus')?.textContent?.trim() ?? null,
     location: () => useLocationStore.getState().location,
-    audio: () => ({ state: audio.state, played: { ...audio.played }, music: audio.musicPlaying, birds: audio.birds }),
+    audio: () => ({ state: audio.state, played: { ...audio.played }, music: audio.musicPlaying, birds: audio.birds, crickets: audio.crickets }),
     buildState: () => ({
       mode: useUiStore.getState().build,
       ghost: { x: buildRuntime.x, z: buildRuntime.z, yaw: buildRuntime.yaw, problem: buildRuntime.problem },
@@ -276,6 +374,13 @@ export function installDebugApi(): void {
 /** 讀取初始 ?mist= 參數（0–1）；不合法時回傳 null。 */
 export function initialMistFromUrl(): number | null {
   return parseMistLevel(new URLSearchParams(window.location.search).get('mist'));
+}
+
+/** 讀取初始 ?clock= 參數（0–24 小時）；不合法時回傳 null。 */
+export function initialClockFromUrl(): number | null {
+  const raw = new URLSearchParams(window.location.search).get('clock');
+  const hour = raw === null ? NaN : Number(raw);
+  return Number.isFinite(hour) && hour >= 0 && hour <= 24 ? hour : null;
 }
 
 /** 讀取初始 ?cam= 參數。 */

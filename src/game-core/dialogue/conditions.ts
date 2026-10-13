@@ -4,6 +4,7 @@ import type { GameState } from '../authority/rules';
 import { hasItems } from '../inventory/inventory';
 import { isQuestReady, questStatus, type QuestCatalog } from '../quest/quest';
 import { mistStages } from '../world/mist';
+import { clockAt, inTimeRange } from '../world/timeOfDay';
 import { regionIds } from '../world/types';
 
 const itemStack = z.object({ itemId: z.string().min(1), count: z.number().int().positive() });
@@ -17,6 +18,8 @@ export type Condition =
   | { type: 'questReady'; quest: string }
   /** 在家園蓋過東西（可指定種類） */
   | { type: 'hasBuilt'; buildable?: string }
+  /** 遊戲時鐘在 [from, to) 小時內；from > to 表示跨午夜（GAME_DESIGN 5.2） */
+  | { type: 'timeRange'; from: number; to: number }
   | { type: 'not'; condition: Condition }
   | { type: 'all'; conditions: Condition[] };
 
@@ -28,6 +31,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ type: z.literal('questStatus'), quest: z.string().min(1), is: z.enum(['locked', 'available', 'active', 'completed']) }),
     z.object({ type: z.literal('questReady'), quest: z.string().min(1) }),
     z.object({ type: z.literal('hasBuilt'), buildable: z.string().min(1).optional() }),
+    z.object({ type: z.literal('timeRange'), from: z.number().min(0).max(24), to: z.number().min(0).max(24) }),
     z.object({ type: z.literal('not'), condition: conditionSchema }),
     z.object({ type: z.literal('all'), conditions: z.array(conditionSchema).min(1) }),
   ]),
@@ -56,6 +60,8 @@ export function evaluateCondition(condition: Condition | undefined, state: GameS
       return isQuestReady(state, quest(condition.quest));
     case 'hasBuilt':
       return state.buildings.some((b) => condition.buildable === undefined || b.buildable === condition.buildable);
+    case 'timeRange':
+      return inTimeRange(clockAt(state.time), condition.from, condition.to);
     case 'not':
       return !evaluateCondition(condition.condition, state, ctx);
     case 'all':

@@ -5,6 +5,10 @@ import type { QuestDef } from '../quest/quest';
 import type { EnemyDef, SpawnerDef } from '../combat/combat';
 import type { BuildableDef } from '../build/build';
 import { mulberry32 } from '../util/random';
+import { parseWeapons } from '../combat/weapons';
+import weaponsJson from '../../data/weapons.json';
+import { parseSpells } from '../combat/spells';
+import spellsJson from '../../data/spells.json';
 import type { WorldLookup } from '../world/objects';
 import type { Placement, Prefab } from '../world/types';
 
@@ -128,6 +132,11 @@ export const testBuildables: BuildableDef[] = [
   { id: 'stool', nameKey: 'b.stool', prefabId: 'rock', scale: 1, footprint: 0.3, category: 'furniture', icon: 'stool', cost: [{ itemId: 'wood', count: 1 }] },
 ];
 
+/** 規則測試用的武器：直接使用正式資料（招式 id 與傷害由 data/weapons.json 決定） */
+export const testWeapons = parseWeapons(weaponsJson);
+/** 規則測試用的法術：正式資料（data/spells.json） */
+export const testSpells = parseSpells(spellsJson);
+
 export const testWorld: WorldLookup = {
   placement: (id) => testPlacements.find((p) => p.id === id),
   prefab: (id) => testPrefabs.find((p) => p.id === id),
@@ -142,5 +151,7 @@ export function testContext(seed = 1): RulesContext {
     quests: new Map(testQuests.map((q) => [q.id, q])),
     combat: { enemies: new Map(testEnemies.map((e) => [e.id, e])), spawners: testSpawners },
     buildables: new Map(testBuildables.map((b) => [b.id, b])),
+    weapons: testWeapons,
+    spells: testSpells,
   };
 }

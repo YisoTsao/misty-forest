@@ -1,4 +1,4 @@
-// 端對端：任務 3C — 任務系統與第一個任務（修橋用的木材）：對話接取 → 追蹤進度 → 回報交出物品 → 獎勵 → 存檔。
+// 端對端：任務 3C — 任務系統與第一個任務（一座橋的距離：木材）：對話接取 → 追蹤進度 → 回報交出物品 → 獎勵 → 存檔。
 // 用法：pnpm build && node e2e/quest.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -24,7 +24,7 @@ await runE2e('quest e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page
     await box.waitFor({ timeout: 2000 });
   };
 
-  await check('與巴魯對話，選「我來幫你找木材！」接取任務', async () => {
+  await check('與波木對話，選「我來幫你找木材！」接取任務', async () => {
     assert.equal(await quest(), 'available');
     await talkToBalu();
     await page.keyboard.press('Space');
@@ -38,13 +38,13 @@ await runE2e('quest e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page
     await box.waitFor({ state: 'detached', timeout: 2000 });
   });
 
-  await check('任務追蹤顯示「修橋用的木材」與進度 0 / 6', async () => {
+  await check('任務追蹤顯示「一座橋的距離：木材」與進度 0 / 6', async () => {
     await tracker.waitFor({ timeout: 2000 });
-    assert.match(await tracker.innerText(), /修橋用的木材/);
+    assert.match(await tracker.innerText(), /一座橋的距離：木材/);
     assert.equal((await tracker.locator('[data-testid="quest-progress"]').innerText()).replace(/\s/g, ''), '0/6');
   });
 
-  await check('任務進行中再找巴魯：提醒還需要木材', async () => {
+  await check('任務進行中再找波木：提醒還需要木材', async () => {
     await talkToBalu();
     assert.equal(await node(), 'remind');
     await page.keyboard.press('Escape');
@@ -59,10 +59,10 @@ await runE2e('quest e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page
     assert.ok(wood >= 6, `木材 ${wood}`);
     assert.equal((await tracker.locator('[data-testid="quest-progress"]').innerText()).replace(/\s/g, ''), '6/6');
     assert.equal(await tracker.getAttribute('data-ready'), 'true');
-    assert.match(await tracker.innerText(), /回去找木匠巴魯回報/);
+    assert.match(await tracker.innerText(), /回去找木匠波木回報/);
   });
 
-  await check('回報：交出 6 根木材、獲得星光碎片、任務完成、追蹤消失', async () => {
+  await check('回報：交出 6 根木材、獲得星光碎屑、任務完成、追蹤消失', async () => {
     const woodBefore = await itemCount('wood');
     await talkToBalu();
     assert.equal(await node(), 'wow');
@@ -80,7 +80,7 @@ await runE2e('quest e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page
     assert.equal(await tracker.count(), 0);
   });
 
-  await check('完成後巴魯提出下一個任務（修橋）；不能再領一次獎勵', async () => {
+  await check('完成後波木提出下一個任務（修橋）；不能再領一次獎勵', async () => {
     assert.equal(await debug(() => window.__mistwoodDebug.questState('repair_bridge')), 'available');
     await talkToBalu();
     assert.equal(await node(), 'plan');

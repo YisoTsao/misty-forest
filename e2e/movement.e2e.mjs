@@ -152,19 +152,28 @@ try {
     assert.ok(dist < 11, `沒有拉近（距離 ${dist.toFixed(2)}）`);
   });
 
-  await check('走出地圖邊緣掉落後回到最近的安全點（不是出生點），且站在地面上', async () => {
+  await check('掉出地圖後回到最近的安全點（不是出生點），且站在地面上', async () => {
     await camera({ yaw: 0, pitch: 0.35, distance: 6 });
-    // 從東側沿 z = 0 走向東緣：沿途記錄安全點，掉落後應回到東緣內側
+    // 從東側沿 z = 0 走到東邊的邊界牆（任務 6A：走不出去），沿途記錄安全點；
+    // 再以除錯傳送到地圖邊緣之外模擬掉落，應回到東緣內側
     await page.evaluate(() => window.__mistwoodDebug.teleport(60, 0));
     await wait(600);
     const before = await state();
     await page.keyboard.down('ShiftLeft');
     await page.keyboard.down('KeyD');
+    // 跑到牆邊為止（機器忙碌、幀率低時跑得比較慢，不用固定秒數）
+    await page.waitForFunction(() => window.__mistwoodDebug.playerState().x > 72, null, { timeout: 8000 }).catch(() => {});
+    await wait(600);
+    await page.keyboard.up('KeyD');
+    await page.keyboard.up('ShiftLeft');
+    await wait(500);
+    const atWall = await state();
+    assert.equal(atWall.respawnCount, before.respawnCount, '走到邊界時不應掉落');
+    assert.ok(atWall.x > 70 && atWall.x < 74, `沒有停在東邊界：x=${atWall.x.toFixed(2)}`);
+    await page.evaluate(() => window.__mistwoodDebug.teleport(86, 0));
     await page.waitForFunction((n) => window.__mistwoodDebug.playerState().respawnCount > n, before.respawnCount, {
       timeout: 10_000,
     });
-    await page.keyboard.up('KeyD');
-    await page.keyboard.up('ShiftLeft');
     await wait(800);
     const s = await state();
     assert.equal(s.grounded, true, '重置後沒有站在地面上');

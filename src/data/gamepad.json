@@ -1,11 +1,15 @@
 {
   "jump": [0],
   "run": [1, 6, 10],
-  "attack": [2, 7],
+  "attack": [2],
+  "heavyAttack": [7],
   "interact": [3],
   "skill": [5],
+  "spell2": [13],
+  "spell3": [11],
   "companion": [4],
   "inventory": [8],
   "build": [12],
-  "rotate": [15]
+  "rotate": [15],
+  "cycleWeapon": [14]
 }

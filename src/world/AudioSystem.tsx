@@ -9,6 +9,7 @@ import { currentScreen } from '@/game/state/gameStore';
 import { useSettingsStore } from '@/game/state/settingsStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { mistRuntime } from '@/game/world/mistRuntime';
+import { timeRuntime } from '@/game/world/timeRuntime';
 
 /**
  * 音效系統（規格 6.9）：腳步聲、環境音的混音、音樂開關。
@@ -27,10 +28,13 @@ export function AudioSystem() {
     const { position, locomotion } = playerRuntime;
     const lakeDist = Math.hypot(position.x - LAKE.x, position.z - LAKE.z) - LAKE.radius;
     const paused = screen === 'paused';
+    const indoors = currentInterior() !== null;
     audio.update(
       {
         wind: paused ? 0 : 0.35 + mist * 0.65,
-        birds: paused || screen === 'title' ? 0 : Math.max(0, 1 - mist * 1.8),
+        // 日夜（GAME_DESIGN 5.2）：白天鳥叫、夜晚蟲鳴；室內都聽不到
+        birds: paused || screen === 'title' || indoors ? 0 : Math.max(0, 1 - mist * 1.8) * (1 - timeRuntime.night),
+        crickets: paused || screen === 'title' || indoors ? 0 : Math.max(0, 1 - mist * 1.5) * timeRuntime.night,
         drone: paused ? 0 : Math.max(0, (mist - 0.3) / 0.7),
         water: paused ? 0 : Math.max(0, 1 - Math.max(0, lakeDist) / 14),
       },

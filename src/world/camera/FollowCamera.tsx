@@ -33,6 +33,7 @@ export function FollowCamera({ playerCollider }: { playerCollider: RefObject<Rap
   const pivot = useRef(new THREE.Vector3());
   const smoothPivot = useRef<THREE.Vector3 | null>(null);
   const currentDist = useRef(cameraRuntime.distance);
+  const shakeClock = useRef(0);
   const dir = useMemo(() => new THREE.Vector3(), []);
 
   // 只有遊玩中允許鎖定滑鼠；暫停選單需要一般游標
@@ -87,6 +88,16 @@ export function FollowCamera({ playerCollider }: { playerCollider: RefObject<Rap
 
     camera.position.copy(sp).addScaledVector(dir, currentDist.current);
     camera.lookAt(sp);
+    // 命中的鏡頭震動（GAME_DESIGN 5.3）：在看向角色之後加上小幅抖動，快速衰減
+    if (cameraRuntime.shake > 0.001) {
+      shakeClock.current += dt;
+      const t = shakeClock.current * 60;
+      const a = cameraRuntime.shake;
+      camera.position.x += Math.sin(t * 1.3) * a;
+      camera.position.y += Math.sin(t * 1.7 + 1.1) * a * 0.7;
+      camera.position.z += Math.cos(t * 1.1 + 0.4) * a;
+      cameraRuntime.shake *= Math.exp(-dt * 16);
+    } else cameraRuntime.shake = 0;
     // 攝影機與角色之間的樹冠等物件鏤空（render/occlusion.ts）
     occlusionUniforms.uOccCam.value.copy(camera.position);
     occlusionUniforms.uOccFocus.value.copy(sp);

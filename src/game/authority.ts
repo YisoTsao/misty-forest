@@ -3,6 +3,8 @@ import type { DialogueDef } from '@/game-core/dialogue/dialogue';
 import type { NpcDef } from '@/game-core/npc/npc';
 import type { QuestCatalog } from '@/game-core/quest/quest';
 import type { CombatData } from '@/game-core/combat/combat';
+import type { WeaponCatalog } from '@/game-core/combat/weapons';
+import type { SpellCatalog } from '@/game-core/combat/spells';
 import type { CompanionDef } from '@/game-core/companion/companion';
 import type { BuildableCatalog } from '@/game-core/build/build';
 import type { InteriorDef } from '@/game-core/world/interiors';
@@ -30,6 +32,8 @@ const data = worldDataResult.ok
       buildables: new Map() as BuildableCatalog,
       interiors: new Map<string, InteriorDef>(),
       flocks: [] as FlockDef[],
+      weapons: { weapons: new Map(), moves: new Map() } as WeaponCatalog,
+      spells: new Map() as SpellCatalog,
     };
 
 /** NPC 與對話資料 */
@@ -39,6 +43,10 @@ export const quests: QuestCatalog = data.quests;
 export const combat: CombatData = data.combat;
 export const companionDef: CompanionDef = data.companion;
 export const buildables: BuildableCatalog = data.buildables;
+/** 近戰武器與招式（GAME_DESIGN 5.3） */
+export const weapons: WeaponCatalog = data.weapons;
+/** 魔法（GAME_DESIGN 5.4） */
+export const spells: SpellCatalog = data.spells;
 export const interiors: ReadonlyMap<string, InteriorDef> = data.interiors;
 /** 羊群的牧草地（環境動畫） */
 export const flocks: readonly FlockDef[] = data.flocks;
@@ -59,6 +67,8 @@ export const authority = new LocalAuthority(initialGameState(), {
   random: Math.random,
   quests: data.quests,
   combat: data.combat,
+  weapons: data.weapons,
+  spells: data.spells,
   buildables: data.buildables,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),
   allowDebugCommands,

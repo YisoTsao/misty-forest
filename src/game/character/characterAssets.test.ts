@@ -6,11 +6,15 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import characters from '@/data/characters.json';
 import { parseCharacterDefs, requiredClipKeys } from '@/game-core/character/characterDef';
+import weaponsData from '@/data/weapons.json';
+import { moveClips, parseWeapons } from '@/game-core/combat/weapons';
+import spellsData from '@/data/spells.json';
+import { parseSpells } from '@/game-core/combat/spells';
 
 type GltfJson = {
   animations?: { name: string; channels: { target: { node?: number } }[] }[];
   skins?: { joints: number[] }[];
-  nodes: { name?: string }[];
+  nodes: { name?: string; children?: number[] }[];
 };
 
 function readGlbJson(file: string): GltfJson {
@@ -44,5 +48,39 @@ describe.each([...defs.values()])('角色 $id', (def) => {
   it('要隱藏的節點都存在', () => {
     const names = new Set(gltf.nodes.map((n) => n.name));
     for (const node of def.hiddenNodes) expect(names.has(node), node).toBe(true);
+  });
+});
+
+// 近戰招式（GAME_DESIGN 5.3）：玩家角色的 GLB 必須包含每一招的動畫；武器模型掛在右手的 handslot 上
+describe('近戰招式與武器模型', () => {
+  const player = defs.get('traveler')!;
+  const gltf = readGlbJson(path.join('public', player.model));
+  const names = new Set(gltf.animations?.map((a) => a.name));
+  const catalog = parseWeapons(weaponsData);
+
+  it.each(moveClips(catalog))('玩家 GLB 包含招式動畫 %s', (clip) => {
+    expect(names.has(clip)).toBe(true);
+  });
+
+  it.each([
+    ['models/characters/kaykit-adventurers/Rogue_Hooded.glb', 'Knife'],
+    ['models/characters/kaykit-adventurers/Rogue_Hooded.glb', 'Knife_Offhand'],
+    ['models/characters/kaykit-adventurers/Knight.glb', '1H_Sword'],
+    ['models/characters/kaykit-adventurers/Mage.glb', '1H_Wand'],
+  ])('%s 有武器節點 %s，掛在 handslot 骨頭下', (file, node) => {
+    const json = readGlbJson(path.join('public', file));
+    const index = json.nodes.findIndex((n) => n.name === node);
+    expect(index).toBeGreaterThanOrEqual(0);
+    const parent = json.nodes.find((n) => n.children?.includes(index));
+    expect(parent?.name).toMatch(/^handslot\.[lr]$/);
+  });
+});
+
+// 魔法（GAME_DESIGN 5.4）：施法的蓄力與發動動畫都在玩家 GLB 內
+describe('法術動畫', () => {
+  const player = defs.get('traveler')!;
+  const names = new Set(readGlbJson(path.join('public', player.model)).animations?.map((a) => a.name));
+  it.each([...parseSpells(spellsData).values()].flatMap((s) => [s.clips.cast, s.clips.release]))('玩家 GLB 包含 %s', (clip) => {
+    expect(names.has(clip)).toBe(true);
   });
 });

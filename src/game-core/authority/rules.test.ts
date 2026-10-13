@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { countItem, createInventory } from '../inventory/inventory';
 import { testContext } from '../testing/fixtures';
 import { canInteract } from '../world/objects';
+import { clockAt, secondsUntilHour } from '../world/timeOfDay';
 import { applyEvents, handleCommand, initialGameState, RESPAWN_CLEARANCE, type GameCommand, type GameState } from './rules';
 
 const ctx = testContext();
@@ -180,5 +181,33 @@ describe('DebugSetMistStage', () => {
     const debugCtx = { ...ctx, allowDebugCommands: true };
     const events = handleCommand(initialGameState(), { type: 'DebugGiveItems', items: [{ itemId: 'wood', count: 3 }] }, debugCtx);
     expect(countItem(applyEvents(initialGameState(), events, debugCtx).inventory, 'wood')).toBe(3);
+  });
+});
+
+describe('Sleep / DebugSetClock（日夜，GAME_DESIGN 5.2）', () => {
+  it('睡到早上 7 點：時間只往前、體力回滿、經過的時間照常結算重生', () => {
+    const night = { ...initialGameState(), time: secondsUntilHour(0, 22) };
+    const hurt = { ...night, player: { ...night.player, hp: 30 } };
+    const harvested = run(hurt, { type: 'HarvestObject', placementId: 't1' }).state;
+    const { state } = run(harvested, { type: 'Sleep', untilHour: 7 });
+    expect(clockAt(state.time)).toBeCloseTo(7, 5);
+    expect(state.time).toBeGreaterThan(harvested.time);
+    expect(state.player.hp).toBe(100);
+    // 樹的重生時間（100 秒）在睡覺期間經過
+    expect(state.objects.get('t1')?.harvested).toBeUndefined();
+  });
+
+  it('不合法的時刻與倒下時不能睡', () => {
+    expect(rejectReason(initialGameState(), { type: 'Sleep', untilHour: 25 })).toBe('invalid-command');
+    const down = { ...initialGameState(), player: { ...initialGameState().player, hp: 0, defeated: true } };
+    expect(rejectReason(down, { type: 'Sleep', untilHour: 7 })).toBe('player-defeated');
+  });
+
+  it('除錯設定時鐘：只在允許除錯指令時接受，已在該時刻則沒有事件', () => {
+    expect(rejectReason(initialGameState(), { type: 'DebugSetClock', hour: 21 })).toBe('not-allowed');
+    const debugCtx = { ...ctx, allowDebugCommands: true };
+    const events = handleCommand(initialGameState(), { type: 'DebugSetClock', hour: 21 }, debugCtx);
+    expect(clockAt(applyEvents(initialGameState(), events, debugCtx).time)).toBeCloseTo(21, 5);
+    expect(handleCommand(initialGameState(), { type: 'DebugSetClock', hour: 8 }, debugCtx)).toEqual([]);
   });
 });

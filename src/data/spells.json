@@ -1,0 +1,86 @@
+[
+  {
+    "id": "spell_starlight_burst",
+    "nameKey": "spell.starlight_burst",
+    "icon": "✦",
+    "action": "skill",
+    "kind": "nova",
+    "mpCost": 25,
+    "cooldown": 6,
+    "castTime": 0.35,
+    "duration": 0.85,
+    "damage": 40,
+    "radius": 3.6,
+    "knockback": 8,
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      2.4,
+      2.0,
+      0.9
+    ]
+  },
+  {
+    "id": "spell_star_bolt",
+    "nameKey": "spell.star_bolt",
+    "icon": "☄",
+    "action": "spell2",
+    "kind": "bolt",
+    "mpCost": 15,
+    "cooldown": 1.2,
+    "castTime": 0.2,
+    "duration": 0.55,
+    "damage": 14,
+    "radius": 0.6,
+    "knockback": 3,
+    "projectiles": {
+      "count": 3,
+      "speed": 14,
+      "range": 16,
+      "turnRate": 7,
+      "spreadDeg": 22,
+      "seekDeg": 90
+    },
+    "clips": {
+      "cast": "Spellcasting",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      1.4,
+      2.0,
+      2.6
+    ]
+  },
+  {
+    "id": "spell_meteor_shower",
+    "nameKey": "spell.meteor_shower",
+    "icon": "🌠",
+    "action": "spell3",
+    "kind": "meteor",
+    "mpCost": 60,
+    "cooldown": 30,
+    "castTime": 0.8,
+    "duration": 1.5,
+    "damage": 30,
+    "radius": 4.5,
+    "knockback": 6,
+    "meteor": {
+      "count": 7,
+      "distance": 7,
+      "interval": 0.16,
+      "fallTime": 0.55,
+      "impactRadius": 1.8
+    },
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Long"
+    },
+    "color": [
+      2.6,
+      1.5,
+      0.6
+    ]
+  }
+]

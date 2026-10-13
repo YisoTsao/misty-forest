@@ -160,7 +160,7 @@ describe('版本遷移', () => {
       quests: { mend: { status: 'completed' } },
     };
     const loaded = fromSaveData(v4, ctx);
-    expect(loaded.state.player).toEqual({ hp: 100, lastDamagedAt: 5, defeated: false });
+    expect(loaded.state.player).toEqual({ weapon: 'sword', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false });
     expect(loaded.state.enemies.size).toBe(0);
     expect(loaded.state.objects.get('b1')?.repaired).toBe(true);
   });
@@ -170,7 +170,7 @@ describe('版本遷移', () => {
     const state: GameState = {
       ...base,
       quests: { hunt: { status: 'active', progress: [2] } },
-      player: { hp: 37, lastDamagedAt: 0, defeated: false },
+      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42 },
       enemies: new Map([['sp#1', { id: 'sp#1', kind: 'wisp', spawner: 'sp', hp: 20 }]]),
       spawners: { sp: { nextSpawnAt: 12, counter: 1 } },
     };
@@ -179,8 +179,10 @@ describe('版本遷移', () => {
     expect(loaded.player.hp).toBe(37);
     expect(loaded.enemies.get('sp#1')?.hp).toBe(20);
     expect(loaded.spawners.sp).toEqual({ nextSpawnAt: 12, counter: 1 });
-    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true } }, player, new Date())).state;
-    expect(downed.player).toMatchObject({ hp: 100, defeated: false });
+    expect(loaded.player.weapon).toBe('knife');
+    expect(loaded.player.mp).toBe(42);
+    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10 } }, player, new Date())).state;
+    expect(downed.player).toMatchObject({ hp: 100, defeated: false, weapon: 'fist' });
   });
 
   it('實際的 v5 存檔：打開過序章寶箱的存檔遷移後星光夥伴已解鎖，沒打開的未解鎖', () => {
@@ -216,6 +218,26 @@ describe('版本遷移', () => {
     expect(loaded.buildings).toEqual([]);
     expect(loaded.nextBuildingId).toBe(1);
     expect(loaded.companion.unlocked).toBe(true);
+  });
+
+  it('實際的 v7 存檔：遷移後裝備預設的單手劍，其餘內容不變', () => {
+    const v7 = {
+      version: 7,
+      savedAt: '2026-10-13T07:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 42, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: initialGameState().mist,
+      quests: {},
+      combat: { hp: 80, enemies: [], spawners: {} },
+      companion: { unlocked: true },
+      build: { buildings: [{ id: 'building_1', buildable: 'fire', x: 37.5, z: 8, yaw: 0 }], nextBuildingId: 2 },
+    };
+    const loaded = fromSaveData(v7, ctx).state;
+    expect(loaded.player).toMatchObject({ hp: 80, weapon: 'sword', mp: 100 });
+    expect(loaded.buildings).toHaveLength(1);
+    expect(loaded.time).toBe(42);
   });
 
   it('建造物寫入存檔並讀回（類型、位置、旋轉）', () => {

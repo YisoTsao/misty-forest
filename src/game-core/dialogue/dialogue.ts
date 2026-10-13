@@ -7,6 +7,8 @@ export const dialogueEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('turnInQuest'), quest: z.string().min(1) }),
   /** 在酒館休息：體力回滿 */
   z.object({ type: z.literal('rest') }),
+  /** 在酒館睡到指定時刻：體力回滿、時間前進（GAME_DESIGN 5.2） */
+  z.object({ type: z.literal('sleep'), untilHour: z.number().min(0).lt(24) }),
 ]);
 export type DialogueEffect = z.infer<typeof dialogueEffectSchema>;
 import { z } from 'zod';

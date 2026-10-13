@@ -1,5 +1,6 @@
 // 實機效能量測（規格 7）：以「有視窗」的 Electron 正式版在本機 GPU 上量測，輸出 Markdown 表格。
-// 用法：pnpm build && node scripts/perf.mjs [--soak 秒數]
+// 用法：pnpm build && node scripts/perf.mjs [--soak 秒數] [--clock 0–24]
+//   --clock：固定畫面時段（日夜，任務 6B），例如 --clock 0 量測夜晚
 //   1. 冷啟動：啟動到場景就緒（主選單可操作）的時間
 //   2. 每個畫質 × 每個視角：FPS（受螢幕更新率限制，即實際體驗）、draw calls、三角面
 //   3. 不限幀率（--disable-gpu-vsync --disable-frame-rate-limit）時的 FPS：剩餘效能
@@ -14,6 +15,8 @@ import { _electron as electron } from 'playwright';
 const args = process.argv.slice(2);
 const soakIndex = args.indexOf('--soak');
 const soakSec = soakIndex >= 0 ? Number(args[soakIndex + 1]) : 180;
+const clockIndex = args.indexOf('--clock');
+const clockQuery = clockIndex >= 0 ? `&clock=${Number(args[clockIndex + 1])}` : '';
 
 const VIEWS = ['follow', 'meadow', 'village', 'forest', 'lake', 'overlook'];
 const QUALITIES = ['low', 'medium', 'high'];
@@ -60,10 +63,57 @@ async function sample(page) {
 const rows = [];
 const fmt = (n, d = 0) => n.toFixed(d);
 
+// --magic：只量測施法時的負擔（任務 6D、6E）。各畫質不限幀，森林裡站著 vs 連續施放星光衝擊、星屑飛彈與流星雨（清除冷卻，最壞情況）
+if (args.includes('--magic')) {
+  console.log('\n施法負擔（不限幀；森林，迷霧生物在場）');
+  console.log('| 畫質 | 站著：每幀 ms | 施法中：每幀 ms（平均 / 最差取樣） | draw calls 站著 → 施法中最大 | 活著的粒子最大 / 容量 |');
+  console.log('|---|---|---|---|---|');
+  for (const quality of QUALITIES) {
+    const { app, page } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}${clockQuery}`, ['--disable-gpu-vsync', '--disable-frame-rate-limit']);
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.setCameraMode('follow');
+      d.teleport(54, -54);
+      d.camera({ yaw: 2.4, pitch: 0.35, distance: 7 });
+    });
+    await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 3, null, { timeout: 30_000 });
+    await page.waitForTimeout(1500);
+    const idle = await sample(page);
+    const casting = [];
+    let maxAlive = 0;
+    let capacity = 0;
+    const start = Date.now();
+    while (Date.now() - start < 6000) {
+      await page.evaluate(() => {
+        const d = window.__mistwoodDebug;
+        d.setMp(100);
+        const e = d.enemies()[0];
+        if (e) d.face(e.x, e.z);
+        // 流星雨（任務 6E）冷卻 30 秒：每次都清除冷卻，量測最壞情況（同時好幾波流星）
+        d.resetSpellCooldowns();
+        d.tap('KeyQ');
+        d.tap('KeyF');
+        d.tap('KeyC');
+      });
+      await page.waitForTimeout(250);
+      const [p, m] = await page.evaluate(() => [window.__mistwoodDebug.perf(), window.__mistwoodDebug.magic()]);
+      casting.push(p);
+      maxAlive = Math.max(maxAlive, m.vfx.alive);
+      capacity = m.vfx.capacity;
+    }
+    const avg = casting.reduce((a, s) => a + s.frameMs, 0) / casting.length;
+    const worst = Math.max(...casting.map((s) => s.frameMs));
+    const draws = Math.max(...casting.map((s) => s.drawCalls));
+    console.log(`| ${quality} | ${fmt(idle.frameMs, 1)} | ${fmt(avg, 1)} / ${fmt(worst, 1)} | ${idle.draws} → ${draws} | ${maxAlive} / ${capacity} |`);
+    await app.close();
+  }
+  process.exit(0);
+}
+
 // 1 + 2：一般模式（受 vsync 限制）
 let coldStartMs = 0;
 for (const quality of QUALITIES) {
-  const { app, page, readyMs } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}`);
+  const { app, page, readyMs } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}${clockQuery}`);
   if (quality === 'high') coldStartMs = readyMs;
   for (const view of VIEWS) {
     await setView(page, view);
@@ -74,7 +124,7 @@ for (const quality of QUALITIES) {
 
 // 3：不限幀率
 for (const quality of QUALITIES) {
-  const { app, page } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}`, ['--disable-gpu-vsync', '--disable-frame-rate-limit']);
+  const { app, page } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}${clockQuery}`, ['--disable-gpu-vsync', '--disable-frame-rate-limit']);
   for (const view of VIEWS) {
     await setView(page, view);
     const s = await sample(page);
@@ -87,7 +137,7 @@ for (const quality of QUALITIES) {
 // 4：連續遊玩（高畫質）：沿小路往返跑步，每 15 秒記錄一次
 const soak = [];
 {
-  const { app, page } = await launch('debug=1&play=1&peaceful=1&quality=high');
+  const { app, page } = await launch(`debug=1&play=1&peaceful=1&quality=high${clockQuery}`);
   await page.evaluate(() => {
     const d = window.__mistwoodDebug;
     d.setCameraMode('follow');
@@ -111,6 +161,7 @@ const soak = [];
   await app.close();
 }
 
+if (clockQuery) console.log(`\n時段固定：${clockQuery.slice(7)} 時`);
 console.log(`\n冷啟動到場景就緒（高畫質）：${(coldStartMs / 1000).toFixed(1)} s\n`);
 console.log('| 畫質 | 視角 | FPS（vsync） | FPS（不限幀） | 每幀 ms（不限幀） | draw calls | 三角面 |');
 console.log('|---|---|---|---|---|---|---|');

@@ -14,24 +14,24 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
   const node = () => box.getAttribute('data-node');
   const [ex, ez] = elder.position;
 
-  await check('靠近米拉長老顯示「交談 米拉長老」', async () => {
+  await check('靠近村長米菈顯示「交談 村長米菈」', async () => {
     await teleport(ex, ez + 1.8);
     await page.waitForTimeout(300);
     assert.equal(await interactTarget(), 'npc:elder');
-    assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /交談\s*米拉長老/);
+    assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /交談\s*村長米菈/);
   });
 
-  await check('按 E 開始對話：顯示說話者與第一段，長老轉向玩家', async () => {
+  await check('按 E 開始對話：顯示說話者與第一段，村長轉向玩家', async () => {
     await page.keyboard.press('KeyE');
     await box.waitFor({ timeout: 2000 });
-    assert.equal(await page.locator('[data-testid="dialogue-speaker"]').innerText(), '米拉長老');
+    assert.equal(await page.locator('[data-testid="dialogue-speaker"]').innerText(), '村長米菈');
     assert.equal(await node(), 'greet');
     await page.waitForTimeout(800);
     const npc = await debug(() => window.__mistwoodDebug.npcState('elder'));
     const p = await state();
     const toPlayer = Math.atan2(p.x - npc.x, p.z - npc.z);
     assert.ok(npc.talking);
-    assert.ok(Math.abs(Math.atan2(Math.sin(npc.yaw - toPlayer), Math.cos(npc.yaw - toPlayer))) < 0.2, `長老沒有面向玩家`);
+    assert.ok(Math.abs(Math.atan2(Math.sin(npc.yaw - toPlayer), Math.cos(npc.yaw - toPlayer))) < 0.2, `村長沒有面向玩家`);
   });
 
   await check('對話中按 W 不會移動', async () => {
@@ -59,7 +59,7 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
     await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'mist');
   });
 
-  await check('點擊「我先四處看看。」結束對話，長老回到原本方向', async () => {
+  await check('點擊「我先四處看看。」結束對話，村長回到原本方向', async () => {
     await page.locator('[data-testid="dialogue-option"]', { hasText: '四處看看' }).click();
     await box.waitFor({ state: 'detached', timeout: 2000 });
     assert.equal(await debug(() => window.__mistwoodDebug.dialogue()), null);
@@ -76,17 +76,17 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
     assert.equal(await page.locator('[data-testid="pause-menu"]').count(), 0);
   });
 
-  await check('條件對話：森林迷霧清除後長老說不同的話', async () => {
+  await check('條件對話：森林迷霧清除後村長說不同的話', async () => {
     await debug(() => window.__mistwoodDebug.setMistStage('forest', 'clear'));
     await page.waitForTimeout(300);
     await page.keyboard.press('KeyE');
     await box.waitFor({ timeout: 2000 });
-    assert.match(await page.locator('[data-testid="dialogue-text"]').innerText(), /森林的霧散了/);
+    assert.match(await page.locator('[data-testid="dialogue-text"]').innerText(), /林子裡的霧散了/);
     await page.keyboard.press('Escape');
     await debug(() => window.__mistwoodDebug.setMistStage('forest', 'dense'));
   });
 
-  await check('NPC 有碰撞：走向長老會被擋住', async () => {
+  await check('NPC 有碰撞：走向村長會被擋住', async () => {
     await teleport(ex, ez + 3);
     await camera({ yaw: 0, pitch: 0.35, distance: 6 });
     await page.keyboard.down('KeyW');
@@ -97,7 +97,7 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
       min = Math.min(min, Math.hypot(s.x - ex, s.z - ez));
     }
     await page.keyboard.up('KeyW');
-    assert.ok(min > 0.55, `穿進長老：最近距離 ${min.toFixed(2)}`);
+    assert.ok(min > 0.55, `穿進村長：最近距離 ${min.toFixed(2)}`);
   });
 
   await check('守衛雷歐在兩點之間巡邏（走路動畫）', async () => {

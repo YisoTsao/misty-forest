@@ -16,12 +16,14 @@ export type QualityPreset = {
   shadowMapSize: number;
   /** 最大像素比 */
   maxDpr: number;
+  /** 同時存在的特效粒子上限（螢火蟲、魔法；GAME_DESIGN 6.2） */
+  particleBudget: number;
 };
 
 export const qualityPresets: Record<QualityLevel, QualityPreset> = {
-  low: { grassDensity: 0.6, flowerDensity: 0.5, vegetationDistance: 28, postprocessing: false, shadowMapSize: 1024, maxDpr: 1 },
-  medium: { grassDensity: 1.4, flowerDensity: 0.9, vegetationDistance: 42, postprocessing: true, shadowMapSize: 2048, maxDpr: 1.5 },
-  high: { grassDensity: 2.4, flowerDensity: 1.4, vegetationDistance: 55, postprocessing: true, shadowMapSize: 2048, maxDpr: 2 },
+  low: { grassDensity: 0.6, flowerDensity: 0.5, vegetationDistance: 28, postprocessing: false, shadowMapSize: 1024, maxDpr: 1, particleBudget: 800 },
+  medium: { grassDensity: 1.4, flowerDensity: 0.9, vegetationDistance: 42, postprocessing: true, shadowMapSize: 2048, maxDpr: 1.5, particleBudget: 2000 },
+  high: { grassDensity: 2.4, flowerDensity: 1.4, vegetationDistance: 55, postprocessing: true, shadowMapSize: 2048, maxDpr: 2, particleBudget: 3000 },
 };
 
 export function isQualityLevel(value: unknown): value is QualityLevel {

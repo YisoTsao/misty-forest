@@ -74,7 +74,15 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     interact: actionKey(bindings, 'interact'),
     inventory: actionKey(bindings, 'inventory'),
     attack: actionKey(bindings, 'attack'),
+    heavy: actionKey(bindings, 'heavyAttack'),
+    // 手把以「切換武器」依序切換；鍵盤列出三把武器的按鍵（V 也可依序切換）
+    weapons:
+      useInputDeviceStore.getState().device === 'gamepad'
+        ? actionKey(bindings, 'cycleWeapon')
+        : (['weapon1', 'weapon2', 'weapon3'] as const).map((a) => actionKey(bindings, a)).join(' '),
     skill: actionKey(bindings, 'skill'),
+    spell2: actionKey(bindings, 'spell2'),
+    spell3: actionKey(bindings, 'spell3'),
     companion: actionKey(bindings, 'companion'),
     build: actionKey(bindings, 'build'),
     rotate: actionKey(bindings, 'rotate'),

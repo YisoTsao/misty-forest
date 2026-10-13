@@ -139,7 +139,7 @@ try {
     assert.equal(await debug(() => window.__mistwoodDebug.interactTarget()), chest.id);
   });
 
-  await check('按 E 打開寶箱：播放互動動畫、伸手時蓋子狀態為開、星光碎片進背包、顯示訊息', async () => {
+  await check('按 E 打開寶箱：播放互動動畫、伸手時蓋子狀態為開、星光碎屑進背包、顯示訊息', async () => {
     await page.keyboard.press('KeyE');
     await page.waitForTimeout(150);
     const s = await state();

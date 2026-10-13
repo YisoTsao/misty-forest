@@ -83,7 +83,7 @@ await runE2e('gamepad e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pag
     assert.equal(await debug(() => window.__mistwoodDebug.itemCount('starlight_shard')), 1);
     await press(PAD.B);
     await page.locator('[data-testid="message-dialog"]').waitFor({ state: 'detached', timeout: 2000 });
-    // 露米出現後的打招呼也是訊息
+    // 芽芽出現後的打招呼也是訊息
     await page.waitForTimeout(300);
     for (let i = 0; i < 3 && (await page.locator('[data-testid="message-dialog"]').count()) > 0; i++) await press(PAD.B);
   });
@@ -135,7 +135,9 @@ await runE2e('gamepad e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pag
     await press(PAD.Start);
     await page.locator('[data-testid="pause-settings"]').click();
     const text = await page.locator('[data-testid="settings-gamepad"]').innerText();
-    assert.match(text, /攻擊\s*X/);
+    assert.match(text, /攻擊（輕擊）\s*X/);
+    assert.match(text, /重擊\s*RT/);
+    assert.match(text, /切換武器\s*十字左/);
     assert.match(text, /互動 \/ 採集\s*Y/);
     await press(PAD.B);
     await press(PAD.B);

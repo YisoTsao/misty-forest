@@ -20,6 +20,9 @@ type SettingsState = {
   quality: QualityLevel;
   bindings: Bindings;
   volumes: Volumes;
+  /** 命中時的鏡頭震動（GAME_DESIGN 5.3：設定中可關閉） */
+  cameraShake: boolean;
+  setCameraShake: (on: boolean) => void;
   setVolume: (channel: keyof Volumes, value: number) => void;
   setQuality: (quality: QualityLevel) => void;
   /** 重新配置一個按鍵；結果（含錯誤）回傳給設定畫面顯示 */
@@ -31,7 +34,13 @@ type SettingsState = {
 const urlQuality = new URLSearchParams(window.location.search).get('quality');
 
 function persist(state: SettingsState): void {
-  const data: SettingsData = { version: SETTINGS_VERSION, quality: state.quality, bindings: state.bindings, volumes: state.volumes };
+  const data: SettingsData = {
+    version: SETTINGS_VERSION,
+    quality: state.quality,
+    bindings: state.bindings,
+    volumes: state.volumes,
+    cameraShake: state.cameraShake,
+  };
   saveStorage.write(SETTINGS_SLOT, data).catch((err: unknown) => console.error('[settings] 設定存檔失敗：', err));
 }
 
@@ -39,6 +48,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   quality: isQualityLevel(urlQuality) ? urlQuality : 'high',
   bindings: defaultBindings,
   volumes: defaultVolumes,
+  cameraShake: true,
+  setCameraShake: (cameraShake) => {
+    set({ cameraShake });
+    persist(get());
+  },
   setVolume: (channel, value) => {
     set({ volumes: { ...get().volumes, [channel]: Math.min(1, Math.max(0, value)) } });
     persist(get());
@@ -71,9 +85,10 @@ export async function loadSettings(): Promise<void> {
     return settings;
   });
   if (outcome.status === 'ok' || outcome.status === 'restored-from-backup') {
-    const { quality, bindings, volumes } = outcome.value;
+    const { quality, bindings, volumes, cameraShake } = outcome.value;
     if (!isQualityLevel(urlQuality)) useSettingsStore.setState({ quality });
     if (volumes) useSettingsStore.setState({ volumes });
+    if (cameraShake !== undefined) useSettingsStore.setState({ cameraShake });
     const merged = bindings ? parseSavedBindings(bindings, defaultBindings) : null;
     if (merged) {
       useSettingsStore.setState({ bindings: merged });

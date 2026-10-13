@@ -14,6 +14,8 @@ type DebugState = {
   mistOverride: number | null;
   /** 每次要求「立即套用、不漸變」時遞增（截圖用） */
   mistSnap: number;
+  /** 時段覆寫（小時，0–24）：?clock= 美術驗收用，畫面固定在該時刻、不隨遊玩前進。null 表示依遊戲時間 */
+  clockOverride: number | null;
   /** 和平模式（除錯 / 截圖）：迷霧生物不會追擊或攻擊玩家；?peaceful=1 */
   peaceful: boolean;
   /** 切到自由視角並套用書籤 */
@@ -22,6 +24,7 @@ type DebugState = {
   setSceneReady: (ready: boolean) => void;
   setMistOverride: (value: number | null, instant?: boolean) => void;
   setPeaceful: (peaceful: boolean) => void;
+  setClockOverride: (hour: number | null) => void;
 };
 
 export const useDebugStore = create<DebugState>((set) => ({
@@ -30,11 +33,13 @@ export const useDebugStore = create<DebugState>((set) => ({
   sceneReady: false,
   mistOverride: null,
   mistSnap: 0,
+  clockOverride: null,
   peaceful: new URLSearchParams(window.location.search).has('peaceful'),
   requestBookmark: (id) => set((s) => ({ cameraMode: 'free', bookmark: { id, nonce: (s.bookmark?.nonce ?? 0) + 1 } })),
   setCameraMode: (cameraMode) => set({ cameraMode }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
   setPeaceful: (peaceful) => set({ peaceful }),
+  setClockOverride: (hour) => set({ clockOverride: hour === null ? null : ((hour % 24) + 24) % 24 }),
   setMistOverride: (value, instant = false) =>
     set((s) => ({
       mistOverride: value === null ? null : Math.min(1, Math.max(0, value)),

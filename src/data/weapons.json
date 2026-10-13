@@ -1,0 +1,41 @@
+[
+  {
+    "id": "fist",
+    "nameKey": "weapon.fist",
+    "icon": "✊",
+    "trail": null,
+    "light": [
+      { "id": "fist_punch_a", "nameKey": "move.fist_punch_a", "clip": "Unarmed_Melee_Attack_Punch_A", "speed": 1.9, "duration": 0.42, "hitDelay": 0.16, "damage": 12, "range": 1.7, "arcDeg": 90, "knockback": 3, "hitStop": 0.05, "lunge": 0 },
+      { "id": "fist_punch_b", "nameKey": "move.fist_punch_b", "clip": "Unarmed_Melee_Attack_Punch_B", "speed": 2.0, "duration": 0.45, "hitDelay": 0.18, "damage": 14, "range": 1.7, "arcDeg": 90, "knockback": 3, "hitStop": 0.05, "lunge": 0 },
+      { "id": "fist_kick", "nameKey": "move.fist_kick", "clip": "Unarmed_Melee_Attack_Kick", "speed": 1.3, "duration": 0.55, "hitDelay": 0.26, "damage": 22, "range": 2.0, "arcDeg": 110, "knockback": 7, "hitStop": 0.08, "lunge": 1.5 }
+    ],
+    "heavy": { "id": "fist_flying_kick", "nameKey": "move.fist_flying_kick", "clip": "Unarmed_Melee_Attack_Kick", "speed": 0.95, "duration": 0.78, "hitDelay": 0.36, "damage": 30, "range": 2.3, "arcDeg": 120, "knockback": 9, "hitStop": 0.09, "lunge": 5.5, "cooldown": 1.2 },
+    "comboWindow": 0.45
+  },
+  {
+    "id": "knife",
+    "nameKey": "weapon.knife",
+    "icon": "🗡",
+    "trail": { "color": [1.6, 2.1, 2.4], "width": 0.32 },
+    "light": [
+      { "id": "knife_stab", "nameKey": "move.knife_stab", "clip": "1H_Melee_Attack_Stab", "speed": 2.4, "duration": 0.38, "hitDelay": 0.17, "damage": 15, "range": 1.8, "arcDeg": 60, "knockback": 2, "hitStop": 0.04, "lunge": 1.2 },
+      { "id": "knife_slash", "nameKey": "move.knife_slash", "clip": "1H_Melee_Attack_Slice_Horizontal", "speed": 2.0, "duration": 0.4, "hitDelay": 0.15, "damage": 15, "range": 1.8, "arcDeg": 100, "knockback": 2, "hitStop": 0.04, "lunge": 0 },
+      { "id": "knife_twin_stab", "nameKey": "move.knife_twin_stab", "clip": "Dualwield_Melee_Attack_Stab", "speed": 2.2, "duration": 0.5, "hitDelay": 0.24, "damage": 24, "range": 1.9, "arcDeg": 70, "knockback": 4, "hitStop": 0.07, "lunge": 2 }
+    ],
+    "heavy": { "id": "knife_rising_slash", "nameKey": "move.knife_rising_slash", "clip": "Dualwield_Melee_Attack_Slice", "speed": 1.5, "duration": 0.62, "hitDelay": 0.3, "damage": 32, "range": 2.0, "arcDeg": 140, "knockback": 6, "hitStop": 0.08, "lunge": 2.5, "cooldown": 0.9 },
+    "comboWindow": 0.45
+  },
+  {
+    "id": "sword",
+    "nameKey": "weapon.sword",
+    "icon": "⚔",
+    "trail": { "color": [2.4, 2.0, 1.1], "width": 0.62 },
+    "light": [
+      { "id": "sword_slash_diag", "nameKey": "move.sword_slash_diag", "clip": "1H_Melee_Attack_Slice_Diagonal", "speed": 1.5, "duration": 0.5, "hitDelay": 0.22, "damage": 22, "range": 2.3, "arcDeg": 120, "knockback": 5, "hitStop": 0.06, "lunge": 0.8 },
+      { "id": "sword_slash_flat", "nameKey": "move.sword_slash_flat", "clip": "1H_Melee_Attack_Slice_Horizontal", "speed": 1.5, "duration": 0.52, "hitDelay": 0.22, "damage": 24, "range": 2.3, "arcDeg": 140, "knockback": 5, "hitStop": 0.06, "lunge": 0.8 },
+      { "id": "sword_chop", "nameKey": "move.sword_chop", "clip": "1H_Melee_Attack_Chop", "speed": 1.3, "duration": 0.65, "hitDelay": 0.32, "damage": 34, "range": 2.4, "arcDeg": 90, "knockback": 8, "hitStop": 0.09, "lunge": 1.5 }
+    ],
+    "heavy": { "id": "sword_whirlwind", "nameKey": "move.sword_whirlwind", "clip": "2H_Melee_Attack_Spinning", "speed": 0.9, "duration": 0.76, "hitDelay": 0.36, "damage": 38, "range": 2.6, "arcDeg": 360, "knockback": 8, "hitStop": 0.1, "lunge": 0, "cooldown": 1.6 },
+    "comboWindow": 0.45
+  }
+]

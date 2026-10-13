@@ -3,6 +3,7 @@
 import type { EnemyRuntime, GameState } from '../authority/rules';
 import type { BuildableCatalog } from '../build/build';
 import { PLAYER_STATS, type CombatData } from '../combat/combat';
+import { MAX_MP } from '../combat/spells';
 import { createInventory, type InventorySlot } from '../inventory/inventory';
 import type { ItemCatalog } from '../items/items';
 import type { WorldLookup } from '../world/objects';
@@ -38,11 +39,13 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     combat: {
       // 倒下時存檔：讀回來就是重新站起來（滿血）
       hp: state.player.defeated ? PLAYER_STATS.maxHp : state.player.hp,
+      mp: state.player.mp,
       enemies: [...state.enemies.values()].map((e) => ({ ...e })),
       spawners: Object.fromEntries(Object.entries(state.spawners).map(([id, s]) => [id, { ...s }])),
     },
     companion: { ...state.companion },
     build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
+    loadout: { weapon: state.player.weapon },
   };
 }
 
@@ -97,7 +100,13 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
       tutorial: data.tutorial,
       mist: data.mist,
       quests: data.quests,
-      player: { hp: Math.min(PLAYER_STATS.maxHp, data.combat.hp > 0 ? data.combat.hp : PLAYER_STATS.maxHp), lastDamagedAt: data.world.time, defeated: false },
+      player: {
+        hp: Math.min(PLAYER_STATS.maxHp, data.combat.hp > 0 ? data.combat.hp : PLAYER_STATS.maxHp),
+        lastDamagedAt: data.world.time,
+        defeated: false,
+        weapon: data.loadout.weapon,
+        mp: Math.min(MAX_MP, data.combat.mp),
+      },
       enemies,
       spawners: data.combat.spawners,
       companion: data.companion,

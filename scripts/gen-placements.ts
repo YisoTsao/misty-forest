@@ -15,6 +15,7 @@ import {
   VILLAGE_RADIUS,
 } from '../src/game-core/world/terrain.ts';
 import { mulberry32 } from '../src/game-core/util/random.ts';
+import { boundaryDistance, boundaryOutline } from '../src/game-core/world/bounds.ts';
 
 const rand = mulberry32(20261012);
 const half = TERRAIN_SIZE / 2 - 6;
@@ -304,6 +305,41 @@ for (const [id, prefabId, regionId, x, z, yaw, scale] of ambient) {
     rotation: [0, round(yaw), 0],
     scale: [scale, scale, scale],
   });
+}
+
+// 地圖邊界（任務 6A，GAME_DESIGN 5.1）：迷霧牆外側一圈較密的裝飾樹，讓邊界看起來是「森林與濃霧」而不是隱形牆。
+// 用獨立的種子、附加在最後，前面所有物件的位置與 id 都不變。樹在碰撞牆外，玩家碰不到，所以不可採集、沒有碰撞。
+{
+  const edgeRand = mulberry32(20261013);
+  const outline = boundaryOutline(3.2, 6, 0);
+  let n = 0;
+  for (const p of outline) {
+    // 兩排：貼著牆外 2–4 m 與 5–8 m，沿邊界往外推（以原點方向近似法線即可，邊界為凸形）
+    for (const [from, to] of [
+      [2, 4],
+      [5, 8],
+    ] as const) {
+      if (edgeRand() < 0.25) continue;
+      const len = Math.hypot(p.x, p.z);
+      const push = from + edgeRand() * (to - from);
+      const jitter = (edgeRand() - 0.5) * 2.4;
+      const x = p.x + (p.x / len) * push + (-p.z / len) * jitter;
+      const z = p.z + (p.z / len) * push + (p.x / len) * jitter;
+      if (Math.max(Math.abs(x), Math.abs(z)) > TERRAIN_SIZE / 2 - 0.5) continue;
+      if (boundaryDistance(x, z) > -1.5) continue;
+      n++;
+      const s = 5 + edgeRand() * 2.8;
+      placements.push({
+        id: `edge_tree_${String(n).padStart(3, '0')}`,
+        prefabId: edgeRand() < 0.6 ? 'tree_edge_tall' : 'tree_edge_round',
+        regionId: 'meadow',
+        position: [round(x), round(terrainHeight(x, z) - 0.05), round(z)],
+        rotation: [0, round(edgeRand() * Math.PI * 2), 0],
+        scale: [round(s), round(s * (0.9 + edgeRand() * 0.25)), round(s)],
+      });
+    }
+  }
+  console.log(`placed ${n} boundary trees`);
 }
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');

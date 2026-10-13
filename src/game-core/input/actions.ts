@@ -10,11 +10,21 @@ export const actionIds = [
   'jump',
   'interact',
   'attack',
+  /** 重擊（GAME_DESIGN 5.3） */
+  'heavyAttack',
+  /** 法術：skill = 星光衝擊（Q）、spell2 = 星屑飛彈（F）、spell3 = 流星雨（C）（GAME_DESIGN 5.4） */
   'skill',
+  'spell2',
+  'spell3',
   'inventory',
   'companion',
   'build',
   'rotate',
+  /** 切換近戰武器：徒手 / 短刀 / 單手劍，以及依序切換（鍵盤 V、手把十字左） */
+  'weapon1',
+  'weapon2',
+  'weapon3',
+  'cycleWeapon',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];
