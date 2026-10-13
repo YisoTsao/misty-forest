@@ -4,6 +4,7 @@ import { nextScreen, type FlowAction, type GameScreen } from '@/game-core/flow/g
 import type { LoadedSave } from '@/game-core/save/convert';
 import { authority } from '../authority';
 import { endTalk } from '../dialogueController';
+import { resetLocation } from '../location';
 import { cameraRuntime, playerRuntime } from '../player/localRuntime';
 import { useUiStore } from './uiStore';
 
@@ -42,6 +43,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     ui.closeMessage();
     ui.setInventoryOpen(false);
     endTalk();
+    resetLocation();
     if (loaded) {
       // 讀檔：回到存檔位置，攝影機在角色背後
       playerRuntime.restoreRequest = loaded.player;

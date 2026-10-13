@@ -9,7 +9,7 @@ export type WorldLookup = {
 };
 
 /** 這個版本已實作規則的互動類型。其他類型（建造等）於後續階段加入。 */
-const implemented = new Set<Prefab['interaction']>(['open', 'harvest', 'repair']);
+const implemented = new Set<Prefab['interaction']>(['open', 'harvest', 'repair', 'enter']);
 
 /**
  * 物件目前是否可以互動（決定是否顯示提示）。

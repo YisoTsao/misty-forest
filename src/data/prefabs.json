@@ -372,7 +372,18 @@
         -0.03
       ]
     },
-    "persists": false
+    "persists": false,
+    "interaction": "enter",
+    "nameKey": "object.tavern",
+    "interactOffset": [
+      0,
+      0,
+      0.62
+    ],
+    "interactRadius": 1.8,
+    "enter": {
+      "to": "tavern"
+    }
   },
   {
     "id": "well",
@@ -617,6 +628,170 @@
         0,
         0,
         -0.04
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "tavern_room",
+    "model": "procedural:tavern_room",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          12.0,
+          0.3,
+          9.0
+        ],
+        "offset": [
+          0,
+          -0.3,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          12.0,
+          4.2,
+          0.3
+        ],
+        "offset": [
+          0,
+          0,
+          -4.65
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.3,
+          4.2,
+          9.0
+        ],
+        "offset": [
+          -6.15,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.3,
+          4.2,
+          9.0
+        ],
+        "offset": [
+          6.15,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          5.2,
+          4.2,
+          0.3
+        ],
+        "offset": [
+          -3.4,
+          0,
+          4.65
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          5.2,
+          4.2,
+          0.3
+        ],
+        "offset": [
+          3.4,
+          0,
+          4.65
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          1.6,
+          4.2,
+          0.3
+        ],
+        "offset": [
+          0,
+          0,
+          4.9
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          12.0,
+          0.3,
+          9.0
+        ],
+        "offset": [
+          0,
+          4.2,
+          0
+        ]
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "interior_exit",
+    "model": "procedural:door_mat",
+    "collider": "none",
+    "interaction": "enter",
+    "nameKey": "object.tavernExit",
+    "verbKey": "interact.leave",
+    "interactRadius": 1.7,
+    "enter": {
+      "to": "overworld"
+    },
+    "persists": false
+  },
+  {
+    "id": "rug",
+    "model": "models/kaykit-furniture/rug_rectangle_stripes_A.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "bar_counter",
+    "model": "models/kaykit-furniture/table_medium_long.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        3,
+        1,
+        2
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "cabinet",
+    "model": "models/kaykit-furniture/cabinet_medium_decorated.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        2,
+        1.83,
+        1
+      ],
+      "offset": [
+        0,
+        0,
+        0
       ]
     },
     "persists": false

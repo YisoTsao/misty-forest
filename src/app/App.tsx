@@ -16,6 +16,7 @@ import { ErrorOverlay } from '@/ui/ErrorOverlay';
 import { FatalScreen } from '@/ui/FatalScreen';
 import { InteractPrompt } from '@/ui/InteractPrompt';
 import { InventoryPanel } from '@/ui/InventoryPanel';
+import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
@@ -69,6 +70,7 @@ export function App() {
       <DialogueBox />
       <InventoryPanel />
       <BuildUi />
+      <LocationFade />
       <TitleScreen />
       <PauseMenu />
       <SettingsPanel />

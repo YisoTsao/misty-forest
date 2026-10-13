@@ -8,6 +8,7 @@ import type { Prefab } from '@/game-core/world/types';
 import { authority, npcs, quests } from '@/game/authority';
 import { questStatus } from '@/game-core/quest/quest';
 import { startTalk } from '@/game/dialogueController';
+import { travel } from '@/game/location';
 import { input } from '@/game/input/inputManager';
 import { npcRuntime } from '@/game/npc/npcRuntime';
 import { playerRuntime } from '@/game/player/localRuntime';
@@ -148,8 +149,8 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     if (target?.kind === 'npc') {
       ui.setInteractTarget({ id: NPC_PREFIX + target.id, kind: 'talk', nameKey: target.nameKey });
     } else {
-      const { interaction, nameKey } = target?.spec.prefab ?? {};
-      ui.setInteractTarget(target && interaction && nameKey ? { id: target.spec.id, kind: interaction, nameKey } : null);
+      const { interaction, nameKey, verbKey } = target?.spec.prefab ?? {};
+      ui.setInteractTarget(target && interaction && nameKey ? { id: target.spec.id, kind: interaction, nameKey, verbKey } : null);
     }
     if (!pressed || !target) return;
 
@@ -163,6 +164,12 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
       ui.setInteractTarget(null);
       if (document.pointerLockElement) document.exitPointerLock();
       startTalk(target.id);
+      return;
+    }
+    // 出入口（規格 5.2：門與入口 → 場景切換）：本機轉場，不經過權威層
+    if (target.spec.prefab.enter) {
+      ui.setInteractTarget(null);
+      travel(target.spec.prefab.enter.to);
       return;
     }
     const command = commandFor(target.spec.prefab, target.spec.id);

@@ -281,5 +281,17 @@
   "settings.volume": "音量",
   "settings.volume.master": "主音量",
   "settings.volume.music": "音樂",
-  "settings.volume.sfx": "音效"
+  "settings.volume.sfx": "音效",
+  "object.tavern": "酒館",
+  "object.tavernExit": "酒館",
+  "interact.leave": "離開",
+  "npc.molly": "酒館老闆茉莉",
+  "dlg.molly.greet": "歡迎光臨「星光酒館」！外面霧大，進來暖暖身子吧。\n要坐一下嗎？",
+  "dlg.molly.opt.rest": "休息一下",
+  "dlg.molly.opt.rumor": "最近有什麼消息？",
+  "dlg.molly.opt.tree": "星源古樹在哪裡？",
+  "dlg.molly.opt.bye": "下次再來。",
+  "dlg.molly.rested": "喝杯熱蜂蜜茶，靠著爐火坐一會兒……\n體力都恢復了吧？路上小心喔。",
+  "dlg.molly.rumor": "聽說森林更深處有一座長滿青苔的古老遺跡，霧就是從那裡冒出來的。\n守衛雷歐一直想去看看，可是一個人太危險了。",
+  "dlg.molly.tree": "星源古樹在谷地的最北邊，被霧包得緊緊的，誰也走不近。\n不過有星光指引的人，也許就能找到路吧……"
 }

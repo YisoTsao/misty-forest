@@ -184,5 +184,36 @@
       "speed": 1.2,
       "pauseSec": 4
     }
+  },
+  {
+    "id": "molly",
+    "nameKey": "npc.molly",
+    "regionId": "village",
+    "model": "models/characters/kaykit-adventurers/Rogue.glb",
+    "scale": 0.72,
+    "hiddenNodes": [
+      "Knife_Offhand",
+      "1H_Crossbow",
+      "2H_Crossbow",
+      "Knife",
+      "Throwable"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Cheer"
+    },
+    "position": [
+      996.8,
+      996.4
+    ],
+    "floorY": 0,
+    "facingYaw": 0,
+    "interactRadius": 2.8,
+    "talk": [
+      {
+        "dialogue": "molly_talk"
+      }
+    ]
   }
 ]

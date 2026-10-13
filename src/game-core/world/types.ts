@@ -90,6 +90,10 @@ export const prefabSchema = z
       .optional(),
     /** 互動點相對物件原點的位移（模型單位，會乘上縮放並旋轉）：例如木橋在橋頭互動 */
     interactOffset: vec3.optional(),
+    /** 出入口（規格 5.2：門與入口、可進入建築）：前往的室內 id，或 overworld 回到戶外 */
+    enter: z.object({ to: z.string().min(1) }).optional(),
+    /** 互動提示的動詞（i18n key），預設依 interaction（例如出口顯示「離開」） */
+    verbKey: z.string().min(1).optional(),
     persists: z.boolean(),
   })
   .refine((p) => p.collider !== 'static' || p.collision !== undefined, {
@@ -99,6 +103,10 @@ export const prefabSchema = z
   .refine((p) => p.interaction !== 'harvest' || p.harvest !== undefined, {
     message: 'interaction 為 harvest 時必須提供 harvest 設定',
     path: ['harvest'],
+  })
+  .refine((p) => p.interaction !== 'enter' || p.enter !== undefined, {
+    message: 'interaction 為 enter 時必須提供 enter 設定',
+    path: ['enter'],
   })
   .refine((p) => p.interaction !== 'repair' || p.repair !== undefined, {
     message: 'interaction 為 repair 時必須提供 repair 設定',

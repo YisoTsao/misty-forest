@@ -25,6 +25,7 @@ import { Enemies } from './entities/enemy/Enemies';
 import { Npcs } from './entities/npc/Npcs';
 import { Player } from './entities/player/Player';
 import { InputBinder } from './InputBinder';
+import { InteriorLights, OutdoorOnly } from './LocationVisibility';
 import { InteractionSystem } from './interaction/InteractionSystem';
 import { EnvironmentColliders } from './physics/EnvironmentColliders';
 import { Lighting } from './sky/Lighting';
@@ -47,11 +48,16 @@ export function WorldScene({ data }: { data: WorldData }) {
     <>
       <InputBinder />
       <Lighting />
-      <Sky />
+      <InteriorLights />
+      <OutdoorOnly>
+        <Sky />
+      </OutdoorOnly>
       <Suspense fallback={null}>
         {/* timeStep="vary"：每幀一步，與 useFrame 中的角色控制器同步 */}
         <Physics timeStep="vary" gravity={[0, -22, 0]}>
-          <Terrain />
+          <OutdoorOnly>
+            <Terrain />
+          </OutdoorOnly>
           <EnvironmentColliders index={index} />
           <Player def={playerDef} colliderRef={playerCollider} />
           <Npcs />
@@ -62,11 +68,13 @@ export function WorldScene({ data }: { data: WorldData }) {
         <AssetBoundary name="world-placements">
           <WorldPlacements data={data} />
         </AssetBoundary>
-        <GrassField index={index} />
-        <Lake />
-        <AssetBoundary name="backdrop">
-          <Backdrop />
-        </AssetBoundary>
+        <OutdoorOnly>
+          <GrassField index={index} />
+          <Lake />
+          <AssetBoundary name="backdrop">
+            <Backdrop />
+          </AssetBoundary>
+        </OutdoorOnly>
         <InteractionSystem index={index} />
         <GameClock />
         <TutorialSystem />

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "tavern",
+    "nameKey": "object.tavern",
+    "origin": [
+      1000.0,
+      1000.0
+    ],
+    "door": "village_tavern_03",
+    "inside": [
+      1000.0,
+      1000.2,
+      3.141592653589793
+    ],
+    "outsideDistance": 4.6,
+    "light": [
+      1004.9,
+      2.2,
+      996.6
+    ]
+  }
+]

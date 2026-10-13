@@ -82,7 +82,7 @@ function NpcActor({ def }: { def: NpcDef }) {
       desiredYaw = def.facingYaw;
     }
     if (desiredYaw !== null) runtime.yaw += angleDelta(runtime.yaw, desiredYaw) * Math.min(1, TURN_RATE * dt);
-    runtime.y = terrainHeight(runtime.x, runtime.z);
+    runtime.y = def.floorY ?? terrainHeight(runtime.x, runtime.z);
 
     bodyRef.current?.setNextKinematicTranslation({ x: runtime.x, y: runtime.y + FOOT_OFFSET, z: runtime.z });
     const visual = visualRef.current;

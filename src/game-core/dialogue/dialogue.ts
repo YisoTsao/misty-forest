@@ -5,6 +5,8 @@
 export const dialogueEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('acceptQuest'), quest: z.string().min(1) }),
   z.object({ type: z.literal('turnInQuest'), quest: z.string().min(1) }),
+  /** 在酒館休息：體力回滿 */
+  z.object({ type: z.literal('rest') }),
 ]);
 export type DialogueEffect = z.infer<typeof dialogueEffectSchema>;
 import { z } from 'zod';

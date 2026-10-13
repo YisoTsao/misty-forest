@@ -1,5 +1,6 @@
 import { mistLevelAt } from '@/game-core/world/regions';
-import { authority, regions } from '../authority';
+import { interiorAt } from '@/game-core/world/interiors';
+import { authority, interiors, regions } from '../authority';
 import { useDebugStore } from '../state/debugStore';
 
 /**
@@ -9,5 +10,7 @@ import { useDebugStore } from '../state/debugStore';
 export function mistTargetAt(x: number, z: number): number {
   const override = useDebugStore.getState().mistOverride;
   if (override !== null) return override;
+  // 室內沒有霧
+  if (interiorAt(interiors, x, z)) return 0;
   return mistLevelAt(regions, authority.getState().mist, x, z);
 }

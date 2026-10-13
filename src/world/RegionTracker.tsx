@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { regionAt } from '@/game-core/world/regions';
 import { regions } from '@/game/authority';
 import { playerRuntime } from '@/game/player/localRuntime';
+import { currentInterior } from '@/game/location';
 import { onRegionChanged } from '@/game/session';
 import { currentScreen } from '@/game/state/gameStore';
 import { useUiStore } from '@/game/state/uiStore';
@@ -17,6 +18,8 @@ export function RegionTracker() {
     local.since += dt;
     if (local.since < CHECK_INTERVAL) return;
     local.since = 0;
+    // 室內子場景：維持進門前的區域（不顯示區域名稱、不觸發存檔）
+    if (currentInterior()) return;
     const region = regionAt(regions, playerRuntime.position.x, playerRuntime.position.z);
     const ui = useUiStore.getState();
     if (region === ui.currentRegion) return;

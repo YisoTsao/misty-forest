@@ -276,6 +276,76 @@ function campfire(): THREE.BufferGeometry {
   return merged;
 }
 
+/** 合併有 / 無索引混雜的部件 */
+function mergeParts(parts: THREE.BufferGeometry[], name: string): THREE.BufferGeometry {
+  const flat = parts.map((p) => (p.index ? p.toNonIndexed() : p));
+  const merged = mergeGeometries(flat);
+  new Set([...parts, ...flat]).forEach((p) => p.dispose());
+  if (!merged) throw new Error(`${name}幾何合併失敗`);
+  merged.computeBoundingSphere();
+  return merged;
+}
+
+/** 酒館室內（可進入建築的子場景）：木地板、下半木牆上半灰泥、木柱、天花板橫樑、窗、石砌壁爐、關著的門。原點在地板中央 */
+export const TAVERN_ROOM = { width: 12, depth: 9, height: 4.2 } as const;
+function tavernRoom(): THREE.BufferGeometry {
+  const { width: W, depth: D, height: H } = TAVERN_ROOM;
+  const rand = mulberry32(9);
+  const parts: THREE.BufferGeometry[] = [];
+  const plaster = new THREE.Color('#efe2c4');
+  const plasterDark = new THREE.Color('#e2d0aa');
+  const wood = WOOD;
+  // 地板：沿 X 的木板，下面墊一層深色底板（木板縫不透出背景）
+  parts.push(box([W, 0.05, D], [0, -0.125, 0], WOOD_DARK));
+  for (let z = -D / 2 + 0.22; z < D / 2; z += 0.45) {
+    parts.push(box([W, 0.1, 0.42], [0, -0.05 + (rand() - 0.5) * 0.008, z], wood[Math.floor(rand() * wood.length)]!.clone().multiplyScalar(0.85)));
+  }
+  // 牆：灰泥牆面 + 下半木護牆
+  const wall = (size: [number, number, number], at: [number, number, number], panel: [number, number, number], panelAt: [number, number, number]) => {
+    parts.push(box(size, at, plaster));
+    parts.push(box(panel, panelAt, wood[2]!));
+  };
+  wall([W, H, 0.3], [0, H / 2, -D / 2 - 0.15], [W, 1.2, 0.06], [0, 0.6, -D / 2 + 0.03]);
+  wall([0.3, H, D], [-W / 2 - 0.15, H / 2, 0], [0.06, 1.2, D], [-W / 2 + 0.03, 0.6, 0]);
+  wall([0.3, H, D], [W / 2 + 0.15, H / 2, 0], [0.06, 1.2, D], [W / 2 - 0.03, 0.6, 0]);
+  const side = W / 2 - 0.8;
+  for (const sign of [-1, 1]) wall([side, H, 0.3], [sign * (W / 4 + 0.4), H / 2, D / 2 + 0.15], [side, 1.2, 0.06], [sign * (W / 4 + 0.4), 0.6, D / 2 - 0.03]);
+  parts.push(box([1.6, H - 2.4, 0.3], [0, 2.4 + (H - 2.4) / 2, D / 2 + 0.15], plaster));
+  // 門（關著）與門框
+  parts.push(box([1.5, 2.4, 0.12], [0, 1.2, D / 2 + 0.2], wood[0]!));
+  for (const x of [-0.8, 0.8]) parts.push(box([0.16, 2.5, 0.36], [x, 1.25, D / 2 + 0.05], WOOD_DARK));
+  parts.push(box([1.8, 0.18, 0.36], [0, 2.5, D / 2 + 0.05], WOOD_DARK));
+  parts.push(box([0.1, 0.1, 0.06], [0.55, 1.15, D / 2 + 0.12], new THREE.Color('#d9b45b')));
+  // 木柱
+  for (const x of [-W / 2, -W / 4, 0, W / 4, W / 2]) parts.push(box([0.3, H, 0.3], [x * 0.98, H / 2, -D / 2 + 0.05], WOOD_DARK));
+  for (const z of [-D / 4, D / 4]) for (const x of [-W / 2 + 0.05, W / 2 - 0.05]) parts.push(box([0.3, H, 0.3], [x, H / 2, z], WOOD_DARK));
+  // 天花板與橫樑
+  parts.push(box([W + 0.6, 0.2, D + 0.6], [0, H + 0.1, 0], plasterDark));
+  for (let z = -D / 2 + 1; z < D / 2; z += 2.2) parts.push(box([W, 0.28, 0.32], [0, H - 0.14, z], WOOD_DARK));
+  // 窗：左牆兩扇發亮的窗（天色）
+  for (const z of [-2, 2]) {
+    parts.push(box([0.06, 1.1, 1.3], [-W / 2 + 0.04, 2.1, z], new THREE.Color(1.6, 1.85, 2.0)));
+    parts.push(box([0.1, 0.12, 1.5], [-W / 2 + 0.06, 1.5, z], WOOD_DARK));
+    parts.push(box([0.1, 0.12, 1.5], [-W / 2 + 0.06, 2.7, z], WOOD_DARK));
+    parts.push(box([0.1, 1.2, 0.1], [-W / 2 + 0.06, 2.1, z], WOOD_DARK));
+  }
+  // 石砌壁爐（營火放在它前面）
+  const stone = [new THREE.Color('#9d9a90'), new THREE.Color('#8a877e'), new THREE.Color('#b0ada3')];
+  for (let y = 0.2; y < H; y += 0.42) {
+    for (let x = 3.9; x <= 5.9; x += 0.52) {
+      parts.push(box([0.5, 0.4, 0.55], [x + ((Math.round(y / 0.42) % 2) * 0.26 - 0.13), y, -D / 2 + 0.3], stone[Math.floor(rand() * 3)]!));
+    }
+  }
+  parts.push(box([2.6, 0.16, 0.7], [4.9, 1.9, -D / 2 + 0.45], WOOD_DARK));
+  return mergeParts(parts, '酒館室內');
+}
+
+/** 出口的門墊 */
+function doorMat(): THREE.BufferGeometry {
+  const parts = [box([1.3, 0.03, 0.75], [0, 0.015, 0], new THREE.Color('#b0473a')), box([1.1, 0.032, 0.12], [0, 0.017, 0], new THREE.Color('#e8c46a'))];
+  return mergeParts(parts, '門墊');
+}
+
 type Builder = { build: () => THREE.BufferGeometry; kind: 'plant' | 'solid' };
 
 const builders: Record<string, Builder> = {
@@ -284,6 +354,8 @@ const builders: Record<string, Builder> = {
   wood_bridge: { build: () => woodBridge(false), kind: 'solid' },
   wood_bridge_broken: { build: () => woodBridge(true), kind: 'solid' },
   campfire: { build: campfire, kind: 'solid' },
+  tavern_room: { build: tavernRoom, kind: 'solid' },
+  door_mat: { build: doorMat, kind: 'solid' },
 };
 
 export const PROCEDURAL_PREFIX = 'procedural:';

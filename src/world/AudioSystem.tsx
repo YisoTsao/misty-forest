@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { footstepInterval, surfaceAt } from '@/game-core/audio/footsteps';
 import { LAKE } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
+import { currentInterior } from '@/game/location';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { useSettingsStore } from '@/game/state/settingsStore';
@@ -40,7 +41,7 @@ export function AudioSystem() {
     // 腳步聲：遊玩中、站在地面上移動時；落地時踩一下
     if (screen !== 'playing' || useUiStore.getState().build?.menu) return;
     const feetY = position.y - 0.78;
-    const surface = surfaceAt(position.x, position.z, feetY);
+    const surface = currentInterior() ? 'wood' : surfaceAt(position.x, position.z, feetY);
     if (locomotion.grounded && !steps.wasGrounded) audio.play(surface === 'wood' ? 'step_wood' : 'step_grass', 1.2);
     steps.wasGrounded = locomotion.grounded;
     const interval = locomotion.grounded ? footstepInterval(Math.hypot(locomotion.vx, locomotion.vz)) : null;

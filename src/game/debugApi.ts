@@ -15,6 +15,7 @@ import { buildRuntime } from './build/buildRuntime';
 import { combatRuntime, enemyRuntime } from './combat/combatRuntime';
 import { companionRuntime } from './companion/companionRuntime';
 import { input } from './input/inputManager';
+import { useLocationStore } from './location';
 import { npcRuntime } from './npc/npcRuntime';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
@@ -101,6 +102,8 @@ export type MistwoodDebugApi = {
   buildings: () => { id: string; buildable: string; x: number; z: number; yaw: number }[];
   /** 音效狀態：AudioContext、各音效播放次數、音樂是否播放、鳥叫強度 */
   audio: () => { state: string; played: Record<string, number>; music: boolean; birds: number };
+  /** 目前所在的場景（overworld 或室內 id） */
+  location: () => string;
   /** 模擬按一下按鍵代碼（例如 Mouse0），經過按鍵綁定 */
   tap: (code: string) => void;
   /** 讓玩家面向某個位置 */
@@ -210,6 +213,7 @@ export function installDebugApi(): void {
         .map(([id, v]) => ({ id, x: v.ai.x, z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0 })),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
     tap: (code) => input.injectTap(code),
+    location: () => useLocationStore.getState().location,
     audio: () => ({ state: audio.state, played: { ...audio.played }, music: audio.musicPlaying, birds: audio.birds }),
     buildState: () => ({
       mode: useUiStore.getState().build,

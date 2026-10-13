@@ -330,5 +330,51 @@
         "textKey": "dlg.leo.quiet"
       }
     }
+  },
+  {
+    "id": "molly_talk",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "speakerKey": "npc.molly",
+        "textKey": "dlg.molly.greet",
+        "options": [
+          {
+            "textKey": "dlg.molly.opt.rest",
+            "next": "rested",
+            "effects": [
+              {
+                "type": "rest"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.molly.opt.rumor",
+            "next": "rumor"
+          },
+          {
+            "textKey": "dlg.molly.opt.tree",
+            "next": "tree"
+          },
+          {
+            "textKey": "dlg.molly.opt.bye"
+          }
+        ]
+      },
+      "rested": {
+        "speakerKey": "npc.molly",
+        "textKey": "dlg.molly.rested"
+      },
+      "rumor": {
+        "speakerKey": "npc.molly",
+        "textKey": "dlg.molly.rumor",
+        "next": "greet"
+      },
+      "tree": {
+        "speakerKey": "npc.molly",
+        "textKey": "dlg.molly.tree",
+        "next": "greet"
+      }
+    }
   }
 ]

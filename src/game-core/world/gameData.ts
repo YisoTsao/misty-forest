@@ -6,6 +6,7 @@ import { parseDialogues, type DialogueDef } from '../dialogue/dialogue';
 import { parseItemData, type ItemCatalog, type LootTables } from '../items/items';
 import { parseNpcs, type NpcDef } from '../npc/npc';
 import { parseQuests, type QuestCatalog } from '../quest/quest';
+import { parseInteriors, type InteriorDef } from './interiors';
 import { parseRegions, type RegionDef } from './regions';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
 
@@ -20,6 +21,7 @@ export type GameData = WorldData & {
   combat: CombatData;
   companion: CompanionDef;
   buildables: BuildableCatalog;
+  interiors: ReadonlyMap<string, InteriorDef>;
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -36,6 +38,7 @@ export function parseGameData(raw: {
   spawners: unknown;
   companion: unknown;
   buildables: unknown;
+  interiors: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -88,7 +91,7 @@ export function parseGameData(raw: {
   conditions.push(...companion.hints.map((h) => h.when));
   // 對話條件與效果參照的任務必須存在
   const effectQuests = [...dialogues.values()].flatMap((d) =>
-    Object.values(d.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => (o.effects ?? []).map((e) => e.quest))),
+    Object.values(d.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => (o.effects ?? []).flatMap((e) => ('quest' in e ? [e.quest] : [])))),
   );
   for (const questId of [...conditions.flatMap(conditionQuestIds), ...effectQuests]) {
     if (!quests.has(questId)) throw new WorldDataError(`對話參照不存在的任務：${questId}`);
@@ -99,5 +102,15 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`buildables 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables };
+  let interiors: Map<string, InteriorDef>;
+  try {
+    interiors = parseInteriors(raw.interiors, new Set(world.placements.map((p) => p.id)));
+  } catch (err) {
+    throw new WorldDataError(`interiors 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  for (const prefab of world.prefabs.values()) {
+    const to = prefab.enter?.to;
+    if (to && to !== 'overworld' && !interiors.has(to)) throw new WorldDataError(`prefab ${prefab.id} 的出入口通往不存在的室內：${to}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors };
 }

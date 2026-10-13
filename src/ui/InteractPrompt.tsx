@@ -16,7 +16,7 @@ export function InteractPrompt() {
       >
         <kbd className="flex h-7 min-w-7 items-center justify-center rounded-full bg-amber-200 px-2 font-bold text-amber-950">{key}</kbd>
         <span>
-          {t(`interact.${target.kind}`)} <span className="font-bold">{t(target.nameKey)}</span>
+          {t(target.verbKey ?? `interact.${target.kind}`)} <span className="font-bold">{t(target.nameKey)}</span>
         </span>
       </div>
     </div>

@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --tavern：酒館門口的提示、室內、和老闆娘對話（任務 5B）
 //   --build：湖心小島的建造選單、可放置 / 不可放置的預覽、蓋好的家園（任務 4A）、拆除工具與營火旁（任務 4B）
 //   --companion：打開序章寶箱後星光夥伴出現與打招呼、按 H 詢問提示（任務 3F）
 //   --combat：森林裡的迷霧生物、攻擊前搖、玩家攻擊與傷害數字、星光衝擊、受傷與倒下（任務 3E）
@@ -31,6 +32,7 @@ const withLake = flags.has('--lake');
 const withCombat = flags.has('--combat');
 const withCompanion = flags.has('--companion');
 const withBuild = flags.has('--build');
+const withTavern = flags.has('--tavern');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -161,6 +163,37 @@ try {
     await page.waitForTimeout(300);
     await shot('inventory');
     await page.keyboard.press('KeyI');
+  }
+
+  if (withTavern) {
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+      d.setCameraMode('follow');
+      d.teleport(-6.4, -30);
+      d.face(-2.5, -30);
+      d.camera({ yaw: -Math.PI / 2 + 0.55, pitch: 0.3, distance: 5.5 });
+    });
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'village_tavern_03', null, { timeout: 5000 });
+    await page.waitForTimeout(600);
+    await shot('tavern_door');
+    await page.keyboard.press('KeyE');
+    await page.waitForFunction(() => window.__mistwoodDebug.location() === 'tavern', null, { timeout: 5000 });
+    await page.waitForTimeout(1500);
+    await shot('tavern_inside');
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.teleport(996.8, 998.3, 0.02);
+      d.face(996.8, 996.4);
+      d.camera({ yaw: 0.9, pitch: 0.25, distance: 4.5 });
+    });
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'npc:molly', null, { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForSelector('[data-testid="dialogue"]', { timeout: 5000 });
+    await page.waitForTimeout(700);
+    await shot('tavern_molly');
+    await page.keyboard.press('Escape');
   }
 
   if (withBuild) {

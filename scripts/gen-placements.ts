@@ -252,5 +252,40 @@ placements.push({
   rotation: [0, round(Math.PI / 2), 0],
 });
 
+// 可進入建築的室內（任務 5B）：子場景放在遠離開放世界的座標（data/interiors.json 的 origin），
+// 不與開放世界混用（規格 5.1）。房間外殼、家具與出口都是一般的 placement。
+const INTERIOR = { x: 1000, z: 1000 };
+const interior: [string, string, number, number, number, number, number?][] = [
+  // id, prefab, 局部 x, 局部 z, yaw, scale, y
+  ['tavern_room', 'tavern_room', 0, 0, 0, 1],
+  ['tavern_exit', 'interior_exit', 0, 3.9, 0, 1],
+  ['tavern_rug', 'rug', 0, 0.8, 0, 1.1, 0.01],
+  ['tavern_bar', 'bar_counter', -3.2, -2.4, 0, 0.85],
+  ['tavern_cabinet', 'cabinet', -3.2, -4.0, 0, 0.8],
+  ['tavern_table_1', 'build_table', 2.8, -1.8, 0, 0.7],
+  ['tavern_chair_1a', 'build_chair', 2.8, -0.9, Math.PI, 0.7],
+  ['tavern_chair_1b', 'build_chair', 2.8, -2.7, 0, 0.7],
+  ['tavern_table_2', 'build_table', 3.4, 2.2, 0.3, 0.7],
+  ['tavern_chair_2a', 'build_chair', 2.4, 2.4, Math.PI / 2, 0.7],
+  ['tavern_chair_2b', 'build_chair', 4.4, 2.0, -Math.PI / 2, 0.7],
+  ['tavern_barrel_1', 'barrel', -5.2, 2.6, 0, 4.4],
+  ['tavern_barrel_2', 'barrel', -5.3, 3.5, 1, 4.2],
+  ['tavern_crate', 'crate_big', -5.2, -0.8, 0.4, 4.5],
+  ['tavern_hearth', 'build_campfire', 4.9, -3.6, 0, 1.1],
+  ['tavern_lantern_1', 'build_lantern', -1.4, -3.9, 0, 0.9],
+  ['tavern_lantern_2', 'build_lantern', 5.3, 3.9, 0, 0.9],
+  ['tavern_bench', 'build_bench', -1.0, 3.6, 0, 0.8],
+];
+for (const [id, prefabId, lx, lz, yaw, scale, y = 0] of interior) {
+  placements.push({
+    id,
+    prefabId,
+    regionId: 'village',
+    position: [round(INTERIOR.x + lx), y, round(INTERIOR.z + lz)],
+    rotation: [0, Math.round(yaw * 1000) / 1000, 0],
+    scale: [scale, scale, scale],
+  });
+}
+
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');
 console.log(`wrote ${placements.length} placements`);

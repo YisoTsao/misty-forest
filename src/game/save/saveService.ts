@@ -3,6 +3,7 @@ import { loadWithFallback, type LoadOutcome } from '@/game-core/save/load';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { authority, buildables, combat, worldIndex } from '../authority';
 import { playerRuntime } from '../player/localRuntime';
+import { savePosition } from '../location';
 import { useSaveStore, type MainSaveInfo } from '../state/saveStore';
 import { worldDataResult } from '../worldData';
 import { saveStorage } from './storages';
@@ -13,7 +14,8 @@ const items = worldDataResult.ok ? worldDataResult.data.items : new Map();
 
 function snapshotPlayer(): PlayerSnapshot {
   const { position, locomotion } = playerRuntime;
-  return { position: { ...position }, facingYaw: locomotion.facingYaw };
+  // 在室內存檔時記錄門口的位置（子場景不存檔）
+  return savePosition() ?? { position: { ...position }, facingYaw: locomotion.facingYaw };
 }
 
 /** 讀取主存檔（主檔失敗時改用備份），並更新主選單顯示的存檔狀態。 */

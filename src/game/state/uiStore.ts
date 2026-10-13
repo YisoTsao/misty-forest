@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { DEFAULT_REGION } from '@/game-core/world/regions';
 import type { InteractionKind, RegionId } from '@/game-core/world/types';
 
-export type InteractTarget = { id: string; kind: InteractionKind; nameKey: string };
+export type InteractTarget = { id: string; kind: InteractionKind; nameKey: string; verbKey?: string };
 export type UiMessage = { titleKey: string; bodyKey: string };
 /** 畫面角落的短暫通知：取得物品（itemId + count）或一般訊息（textKey） */
 export type Toast = { id: number; itemId?: string; count?: number; textKey?: string; vars?: Record<string, string | number> };

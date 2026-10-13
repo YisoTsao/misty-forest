@@ -74,6 +74,8 @@ export type GameCommand =
   | { type: 'EnemyStrike'; enemyId: string }
   /** 倒下後重新站起來 */
   | { type: 'RespawnPlayer' }
+  /** 在酒館休息（對話選項）：體力回滿 */
+  | { type: 'Rest' }
   /** 放置建造物（位置與角度由規則吸附到網格）；確認後才扣材料 */
   | { type: 'PlaceBuilding'; buildable: string; x: number; z: number; yaw: number }
   /** 拆除建造物，退還材料 */
@@ -170,6 +172,9 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'RespawnPlayer':
       if (!state.player.defeated) return reject('RespawnPlayer', 'invalid-command');
       return [{ type: 'PlayerRespawned', hp: PLAYER_STATS.maxHp }];
+    case 'Rest':
+      if (state.player.defeated) return reject('Rest', 'player-defeated');
+      return [{ type: 'PlayerHealed', hp: PLAYER_STATS.maxHp }];
     case 'PlaceBuilding':
       return placeBuilding(state, cmd, ctx);
     case 'RemoveBuilding': {

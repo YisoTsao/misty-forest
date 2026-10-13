@@ -16,6 +16,8 @@ export const npcDefSchema = z.object({
   clips: z.object({ idle: z.string().min(1), walk: z.string().min(1), talk: z.string().min(1) }),
   /** 站立位置與面向（yaw，0 = 面向 +Z） */
   position: point,
+  /** 地板高度（室內 NPC 使用；省略時貼齊地形） */
+  floorY: z.number().optional(),
   facingYaw: z.number(),
   interactRadius: z.number().positive(),
   /** 依序檢查，第一個符合條件的對話 */

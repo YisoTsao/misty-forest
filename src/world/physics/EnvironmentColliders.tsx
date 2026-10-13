@@ -48,10 +48,12 @@ export function EnvironmentColliders({ index }: { index: WorldIndex }) {
 
   useFrame((_, dt) => {
     state.sinceRefresh += dt;
-    if (state.sinceRefresh < REFRESH_INTERVAL) return;
+    // 傳送（例如走進室內）時立刻以目的地更新，角色落地前地板就已經存在
+    const teleport = playerRuntime.teleportRequest;
+    if (state.sinceRefresh < REFRESH_INTERVAL && !teleport) return;
     state.sinceRefresh = 0;
 
-    const { x, z } = playerRuntime.position;
+    const { x, z } = teleport ?? playerRuntime.position;
     const objects = useGameStateStore.getState().state.objects;
     const nearby = index.colliders.query(x, z, ACTIVE_RADIUS, state.query);
     for (const spec of nearby) {

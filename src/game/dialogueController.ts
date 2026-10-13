@@ -35,6 +35,8 @@ function commandFor(effect: DialogueEffect): GameCommand {
       return { type: 'AcceptQuest', quest: effect.quest };
     case 'turnInQuest':
       return { type: 'TurnInQuest', quest: effect.quest };
+    case 'rest':
+      return { type: 'Rest' };
   }
 }
 

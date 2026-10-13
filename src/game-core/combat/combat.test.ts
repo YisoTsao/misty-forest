@@ -110,6 +110,18 @@ describe('敵人攻擊與玩家倒下', () => {
     expect(run(s, { type: 'RespawnPlayer' }).events[0]).toMatchObject({ reason: 'invalid-command' });
   });
 
+  it('在酒館休息體力回滿；倒下時不能休息', () => {
+    let s = withEnemies(1);
+    const [id] = [...s.enemies.keys()];
+    s = run(s, { type: 'EnemyStrike', enemyId: id! }).state;
+    expect(s.player.hp).toBeLessThan(PLAYER_STATS.maxHp);
+    s = run(s, { type: 'Rest' }).state;
+    expect(s.player.hp).toBe(PLAYER_STATS.maxHp);
+    for (let i = 0; i < 4; i++) s = run(s, { type: 'EnemyStrike', enemyId: id! }).state;
+    expect(s.player.defeated).toBe(true);
+    expect(run(s, { type: 'Rest' }).events[0]).toMatchObject({ reason: 'player-defeated' });
+  });
+
   it('脫離戰鬥一段時間後回血', () => {
     let s = withEnemies(1);
     const [id] = [...s.enemies.keys()];

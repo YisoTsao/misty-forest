@@ -19,7 +19,7 @@ export const npcRuntime = new Map<string, NpcRuntime>(
     n.id,
     {
       x: n.position[0],
-      y: terrainHeight(n.position[0], n.position[1]),
+      y: n.floorY ?? terrainHeight(n.position[0], n.position[1]),
       z: n.position[1],
       yaw: n.facingYaw,
       walking: false,
