@@ -8,6 +8,7 @@ import { initialGameState, type GameCommand } from '@/game-core/authority/rules'
 import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
+import { audio } from './audio/audioEngine';
 import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
@@ -81,7 +82,7 @@ export type MistwoodDebugApi = {
   /** 匯出主存檔的內容（JSON 字串） */
   exportSave: () => Promise<string>;
   /** 目前的設定值 */
-  settings: () => { quality: string };
+  settings: () => { quality: string; volumes: { master: number; music: number; sfx: number } };
   /** NPC 目前的位置與狀態 */
   npcState: (id: string) => { x: number; z: number; yaw: number; walking: boolean; talking: boolean } | null;
   /** 任務狀態（locked / available / active / completed） */
@@ -98,6 +99,8 @@ export type MistwoodDebugApi = {
   buildState: () => { mode: { menu: boolean; selected: string | null } | null; ghost: { x: number; z: number; yaw: number; problem: string | null } };
   /** 已放置的建造物 */
   buildings: () => { id: string; buildable: string; x: number; z: number; yaw: number }[];
+  /** 音效狀態：AudioContext、各音效播放次數、音樂是否播放、鳥叫強度 */
+  audio: () => { state: string; played: Record<string, number>; music: boolean; birds: number };
   /** 模擬按一下按鍵代碼（例如 Mouse0），經過按鍵綁定 */
   tap: (code: string) => void;
   /** 讓玩家面向某個位置 */
@@ -195,7 +198,7 @@ export function installDebugApi(): void {
     send: (command) => authority.send(command),
     saveNow: () => saveGame(),
     exportSave: async () => (await saveStorage.export(MAIN_SLOT)).text(),
-    settings: () => ({ quality: useSettingsStore.getState().quality }),
+    settings: () => ({ quality: useSettingsStore.getState().quality, volumes: { ...useSettingsStore.getState().volumes } }),
     npcState: (id) => {
       const rt = npcRuntime.get(id);
       return rt ? { x: rt.x, z: rt.z, yaw: rt.yaw, walking: rt.walking, talking: rt.talking } : null;
@@ -207,6 +210,7 @@ export function installDebugApi(): void {
         .map(([id, v]) => ({ id, x: v.ai.x, z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0 })),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
     tap: (code) => input.injectTap(code),
+    audio: () => ({ state: audio.state, played: { ...audio.played }, music: audio.musicPlaying, birds: audio.birds }),
     buildState: () => ({
       mode: useUiStore.getState().build,
       ghost: { x: buildRuntime.x, z: buildRuntime.z, yaw: buildRuntime.yaw, problem: buildRuntime.problem },

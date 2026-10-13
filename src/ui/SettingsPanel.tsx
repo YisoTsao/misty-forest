@@ -9,6 +9,35 @@ import { QualitySelector } from './QualitySelector';
 
 type Listening = { action: ActionId; slot: 0 | 1 };
 
+/** 音量（規格 6.9：設定含音量）：主音量、音樂、音效（含環境音） */
+function VolumeSliders() {
+  const volumes = useSettingsStore((s) => s.volumes);
+  const setVolume = useSettingsStore((s) => s.setVolume);
+  return (
+    <section className="text-sm">
+      <h3 className="mb-1 px-1 font-bold opacity-80">{t('settings.volume')}</h3>
+      <div className="flex flex-col gap-1.5 px-1">
+        {(['master', 'music', 'sfx'] as const).map((channel) => (
+          <label key={channel} className="flex items-center gap-3">
+            <span className="w-14 shrink-0 opacity-80">{t(`settings.volume.${channel}`)}</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={volumes[channel]}
+              data-testid={`volume-${channel}`}
+              onChange={(e) => setVolume(channel, Number(e.target.value))}
+              className="flex-1 accent-amber-400"
+            />
+            <span className="w-10 text-right font-mono text-xs">{Math.round(volumes[channel] * 100)}</span>
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /**
  * 設定畫面（規格 6.9）：畫質與按鍵重新配置。從主選單或暫停選單開啟，Esc 或「完成」關閉。
  * 音量於 Phase 5 加入音效時一起提供。
@@ -89,6 +118,7 @@ function SettingsWindow() {
           <h3 className="mb-1 px-1 font-bold opacity-80">{t('settings.quality')}</h3>
           <QualitySelector />
         </section>
+        <VolumeSliders />
         <section className="text-sm">
           <div className="mb-1 flex items-end justify-between px-1">
             <h3 className="font-bold opacity-80">{t('settings.keys')}</h3>

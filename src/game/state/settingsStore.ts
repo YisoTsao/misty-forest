@@ -12,9 +12,14 @@ import { saveStorage } from '../save/storages';
 
 export const defaultBindings: Bindings = parseBindings(keybindings);
 
+export type Volumes = { master: number; music: number; sfx: number };
+export const defaultVolumes: Volumes = { master: 0.8, music: 0.5, sfx: 0.8 };
+
 type SettingsState = {
   quality: QualityLevel;
   bindings: Bindings;
+  volumes: Volumes;
+  setVolume: (channel: keyof Volumes, value: number) => void;
   setQuality: (quality: QualityLevel) => void;
   /** 重新配置一個按鍵；結果（含錯誤）回傳給設定畫面顯示 */
   setBinding: (action: ActionId, slot: 0 | 1, code: string | null) => RebindResult;
@@ -25,13 +30,18 @@ type SettingsState = {
 const urlQuality = new URLSearchParams(window.location.search).get('quality');
 
 function persist(state: SettingsState): void {
-  const data: SettingsData = { version: SETTINGS_VERSION, quality: state.quality, bindings: state.bindings };
+  const data: SettingsData = { version: SETTINGS_VERSION, quality: state.quality, bindings: state.bindings, volumes: state.volumes };
   saveStorage.write(SETTINGS_SLOT, data).catch((err: unknown) => console.error('[settings] 設定存檔失敗：', err));
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   quality: isQualityLevel(urlQuality) ? urlQuality : 'high',
   bindings: defaultBindings,
+  volumes: defaultVolumes,
+  setVolume: (channel, value) => {
+    set({ volumes: { ...get().volumes, [channel]: Math.min(1, Math.max(0, value)) } });
+    persist(get());
+  },
   setQuality: (quality) => {
     set({ quality });
     persist(get());
@@ -60,8 +70,9 @@ export async function loadSettings(): Promise<void> {
     return settings;
   });
   if (outcome.status === 'ok' || outcome.status === 'restored-from-backup') {
-    const { quality, bindings } = outcome.value;
+    const { quality, bindings, volumes } = outcome.value;
     if (!isQualityLevel(urlQuality)) useSettingsStore.setState({ quality });
+    if (volumes) useSettingsStore.setState({ volumes });
     const merged = bindings ? parseSavedBindings(bindings, defaultBindings) : null;
     if (merged) {
       useSettingsStore.setState({ bindings: merged });

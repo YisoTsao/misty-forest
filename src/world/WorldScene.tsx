@@ -9,6 +9,7 @@ import { PostEffects } from '@/render/PostEffects';
 import { AssetBoundary } from './AssetBoundary';
 import { DebugCameraRig } from './camera/DebugCameraRig';
 import { FollowCamera } from './camera/FollowCamera';
+import { AudioSystem } from './AudioSystem';
 import { GameClock } from './GameClock';
 import { TutorialSystem } from './TutorialSystem';
 import { RegionTracker } from './RegionTracker';
@@ -79,6 +80,7 @@ export function WorldScene({ data }: { data: WorldData }) {
       {cameraMode === 'follow' && onTitle && <TitleCameraRig />}
       {cameraMode === 'free' && <DebugCameraRig />}
       <PostEffects />
+      <AudioSystem />
       <PerfProbe />
     </>
   );

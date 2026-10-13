@@ -16,6 +16,8 @@
 | 雲：cloud_big、cloud_small | `public/models/kaykit-hexagon/` | 同上 | CC0 1.0 | 可 | 可（不強制署名） | 天空中緩慢飄移的雲 | 正式使用 |
 | 寶箱（chest） | `public/models/props/kaykit-dungeon/chest.glb` | KayKit Dungeon Remastered 1.0，Kay Lousberg；取自 [GitHub](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0) | CC0 1.0（授權檔同目錄 `LICENSE.txt`） | 可 | 可（不強制署名） | 可互動寶箱（含可動的蓋子節點 `chest_lid`） | 正式使用 |
 
-程式產生（不需授權）：地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火（`render/proceduralModels.ts`）、迷霧生物、星光夥伴、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層。
+| 音效（腳步、砍樹、敲石頭、拾取、寶箱、任務、建造、戰鬥、介面等 46 個） | `public/audio/kenney/` | Kenney：RPG Audio、Impact Sounds、Interface Sounds（kenney.nl） | CC0 1.0（授權檔同目錄 `License_*.txt`） | 可 | 可（不強制署名） | 音效（`game/audio/sounds.ts`） | 正式使用 |
+
+程式產生（不需授權）：環境音（風、鳥叫、迷霧嗡鳴、水聲）與背景音樂（Web Audio 合成，`game/audio/audioEngine.ts`）、地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火（`render/proceduralModels.ts`）、迷霧生物、星光夥伴、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層。
 
 參考圖請放在 `docs/art/reference/`（目前尚未提供）。

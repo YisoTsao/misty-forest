@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { isInAttackArea, PLAYER_STATS } from '@/game-core/combat/combat';
 import { currentScreen } from '@/game/state/gameStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
+import { audio } from '@/game/audio/audioEngine';
 import { authority } from '@/game/authority';
 import { combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
@@ -81,11 +82,14 @@ export function PlayerCombat() {
       pending.push({ kind: 'skill', delay: PLAYER_STATS.skill.hitDelay });
       const { x, y, z } = playerRuntime.position;
       combatRuntime.skillFx = { x, y, z, age: -PLAYER_STATS.skill.hitDelay };
+      audio.play('skill');
+      audio.sparkle();
       playerRuntime.locomotion.vx = playerRuntime.locomotion.vz = 0;
     } else if (attackPressed && combatRuntime.attackCooldown <= 0) {
       combatRuntime.attackCooldown = PLAYER_STATS.attack.cooldown;
       playerRuntime.action = { clip: 'attack', remaining: ACTION_SEC.attack };
       pending.push({ kind: 'attack', delay: PLAYER_STATS.attack.hitDelay });
+      audio.play('swing');
       playerRuntime.locomotion.vx = playerRuntime.locomotion.vz = 0;
     }
   });

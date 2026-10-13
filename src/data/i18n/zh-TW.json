@@ -277,5 +277,9 @@
   "build.removeNone": "前面沒有可以拆的東西",
   "build.removeTarget": "拆除 {name}",
   "build.removed": "拆除了 {name}，退還材料",
-  "hud.cozy": "營火很溫暖，體力恢復加快"
+  "hud.cozy": "營火很溫暖，體力恢復加快",
+  "settings.volume": "音量",
+  "settings.volume.master": "主音量",
+  "settings.volume.music": "音樂",
+  "settings.volume.sfx": "音效"
 }

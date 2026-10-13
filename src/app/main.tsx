@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { installDebugApi } from '@/game/debugApi';
+import { installAudioUnlock } from '@/game/audio/audioEngine';
+import { installAudioFeedback } from '@/game/audio/audioFeedback';
 import { installCombatRuntime } from '@/game/combat/combatRuntime';
 import { installCompanion } from '@/game/companion/companionRuntime';
 import { installEventFeedback } from '@/game/eventFeedback';
@@ -17,6 +19,8 @@ installDebugApi();
 installEventFeedback();
 installCombatRuntime();
 installCompanion();
+installAudioUnlock();
+installAudioFeedback();
 installAutosave();
 // 啟動時檢查存檔（主選單顯示「繼續遊戲」或損壞提示）；讀取失敗不影響啟動
 void loadMainSave();

@@ -314,6 +314,8 @@ describe('設定存檔', () => {
   it('接受合法設定，格式不符時回傳 null', () => {
     expect(parseSettings({ version: 1, quality: 'low' })).toEqual({ version: 1, quality: 'low' });
     expect(parseSettings({ version: 1, quality: 'ultra' })).toBeNull();
+    expect(parseSettings({ version: 1, quality: 'low', volumes: { master: 0.5, music: 0, sfx: 1 } })?.volumes?.music).toBe(0);
+    expect(parseSettings({ version: 1, quality: 'low', volumes: { master: 2, music: 0, sfx: 1 } })).toBeNull();
     expect(parseSettings(null)).toBeNull();
   });
 });
