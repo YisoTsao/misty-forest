@@ -1,0 +1,19 @@
+appId: com.mistwood.game
+productName: Mistwood
+directories:
+  output: release
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+asar: true
+mac:
+  category: public.app-category.games
+  target: [dmg]
+  # 簽章與公證於 Phase 5 處理（規格 D-04）
+  identity: null
+win:
+  target: [nsis]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

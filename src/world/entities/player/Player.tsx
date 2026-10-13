@@ -1,0 +1,159 @@
+import { useFrame } from '@react-three/fiber';
+import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
+import { useEffect, useMemo, useRef, type RefObject } from 'react';
+import type * as THREE from 'three';
+import type { CharacterDef } from '@/game-core/character/characterDef';
+import { initialLocomotionState, stepLocomotion } from '@/game-core/character/locomotion';
+import { isControllable } from '@/game-core/flow/gameFlow';
+import { movementAxes } from '@/game-core/input/actions';
+import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
+import { SPAWN_POINT, TERRAIN_SIZE, terrainHeight } from '@/game-core/world/terrain';
+import { input } from '@/game/input/inputManager';
+import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
+import { currentScreen } from '@/game/state/gameStore';
+import { isModalOpen } from '@/game/state/uiStore';
+import { AssetBoundary } from '../../AssetBoundary';
+import { CharacterModel } from './CharacterModel';
+
+const MAX_DT = 1 / 20;
+/** 低於此高度視為掉出地圖 */
+const KILL_Y = -25;
+const deg = Math.PI / 180;
+const safePointOptions = { ...defaultSafePointOptions, halfExtent: TERRAIN_SIZE / 2 };
+const NO_MOVE = { right: 0, forward: 0, run: false, jumpPressed: false };
+
+type KinematicCharacterController = ReturnType<ReturnType<typeof useRapier>['world']['createCharacterController']>;
+
+function spawnCenter(def: CharacterDef): { x: number; y: number; z: number } {
+  const { radius, halfHeight } = def.capsule;
+  return { x: SPAWN_POINT.x, y: terrainHeight(SPAWN_POINT.x, SPAWN_POINT.z) + halfHeight + radius + 0.05, z: SPAWN_POINT.z };
+}
+
+/**
+ * 玩家：Rapier kinematic 角色控制器 + 膠囊碰撞（規格 6.1）。
+ * 移動量由 game-core 的 stepLocomotion 決定，碰撞修正交給控制器。
+ * 外觀與剛體分開，直接依本幀計算的位置擺放，避免與攝影機產生一幀落差。
+ */
+export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: RefObject<RapierCollider | null> }) {
+  const { world } = useRapier();
+  const bodyRef = useRef<RapierRigidBody>(null);
+  const visualRef = useRef<THREE.Group>(null);
+  const spawn = useMemo(() => spawnCenter(def), [def]);
+  const footOffset = def.capsule.halfHeight + def.capsule.radius;
+
+  // 在 effect 內建立並於 cleanup 釋放：StrictMode（開發模式）會執行「掛載 → 卸載 → 再掛載」，
+  // 若用 useMemo 建立，第二次掛載會拿到已被釋放的控制器，之後每幀都會拋錯。
+  const controllerRef = useRef<KinematicCharacterController | null>(null);
+  useEffect(() => {
+    const c = world.createCharacterController(0.02);
+    c.enableAutostep(0.35, 0.15, false);
+    c.enableSnapToGround(0.4);
+    c.setMaxSlopeClimbAngle(50 * deg);
+    c.setMinSlopeSlideAngle(55 * deg);
+    c.setApplyImpulsesToDynamicBodies(true);
+    controllerRef.current = c;
+    return () => {
+      controllerRef.current = null;
+      world.removeCharacterController(c);
+    };
+  }, [world]);
+
+  useEffect(() => {
+    Object.assign(playerRuntime.position, spawn);
+    playerRuntime.safePoints = createSafePointTrail(spawn);
+  }, [spawn]);
+
+  useFrame((_, rawDt) => {
+    const body = bodyRef.current;
+    const collider = colliderRef.current;
+    const controller = controllerRef.current;
+    if (!body || !collider || !controller) return;
+    const dt = Math.min(rawDt, MAX_DT);
+    const screen = currentScreen();
+    // 暫停：角色與動作計時完全停住
+    if (screen === 'paused') return;
+
+    if (playerRuntime.newGameRequest) {
+      // 新遊戲：回到出生點、面向北方，清除安全點與進行中的動作
+      playerRuntime.newGameRequest = false;
+      playerRuntime.action = null;
+      playerRuntime.locomotion = initialLocomotionState(Math.PI);
+      playerRuntime.safePoints = createSafePointTrail(spawn);
+      body.setTranslation(spawn, true);
+      Object.assign(playerRuntime.position, spawn);
+      return;
+    }
+
+    const action = playerRuntime.action;
+    if (action) {
+      action.remaining -= dt;
+      if (action.remaining <= 0) playerRuntime.action = null;
+    }
+    // 互動動作中、視窗開啟時或主選單中不接受移動輸入（仍持續套用重力與減速）
+    const jumpPressed = input.consumePressed('jump');
+    const blocked = action !== null || isModalOpen() || !isControllable(screen);
+    const move = blocked
+      ? NO_MOVE
+      : { ...movementAxes((a) => input.isDown(a)), run: input.isDown('run'), jumpPressed };
+    const { state, delta } = stepLocomotion(
+      playerRuntime.locomotion,
+      move,
+      cameraRuntime.yaw,
+      playerRuntime.locomotion.grounded,
+      def.locomotion,
+      dt,
+    );
+
+    controller.computeColliderMovement(collider, delta);
+    const moved = controller.computedMovement();
+    state.grounded = controller.computedGrounded();
+    // 撞到天花板時停止上升
+    if (delta.y > 0 && moved.y < delta.y * 0.5) state.vy = 0;
+
+    const t = body.translation();
+    const next = { x: t.x + moved.x, y: t.y + moved.y, z: t.z + moved.z };
+
+    const teleport = playerRuntime.teleportRequest;
+    const fellOut = next.y < KILL_Y;
+    if (teleport) {
+      Object.assign(next, { x: teleport.x, y: terrainHeight(teleport.x, teleport.z) + footOffset + 0.05, z: teleport.z });
+    } else if (fellOut) {
+      // 掉出地圖：回到離掉落處最近、曾經站穩過的安全點（規格 6.1）
+      const to = nearestSafePoint(playerRuntime.safePoints, next, spawn);
+      Object.assign(next, { x: to.x, y: to.y + 0.05, z: to.z });
+      playerRuntime.respawnCount++;
+    }
+    if (teleport || fellOut) {
+      state.vx = state.vy = state.vz = 0;
+      body.setTranslation(next, true);
+      playerRuntime.teleportRequest = null;
+      playerRuntime.safePoints.groundedFor = 0;
+    } else {
+      body.setNextKinematicTranslation(next);
+      recordSafePoint(playerRuntime.safePoints, next, state.grounded, dt, safePointOptions);
+    }
+
+    playerRuntime.locomotion = state;
+    Object.assign(playerRuntime.position, next);
+
+    const visual = visualRef.current;
+    if (visual) {
+      visual.position.set(next.x, next.y - footOffset, next.z);
+      visual.rotation.y = state.facingYaw;
+    }
+  });
+
+  return (
+    <>
+      <RigidBody ref={bodyRef} type="kinematicPosition" colliders={false} position={[spawn.x, spawn.y, spawn.z]} enabledRotations={[false, false, false]}>
+        <CapsuleCollider ref={colliderRef} args={[def.capsule.halfHeight, def.capsule.radius]} />
+      </RigidBody>
+      <group ref={visualRef} position={[spawn.x, spawn.y - footOffset, spawn.z]} rotation-y={playerRuntime.locomotion.facingYaw}>
+        {/* 不另設 Suspense：角色載入完成前場景不標記就緒 */}
+        <AssetBoundary name={`character:${def.id}`}>
+          <CharacterModel def={def} />
+        </AssetBoundary>
+      </group>
+    </>
+  );
+}

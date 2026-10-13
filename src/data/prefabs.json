@@ -1,0 +1,298 @@
+[
+  {
+    "id": "tree_round",
+    "model": "models/kaykit-hexagon/tree_single_A.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.085,
+      "height": 0.6
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600
+    },
+    "persists": true
+  },
+  {
+    "id": "tree_tall",
+    "model": "models/kaykit-hexagon/tree_single_B.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.09,
+      "height": 0.6
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600
+    },
+    "persists": true
+  },
+  {
+    "id": "rock_flat",
+    "model": "models/kaykit-hexagon/rock_single_A.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.13,
+      "height": 0.07
+    },
+    "persists": false
+  },
+  {
+    "id": "rock_round",
+    "model": "models/kaykit-hexagon/rock_single_B.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.12,
+      "height": 0.13
+    },
+    "interaction": "harvest",
+    "nameKey": "object.rock",
+    "harvest": {
+      "lootTableId": "stone_basic",
+      "respawnSec": 900
+    },
+    "persists": true
+  },
+  {
+    "id": "rock_tall",
+    "model": "models/kaykit-hexagon/rock_single_C.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.14,
+      "height": 0.19
+    },
+    "interaction": "harvest",
+    "nameKey": "object.rock",
+    "harvest": {
+      "lootTableId": "stone_basic",
+      "respawnSec": 900
+    },
+    "persists": true
+  },
+  {
+    "id": "chest_wood",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.chest",
+    "interactRadius": 1.8,
+    "persists": true
+  },
+  {
+    "id": "house_small_blue",
+    "model": "models/kaykit-hexagon/building_home_A_blue.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.7,
+        0.9,
+        0.75
+      ],
+      "offset": [
+        0,
+        0,
+        -0.04
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "house_small_yellow",
+    "model": "models/kaykit-hexagon/building_home_A_yellow.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.7,
+        0.9,
+        0.75
+      ],
+      "offset": [
+        0,
+        0,
+        -0.04
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "house_tall_red",
+    "model": "models/kaykit-hexagon/building_home_B_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.75,
+        1.2,
+        0.9
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "tavern",
+    "model": "models/kaykit-hexagon/building_tavern_green.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.0,
+        1.3,
+        1.1
+      ],
+      "offset": [
+        0,
+        0,
+        -0.03
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "well",
+    "model": "models/kaykit-hexagon/building_well_blue.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.3,
+      "height": 0.8
+    },
+    "persists": false
+  },
+  {
+    "id": "windmill",
+    "model": "models/kaykit-hexagon/building_windmill_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.6,
+        1.4,
+        0.6
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "fence_wood",
+    "model": "models/kaykit-hexagon/fence_wood_straight.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.12,
+        0.55,
+        1.15
+      ],
+      "offset": [
+        -1.0,
+        0,
+        0
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "barrel",
+    "model": "models/kaykit-hexagon/barrel.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.1,
+      "height": 0.21
+    },
+    "persists": false
+  },
+  {
+    "id": "crate_big",
+    "model": "models/kaykit-hexagon/crate_A_big.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.21,
+        0.21,
+        0.21
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "crate_small",
+    "model": "models/kaykit-hexagon/crate_A_small.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.14,
+        0.14,
+        0.14
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "wheelbarrow",
+    "model": "models/kaykit-hexagon/wheelbarrow.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.24,
+        0.19,
+        0.5
+      ],
+      "offset": [
+        0,
+        0,
+        0.045
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "lumber_pile",
+    "model": "models/kaykit-hexagon/resource_lumber.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.69,
+        0.21,
+        0.33
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "sack",
+    "model": "models/kaykit-hexagon/sack.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "bucket_water",
+    "model": "models/kaykit-hexagon/bucket_water.gltf",
+    "collider": "none",
+    "persists": false
+  }
+]
