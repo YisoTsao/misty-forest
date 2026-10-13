@@ -8,7 +8,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 
 **環境注意**：這台機器的 `pnpm` 預設會用到 Node 12（`~/Library/pnpm/node`），執行前先 `export PATH=~/.nvm/versions/node/v24.13.0/bin:$PATH`。若 `pnpm test` 出現 rolldown「Cannot find native binding」，執行 `pnpm install --force`。
 
-**背景執行**：`pnpm e2e` 與 `scripts/screenshot.mjs` 的遊戲視窗預設在背景（不搶焦點、排在使用者目前視窗後面，T-85）；需要前景（實測滑鼠鎖定）時加 `MISTWOOD_FOREGROUND=1`。`scripts/perf.mjs` 仍在前景。
+**背景執行**：`pnpm e2e` 與 `scripts/screenshot.mjs` 的遊戲視窗預設在背景（不搶焦點、排在所有視窗後面，T-85）；需要前景（實測滑鼠鎖定）時加 `MISTWOOD_FOREGROUND=1`。`scripts/perf.mjs` 仍在前景。
 
 ## 在另一台電腦續作
 1. `git clone https://github.com/YisoTsao/misty-forest.git && cd misty-forest`

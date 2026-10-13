@@ -21,18 +21,21 @@ if (background) {
 }
 
 /**
- * macOS：目前螢幕上最前面的視窗正下方那個視窗（CGWindowID）。背景執行時把遊戲視窗插到它上面，
- * 也就是使用者正在用的視窗後面：看得到遊戲視窗，但不會蓋住使用者的畫面。讀取視窗編號不需要額外權限。
+ * macOS：螢幕上最底層的一般應用程式視窗（CGWindowID）。背景執行時把遊戲視窗插到它上面，
+ * 也就是幾乎所有視窗的後面：不會蓋住使用者的畫面。讀取視窗編號不需要額外權限。
  */
-function secondWindowId(): Promise<number | null> {
+function bottomWindowId(): Promise<number | null> {
   const script = `ObjC.import('CoreGraphics');
 const list = ObjC.castRefToObject($.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly | $.kCGWindowListExcludeDesktopElements, 0));
 const ids = [];
 for (let i = 0; i < list.count; i++) {
   const w = list.objectAtIndex(i);
-  if (w.objectForKey('kCGWindowLayer').js === 0 && w.objectForKey('kCGWindowOwnerPID').js !== ${process.pid}) ids.push(w.objectForKey('kCGWindowNumber').js);
+  const owner = w.objectForKey('kCGWindowOwnerName').js;
+  const b = w.objectForKey('kCGWindowBounds');
+  const big = b.objectForKey('Width').js > 100 && b.objectForKey('Height').js > 100;
+  if (w.objectForKey('kCGWindowLayer').js === 0 && big && owner !== 'Dock' && owner !== 'Window Server' && w.objectForKey('kCGWindowOwnerPID').js !== ${process.pid}) ids.push(w.objectForKey('kCGWindowNumber').js);
 }
-ids.length > 1 ? String(ids[1]) : '';`;
+ids.length > 0 ? String(ids[ids.length - 1]) : '';`;
   return new Promise((resolve) => {
     execFile('osascript', ['-l', 'JavaScript', '-e', script], { timeout: 3000 }, (err, stdout) => {
       const id = Number(stdout.trim());
@@ -41,17 +44,21 @@ ids.length > 1 ? String(ids[1]) : '';`;
   });
 }
 
-/** 顯示視窗但不搶焦點，並放到使用者目前視窗的後面 */
+/**
+ * 顯示視窗但不搶焦點，並放到最底層。先以透明顯示、排到最後面之後才變成可見，
+ * 避免顯示的那一瞬間出現在最上層。
+ */
 async function showInBackground(win: BrowserWindow): Promise<void> {
-  const below = process.platform === 'darwin' ? await secondWindowId() : null;
+  const bottom = process.platform === 'darwin' ? await bottomWindowId() : null;
+  if (bottom !== null) win.setOpacity(0);
   win.showInactive();
-  if (below !== null) {
-    try {
-      win.moveAbove(`window:${below}:0`);
-    } catch (err) {
-      console.warn('無法調整視窗順序', err);
-    }
+  if (bottom === null) return;
+  try {
+    win.moveAbove(`window:${bottom}:0`);
+  } catch (err) {
+    console.warn('無法調整視窗順序', err);
   }
+  setTimeout(() => win.setOpacity(1), 100);
 }
 
 function createWindow(): void {
