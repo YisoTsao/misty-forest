@@ -1,5 +1,18 @@
+import padBindingsData from '@/data/gamepad.json';
 import type { ActionId, Bindings } from '@/game-core/input/actions';
+import { parsePadBindings } from '@/game-core/input/gamepad';
 import { t } from '../i18n';
+import { useInputDeviceStore } from './device';
+
+const padBindings = parsePadBindings(padBindingsData);
+/** standard mapping 的按鈕名稱（Xbox 標示） */
+const padNames = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT', 'View', 'Menu', 'L3', 'R3'];
+const padDpad = ['key.padUp', 'key.padDown', 'key.padLeft', 'key.padRight'];
+
+/** 手把按鈕編號 → 顯示用名稱 */
+export function padLabel(button: number): string {
+  return padNames[button] ?? (padDpad[button - 12] ? t(padDpad[button - 12]!) : `Pad ${button}`);
+}
 
 const special: Record<string, string> = {
   Space: 'key.space',
@@ -36,8 +49,10 @@ export function keyLabel(code: string): string {
   return code;
 }
 
-/** 動作的主要按鍵名稱；未設定時回傳「未設定」 */
+/** 動作的主要按鍵名稱；最近使用手把時顯示手把按鈕。未設定時回傳「未設定」 */
 export function actionKey(bindings: Bindings, action: ActionId): string {
+  const pad = padBindings[action]?.[0];
+  if (useInputDeviceStore.getState().device === 'gamepad' && pad !== undefined) return padLabel(pad);
   const code = bindings[action][0];
   return code ? keyLabel(code) : t('key.unbound');
 }
@@ -46,7 +61,12 @@ export function actionKey(bindings: Bindings, action: ActionId): string {
 export function keyVars(bindings: Bindings): Record<string, string> {
   const dirs = (['moveForward', 'moveLeft', 'moveBack', 'moveRight'] as const).map((a) => actionKey(bindings, a));
   // 四個方向都是單一字母時連在一起（WASD），否則以斜線分隔
-  const move = dirs.every((d) => d.length === 1) ? dirs.join(' ') : dirs.join(' / ');
+  const move =
+    useInputDeviceStore.getState().device === 'gamepad'
+      ? t('key.padStick')
+      : dirs.every((d) => d.length === 1)
+        ? dirs.join(' ')
+        : dirs.join(' / ');
   return {
     move,
     run: actionKey(bindings, 'run'),
@@ -58,5 +78,6 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     companion: actionKey(bindings, 'companion'),
     build: actionKey(bindings, 'build'),
     rotate: actionKey(bindings, 'rotate'),
+    pause: useInputDeviceStore.getState().device === 'gamepad' ? 'Menu' : t('key.escape'),
   };
 }

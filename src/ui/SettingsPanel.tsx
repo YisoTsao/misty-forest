@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { rebindableActions, type ActionId } from '@/game-core/input/actions';
 import { t } from '@/game/i18n';
-import { keyLabel } from '@/game/input/keyLabels';
+import { keyLabel, padLabel } from '@/game/input/keyLabels';
+import padBindings from '@/data/gamepad.json';
 import { useGameStore } from '@/game/state/gameStore';
 import { useSettingsStore } from '@/game/state/settingsStore';
 import { useUiStore } from '@/game/state/uiStore';
@@ -84,6 +85,7 @@ function SettingsWindow() {
         return;
       }
       if (e.code === 'Escape') setListening(null);
+      else if (/^Pad\d+$/.test(e.code)) return; // 手把按鈕不能指定給鍵盤動作（手把為固定配置）
       else if (e.code === 'Backspace') assign(null);
       else assign(e.code);
     };
@@ -108,7 +110,7 @@ function SettingsWindow() {
       <div
         role="dialog"
         aria-labelledby="settings-title"
-        data-testid="settings"
+        data-testid="settings" data-pad-scope
         className="flex max-h-[92vh] w-[min(94vw,34rem)] flex-col gap-4 overflow-y-auto rounded-2xl bg-slate-900 p-6 text-white shadow-2xl"
       >
         <h2 id="settings-title" className="text-center text-2xl font-bold">
@@ -165,10 +167,45 @@ function SettingsWindow() {
             </p>
           )}
         </section>
+        <GamepadLayout />
         <button type="button" data-testid="settings-close" onClick={close} className="rounded-full bg-amber-400 py-2 font-bold text-amber-950 hover:bg-amber-300">
           {t('settings.close')}
         </button>
       </div>
     </div>
+  );
+}
+
+/** 手把配置（固定，不開放修改）：按鈕 → 動作 */
+function GamepadLayout() {
+  const rows = rebindableActions.flatMap((action) => {
+    const buttons = (padBindings as Partial<Record<ActionId, number[]>>)[action];
+    return buttons?.length ? [{ action, label: buttons.map(padLabel).join(' / ') }] : [];
+  });
+  return (
+    <section className="text-sm" data-testid="settings-gamepad">
+      <h3 className="mb-1 px-1 font-bold opacity-80">{t('settings.gamepad')}</h3>
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-1 px-1">
+        <li className="flex justify-between gap-2">
+          <span>{t('settings.gamepad.move')}</span>
+          <span className="opacity-80">{t('key.padStick')}</span>
+        </li>
+        <li className="flex justify-between gap-2">
+          <span>{t('settings.gamepad.look')}</span>
+          <span className="opacity-80">{t('key.padRightStick')}</span>
+        </li>
+        {rows.map((r) => (
+          <li key={r.action} className="flex justify-between gap-2">
+            <span>{t(`action.${r.action}`)}</span>
+            <span className="opacity-80">{r.label}</span>
+          </li>
+        ))}
+        <li className="flex justify-between gap-2">
+          <span>{t('settings.gamepad.pause')}</span>
+          <span className="opacity-80">Menu</span>
+        </li>
+      </ul>
+      <p className="mt-1 px-1 text-xs opacity-60">{t('settings.gamepad.hint')}</p>
+    </section>
   );
 }

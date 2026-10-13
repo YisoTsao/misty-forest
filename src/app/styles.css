@@ -63,3 +63,10 @@ body,
 .damage-player {
   color: #ff6b6b;
 }
+
+/* 手把選取中的按鈕（padUi.ts）：滑鼠操作不受影響 */
+.pad-focus {
+  outline: 3px solid #fcd34d;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgb(252 211 77 / 0.35);
+}

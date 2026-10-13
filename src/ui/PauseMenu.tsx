@@ -65,7 +65,7 @@ export function PauseMenu() {
       <div
         role="dialog"
         aria-labelledby="pause-title"
-        data-testid="pause-menu"
+        data-testid="pause-menu" data-pad-scope
         className="flex w-80 flex-col gap-3 rounded-2xl bg-slate-900/85 p-6 text-white shadow-2xl"
       >
         <h2 id="pause-title" className="mb-2 text-center text-2xl font-bold">

@@ -77,7 +77,7 @@ function BuildMenu() {
   }, []);
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/25">
-      <div role="dialog" data-testid="build-menu" className="w-[min(94vw,40rem)] rounded-2xl border-4 border-amber-200 bg-amber-50 p-5 text-amber-950 shadow-2xl">
+      <div role="dialog" data-testid="build-menu" data-pad-scope className="w-[min(94vw,40rem)] rounded-2xl border-4 border-amber-200 bg-amber-50 p-5 text-amber-950 shadow-2xl">
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="text-xl font-bold">{t('build.title')}</h2>
           <span className="text-xs opacity-60">{t('build.menuHint', keyVars(bindings))}</span>

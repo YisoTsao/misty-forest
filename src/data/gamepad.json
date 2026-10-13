@@ -1,0 +1,11 @@
+{
+  "jump": [0],
+  "run": [1, 6, 10],
+  "attack": [2, 7],
+  "interact": [3],
+  "skill": [5],
+  "companion": [4],
+  "inventory": [8],
+  "build": [12],
+  "rotate": [15]
+}

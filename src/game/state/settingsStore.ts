@@ -5,6 +5,7 @@ import { loadWithFallback } from '@/game-core/save/load';
 import { SETTINGS_SLOT } from '@/game-core/save/schema';
 import { isQualityLevel, qualityPresets, type QualityLevel, type QualityPreset } from '@/game-core/settings/quality';
 import { parseSettings, SETTINGS_VERSION, type SettingsData } from '@/game-core/settings/settingsData';
+import { useInputDeviceStore } from '../input/device';
 import { input } from '../input/inputManager';
 import { saveStorage } from '../save/storages';
 
@@ -89,5 +90,7 @@ export function useQualityPreset(): QualityPreset {
 
 /** 目前按鍵設定下的提示文字變數（例如 {interact} → E） */
 export function useBindings(): Bindings {
+  // 提示文字依最近使用的裝置顯示鍵盤按鍵或手把按鈕（actionKey）：切換裝置時重新繪製
+  useInputDeviceStore((s) => s.device);
   return useSettingsStore((s) => s.bindings);
 }

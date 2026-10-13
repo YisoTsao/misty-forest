@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { t } from '@/game/i18n';
+import { useInputDeviceStore } from '@/game/input/device';
 import { keyVars } from '@/game/input/keyLabels';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStore } from '@/game/state/gameStore';
@@ -13,6 +14,8 @@ export function ControlHint() {
   const bindings = useBindings();
   // 對話、背包、訊息視窗開啟時不顯示，避免與視窗重疊
   const modal = useUiStore((s) => s.dialogue !== null || s.inventoryOpen || s.message !== null || s.build !== null);
+  // 手把不需要鎖定滑鼠：使用手把時不顯示「點擊畫面開始操作」
+  const gamepad = useInputDeviceStore((s) => s.device === 'gamepad');
   const [locked, setLocked] = useState(() => document.pointerLockElement !== null);
 
   useEffect(() => {
@@ -21,10 +24,10 @@ export function ControlHint() {
     return () => document.removeEventListener('pointerlockchange', onChange);
   }, []);
 
-  if (mode !== 'follow' || locked || !playing || modal) return null;
+  if (mode !== 'follow' || locked || !playing || modal || gamepad) return null;
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center">
-      <div className="rounded-full bg-black/45 px-5 py-2 text-sm text-white shadow">
+      <div data-testid="control-hint" className="rounded-full bg-black/45 px-5 py-2 text-sm text-white shadow">
         <span className="font-bold">{t('hint.clickToPlay')}</span>
         <span className="ml-3 opacity-85">{t('hint.controls', keyVars(bindings))}</span>
       </div>

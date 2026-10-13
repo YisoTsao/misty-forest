@@ -26,7 +26,7 @@ export function MessageDialog() {
       <div
         role="dialog"
         aria-labelledby="message-title"
-        data-testid="message-dialog"
+        data-testid="message-dialog" data-pad-scope
         className="w-[min(92vw,30rem)] rounded-2xl border-4 border-amber-200 bg-amber-50 p-6 text-amber-950 shadow-2xl"
       >
         <h2 id="message-title" className="mb-3 text-xl font-bold">

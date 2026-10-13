@@ -59,7 +59,7 @@ function DialogueWindow() {
       <div
         role="dialog"
         aria-label={view.speakerKey ? t(view.speakerKey) : undefined}
-        data-testid="dialogue"
+        data-testid="dialogue" data-pad-scope
         data-node={view.nodeId}
         onClick={view.options ? undefined : () => advanceTalk()}
         className={`relative w-[min(94vw,46rem)] rounded-2xl border-4 border-amber-200 bg-amber-50/95 px-7 pt-7 pb-5 text-amber-950 shadow-2xl ${

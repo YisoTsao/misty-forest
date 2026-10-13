@@ -5,7 +5,6 @@ import type * as THREE from 'three';
 import type { CharacterDef } from '@/game-core/character/characterDef';
 import { initialLocomotionState, stepLocomotion } from '@/game-core/character/locomotion';
 import { isControllable } from '@/game-core/flow/gameFlow';
-import { movementAxes } from '@/game-core/input/actions';
 import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
 import { LAKE, SPAWN_POINT, TERRAIN_SIZE, terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
 import { input } from '@/game/input/inputManager';
@@ -99,7 +98,7 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     const blocked = action !== null || isModalOpen() || !isControllable(screen);
     const move = blocked
       ? NO_MOVE
-      : { ...movementAxes((a) => input.isDown(a)), run: input.isDown('run'), jumpPressed };
+      : { ...input.moveAxes(), run: input.isDown('run'), jumpPressed };
     const { state, delta } = stepLocomotion(
       playerRuntime.locomotion,
       move,

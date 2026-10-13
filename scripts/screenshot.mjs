@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --gamepad：手把模式的互動提示（Y）、暫停選單的手把選取外框、設定畫面的手把配置（任務 5C）
 //   --tavern：酒館門口的提示、室內、和老闆娘對話（任務 5B）
 //   --build：湖心小島的建造選單、可放置 / 不可放置的預覽、蓋好的家園（任務 4A）、拆除工具與營火旁（任務 4B）
 //   --companion：打開序章寶箱後星光夥伴出現與打招呼、按 H 詢問提示（任務 3F）
@@ -18,6 +19,7 @@ import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
+import { appEnv } from '../e2e/lib.mjs';
 
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
@@ -33,13 +35,14 @@ const withCombat = flags.has('--combat');
 const withCompanion = flags.has('--companion');
 const withBuild = flags.has('--build');
 const withTavern = flags.has('--tavern');
+const withGamepad = flags.has('--gamepad');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
 
 const app = await electron.launch({
   args: ['.'],
-  env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: mkdtempSync(path.join(tmpdir(), 'mistwood-shot-')) },
+  env: appEnv({ MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: mkdtempSync(path.join(tmpdir(), 'mistwood-shot-')) }),
 });
 
 let exitCode = 0;
@@ -194,6 +197,44 @@ try {
     await page.waitForTimeout(700);
     await shot('tavern_molly');
     await page.keyboard.press('Escape');
+  }
+
+  if (withGamepad) {
+    const chest = JSON.parse(readFileSync('src/data/placements.json', 'utf8')).find((p) => p.id === 'meadow_chest_001');
+    const pad = (p) => page.evaluate((v) => window.__mistwoodDebug.setPad(v), p);
+    const press = async (b) => {
+      const buttons = [];
+      buttons[b] = 1;
+      await pad({ buttons });
+      await page.waitForTimeout(120);
+      await pad({});
+      await page.waitForTimeout(150);
+    };
+    await page.evaluate(([x, z]) => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+      d.setCameraMode('follow');
+      d.teleport(x + 0.5, z + 1.4);
+      d.face(x, z);
+      d.camera({ yaw: 0.5, pitch: 0.3, distance: 5 });
+    }, [chest.position[0], chest.position[2]]);
+    await pad({ axes: [0, 0, 0.001, 0] });
+    await press(13); // 任一手把輸入：提示改為手把按鈕
+    await page.waitForFunction((id) => window.__mistwoodDebug.interactTarget() === id, chest.id, { timeout: 5000 });
+    await page.waitForTimeout(500);
+    await shot('gamepad_prompt');
+    await press(9);
+    await press(13);
+    await page.waitForTimeout(300);
+    await shot('gamepad_pause_focus');
+    await page.locator('[data-testid="pause-settings"]').click();
+    await page.locator('[data-testid="settings-gamepad"]').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await shot('gamepad_settings');
+    await press(1);
+    await press(1);
+    await pad(null);
   }
 
   if (withBuild) {

@@ -32,7 +32,7 @@ function TitleMenu() {
 
   return (
     <div
-      data-testid="title-screen"
+      data-testid="title-screen" data-pad-scope
       className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-sky-900/10 via-transparent to-emerald-950/45"
     >
       <div className="rounded-3xl bg-slate-900/25 px-12 py-6 backdrop-blur-[2px]">

@@ -64,7 +64,7 @@ function InventoryWindow() {
       <div
         role="dialog"
         aria-labelledby="inventory-title"
-        data-testid="inventory"
+        data-testid="inventory" data-pad-scope
         onClick={(e) => e.stopPropagation()}
         className="flex gap-5 rounded-2xl border-4 border-amber-200 bg-amber-50 p-5 text-amber-950 shadow-2xl"
       >
