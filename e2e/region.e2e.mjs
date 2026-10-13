@@ -122,6 +122,7 @@ await runE2e('region e2e（2/2 讀檔）', { query: 'debug=1', env }, async ({ p
     await page.locator('[data-testid="title-continue"]').click();
     await page.locator('[data-testid="title-screen"]').waitFor({ state: 'detached', timeout: 5000 });
     assert.equal((await debug(() => window.__mistwoodDebug.mistStages())).forest, 'clear');
+    await page.waitForTimeout(400); // 存檔位置在下一幀套用
     assert.equal(await debug(() => window.__mistwoodDebug.region()), 'forest');
     await page.waitForTimeout(2000);
     assert.ok((await debug(() => window.__mistwoodDebug.mist())).current < 0.05);

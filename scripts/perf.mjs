@@ -15,7 +15,7 @@ const args = process.argv.slice(2);
 const soakIndex = args.indexOf('--soak');
 const soakSec = soakIndex >= 0 ? Number(args[soakIndex + 1]) : 180;
 
-const VIEWS = ['follow', 'meadow', 'village', 'forest', 'overlook'];
+const VIEWS = ['follow', 'meadow', 'village', 'forest', 'lake', 'overlook'];
 const QUALITIES = ['low', 'medium', 'high'];
 const SAMPLE_MS = 3000;
 
@@ -63,7 +63,7 @@ const fmt = (n, d = 0) => n.toFixed(d);
 // 1 + 2：一般模式（受 vsync 限制）
 let coldStartMs = 0;
 for (const quality of QUALITIES) {
-  const { app, page, readyMs } = await launch(`debug=1&play=1&quality=${quality}`);
+  const { app, page, readyMs } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}`);
   if (quality === 'high') coldStartMs = readyMs;
   for (const view of VIEWS) {
     await setView(page, view);
@@ -74,7 +74,7 @@ for (const quality of QUALITIES) {
 
 // 3：不限幀率
 for (const quality of QUALITIES) {
-  const { app, page } = await launch(`debug=1&play=1&quality=${quality}`, ['--disable-gpu-vsync', '--disable-frame-rate-limit']);
+  const { app, page } = await launch(`debug=1&play=1&peaceful=1&quality=${quality}`, ['--disable-gpu-vsync', '--disable-frame-rate-limit']);
   for (const view of VIEWS) {
     await setView(page, view);
     const s = await sample(page);
@@ -87,7 +87,7 @@ for (const quality of QUALITIES) {
 // 4：連續遊玩（高畫質）：沿小路往返跑步，每 15 秒記錄一次
 const soak = [];
 {
-  const { app, page } = await launch('debug=1&play=1&quality=high');
+  const { app, page } = await launch('debug=1&play=1&peaceful=1&quality=high');
   await page.evaluate(() => {
     const d = window.__mistwoodDebug;
     d.setCameraMode('follow');

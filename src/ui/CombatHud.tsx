@@ -28,7 +28,13 @@ export function CombatHud() {
       if (cooldownRef.current) cooldownRef.current.style.height = `${Math.max(0, skill) * 100}%`;
       const attack = combatRuntime.attackCooldown / PLAYER_STATS.attack.cooldown;
       if (attackRef.current) attackRef.current.style.height = `${Math.max(0, attack) * 100}%`;
-      if (vignetteRef.current) vignetteRef.current.style.opacity = String(Math.min(1, combatRuntime.hurtFlash / 0.35));
+      const v = vignetteRef.current;
+      if (v) {
+        // 全螢幕的 inset 陰影即使透明也會佔用合成，沒受傷時直接隱藏
+        const flash = Math.min(1, combatRuntime.hurtFlash / 0.35);
+        v.style.display = flash > 0 ? '' : 'none';
+        v.style.opacity = String(flash);
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -39,7 +45,7 @@ export function CombatHud() {
   const ratio = Math.max(0, hp / PLAYER_STATS.maxHp);
   return (
     <>
-      <div ref={vignetteRef} className="pointer-events-none absolute inset-0 opacity-0" style={{ boxShadow: 'inset 0 0 160px 40px rgba(220, 40, 40, 0.55)' }} />
+      <div ref={vignetteRef} className="pointer-events-none absolute inset-0" style={{ display: 'none', boxShadow: 'inset 0 0 160px 40px rgba(220, 40, 40, 0.55)' }} />
       <div className="pointer-events-none absolute bottom-6 left-6 w-60" data-testid="hp-bar" data-hp={Math.round(hp)}>
         <div className="mb-1 flex items-baseline gap-2 text-white drop-shadow">
           <span className="text-sm font-bold">{t('hud.hp')}</span>

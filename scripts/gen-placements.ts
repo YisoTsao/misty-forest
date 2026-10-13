@@ -99,7 +99,11 @@ village.forEach((item, i) => {
 taken.push({ x: V.x, z: V.z, r: VILLAGE_RADIUS + 2 });
 
 // 攝影機書籤位置附近不放物件，避免截圖鏡頭卡在樹裡
-const bookmarks = JSON.parse(readFileSync('src/data/cameraBookmarks.json', 'utf8')) as { position: number[]; target: number[] }[];
+// 只考慮 Phase 1 的書籤：之後新增的書籤（鏡湖等）不影響散佈，重新產生時其他物件的位置與 id 不變
+const PHASE1_BOOKMARKS = new Set(['meadow', 'village', 'forest', 'overlook', 'character']);
+const bookmarks = (JSON.parse(readFileSync('src/data/cameraBookmarks.json', 'utf8')) as { id: string; position: number[]; target: number[] }[]).filter((b) =>
+  PHASE1_BOOKMARKS.has(b.id),
+);
 for (const b of bookmarks) {
   taken.push({ x: b.position[0]!, z: b.position[2]!, r: 5 });
   // 鏡頭前方 12 m 內也保持淨空，避免前景被大型物件擋住
