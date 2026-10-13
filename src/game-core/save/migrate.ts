@@ -22,7 +22,17 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   3: (data) => ({ ...data, quests: {} }),
   // v4 → v5：加入戰鬥狀態；v4 時沒有戰鬥，滿血、沒有敵人（讀檔後由生成點補上）
   4: (data) => ({ ...data, combat: { hp: PLAYER_STATS.maxHp, enemies: [], spawners: {} } }),
+  // v5 → v6：加入星光夥伴。夥伴從出生草原的寶箱飛出來，已經打開那個寶箱的存檔直接解鎖
+  5: (data) => ({ ...data, companion: { unlocked: openedCompanionChest(data) } }),
 };
+
+/** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */
+const COMPANION_CHEST = 'meadow_chest_001';
+
+function openedCompanionChest(data: Record<string, unknown>): boolean {
+  const world = data.world as { objects?: { placementId?: unknown; open?: unknown }[] } | undefined;
+  return world?.objects?.some((o) => o.placementId === COMPANION_CHEST && o.open === true) ?? false;
+}
 
 /** 把任何版本的存檔升到 targetVersion。缺版本號、比程式新或缺少遷移函式時拋 SaveFormatError。 */
 export function migrateSave(

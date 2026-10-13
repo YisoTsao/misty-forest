@@ -50,11 +50,15 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
   });
 
   await check('Q 技能：周圍的迷霧生物一起受傷，進入 6 秒冷卻', async () => {
-    const list = await enemies();
-    const p = await state();
-    const near = list.filter((e) => Math.hypot(e.x - p.x, e.z - p.z) < 4.1);
     // 攻擊動作進行中不能放技能，等動作結束
     await page.waitForFunction(() => window.__mistwoodDebug.playerState().action === null, null, { timeout: 2000 });
+    // 站到一隻迷霧生物旁邊再施放；技能範圍 3.6 m + 身體 0.5 m，巡邏中的迷霧生物在前搖期間會移動，只檢查明顯在範圍內的
+    const [target] = await enemies();
+    await approach(target, 1.2);
+    const list = await enemies();
+    const p = await state();
+    const near = list.filter((e) => Math.hypot(e.x - p.x, e.z - p.z) < 3.2);
+    assert.ok(near.length >= 1, '身邊沒有迷霧生物，測試前提不成立');
     await page.keyboard.press('KeyQ');
     await page.waitForTimeout(600);
     const cd = (await combat()).skillCooldown;

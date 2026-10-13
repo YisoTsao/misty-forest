@@ -144,7 +144,8 @@
     "interactRadius": 1.8,
     "persists": true,
     "contents": {
-      "lootTableId": "chest_meadow"
+      "lootTableId": "chest_meadow",
+      "unlocksCompanion": true
     }
   },
   {

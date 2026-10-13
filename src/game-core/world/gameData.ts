@@ -1,4 +1,5 @@
 import { parseCombatData, type CombatData } from '../combat/combat';
+import { parseCompanion, type CompanionDef } from '../companion/companion';
 import { conditionItemIds, conditionQuestIds } from '../dialogue/conditions';
 import { parseDialogues, type DialogueDef } from '../dialogue/dialogue';
 import { parseItemData, type ItemCatalog, type LootTables } from '../items/items';
@@ -16,6 +17,7 @@ export type GameData = WorldData & {
   npcs: readonly NpcDef[];
   quests: QuestCatalog;
   combat: CombatData;
+  companion: CompanionDef;
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -30,6 +32,7 @@ export function parseGameData(raw: {
   quests: unknown;
   enemies: unknown;
   spawners: unknown;
+  companion: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -73,6 +76,13 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`quests 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
+  let companion: CompanionDef;
+  try {
+    companion = parseCompanion(raw.companion);
+  } catch (err) {
+    throw new WorldDataError(`companion 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  conditions.push(...companion.hints.map((h) => h.when));
   // 對話條件與效果參照的任務必須存在
   const effectQuests = [...dialogues.values()].flatMap((d) =>
     Object.values(d.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => (o.effects ?? []).map((e) => e.quest))),
@@ -80,5 +90,5 @@ export function parseGameData(raw: {
   for (const questId of [...conditions.flatMap(conditionQuestIds), ...effectQuests]) {
     if (!quests.has(questId)) throw new WorldDataError(`對話參照不存在的任務：${questId}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat };
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion };
 }

@@ -12,6 +12,7 @@ export const actionIds = [
   'attack',
   'skill',
   'inventory',
+  'companion',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];
@@ -25,6 +26,17 @@ export const bindingsSchema = z.object(
 
 export function parseBindings(raw: unknown): Bindings {
   return bindingsSchema.parse(raw);
+}
+
+/**
+ * 讀取玩家存的按鍵設定：之後版本新增的動作在舊設定裡不存在，以預設值補上（不讓整份設定失效）。
+ * 格式不符時回傳 null。
+ */
+export function parseSavedBindings(raw: unknown, defaults: Bindings): Bindings | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const merged = { ...defaults, ...(raw as Record<string, unknown>) };
+  const parsed = bindingsSchema.safeParse(merged);
+  return parsed.success ? parsed.data : null;
 }
 
 /** 建立「按鍵代碼 → 動作」反查表；同一按鍵可對應多個動作。 */

@@ -17,6 +17,7 @@ import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
 import { CombatEffects } from './combat/CombatEffects';
 import { PlayerCombat } from './combat/PlayerCombat';
+import { Companion } from './entities/companion/Companion';
 import { Enemies } from './entities/enemy/Enemies';
 import { Npcs } from './entities/npc/Npcs';
 import { Player } from './entities/player/Player';
@@ -68,6 +69,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <RegionTracker />
         <PlayerCombat />
         <CombatEffects />
+        <Companion />
         <SceneReadyProbe />
       </Suspense>
       {cameraMode === 'follow' && onTitle && <TitleCameraRig />}

@@ -15,7 +15,7 @@ export const testPrefabs: Prefab[] = [
     collision: { shape: 'box', size: [1, 1, 1] },
     interaction: 'open',
     nameKey: 'object.chest',
-    contents: { lootTableId: 'chest_loot' },
+    contents: { lootTableId: 'chest_loot', unlocksCompanion: true },
     persists: true,
   },
   { id: 'empty_chest', model: 'chest.glb', collider: 'none', interaction: 'open', nameKey: 'object.chest', persists: true },

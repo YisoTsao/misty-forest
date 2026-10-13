@@ -30,6 +30,8 @@ export type GameState = {
   readonly enemies: ReadonlyMap<string, EnemyRuntime>;
   /** 各生成點下次可以補充敵人的時間與流水號 */
   readonly spawners: Readonly<Record<string, SpawnerRuntime>>;
+  /** 星光夥伴（規格 5.2：只持久化解鎖旗標，位置不持久化） */
+  readonly companion: { readonly unlocked: boolean };
 };
 
 export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
@@ -46,6 +48,7 @@ export function initialGameState(): GameState {
     player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false },
     enemies: new Map(),
     spawners: {},
+    companion: { unlocked: false },
   };
 }
 
@@ -111,6 +114,7 @@ export type GameEvent =
   | { type: 'PlayerDefeated' }
   | { type: 'PlayerRespawned'; hp: number }
   | { type: 'QuestProgressed'; quest: string; objective: number; count: number }
+  | { type: 'CompanionUnlocked' }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -202,15 +206,17 @@ function openChest(state: GameState, placementId: string, ctx: RulesContext): Ga
   if (found.prefab.interaction !== 'open') return reject('OpenChest', 'wrong-interaction', placementId);
   // 規格 5.2：寶箱記錄開關，唯一獎勵不可重複領取
   if (state.objects.get(placementId)?.open) return reject('OpenChest', 'already-open', placementId);
-  const tableId = found.prefab.contents?.lootTableId;
-  if (!tableId) return [{ type: 'ChestOpened', placementId }];
+  const contents = found.prefab.contents;
+  if (!contents) return [{ type: 'ChestOpened', placementId }];
   // 背包放不下時寶箱保持關閉，獎勵不會遺失
-  const items = rollIntoInventory(state, tableId, ctx);
+  const items = rollIntoInventory(state, contents.lootTableId, ctx);
   if (!items) return reject('OpenChest', 'inventory-full', placementId);
-  return [
+  const events: GameEvent[] = [
     { type: 'ChestOpened', placementId },
     { type: 'ItemsGained', items, source: placementId },
   ];
+  if (contents.unlocksCompanion && !state.companion.unlocked) events.push({ type: 'CompanionUnlocked' });
+  return events;
 }
 
 function repairObject(state: GameState, placementId: string, ctx: RulesContext): GameEvent[] {
@@ -346,7 +352,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners } = state;
+  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -431,6 +437,9 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'PlayerRespawned':
         player = { hp: e.hp, lastDamagedAt: time, defeated: false };
         break;
+      case 'CompanionUnlocked':
+        companion = { unlocked: true };
+        break;
       case 'ItemsRemoved': {
         const next = removeItems(inventory, e.items);
         if (!next) throw new Error('ItemsRemoved 事件超過持有數量（事件與狀態不一致）');
@@ -443,5 +452,5 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners };
+  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion };
 }

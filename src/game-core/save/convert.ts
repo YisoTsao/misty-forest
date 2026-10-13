@@ -40,6 +40,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
       enemies: [...state.enemies.values()].map((e) => ({ ...e })),
       spawners: Object.fromEntries(Object.entries(state.spawners).map(([id, s]) => [id, { ...s }])),
     },
+    companion: { ...state.companion },
   };
 }
 
@@ -97,6 +98,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
       player: { hp: Math.min(PLAYER_STATS.maxHp, data.combat.hp > 0 ? data.combat.hp : PLAYER_STATS.maxHp), lastDamagedAt: data.world.time, defeated: false },
       enemies,
       spawners: data.combat.spawners,
+      companion: data.companion,
     },
     player: data.player,
     savedAt: data.savedAt,

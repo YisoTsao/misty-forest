@@ -183,6 +183,27 @@ describe('版本遷移', () => {
     expect(downed.player).toMatchObject({ hp: 100, defeated: false });
   });
 
+  it('實際的 v5 存檔：打開過序章寶箱的存檔遷移後星光夥伴已解鎖，沒打開的未解鎖', () => {
+    const v5 = (objects: unknown[]) => ({
+      version: 5,
+      savedAt: '2026-10-13T06:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 5, objects },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: initialGameState().mist,
+      quests: {},
+      combat: { hp: 100, enemies: [], spawners: {} },
+    });
+    expect(migrateSave(v5([{ placementId: 'meadow_chest_001', open: true }]))).toMatchObject({ version: SAVE_VERSION, companion: { unlocked: true } });
+    expect(fromSaveData(v5([]), ctx).state.companion.unlocked).toBe(false);
+  });
+
+  it('星光夥伴解鎖旗標寫入存檔並讀回', () => {
+    const state = { ...initialGameState(), companion: { unlocked: true } };
+    expect(roundTrip(toSaveData(state, player, new Date())).state.companion.unlocked).toBe(true);
+  });
+
   it('任務紀錄寫入存檔並讀回', () => {
     const state = { ...initialGameState(), quests: { gather: { status: 'completed' as const }, clear: { status: 'active' as const } } };
     expect(roundTrip(toSaveData(state, player, new Date())).state.quests).toEqual(state.quests);

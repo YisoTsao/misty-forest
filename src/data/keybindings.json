@@ -9,5 +9,6 @@
   "attack": ["Mouse0"],
   "skill": ["KeyQ"],
   "inventory": ["KeyI", "Tab"],
+  "companion": ["KeyH"],
   "pause": ["Escape"]
 }

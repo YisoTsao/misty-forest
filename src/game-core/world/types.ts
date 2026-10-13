@@ -73,7 +73,11 @@ export const prefabSchema = z
       })
       .optional(),
     /** 寶箱內容（打開時給予，只能領一次） */
-    contents: z.object({ lootTableId: z.string().min(1) }).optional(),
+    contents: z.object({
+      lootTableId: z.string().min(1),
+      /** 打開時解鎖星光夥伴（序章：碎片裡飛出了小星星） */
+      unlocksCompanion: z.boolean().optional(),
+    }).optional(),
     /** 可修復的物件（規格 5.2 木橋：損毀 / 修復兩狀態）：修復後的外觀與碰撞、需要的材料、限定的任務 */
     repair: z
       .object({

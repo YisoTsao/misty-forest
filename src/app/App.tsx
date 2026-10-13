@@ -7,6 +7,7 @@ import { useDebugStore } from '@/game/state/debugStore';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { worldDataResult } from '@/game/worldData';
 import { CombatHud } from '@/ui/CombatHud';
+import { CompanionBubble } from '@/ui/CompanionBubble';
 import { ControlHint } from '@/ui/ControlHint';
 import { DebugPanel } from '@/ui/DebugPanel';
 import { DialogueBox } from '@/ui/DialogueBox';
@@ -50,6 +51,7 @@ export function App() {
       </Canvas>
       <div id="damage-layer" className="pointer-events-none absolute inset-0 overflow-hidden" />
       <CombatHud />
+      <CompanionBubble />
       <InteractPrompt />
       <Toasts />
       <TutorialPanel />

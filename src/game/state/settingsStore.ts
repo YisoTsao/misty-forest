@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import keybindings from '@/data/keybindings.json';
-import { parseBindings, rebind, type ActionId, type Bindings, type RebindResult } from '@/game-core/input/actions';
+import { parseBindings, parseSavedBindings, rebind, type ActionId, type Bindings, type RebindResult } from '@/game-core/input/actions';
 import { loadWithFallback } from '@/game-core/save/load';
 import { SETTINGS_SLOT } from '@/game-core/save/schema';
 import { isQualityLevel, qualityPresets, type QualityLevel, type QualityPreset } from '@/game-core/settings/quality';
@@ -62,9 +62,10 @@ export async function loadSettings(): Promise<void> {
   if (outcome.status === 'ok' || outcome.status === 'restored-from-backup') {
     const { quality, bindings } = outcome.value;
     if (!isQualityLevel(urlQuality)) useSettingsStore.setState({ quality });
-    if (bindings) {
-      useSettingsStore.setState({ bindings });
-      input.setBindings(bindings);
+    const merged = bindings ? parseSavedBindings(bindings, defaultBindings) : null;
+    if (merged) {
+      useSettingsStore.setState({ bindings: merged });
+      input.setBindings(merged);
     }
   } else if (outcome.status === 'corrupt') {
     console.warn('[settings] 設定檔無法讀取，使用預設值：', outcome.primaryError);

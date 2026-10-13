@@ -52,9 +52,10 @@ describe('HarvestObject', () => {
 });
 
 describe('OpenChest', () => {
-  it('打開寶箱：狀態為 open、內容物進背包', () => {
+  it('打開寶箱：狀態為 open、內容物進背包、星光夥伴解鎖', () => {
     const { events, state } = run(initialGameState(), { type: 'OpenChest', placementId: 'c1' });
-    expect(events.map((e) => e.type)).toEqual(['ChestOpened', 'ItemsGained']);
+    expect(events.map((e) => e.type)).toEqual(['ChestOpened', 'ItemsGained', 'CompanionUnlocked']);
+    expect(state.companion.unlocked).toBe(true);
     expect(state.objects.get('c1')).toEqual({ placementId: 'c1', open: true });
     expect(countItem(state.inventory, 'shard')).toBe(1);
   });

@@ -11,6 +11,7 @@ import { MAIN_SLOT } from '@/game-core/save/schema';
 import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { combatRuntime, enemyRuntime } from './combat/combatRuntime';
+import { companionRuntime } from './companion/companionRuntime';
 import { input } from './input/inputManager';
 import { npcRuntime } from './npc/npcRuntime';
 import { perfStats } from './perfStats';
@@ -90,6 +91,8 @@ export type MistwoodDebugApi = {
   enemies: () => { id: string; x: number; z: number; state: string; hp: number }[];
   /** 和平模式：迷霧生物不追擊、不攻擊（截圖與測試用） */
   setPeaceful: (peaceful: boolean) => void;
+  /** 星光夥伴：是否解鎖、目前位置 */
+  companion: () => { unlocked: boolean; x: number; y: number; z: number };
   /** 模擬按一下按鍵代碼（例如 Mouse0），經過按鍵綁定 */
   tap: (code: string) => void;
   /** 讓玩家面向某個位置 */
@@ -199,6 +202,7 @@ export function installDebugApi(): void {
         .map(([id, v]) => ({ id, x: v.ai.x, z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0 })),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
     tap: (code) => input.injectTap(code),
+    companion: () => ({ unlocked: authority.getState().companion.unlocked, x: companionRuntime.x, y: companionRuntime.y, z: companionRuntime.z }),
     face: (x, z) => {
       const { position, locomotion } = playerRuntime;
       locomotion.facingYaw = Math.atan2(x - position.x, z - position.z);

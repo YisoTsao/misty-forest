@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { tutorialSteps } from '../tutorial/tutorial';
 import { mistStagesSchema } from '../world/regions';
 
-/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat */
-export const SAVE_VERSION = 5;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion */
+export const SAVE_VERSION = 6;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 
@@ -43,6 +43,7 @@ export const saveDataSchema = z.object({
     enemies: z.array(z.object({ id: z.string().min(1), kind: z.string().min(1), spawner: z.string().min(1), hp: finite.positive() })),
     spawners: z.record(z.string(), z.object({ nextSpawnAt: finite, counter: z.number().int().nonnegative() })),
   }),
+  companion: z.object({ unlocked: z.boolean() }),
 });
 export type SaveData = z.infer<typeof saveDataSchema>;
 

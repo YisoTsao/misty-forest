@@ -55,5 +55,6 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     inventory: actionKey(bindings, 'inventory'),
     attack: actionKey(bindings, 'attack'),
     skill: actionKey(bindings, 'skill'),
+    companion: actionKey(bindings, 'companion'),
   };
 }

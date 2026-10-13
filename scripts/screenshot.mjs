@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --companion：打開序章寶箱後星光夥伴出現與打招呼、按 H 詢問提示（任務 3F）
 //   --combat：森林裡的迷霧生物、攻擊前搖、玩家攻擊與傷害數字、星光衝擊、受傷與倒下（任務 3E）
 //   --lake：湖泊全景、斷橋、在橋頭修理、修好的木橋（任務 3D）
 //   --npc：村莊 NPC 全身、與長老對話（一般段落與選項）（任務 3B）、任務追蹤（任務 3C）
@@ -27,6 +28,7 @@ const withRegion = flags.has('--region');
 const withNpc = flags.has('--npc');
 const withLake = flags.has('--lake');
 const withCombat = flags.has('--combat');
+const withCompanion = flags.has('--companion');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -157,6 +159,26 @@ try {
     await page.waitForTimeout(300);
     await shot('inventory');
     await page.keyboard.press('KeyI');
+  }
+
+  if (withCompanion) {
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(0);
+      d.setCameraMode('follow');
+      d.teleport(-3.0, 12.9);
+      d.camera({ yaw: 1.9, pitch: 0.3, distance: 4.6 });
+    });
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() !== null, null, { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForSelector('[data-testid="message-dialog"]', { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(1600);
+    await shot('companion_greet');
+    await page.keyboard.press('KeyH');
+    await page.waitForTimeout(500);
+    await shot('companion_hint');
   }
 
   if (withCombat) {
