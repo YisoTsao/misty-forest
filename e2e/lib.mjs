@@ -1,17 +1,27 @@
 // 端對端測試共用：啟動 Electron 正式版、逐項檢查並彙整結果、常用除錯 API 包裝。
 /* global window */
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { _electron as electron } from 'playwright';
 
 export const prefabs = new Map(JSON.parse(readFileSync('src/data/prefabs.json', 'utf8')).map((p) => [p.id, p]));
 export const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
+
+/** 每次啟動使用獨立的暫存存檔資料夾，測試不會讀到或覆蓋玩家的真實存檔 */
+export function tempSaveDir() {
+  return mkdtempSync(path.join(tmpdir(), 'mistwood-e2e-'));
+}
 
 /**
  * 啟動遊戲並執行 body(t)。t 提供 page、check（單項檢查，失敗不中斷）與常用操作。
  * 結束時印出結果；任何一項失敗則以 exit code 1 結束。
  */
 export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {}, body) {
-  const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: query, ...env } });
+  const app = await electron.launch({
+    args: ['.'],
+    env: { ...process.env, MISTWOOD_START_QUERY: query, MISTWOOD_SAVE_DIR: tempSaveDir(), MISTWOOD_USER_DATA_DIR: tempSaveDir(), ...env },
+  });
   const results = [];
   let failed = false;
   const check = async (name, fn) => {
@@ -55,6 +65,7 @@ export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {},
   }
   console.log(`${title}\n${results.join('\n')}`);
   if (failed) process.exitCode = 1;
+  return !failed;
 }
 
 /** 面向 -Z（出生時的朝向）站在物件南側 distance 公尺處的位置 */

@@ -1,5 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { t } from '@/game/i18n';
+import { exportMainSave, saveGame } from '@/game/save/saveService';
+import { returnToTitle } from '@/game/session';
+import { useSaveStore } from '@/game/state/saveStore';
 import { input } from '@/game/input/inputManager';
 import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
@@ -11,7 +14,7 @@ const TOGGLE_GUARD_MS = 300;
 
 /**
  * 暫停選單（規格 6.9）。遊玩中按 Esc（或滑鼠鎖定被解除）時開啟：
- * 繼續遊戲、畫質設定、回到主選單。
+ * 繼續遊戲、儲存、匯出存檔、畫質設定、回到主選單（回主選單前自動存檔）。
  */
 export function PauseMenu() {
   const screen = useGameStore((s) => s.screen);
@@ -78,6 +81,7 @@ export function PauseMenu() {
         >
           {t('pause.resume')}
         </button>
+        <SaveControls />
         <div className="text-sm">
           <span className="mb-1 block px-1 opacity-80">{t('settings.quality')}</span>
           <QualitySelector />
@@ -85,13 +89,61 @@ export function PauseMenu() {
         <button
           type="button"
           data-testid="pause-to-title"
-          onClick={() => send('returnToTitle')}
+          onClick={() => void returnToTitle()}
           className="rounded-full bg-white/15 py-2 hover:bg-white/25"
         >
           {t('pause.toTitle')}
         </button>
-        <p className="text-center text-xs opacity-60">{t('pause.unsavedNote')}</p>
+        <p className="text-center text-xs opacity-60">{t('pause.autosaveNote')}</p>
       </div>
+    </div>
+  );
+}
+
+/** 手動存檔與匯出，以及最後一次存檔的狀態 */
+function SaveControls() {
+  const { saving, lastSavedAt, saveError } = useSaveStore();
+  const [exportError, setExportError] = useState<string | null>(null);
+  const onExport = async () => {
+    setExportError(null);
+    try {
+      if (await saveGame()) await exportMainSave();
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : String(err));
+    }
+  };
+  const status = saving
+    ? t('save.saving')
+    : saveError
+      ? `${t('save.failed')}：${saveError}`
+      : lastSavedAt
+        ? `${t('save.savedAt')} ${new Date(lastSavedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`
+        : '';
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          data-testid="pause-save"
+          disabled={saving}
+          onClick={() => void saveGame()}
+          className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25 disabled:opacity-60"
+        >
+          {t('pause.save')}
+        </button>
+        <button
+          type="button"
+          data-testid="pause-export"
+          disabled={saving}
+          onClick={() => void onExport()}
+          className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25 disabled:opacity-60"
+        >
+          {t('pause.export')}
+        </button>
+      </div>
+      <p data-testid="save-status" className={`min-h-4 text-center text-xs ${saveError || exportError ? 'text-rose-300' : 'opacity-70'}`}>
+        {exportError ? `${t('save.exportFailed')}：${exportError}` : status}
+      </p>
     </div>
   );
 }

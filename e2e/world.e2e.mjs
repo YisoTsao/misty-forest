@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { _electron as electron } from 'playwright';
+import { tempSaveDir } from './lib.mjs';
 
 const prefabs = new Map(JSON.parse(readFileSync('src/data/prefabs.json', 'utf8')).map((p) => [p.id, p]));
 const placements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
@@ -31,7 +32,7 @@ function isolatedTree() {
 const chest = placements.find((p) => p.prefabId === 'chest_wood');
 assert.ok(chest, 'placements 內沒有寶箱');
 
-const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1' } });
+const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() } });
 const results = [];
 let failed = false;
 

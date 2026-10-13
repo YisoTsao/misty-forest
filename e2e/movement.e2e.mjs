@@ -3,9 +3,10 @@
 /* global window */
 import assert from 'node:assert/strict';
 import { _electron as electron } from 'playwright';
+import { tempSaveDir } from './lib.mjs';
 import { terrainHeight } from '../src/game-core/world/terrain.ts';
 
-const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1' } });
+const app = await electron.launch({ args: ['.'], env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() } });
 const results = [];
 let failed = false;
 

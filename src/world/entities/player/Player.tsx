@@ -73,14 +73,17 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     // 暫停：角色與動作計時完全停住
     if (screen === 'paused') return;
 
-    if (playerRuntime.newGameRequest) {
-      // 新遊戲：回到出生點、面向北方，清除安全點與進行中的動作
+    const restore = playerRuntime.restoreRequest;
+    if (playerRuntime.newGameRequest || restore) {
+      // 新遊戲回到出生點、面向北方；讀檔回到存檔位置。清除安全點與進行中的動作
+      const at = restore ? { ...restore.position, y: restore.position.y + 0.05 } : spawn;
       playerRuntime.newGameRequest = false;
+      playerRuntime.restoreRequest = null;
       playerRuntime.action = null;
-      playerRuntime.locomotion = initialLocomotionState(Math.PI);
-      playerRuntime.safePoints = createSafePointTrail(spawn);
-      body.setTranslation(spawn, true);
-      Object.assign(playerRuntime.position, spawn);
+      playerRuntime.locomotion = initialLocomotionState(restore?.facingYaw ?? Math.PI);
+      playerRuntime.safePoints = createSafePointTrail(at);
+      body.setTranslation(at, true);
+      Object.assign(playerRuntime.position, at);
       return;
     }
 

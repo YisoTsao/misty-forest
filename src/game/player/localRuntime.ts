@@ -1,6 +1,6 @@
 // 本機暫態（規格 3-7）：玩家位置、移動狀態、攝影機角度。
 // 每幀由 useFrame 讀寫的可變物件，不放進 React state，也不進存檔
-// （玩家位置於 Phase 2 存檔時從這裡取快照）。
+// （存檔時從這裡取玩家位置的快照）。
 import { initialLocomotionState, type LocomotionState } from '@/game-core/character/locomotion';
 import type { SafePointTrail } from '@/game-core/world/safePoints';
 
@@ -11,6 +11,8 @@ export const playerRuntime = {
   animPreview: null as { clip: string; fraction: number } | null,
   /** 開始新遊戲：下一幀回到出生點、清除安全點與動作 */
   newGameRequest: false,
+  /** 讀取存檔：下一幀移到存檔位置與面向 */
+  restoreRequest: null as { position: { x: number; y: number; z: number }; facingYaw: number } | null,
   /** 除錯 / 測試用：下一幀把玩家移到指定水平位置（高度貼齊地形） */
   teleportRequest: null as { x: number; z: number } | null,
   /** 互動、採集等一次性動作剩餘時間（秒）；大於 0 時播放動作動畫並暫停移動 */

@@ -7,7 +7,8 @@
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
 /* global window -- page.evaluate / waitForFunction 的回呼在 Renderer 內執行 */
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
 
@@ -24,7 +25,7 @@ mkdirSync(outDir, { recursive: true });
 
 const app = await electron.launch({
   args: ['.'],
-  env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1' },
+  env: { ...process.env, MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: mkdtempSync(path.join(tmpdir(), 'mistwood-shot-')) },
 });
 
 let exitCode = 0;
@@ -157,13 +158,19 @@ try {
       d.flow('pause');
     });
     await page.waitForSelector('[data-testid="pause-menu"]', { timeout: 5000 });
+    // 先存檔一次：暫停選單顯示存檔時間，主選單出現「繼續遊戲」
+    await page.locator('[data-testid="pause-save"]').click();
+    await page.waitForSelector('[data-testid="save-status"]:has-text("已儲存")', { timeout: 5000 });
     await page.waitForTimeout(600);
     await shot('menu_pause');
     await page.evaluate(() => window.__mistwoodDebug.flow('returnToTitle'));
-    await page.waitForSelector('[data-testid="title-screen"]', { timeout: 5000 });
+    await page.waitForSelector('[data-testid="title-continue"]', { timeout: 5000 });
     await page.waitForTimeout(1500);
     await shot('menu_title');
-    await page.evaluate(() => window.__mistwoodDebug.flow('startGame'));
+    await page.locator('[data-testid="title-start"]').click();
+    await page.waitForTimeout(300);
+    await shot('menu_title_confirm_new');
+    await page.locator('[data-testid="title-confirm-new-yes"]').click();
   }
 
   if (withAnim) {

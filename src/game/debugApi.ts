@@ -4,12 +4,16 @@ import { parseMistLevel } from '@/game-core/world/mist';
 import { initialGameState, type GameCommand } from '@/game-core/authority/rules';
 import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
+import { MAIN_SLOT } from '@/game-core/save/schema';
 import { authority } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
 import { useDebugStore, type CameraMode } from './state/debugStore';
+import { saveGame } from './save/saveService';
+import { saveStorage } from './save/storages';
 import { useGameStore } from './state/gameStore';
+import { useSettingsStore } from './state/settingsStore';
 import { useUiStore } from './state/uiStore';
 import { mistRuntime } from './world/mistRuntime';
 import { cameraBookmarks } from './worldData';
@@ -56,6 +60,12 @@ export type MistwoodDebugApi = {
   gameTime: () => number;
   /** 直接送出指令給權威層（測試用，例如快轉時間驗證重生） */
   send: (command: GameCommand) => void;
+  /** 立即存檔（等同暫停選單的「儲存遊戲」），回傳是否成功 */
+  saveNow: () => Promise<boolean>;
+  /** 匯出主存檔的內容（JSON 字串） */
+  exportSave: () => Promise<string>;
+  /** 目前的設定值 */
+  settings: () => { quality: string };
   /** 目前畫面上的通知 */
   toasts: () => { itemId?: string; count?: number; textKey?: string }[];
   activeColliders: () => number;
@@ -133,6 +143,9 @@ export function installDebugApi(): void {
     itemCount: (itemId) => countItem(authority.getState().inventory, itemId),
     gameTime: () => authority.getState().time,
     send: (command) => authority.send(command),
+    saveNow: () => saveGame(),
+    exportSave: async () => (await saveStorage.export(MAIN_SLOT)).text(),
+    settings: () => ({ quality: useSettingsStore.getState().quality }),
     toasts: () => useUiStore.getState().toasts.map(({ itemId, count, textKey }) => ({ itemId, count, textKey })),
     activeColliders: () => perfStats.activeColliders,
     perf: () => {

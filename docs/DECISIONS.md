@@ -65,3 +65,9 @@
 - **T-37 樹樁與採集後碰撞**：KayKit Hexagon 包內的 `tree_single_A_cut / B_cut` 當樹樁（同包同貼圖）。prefab 的 `harvest.harvestedModel / harvestedCollision` 宣告採集後的外觀與碰撞；`EnvironmentColliders` 依狀態切換。樹樁矮於自動上台階高度時角色可以踩上去（不會穿進去）。
 - **T-38 花叢與草藥為程式產生的模型**：素材包沒有可採集的花與草藥，以葉片面片 + 星形花冠組合（`render/proceduralModels.ts`，prefab model 為 `procedural:<id>`），比草地上的裝飾小花大很多，一眼可辨。與植被相同使用朝上的法線、不接收陰影（薄面片自我遮蔽會發灰）。不放進 GLB 是為了不需要額外的建模工具鏈；若之後找到風格一致的 CC0 模型可直接換掉 prefab 的 model。
 - **T-39 物品圖示用 SVG 元件**：`ui/ItemIcon.tsx` 依 `items.json` 的 `icon` 欄位繪製，任何解析度都清晰，不需要圖片資產與授權登錄。
+- **T-40 存檔分層**：game-core 負責格式（`save/schema.ts`，zod）、轉換（`convert.ts`：只存與預設不同的物件差異）、版本遷移（`migrate.ts`）與「主檔 → 備份 → 損壞」的讀檔決策（`load.ts`）；儲存實作只搬資料：Electron 主程序 `electron/saveFiles.ts`（`userData/saves/<slot>.json`，寫暫存檔並 fsync → 主檔改名為 `.bak.json` → 暫存檔改名為主檔，任何一步中斷都至少留下完整的主檔或備份），網頁開發模式 IndexedDB（主檔與備份同一 transaction）。欄位名稱在主程序以白名單正則再驗證一次，避免路徑穿越。
+- **T-41 讀檔時容忍資料檔變動**：存檔內已不存在的物件或物品只略過並在主控台警告，不讓整份存檔失效；格式不符（zod）才視為損壞。
+- **T-42 自動存檔時機**：採集 / 開箱後 2 秒（連續採集合併成一次）、遊玩中每 60 秒、回到主選單前；另有暫停選單的「儲存遊戲」與「匯出存檔」。寫入依序排隊、非同步，不阻塞渲染。規格提到的「區域切換、任務完成」於 Phase 3 有區域與任務後加入。
+- **T-43 第 1 版存檔沒有真正的遷移**：Phase 2 是第一個存檔格式，遷移框架以模擬的三版遷移鏈測試（依序套用、缺版本號、比遊戲新、缺少遷移函式）；Phase 3 加入任務與各區域迷霧時會是第一個實際的 v1 → v2 遷移。
+- **T-44 端對端測試使用獨立的存檔與使用者資料夾**：`MISTWOOD_SAVE_DIR`、`MISTWOOD_USER_DATA_DIR`（主程序讀取），每次啟動用暫存資料夾，測試不會讀到或覆蓋玩家的存檔與 IndexedDB。`?storage=indexeddb` 讓端對端測試在 Electron 中驗證網頁開發模式的儲存實作。
+- **T-32 補充**：當測試視窗真的取得滑鼠鎖定時，Chromium 會在自動化的模擬滑鼠移動約 2 秒後解除鎖定（以 Phase 1 版本驗證過，同樣發生，人工遊玩不受影響）。`dev.e2e` 改為只在鎖定期間做一次短暫的滑鼠轉動檢查，之後解除鎖定、以除錯 API 繼續；檢查途中鎖定被系統解除時記為略過。

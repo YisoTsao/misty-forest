@@ -6,6 +6,9 @@
 //   4. 連續遊玩（自動沿路線來回跑）期間的 JS heap、geometry、texture 數量變化
 // 注意：量測時請讓視窗留在前景、不要操作電腦；被遮住或縮小的視窗會被系統降頻。
 /* global window */
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { _electron as electron } from 'playwright';
 
 const args = process.argv.slice(2);
@@ -20,7 +23,7 @@ async function launch(query, extraArgs = []) {
   const started = Date.now();
   const app = await electron.launch({
     args: ['.', ...extraArgs],
-    env: { ...process.env, MISTWOOD_START_QUERY: query },
+    env: { ...process.env, MISTWOOD_START_QUERY: query, MISTWOOD_SAVE_DIR: mkdtempSync(path.join(tmpdir(), 'mistwood-perf-')) },
   });
   const page = await app.firstWindow();
   await page.setViewportSize({ width: 1920, height: 1080 });

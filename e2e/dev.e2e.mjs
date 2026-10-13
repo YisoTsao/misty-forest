@@ -1,11 +1,12 @@
 // 端對端：以開發模式（Vite dev server + React StrictMode）啟動，模擬實際試玩——
-// 主選單 → 開始 → 點擊鎖定滑鼠、轉動視角、邊走邊轉 → Esc 暫停 → 繼續 → 回主選單 → 再開始，
+// 主選單 → 開始 → 點擊鎖定滑鼠、轉動視角、邊走邊轉 → Esc 暫停 → 繼續 → 回主選單（存檔）→ 繼續遊戲 → 新遊戲，
 // 確認渲染迴圈持續運作且沒有任何未捕捉的錯誤（規格 Phase 1：可連續遊玩並回主選單）。
 // StrictMode 會「掛載 → 卸載 → 再掛載」，正式版不會，因此資源生命週期錯誤只會在這裡出現。
 // 用法：node e2e/dev.e2e.mjs（不需要先 build）
 /* global window, document, requestAnimationFrame */
 import assert from 'node:assert/strict';
 import { _electron as electron } from 'playwright';
+import { tempSaveDir } from './lib.mjs';
 import { createServer } from 'vite';
 
 const server = await createServer({ logLevel: 'error', server: { port: 5299, strictPort: false } });
@@ -13,7 +14,7 @@ await server.listen();
 const url = server.resolvedUrls?.local[0];
 assert.ok(url, 'Vite dev server 未回傳網址');
 
-const app = await electron.launch({ args: ['.'], env: { ...process.env, VITE_DEV_SERVER_URL: url } });
+const app = await electron.launch({ args: ['.'], env: { ...process.env, VITE_DEV_SERVER_URL: url, MISTWOOD_SAVE_DIR: tempSaveDir() } });
 const results = [];
 const pageErrors = [];
 let failed = false;
@@ -79,30 +80,36 @@ try {
   await page.mouse.click(mx, my);
   await page.waitForTimeout(400);
   const lockAvailable = (await snapshot()).locked;
-  const turn = async (dx, dy) => {
-    if (lockAvailable) {
-      mx += dx;
-      my += dy;
-      await page.mouse.move(mx, my);
-    } else {
-      // 與滑鼠相同的換算（FollowCamera SENSITIVITY = 0.0025 rad/px）
-      await page.evaluate(
-        ([ddx, ddy]) => {
-          const c = window.__mistwoodDebug.cameraAngles();
-          window.__mistwoodDebug.camera({ yaw: c.yaw - ddx * 0.0025, pitch: c.pitch + ddy * 0.0025 });
-        },
-        [dx, dy],
-      );
-    }
-  };
+  // 以除錯 API 轉動攝影機：與滑鼠相同的換算（FollowCamera SENSITIVITY = 0.0025 rad/px）
+  const turn = (dx, dy) =>
+    page.evaluate(
+      ([ddx, ddy]) => {
+        const c = window.__mistwoodDebug.cameraAngles();
+        window.__mistwoodDebug.camera({ yaw: c.yaw - ddx * 0.0025, pitch: c.pitch + ddy * 0.0025 });
+      },
+      [dx, dy],
+    );
 
   if (lockAvailable) {
-    await check('點擊畫面鎖定滑鼠', async () => {
-      assert.equal((await snapshot()).locked, true);
-    });
+    const yaw0 = (await page.evaluate(() => window.__mistwoodDebug.cameraAngles())).yaw;
+    for (let i = 0; i < 4; i++) await page.mouse.move(mx + (i + 1) * 15, my);
+    await page.waitForTimeout(150);
+    const yaw1 = (await page.evaluate(() => window.__mistwoodDebug.cameraAngles())).yaw;
+    if ((await snapshot()).locked) {
+      await check('點擊畫面鎖定滑鼠，鎖定中移動滑鼠會轉動攝影機', async () => {
+        assert.ok(Math.abs(yaw1 - yaw0) > 0.05, `攝影機沒有跟著滑鼠轉：${yaw0.toFixed(3)} → ${yaw1.toFixed(3)}`);
+      });
+    } else {
+      skip('點擊畫面鎖定滑鼠，鎖定中移動滑鼠會轉動攝影機', '鎖定在檢查途中被作業系統解除（測試視窗失去前景）');
+    }
   } else {
     skip('點擊畫面鎖定滑鼠', '測試視窗不在作業系統前景，無法鎖定滑鼠；以除錯 API 轉動攝影機繼續測試');
   }
+  // 自動化的模擬滑鼠在鎖定狀態下約 2 秒後會被 Chromium 解除鎖定（Phase 1 的版本也一樣，人工遊玩不受影響，見 DECISIONS T-32），
+  // 之後的長時間操作改用除錯 API 轉動攝影機。先解除鎖定（會開啟暫停選單），等防連按間隔過後回到遊玩
+  await page.evaluate(() => document.pointerLockElement && document.exitPointerLock());
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.__mistwoodDebug.flow('resume'));
 
   await check('轉動視角後攝影機跟著轉，畫面持續更新', async () => {
     const before = await snapshot();
@@ -154,12 +161,28 @@ try {
     assert.ok(Math.hypot(after.x - before.x, after.z - before.z) > 0.8, '繼續後角色無法移動');
   });
 
-  await check('暫停 →「回到主選單」→ 再開始：角色回到出生點', async () => {
+  await check('暫停 →「回到主選單」（自動存檔）→ 繼續遊戲：回到離開時的位置', async () => {
+    await page.keyboard.press('Escape');
+    await pause.waitFor({ timeout: 3000 });
+    const left = (await snapshot()).player;
+    await page.locator('[data-testid="pause-to-title"]').click();
+    await title.waitFor({ timeout: 3000 });
+    const cont = page.locator('[data-testid="title-continue"]');
+    await cont.waitFor({ timeout: 3000 });
+    await cont.click();
+    await title.waitFor({ state: 'detached', timeout: 3000 });
+    await page.waitForTimeout(400);
+    const s = (await snapshot()).player;
+    assert.ok(Math.hypot(s.x - left.x, s.z - left.z) < 0.3, `沒有回到存檔位置：(${s.x.toFixed(2)}, ${s.z.toFixed(2)})`);
+  });
+
+  await check('再回主選單 →「新遊戲」需確認 → 角色回到出生點', async () => {
     await page.keyboard.press('Escape');
     await pause.waitFor({ timeout: 3000 });
     await page.locator('[data-testid="pause-to-title"]').click();
     await title.waitFor({ timeout: 3000 });
     await page.locator('[data-testid="title-start"]').click();
+    await page.locator('[data-testid="title-confirm-new-yes"]').click();
     await title.waitFor({ state: 'detached', timeout: 3000 });
     await page.waitForTimeout(400);
     const s = (await snapshot()).player;
