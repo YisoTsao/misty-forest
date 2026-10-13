@@ -16,10 +16,11 @@ function readGltfJson(file: string): GltfJson {
 }
 
 describe('world prefab assets', () => {
-  // 每個 prefab 的模型，加上採集後留下的模型（樹樁）
+  // 每個 prefab 的模型，加上採集後留下的模型（樹樁）與修復後的模型（木橋）
   const models = prefabs.flatMap((p) => [
     { label: p.id, model: p.model },
     ...(p.harvest?.harvestedModel ? [{ label: `${p.id}（採集後）`, model: p.harvest.harvestedModel }] : []),
+    ...(p.repair ? [{ label: `${p.id}（修復後）`, model: p.repair.model }] : []),
   ]);
   for (const { label, model } of models) {
     if (model.startsWith(PROCEDURAL_PREFIX)) {

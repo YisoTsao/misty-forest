@@ -24,6 +24,7 @@ import { Lighting } from './sky/Lighting';
 import { Backdrop } from './sky/Backdrop';
 import { Sky } from './sky/Sky';
 import { Terrain } from './terrain/Terrain';
+import { Lake } from './water/Lake';
 import { GrassField } from './vegetation/GrassField';
 import { WorldPlacements } from './vegetation/WorldPlacements';
 
@@ -53,6 +54,7 @@ export function WorldScene({ data }: { data: WorldData }) {
           <WorldPlacements data={data} />
         </AssetBoundary>
         <GrassField index={index} />
+        <Lake />
         <AssetBoundary name="backdrop">
           <Backdrop />
         </AssetBoundary>

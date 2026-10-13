@@ -12,6 +12,11 @@ export const palette = {
   dirt: '#c8a06a',
   dirtDark: '#a77e4e',
   rock: '#9c9a8c',
+  sand: '#e6d29a',
+  lakeBed: '#6f8f78',
+  waterDeep: '#2f8fb8',
+  waterShallow: '#69d3e0',
+  waterFoam: '#f4fbff',
 } as const;
 
 export const fogRange = { near: 45, far: 230 } as const;

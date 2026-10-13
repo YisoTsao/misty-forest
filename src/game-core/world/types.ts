@@ -19,16 +19,28 @@ export const collisionShapeSchema = z.discriminatedUnion('shape', [
     radius: z.number().positive(),
     height: z.number().positive(),
     offset: vec3.optional(),
+    cameraIgnore: z.boolean().optional(),
   }),
   z.object({
     shape: z.literal('box'),
     size: vec3.refine((v) => v.every((n) => n > 0), '尺寸必須為正'),
     offset: vec3.optional(),
+    /** 攝影機避讓不理會這個形狀（矮欄杆：擋角色但不該把攝影機拉近） */
+    cameraIgnore: z.boolean().optional(),
   }),
 ]);
 export type CollisionShape = z.infer<typeof collisionShapeSchema>;
 
-export const interactionKinds = ['harvest', 'open', 'talk', 'enter', 'read', 'build'] as const;
+/** 一個或多個碰撞形狀（例如木橋的橋面加兩側欄杆） */
+export const collisionSchema = z.union([collisionShapeSchema, z.array(collisionShapeSchema).min(1)]);
+export type Collision = z.infer<typeof collisionSchema>;
+
+export function collisionShapes(c: Collision | undefined): CollisionShape[] {
+  if (!c) return [];
+  return Array.isArray(c) ? c : [c];
+}
+
+export const interactionKinds = ['harvest', 'open', 'talk', 'enter', 'read', 'build', 'repair'] as const;
 export type InteractionKind = (typeof interactionKinds)[number];
 
 /** 1. Prefab：這種物件「是什麼」。 */
@@ -39,7 +51,7 @@ export const prefabSchema = z
     /** GLB / glTF 路徑，或 `procedural:<id>`（程式產生的模型，例如花叢） */
     model: z.string().min(1),
     collider: z.enum(['none', 'static', 'sensor', 'dynamic']),
-    collision: collisionShapeSchema.optional(),
+    collision: collisionSchema.optional(),
     /** 需要個別元件呈現（例如會開蓋的寶箱）；省略時以 InstancedMesh 批次渲染 */
     entity: z.enum(['chest']).optional(),
     interaction: z.enum(interactionKinds).optional(),
@@ -55,13 +67,25 @@ export const prefabSchema = z
         /** 採集後留下的模型（例如樹樁）；省略時整個物件隱藏 */
         harvestedModel: z.string().min(1).optional(),
         /** 採集後的碰撞形狀；省略時移除碰撞 */
-        harvestedCollision: collisionShapeSchema.optional(),
+        harvestedCollision: collisionSchema.optional(),
         /** 採集時角色播放的動作（砍樹、敲石頭用 attack，摘花用 interact） */
         anim: z.enum(['attack', 'interact']).optional(),
       })
       .optional(),
     /** 寶箱內容（打開時給予，只能領一次） */
     contents: z.object({ lootTableId: z.string().min(1) }).optional(),
+    /** 可修復的物件（規格 5.2 木橋：損毀 / 修復兩狀態）：修復後的外觀與碰撞、需要的材料、限定的任務 */
+    repair: z
+      .object({
+        model: z.string().min(1),
+        collision: collisionSchema.optional(),
+        materials: z.array(z.object({ itemId: z.string().min(1), count: z.number().int().positive() })).min(1),
+        /** 只有這個任務進行中才能修（規格：修復任務中可互動） */
+        quest: z.string().min(1).optional(),
+      })
+      .optional(),
+    /** 互動點相對物件原點的位移（模型單位，會乘上縮放並旋轉）：例如木橋在橋頭互動 */
+    interactOffset: vec3.optional(),
     persists: z.boolean(),
   })
   .refine((p) => p.collider !== 'static' || p.collision !== undefined, {
@@ -71,6 +95,10 @@ export const prefabSchema = z
   .refine((p) => p.interaction !== 'harvest' || p.harvest !== undefined, {
     message: 'interaction 為 harvest 時必須提供 harvest 設定',
     path: ['harvest'],
+  })
+  .refine((p) => p.interaction !== 'repair' || p.repair !== undefined, {
+    message: 'interaction 為 repair 時必須提供 repair 設定',
+    path: ['repair'],
   })
   .refine((p) => p.interaction === undefined || p.nameKey !== undefined, {
     message: '可互動的 prefab 必須提供 nameKey',
@@ -97,9 +125,11 @@ export type ObjectRuntime = {
   respawnAt?: number;
   hp?: number;
   open?: boolean;
+  /** 可修復物件已修好 */
+  repaired?: boolean;
 };
 
 /** 4. SaveState：只記錄與預設不同的差異。 */
 export type SaveObjectDelta = { placementId: string } & Partial<
-  Pick<ObjectRuntime, 'harvested' | 'respawnAt' | 'hp' | 'open'>
+  Pick<ObjectRuntime, 'harvested' | 'respawnAt' | 'hp' | 'open' | 'repaired'>
 >;

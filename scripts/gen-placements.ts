@@ -2,7 +2,11 @@
 // 執行：node scripts/gen-placements.ts（Node 24 原生支援 TS 型別剝除）
 import { readFileSync, writeFileSync } from 'node:fs';
 import {
+  BRIDGE,
   distanceToPath,
+  ISLAND,
+  isUnderwater,
+  LAKE,
   PATH_HALF_WIDTH,
   SPAWN_POINT,
   TERRAIN_SIZE,
@@ -220,6 +224,28 @@ scatter({
   spacing: 1.2,
   scale: [1.8, 2.2],
   density: (edge) => edge,
+});
+
+// 湖泊與木橋（任務 3D）：湖裡、湖岸、小島（Phase 4 家園預定地）與橋頭的物件全部移除。
+// 以事後過濾處理，其他物件的位置與 id 都不變。
+const kept = placements.filter((p) => {
+  const [x, , z] = (p as { position: number[] }).position as [number, number, number];
+  if (Math.hypot(x - LAKE.x, z - LAKE.z) < LAKE.radius + 3 && isUnderwater(x, z, 0.6)) return false;
+  if (Math.hypot(x - ISLAND.x, z - ISLAND.z) < ISLAND.radius + 2) return false;
+  const bridgeWest = BRIDGE.x - BRIDGE.length / 2;
+  if (x > bridgeWest - 5 && x < BRIDGE.x && Math.abs(z - BRIDGE.z) < 4) return false;
+  return true;
+});
+console.log(`removed ${placements.length - kept.length} placements in the lake area`);
+placements.length = 0;
+placements.push(...kept);
+placements.push({
+  id: 'lake_bridge',
+  prefabId: 'wood_bridge',
+  regionId: 'lake',
+  position: [BRIDGE.x, BRIDGE.deckY, BRIDGE.z],
+  // 橋沿局部 +Z，轉 90° 後沿世界 +X 從西岸接到小島
+  rotation: [0, round(Math.PI / 2), 0],
 });
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');

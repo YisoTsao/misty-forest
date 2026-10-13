@@ -144,6 +144,161 @@
     }
   },
   {
+    "id": "wood_bridge",
+    "model": "procedural:wood_bridge_broken",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          4.2
+        ],
+        "offset": [
+          0,
+          -0.3,
+          -4.9
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          4.2
+        ],
+        "offset": [
+          0,
+          -0.3,
+          4.9
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.16,
+          1.25,
+          4.2
+        ],
+        "offset": [
+          -1.25,
+          -0.3,
+          -4.9
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.16,
+          1.25,
+          4.2
+        ],
+        "offset": [
+          1.25,
+          -0.3,
+          -4.9
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.16,
+          1.25,
+          4.2
+        ],
+        "offset": [
+          -1.25,
+          -0.3,
+          4.9
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.16,
+          1.25,
+          4.2
+        ],
+        "offset": [
+          1.25,
+          -0.3,
+          4.9
+        ],
+        "cameraIgnore": true
+      }
+    ],
+    "interaction": "repair",
+    "nameKey": "object.bridge",
+    "interactRadius": 2.6,
+    "interactOffset": [
+      0,
+      0,
+      -3.7
+    ],
+    "repair": {
+      "model": "procedural:wood_bridge",
+      "collision": [
+        {
+          "shape": "box",
+          "size": [
+            2.6,
+            0.3,
+            14
+          ],
+          "offset": [
+            0,
+            -0.3,
+            0
+          ]
+        },
+        {
+          "shape": "box",
+          "size": [
+            0.16,
+            1.25,
+            13.6
+          ],
+          "offset": [
+            -1.25,
+            -0.3,
+            0
+          ],
+          "cameraIgnore": true
+        },
+        {
+          "shape": "box",
+          "size": [
+            0.16,
+            1.25,
+            13.6
+          ],
+          "offset": [
+            1.25,
+            -0.3,
+            0
+          ],
+          "cameraIgnore": true
+        }
+      ],
+      "materials": [
+        {
+          "itemId": "wood",
+          "count": 8
+        },
+        {
+          "itemId": "stone",
+          "count": 4
+        }
+      ],
+      "quest": "repair_bridge"
+    },
+    "persists": true
+  },
+  {
     "id": "house_small_blue",
     "model": "models/kaykit-hexagon/building_home_A_blue.gltf",
     "collider": "static",

@@ -4,7 +4,8 @@ import { useEffect, useMemo } from 'react';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { perfStats } from '@/game/perfStats';
 import { useGameStateStore } from '@/game/state/gameStateStore';
-import type { StaticColliderSpec, WorldIndex } from '@/game/world/worldIndex';
+import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
+import type { ColliderShapeSpec, StaticColliderSpec, WorldIndex } from '@/game/world/worldIndex';
 
 /** 玩家此距離內的物件才建立碰撞體（規格 7：只啟用玩家附近者） */
 export const ACTIVE_RADIUS = 30;
@@ -17,21 +18,31 @@ const REFRESH_INTERVAL = 0.25;
  * 樹木、岩石、寶箱等靜態物件的簡化碰撞體（圓柱 / 方塊）。
  * 物件數量多，因此不建立 React 元件，而是依玩家位置直接向 Rapier world 新增或移除。
  * 攝影機的 shape cast 也會命中這些碰撞體，因此樹木會自動參與攝影機避讓。
- * 已採集的物件改用採集後的形狀（樹樁）或移除碰撞；重生後換回原形狀。
+ * 狀態改變的物件（採集後的樹樁、修好的木橋）換成另一組形狀；狀態恢復後換回。
  */
 export function EnvironmentColliders({ index }: { index: WorldIndex }) {
   const { world, rapier } = useRapier();
-  const active = useMemo(() => new Map<string, { collider: RapierCollider; harvested: boolean }>(), []);
+  /** placement id → 目前建立的碰撞體與使用的形狀組 */
+  const active = useMemo(() => new Map<string, { colliders: RapierCollider[]; alternate: boolean; x: number; z: number }>(), []);
   const state = useMemo(() => ({ sinceRefresh: Infinity, query: [] as StaticColliderSpec[] }), []);
+
+  const remove = (id: string) => {
+    const entry = active.get(id);
+    if (!entry) return;
+    // Physics 可能已先卸載，此時 world 已釋放
+    for (const c of entry.colliders) {
+      cameraIgnoredColliders.delete(c.handle);
+      if (world.getCollider(c.handle)) world.removeCollider(c, false);
+    }
+    active.delete(id);
+  };
 
   useEffect(
     () => () => {
-      // 卸載時移除所有碰撞體（Physics 可能已先卸載，此時 world 已釋放）
-      for (const { collider } of active.values()) {
-        if (world.getCollider(collider.handle)) world.removeCollider(collider, false);
-      }
-      active.clear();
+      for (const id of [...active.keys()]) remove(id);
     },
+    // remove 只依賴 world 與 active
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [world, active],
   );
 
@@ -44,24 +55,27 @@ export function EnvironmentColliders({ index }: { index: WorldIndex }) {
     const objects = useGameStateStore.getState().state.objects;
     const nearby = index.colliders.query(x, z, ACTIVE_RADIUS, state.query);
     for (const spec of nearby) {
-      const harvested = spec.harvested !== undefined && objects.get(spec.id)?.harvested === true;
+      const runtime = objects.get(spec.id);
+      const alternate = spec.alternate !== undefined && runtime?.[spec.alternate.when] === true;
       const current = active.get(spec.id);
-      if (current?.harvested === harvested) continue;
-      if (current) {
-        world.removeCollider(current.collider, false);
-        active.delete(spec.id);
-      }
-      const form = harvested ? spec.harvested : spec;
-      if (form) active.set(spec.id, { collider: world.createCollider(colliderDesc(rapier, form)), harvested });
+      if (current?.alternate === alternate) continue;
+      if (current) remove(spec.id);
+      const shapes = alternate ? (spec.alternate?.shapes ?? []) : spec.normal;
+      active.set(spec.id, {
+        colliders: shapes.map((s) => {
+          const collider = world.createCollider(colliderDesc(rapier, s));
+          if (s.cameraIgnore) cameraIgnoredColliders.add(collider.handle);
+          return collider;
+        }),
+        alternate,
+        x: spec.x,
+        z: spec.z,
+      });
     }
     // 只移除超出遲滯範圍者
     const keep = (ACTIVE_RADIUS + HYSTERESIS) ** 2;
-    for (const [id, { collider }] of active) {
-      const t = collider.translation();
-      if ((t.x - x) ** 2 + (t.z - z) ** 2 > keep) {
-        world.removeCollider(collider, false);
-        active.delete(id);
-      }
+    for (const [id, entry] of active) {
+      if ((entry.x - x) ** 2 + (entry.z - z) ** 2 > keep) remove(id);
     }
     perfStats.activeColliders = active.size;
   });
@@ -71,7 +85,7 @@ export function EnvironmentColliders({ index }: { index: WorldIndex }) {
 
 type RapierModule = ReturnType<typeof useRapier>['rapier'];
 
-function colliderDesc(rapier: RapierModule, spec: StaticColliderSpec) {
+function colliderDesc(rapier: RapierModule, spec: ColliderShapeSpec) {
   const { shape } = spec;
   const halfHeight = shape.kind === 'cylinder' ? shape.height / 2 : shape.halfExtents[1];
   const desc =

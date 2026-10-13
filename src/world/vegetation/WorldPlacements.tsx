@@ -32,6 +32,7 @@ export function WorldPlacements({ data }: { data: WorldData }) {
         if (!prefab) return null; // parseWorldData 已保證存在
         if (prefab.entity === 'chest') return list.map((p) => <Chest key={p.id} placement={p} model={prefab.model} />);
         if (prefab.harvest) return <HarvestableGroup key={prefabId} prefab={prefab} placements={list} />;
+        if (prefab.repair) return <RepairableGroup key={prefabId} prefab={prefab} placements={list} />;
         return <InstancedPrefab key={prefabId} model={prefab.model} placements={list} />;
       })}
     </>
@@ -55,6 +56,23 @@ function HarvestableGroup({ prefab, placements }: { prefab: Prefab; placements: 
     <>
       <InstancedPrefab model={prefab.model} placements={standing} />
       {harvestedModel && <InstancedPrefab model={harvestedModel} placements={harvested} />}
+    </>
+  );
+}
+
+/** 可修復物件（規格 5.2 木橋：損毀 / 修復兩狀態），依權威狀態選擇外觀 */
+function RepairableGroup({ prefab, placements }: { prefab: Prefab; placements: readonly Placement[] }) {
+  const objects = useGameStateStore((s) => s.state.objects);
+  const [broken, repaired] = useMemo(() => {
+    const broken: Placement[] = [];
+    const repaired: Placement[] = [];
+    for (const p of placements) (objects.get(p.id)?.repaired ? repaired : broken).push(p);
+    return [broken, repaired];
+  }, [objects, placements]);
+  return (
+    <>
+      <InstancedPrefab model={prefab.model} placements={broken} />
+      {prefab.repair && <InstancedPrefab model={prefab.repair.model} placements={repaired} />}
     </>
   );
 }

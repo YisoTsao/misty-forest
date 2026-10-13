@@ -80,9 +80,10 @@ await runE2e('quest e2e', { env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page
     assert.equal(await tracker.count(), 0);
   });
 
-  await check('完成後巴魯說新的話；不能再領一次獎勵', async () => {
+  await check('完成後巴魯提出下一個任務（修橋）；不能再領一次獎勵', async () => {
+    assert.equal(await debug(() => window.__mistwoodDebug.questState('repair_bridge')), 'available');
     await talkToBalu();
-    assert.equal(await node(), 'busy');
+    assert.equal(await node(), 'plan');
     await page.keyboard.press('Escape');
     await debug(() => window.__mistwoodDebug.send({ type: 'TurnInQuest', quest: 'wood_for_bridge' }));
     assert.equal(await itemCount('starlight_shard'), 1);

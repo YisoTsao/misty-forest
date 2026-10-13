@@ -13,8 +13,8 @@ export const playerRuntime = {
   newGameRequest: false,
   /** 讀取存檔：下一幀移到存檔位置與面向 */
   restoreRequest: null as { position: { x: number; y: number; z: number }; facingYaw: number } | null,
-  /** 除錯 / 測試用：下一幀把玩家移到指定水平位置（高度貼齊地形） */
-  teleportRequest: null as { x: number; z: number } | null,
+  /** 除錯 / 測試用：下一幀把玩家移到指定位置；省略 feetY 時腳底貼齊地形（站在橋面等物件上時需指定） */
+  teleportRequest: null as { x: number; z: number; feetY?: number } | null,
   /** 互動、採集等一次性動作剩餘時間（秒）；大於 0 時播放動作動畫並暫停移動 */
   action: null as { clip: 'interact' | 'attack'; remaining: number } | null,
   /** 掉落重置次數（測試與除錯觀察用） */

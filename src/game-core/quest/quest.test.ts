@@ -103,3 +103,38 @@ describe('quests', () => {
     expect(() => parseQuests(bad, { items: new Set(itemsData.map((i) => i.id)), npcs: new Set(npcsData.map((n) => n.id)) })).toThrow(/ghost/);
   });
 });
+
+describe('RepairObject 與修復目標', () => {
+  const accept = () => run(initialGameState(), { type: 'AcceptQuest', quest: 'mend' }).state;
+
+  it('任務未進行時不能修（規格：修復任務中才可互動）', () => {
+    expect(reason(withWood(initialGameState(), 5), { type: 'RepairObject', placementId: 'b1' })).toBe('quest-unavailable');
+  });
+
+  it('材料不足時拒絕，物品不變', () => {
+    const s = withWood(accept(), 2);
+    expect(reason(s, { type: 'RepairObject', placementId: 'b1' })).toBe('missing-materials');
+    expect(countItem(s.inventory, 'wood')).toBe(2);
+  });
+
+  it('修好：消耗材料、狀態為已修復、任務目標達成；不能重複修', () => {
+    const s0 = withWood(accept(), 5);
+    expect(objectiveProgress(s0, q('mend'))).toEqual([{ current: 0, target: 1 }]);
+    const r = run(s0, { type: 'RepairObject', placementId: 'b1' });
+    expect(r.events).toEqual([
+      { type: 'ItemsRemoved', items: [{ itemId: 'wood', count: 3 }], reason: 'repair' },
+      { type: 'ObjectRepaired', placementId: 'b1' },
+    ]);
+    expect(r.state.objects.get('b1')?.repaired).toBe(true);
+    expect(countItem(r.state.inventory, 'wood')).toBe(2);
+    expect(isQuestReady(r.state, q('mend'))).toBe(true);
+    expect(reason(r.state, { type: 'RepairObject', placementId: 'b1' })).toBe('already-repaired');
+    // 回報後湖的迷霧清除
+    const done = run(r.state, { type: 'TurnInQuest', quest: 'mend' }).state;
+    expect(done.mist.lake).toBe('clear');
+  });
+
+  it('不是可修復的物件不能修', () => {
+    expect(reason(accept(), { type: 'RepairObject', placementId: 't1' })).toBe('wrong-interaction');
+  });
+});

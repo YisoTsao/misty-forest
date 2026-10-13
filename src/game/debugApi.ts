@@ -43,7 +43,8 @@ export type MistwoodDebugApi = {
     action: string | null;
     respawnCount: number;
   };
-  teleport: (x: number, z: number) => void;
+  /** 移動玩家；feetY 省略時腳底貼齊地形 */
+  teleport: (x: number, z: number, feetY?: number) => void;
   /** 跟隨相機目前的角度與距離 */
   cameraAngles: () => { yaw: number; pitch: number; distance: number };
   /** 設定跟隨相機的角度與距離（省略的欄位不變），回傳目前相機位置 */
@@ -135,8 +136,8 @@ export function installDebugApi(): void {
         respawnCount: playerRuntime.respawnCount,
       };
     },
-    teleport: (x, z) => {
-      playerRuntime.teleportRequest = { x, z };
+    teleport: (x, z, feetY) => {
+      playerRuntime.teleportRequest = { x, z, feetY };
     },
     cameraAngles: () => ({ yaw: cameraRuntime.yaw, pitch: cameraRuntime.pitch, distance: cameraRuntime.distance }),
     camera: (set) => {

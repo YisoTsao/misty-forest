@@ -1,9 +1,9 @@
 [
-  { "id": "meadow", "nameKey": "region.meadow" },
-  { "id": "village", "nameKey": "region.village", "area": { "center": [-11, -34], "radius": 19, "blend": 8 } },
-  { "id": "forest", "nameKey": "region.forest", "area": { "center": [60, -58], "radius": 26, "blend": 12 } },
-  { "id": "lake", "nameKey": "region.lake" },
-  { "id": "home", "nameKey": "region.home" },
-  { "id": "overlook", "nameKey": "region.overlook" },
-  { "id": "ruins", "nameKey": "region.ruins" }
+  {"id": "meadow", "nameKey": "region.meadow"},
+  {"id": "village", "nameKey": "region.village", "area": {"center": [-11, -34], "radius": 19, "blend": 8}},
+  {"id": "forest", "nameKey": "region.forest", "area": {"center": [60, -58], "radius": 26, "blend": 12}},
+  {"id": "lake", "nameKey": "region.lake", "area": {"center": [34, 8], "radius": 19, "blend": 8}},
+  {"id": "home", "nameKey": "region.home"},
+  {"id": "overlook", "nameKey": "region.overlook"},
+  {"id": "ruins", "nameKey": "region.ruins"}
 ]

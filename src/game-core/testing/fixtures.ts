@@ -29,6 +29,15 @@ export const testPrefabs: Prefab[] = [
   },
   { id: 'flower', model: 'procedural:flower_patch', collider: 'none', interaction: 'harvest', nameKey: 'object.flower', harvest: { lootTableId: 'flower' }, persists: true },
   { id: 'rock', model: 'rock.gltf', collider: 'none', persists: false },
+  {
+    id: 'bridge',
+    model: 'procedural:wood_bridge_broken',
+    collider: 'none',
+    interaction: 'repair',
+    nameKey: 'object.bridge',
+    repair: { model: 'procedural:wood_bridge', materials: [{ itemId: 'wood', count: 3 }], quest: 'mend' },
+    persists: true,
+  },
 ];
 
 export const testPlacements: Placement[] = [
@@ -38,6 +47,7 @@ export const testPlacements: Placement[] = [
   { id: 't2', prefabId: 'tree', regionId: 'forest', position: [20, 0, 0] },
   { id: 'f1', prefabId: 'flower', regionId: 'meadow', position: [30, 0, 0] },
   { id: 'r1', prefabId: 'rock', regionId: 'meadow', position: [40, 0, 0] },
+  { id: 'b1', prefabId: 'bridge', regionId: 'lake', position: [50, 0, 0] },
 ];
 
 export const testItems: ItemDef[] = [
@@ -70,6 +80,15 @@ export const testQuests: QuestDef[] = [
     requires: ['gather'],
     objectives: [{ type: 'collect', itemId: 'flower', count: 1, consume: false }],
     rewards: { mist: [{ region: 'forest', stage: 'clear' }] },
+  },
+  {
+    id: 'mend',
+    nameKey: 'q.mend',
+    descKey: 'q.mend.desc',
+    giver: 'npc_a',
+    requires: [],
+    objectives: [{ type: 'repair', placementId: 'b1', descKey: 'q.mend.obj' }],
+    rewards: { mist: [{ region: 'lake', stage: 'clear' }] },
   },
 ];
 

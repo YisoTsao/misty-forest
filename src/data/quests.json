@@ -5,7 +5,55 @@
     "descKey": "quest.wood.desc",
     "giver": "balu",
     "requires": [],
-    "objectives": [{ "type": "collect", "itemId": "wood", "count": 6, "consume": true }],
-    "rewards": { "items": [{ "itemId": "starlight_shard", "count": 1 }] }
+    "objectives": [
+      {
+        "type": "collect",
+        "itemId": "wood",
+        "count": 6,
+        "consume": true
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "starlight_shard",
+          "count": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "repair_bridge",
+    "nameKey": "quest.bridge.name",
+    "descKey": "quest.bridge.desc",
+    "giver": "balu",
+    "requires": [
+      "wood_for_bridge"
+    ],
+    "objectives": [
+      {
+        "type": "repair",
+        "placementId": "lake_bridge",
+        "descKey": "quest.bridge.objective"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "starlight_shard",
+          "count": 1
+        },
+        {
+          "itemId": "herb",
+          "count": 2
+        }
+      ],
+      "mist": [
+        {
+          "region": "lake",
+          "stage": "clear"
+        }
+      ]
+    }
   }
 ]

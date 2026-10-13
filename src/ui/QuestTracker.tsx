@@ -1,5 +1,7 @@
-import { objectiveProgress, questStatus, isQuestReady } from '@/game-core/quest/quest';
-import { npcs, quests } from '@/game/authority';
+import { countItem } from '@/game-core/inventory/inventory';
+import { isQuestReady, objectiveProgress, questStatus, type Objective } from '@/game-core/quest/quest';
+import type { GameState } from '@/game-core/authority/rules';
+import { npcs, quests, worldIndex } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
@@ -21,25 +23,15 @@ export function QuestTracker() {
       {active.map((q) => {
         const ready = isQuestReady(state, q);
         const giver = npcs.find((n) => n.id === q.giver);
+        const progress = objectiveProgress(state, q);
         return (
           <div key={q.id} data-quest={q.id} data-ready={ready} className="rounded-xl bg-black/50 px-3 py-2 text-sm text-white shadow">
             <p className="text-xs font-bold tracking-wide text-amber-300">{t('quest.tracker')}</p>
             <p className="font-bold">{t(q.nameKey)}</p>
             <ul className="mt-1 flex flex-col gap-0.5">
-              {q.objectives.map((o, i) => {
-                const p = objectiveProgress(state, q)[i]!;
-                const def = items.get(o.itemId);
-                const done = p.current >= p.target;
-                return (
-                  <li key={i} className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>
-                    {def && <ItemIcon icon={def.icon} className="h-5 w-5" />}
-                    <span>{def ? t(def.nameKey) : o.itemId}</span>
-                    <span className="ml-auto font-mono" data-testid="quest-progress">
-                      {p.current} / {p.target}
-                    </span>
-                  </li>
-                );
-              })}
+              {q.objectives.map((o, i) => (
+                <ObjectiveRow key={i} objective={o} progress={progress[i]!} state={state} />
+              ))}
             </ul>
             {ready && giver && <p className="mt-1 text-xs text-amber-200">{t('quest.ready', { npc: t(giver.nameKey) })}</p>}
           </div>
@@ -47,4 +39,46 @@ export function QuestTracker() {
       })}
     </div>
   );
+}
+
+function ItemCount({ itemId, current, target }: { itemId: string; current: number; target: number }) {
+  const def = items.get(itemId);
+  const done = current >= target;
+  return (
+    <li className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>
+      {def && <ItemIcon icon={def.icon} className="h-5 w-5" />}
+      <span>{def ? t(def.nameKey) : itemId}</span>
+      <span className="ml-auto font-mono" data-testid="quest-progress">
+        {Math.min(current, target)} / {target}
+      </span>
+    </li>
+  );
+}
+
+function ObjectiveRow({ objective: o, progress, state }: { objective: Objective; progress: { current: number; target: number }; state: GameState }) {
+  switch (o.type) {
+    case 'collect':
+      return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
+    case 'repair': {
+      // 修復目標：顯示要做的事；還沒修好時列出需要的材料與目前持有數
+      const done = progress.current >= progress.target;
+      const placement = worldIndex.placement(o.placementId);
+      const materials = (placement && worldIndex.prefab(placement.prefabId)?.repair?.materials) ?? [];
+      return (
+        <li className="flex flex-col gap-0.5">
+          <span className={done ? 'text-emerald-300' : ''} data-testid="quest-repair">
+            {done ? '✓ ' : ''}
+            {t(o.descKey)}
+          </span>
+          {!done && (
+            <ul className="ml-2 flex flex-col gap-0.5 text-xs">
+              {materials.map((m) => (
+                <ItemCount key={m.itemId} itemId={m.itemId} current={countItem(state.inventory, m.itemId)} target={m.count} />
+              ))}
+            </ul>
+          )}
+        </li>
+      );
+    }
+  }
 }

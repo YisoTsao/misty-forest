@@ -15,6 +15,8 @@ export const saveObjectDeltaSchema = z.object({
   respawnAt: finite.optional(),
   hp: finite.optional(),
   open: z.boolean().optional(),
+  /** 任務 3D 加入（選填，v4 舊存檔沒有這個欄位仍然有效） */
+  repaired: z.boolean().optional(),
 });
 
 export const saveDataSchema = z.object({

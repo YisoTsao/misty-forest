@@ -11,6 +11,8 @@ const itemStack = z.object({ itemId: z.string().min(1), count: z.number().int().
 export const objectiveSchema = z.discriminatedUnion('type', [
   /** 帶著指定數量的物品回報；consume 為 true 時回報會交出這些物品 */
   z.object({ type: z.literal('collect'), itemId: z.string().min(1), count: z.number().int().positive(), consume: z.boolean() }),
+  /** 修好指定的物件（木橋） */
+  z.object({ type: z.literal('repair'), placementId: z.string().min(1), descKey: z.string().min(1) }),
 ]);
 export type Objective = z.infer<typeof objectiveSchema>;
 
@@ -43,7 +45,10 @@ export function parseQuests(raw: unknown, refs: { items: ReadonlySet<string>; np
   for (const q of list) {
     if (map.has(q.id)) throw new Error(`任務 id 重複：${q.id}`);
     if (!refs.npcs.has(q.giver)) throw new Error(`任務 ${q.id} 的 NPC 不存在：${q.giver}`);
-    const items = [...q.objectives.map((o) => o.itemId), ...(q.rewards.items ?? []).map((i) => i.itemId)];
+    const items = [
+      ...q.objectives.flatMap((o) => (o.type === 'collect' ? [o.itemId] : [])),
+      ...(q.rewards.items ?? []).map((i) => i.itemId),
+    ];
     for (const id of items) if (!refs.items.has(id)) throw new Error(`任務 ${q.id} 參照不存在的物品：${id}`);
     map.set(q.id, q);
   }
@@ -56,6 +61,7 @@ export function parseQuests(raw: unknown, refs: { items: ReadonlySet<string>; np
 type QuestState = {
   quests: Readonly<Record<string, QuestRecord>>;
   inventory: Parameters<typeof countItem>[0];
+  objects: ReadonlyMap<string, { repaired?: boolean }>;
 };
 
 export function questStatus(state: QuestState, def: QuestDef): QuestStatus {
@@ -70,6 +76,8 @@ export function objectiveProgress(state: QuestState, def: QuestDef): { current: 
     switch (o.type) {
       case 'collect':
         return { current: Math.min(countItem(state.inventory, o.itemId), o.count), target: o.count };
+      case 'repair':
+        return { current: state.objects.get(o.placementId)?.repaired ? 1 : 0, target: 1 };
     }
   });
 }

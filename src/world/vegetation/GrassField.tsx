@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { TERRAIN_SIZE } from '@/game-core/world/terrain';
+import { isUnderwater, TERRAIN_SIZE } from '@/game-core/world/terrain';
 import { flowerPatchMask, scatterChunk, type VegetationInstance } from '@/game-core/world/vegetation';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import type { WorldIndex } from '@/game/world/worldIndex';
@@ -65,7 +65,8 @@ export function GrassField({ index }: { index: WorldIndex }) {
   const chunks = useMemo<Chunk[]>(() => {
     const list: Chunk[] = [];
     const half = TERRAIN_SIZE / 2 - EDGE_MARGIN;
-    const accept = (x: number, z: number) => !index.isOccupied(x, z);
+    // 湖裡與水邊不長草
+    const accept = (x: number, z: number) => !index.isOccupied(x, z) && !isUnderwater(x, z, 0.25);
     const palette = flowerColors.map((c) => new THREE.Color(c));
     for (let x0 = -half; x0 < half; x0 += CHUNK) {
       for (let z0 = -half; z0 < half; z0 += CHUNK) {

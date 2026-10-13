@@ -37,10 +37,14 @@ export type GameCommand =
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
   | { type: 'AcceptQuest'; quest: string }
+  /** 修復物件（木橋）：消耗材料 */
+  | { type: 'RepairObject'; placementId: string }
   /** 回報任務：目標全部達成時交出物品、領取獎勵 */
   | { type: 'TurnInQuest'; quest: string }
   /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
-  | { type: 'DebugSetMistStage'; region: RegionId; stage: MistStage };
+  | { type: 'DebugSetMistStage'; region: RegionId; stage: MistStage }
+  /** 除錯 / 測試：直接放入物品（ctx.allowDebugCommands 為 true 時才接受） */
+  | { type: 'DebugGiveItems'; items: ItemStack[] };
 
 export type RejectReason =
   | 'unknown-object'
@@ -52,6 +56,8 @@ export type RejectReason =
   | 'unknown-quest'
   | 'quest-unavailable'
   | 'quest-incomplete'
+  | 'already-repaired'
+  | 'missing-materials'
   | 'not-allowed'
   | 'invalid-command';
 
@@ -65,7 +71,8 @@ export type GameEvent =
   | { type: 'MistStageChanged'; region: RegionId; stage: MistStage }
   | { type: 'QuestAccepted'; quest: string }
   | { type: 'QuestCompleted'; quest: string }
-  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' }
+  | { type: 'ObjectRepaired'; placementId: string }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -93,10 +100,16 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'AdvanceTutorial':
       if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
+    case 'RepairObject':
+      return repairObject(state, cmd.placementId, ctx);
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
     case 'TurnInQuest':
       return turnInQuest(state, cmd.quest, ctx);
+    case 'DebugGiveItems':
+      if (!ctx.allowDebugCommands) return reject('DebugGiveItems', 'not-allowed');
+      if (!addItems(state.inventory, cmd.items, ctx.items)) return reject('DebugGiveItems', 'inventory-full');
+      return [{ type: 'ItemsGained', items: cmd.items, source: 'debug' }];
     case 'DebugSetMistStage':
       if (!ctx.allowDebugCommands) return reject('DebugSetMistStage', 'not-allowed');
       if (state.mist[cmd.region] === cmd.stage) return [];
@@ -154,6 +167,24 @@ function openChest(state: GameState, placementId: string, ctx: RulesContext): Ga
   ];
 }
 
+function repairObject(state: GameState, placementId: string, ctx: RulesContext): GameEvent[] {
+  const found = lookup(ctx, placementId);
+  if (!found) return reject('RepairObject', 'unknown-object', placementId);
+  const spec = found.prefab.repair;
+  if (found.prefab.interaction !== 'repair' || !spec) return reject('RepairObject', 'wrong-interaction', placementId);
+  if (state.objects.get(placementId)?.repaired) return reject('RepairObject', 'already-repaired', placementId);
+  // 規格 5.2：木橋只在修復任務進行中可互動
+  if (spec.quest) {
+    const quest = ctx.quests.get(spec.quest);
+    if (!quest || questStatus(state, quest) !== 'active') return reject('RepairObject', 'quest-unavailable', placementId);
+  }
+  if (!removeItems(state.inventory, spec.materials)) return reject('RepairObject', 'missing-materials', placementId);
+  return [
+    { type: 'ItemsRemoved', items: spec.materials, reason: 'repair' },
+    { type: 'ObjectRepaired', placementId },
+  ];
+}
+
 function acceptQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
   const def = ctx.quests.get(questId);
   if (!def) return reject('AcceptQuest', 'unknown-quest');
@@ -204,7 +235,7 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
     const map = mutableObjects();
     const merged: ObjectRuntime = { ...(map.get(id) ?? { placementId: id }), ...change };
     // 回到預設狀態的物件從表中移除，存檔只記錄差異
-    if (!merged.open && !merged.harvested && merged.respawnAt === undefined && merged.hp === undefined) map.delete(id);
+    if (!merged.open && !merged.harvested && !merged.repaired && merged.respawnAt === undefined && merged.hp === undefined) map.delete(id);
     else map.set(id, merged);
   };
 
@@ -221,6 +252,9 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         break;
       case 'ChestOpened':
         patch(e.placementId, { open: true });
+        break;
+      case 'ObjectRepaired':
+        patch(e.placementId, { repaired: true });
         break;
       case 'ItemsGained': {
         const next = addItems(inventory, e.items, ctx.items);

@@ -47,9 +47,15 @@ export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {},
       debug,
       state: () => debug(() => window.__mistwoodDebug.playerState()),
       camera: (set) => debug((s) => window.__mistwoodDebug.camera(s), set),
+      /** 移到 (x, z)，腳底貼齊地形；settleMs 為之後等待的時間（落地、碰撞體更新） */
       teleport: async (x, z, settleMs = 700) => {
         await debug(([tx, tz]) => window.__mistwoodDebug.teleport(tx, tz), [x, z]);
-        await page.waitForTimeout(settleMs); // 落地、碰撞體更新
+        await page.waitForTimeout(settleMs);
+      },
+      /** 移到 (x, z) 並指定腳底高度（站在橋面等物件上） */
+      teleportOnto: async (x, z, feetY, settleMs = 700) => {
+        await debug(([tx, tz, fy]) => window.__mistwoodDebug.teleport(tx, tz, fy), [x, z, feetY]);
+        await page.waitForTimeout(settleMs);
       },
       objectState: (id) => debug((pid) => window.__mistwoodDebug.objectState(pid), id),
       itemCount: (id) => debug((iid) => window.__mistwoodDebug.itemCount(iid), id),

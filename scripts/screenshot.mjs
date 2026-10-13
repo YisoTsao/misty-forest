@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --lake：湖泊全景、斷橋、在橋頭修理、修好的木橋（任務 3D）
 //   --npc：村莊 NPC 全身、與長老對話（一般段落與選項）（任務 3B）、任務追蹤（任務 3C）
 //   --region：森林空地在濃霧與迷霧清除後的跟隨視角、區域名稱（任務 3A）
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
@@ -23,6 +24,7 @@ const withMenu = flags.has('--menu');
 const withHarvest = flags.has('--harvest');
 const withRegion = flags.has('--region');
 const withNpc = flags.has('--npc');
+const withLake = flags.has('--lake');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -153,6 +155,44 @@ try {
     await page.waitForTimeout(300);
     await shot('inventory');
     await page.keyboard.press('KeyI');
+  }
+
+  if (withLake) {
+    // 湖的西北岸俯瞰湖面與小島
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+      d.setCameraMode('follow');
+      d.teleport(17, 0);
+      d.camera({ yaw: -2.3, pitch: 0.42, distance: 8 });
+    });
+    await page.waitForTimeout(2500);
+    await shot('lake_overview');
+    // 斷橋的橋頭：接取修橋任務、帶齊材料
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.send({ type: 'DebugGiveItems', items: [{ itemId: 'wood', count: 14 }, { itemId: 'stone', count: 4 }] });
+      d.send({ type: 'AcceptQuest', quest: 'wood_for_bridge' });
+      d.send({ type: 'TurnInQuest', quest: 'wood_for_bridge' });
+      d.send({ type: 'AcceptQuest', quest: 'repair_bridge' });
+      d.teleport(20.6, 8, 0.5); // 站在橋面上（橋面高 0.45）
+      d.camera({ yaw: -1.2, pitch: 0.38, distance: 7 });
+    });
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'lake_bridge', null, { timeout: 5000 });
+    await page.waitForTimeout(800);
+    await shot('lake_bridge_broken');
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(1800);
+    await shot('lake_bridge_repaired');
+    // 走到橋中央回頭看
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.teleport(26, 8, 0.5);
+      d.camera({ yaw: 2.2, pitch: 0.25, distance: 6 });
+    });
+    await page.waitForTimeout(1200);
+    await shot('lake_bridge_walk');
   }
 
   if (withNpc) {

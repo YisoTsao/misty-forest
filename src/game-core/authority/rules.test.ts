@@ -171,5 +171,12 @@ describe('DebugSetMistStage', () => {
 
   it('不允許除錯指令時拒絕', () => {
     expect(rejectReason(initialGameState(), { type: 'DebugSetMistStage', region: 'forest', stage: 'clear' })).toBe('not-allowed');
+    expect(rejectReason(initialGameState(), { type: 'DebugGiveItems', items: [{ itemId: 'wood', count: 1 }] })).toBe('not-allowed');
+  });
+
+  it('DebugGiveItems 放入物品', () => {
+    const debugCtx = { ...ctx, allowDebugCommands: true };
+    const events = handleCommand(initialGameState(), { type: 'DebugGiveItems', items: [{ itemId: 'wood', count: 3 }] }, debugCtx);
+    expect(countItem(applyEvents(initialGameState(), events, debugCtx).inventory, 'wood')).toBe(3);
   });
 });

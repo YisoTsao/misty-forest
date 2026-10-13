@@ -39,22 +39,22 @@ describe('WorldIndex', () => {
 
   it('碰撞體尺寸套用 placement 縮放（圓柱取水平較大的縮放）', () => {
     const [tree] = index.colliders.query(10, 0, 0.1);
-    expect(tree?.shape).toEqual({ kind: 'cylinder', radius: 0.5, height: 3 });
-    expect(tree?.y).toBe(2);
+    expect(tree?.normal[0]?.shape).toEqual({ kind: 'cylinder', radius: 0.5, height: 3 });
+    expect(tree?.normal[0]?.y).toBe(2);
   });
 
   it('方塊碰撞體使用半邊長並保留旋轉', () => {
     const [chest] = index.colliders.query(0, 0, 0.1);
-    expect(chest?.shape).toEqual({ kind: 'box', halfExtents: [0.5, 0.25, 0.25] });
-    expect(chest?.yaw).toBe(1);
+    expect(chest?.normal[0]?.shape).toEqual({ kind: 'box', halfExtents: [0.5, 0.25, 0.25] });
+    expect(chest?.normal[0]?.yaw).toBe(1);
   });
 
   it('碰撞體局部位移套用縮放與 yaw 旋轉', () => {
     // 局部 (-1, 0, 0) × 2 = (-2, 0, 0)；繞 Y 轉 90° → (0, 0, 2)
-    const [fence] = index.colliders.query(30, 32, 0.1);
+    const [fence] = index.colliders.query(30, 30, 0.1);
     expect(fence?.id).toBe('fe1');
-    expect(fence?.x).toBeCloseTo(30);
-    expect(fence?.z).toBeCloseTo(32);
+    expect(fence?.normal[0]?.x).toBeCloseTo(30);
+    expect(fence?.normal[0]?.z).toBeCloseTo(32);
   });
 
   it('isOccupied：圓柱與旋轉後的方塊範圍內為 true', () => {

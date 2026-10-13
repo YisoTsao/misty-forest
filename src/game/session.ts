@@ -39,7 +39,7 @@ export function installAutosave(): void {
   let timer: number | null = null;
   authority.subscribe((events) => {
     const changed = events.some((e) =>
-      ['ObjectHarvested', 'ChestOpened', 'ItemsGained', 'QuestAccepted', 'QuestCompleted', 'MistStageChanged'].includes(e.type),
+      ['ObjectHarvested', 'ChestOpened', 'ItemsGained', 'QuestAccepted', 'QuestCompleted', 'MistStageChanged', 'ObjectRepaired'].includes(e.type),
     );
     if (!changed) return;
     if (timer !== null) window.clearTimeout(timer);

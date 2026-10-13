@@ -1,21 +1,30 @@
 import type { WorldLookup } from '@/game-core/world/objects';
 import { SpatialGrid } from '@/game-core/world/spatialGrid';
-import type { CollisionShape, Placement, Prefab } from '@/game-core/world/types';
+import { collisionShapes, type Collision, type CollisionShape, type Placement, type Prefab } from '@/game-core/world/types';
 import type { WorldData } from '@/game-core/world/worldData';
 
-/** 碰撞體資料：已套用 placement 的縮放與旋轉（世界單位）。 */
-export type StaticColliderSpec = {
-  id: string;
+/** 一個碰撞形狀：已套用 placement 的縮放與旋轉（世界單位）。 */
+export type ColliderShapeSpec = {
   x: number;
   /** 碰撞體底部高度 */
   y: number;
   z: number;
   yaw: number;
   shape: { kind: 'cylinder'; radius: number; height: number } | { kind: 'box'; halfExtents: [number, number, number] };
-  /**
-   * 可採集物件被採集後的碰撞體（例如樹樁）：undefined 表示不可採集；null 表示採集後沒有碰撞。
-   */
-  harvested?: StaticColliderSpec | null;
+  cameraIgnore: boolean;
+};
+
+/**
+ * 一個 placement 的碰撞體：平常的形狀，以及狀態改變後的另一組形狀
+ * （採集後的樹樁、修好的木橋；空陣列表示那個狀態沒有碰撞）。
+ */
+export type StaticColliderSpec = {
+  id: string;
+  /** placement 原點（格網查詢與距離判斷用） */
+  x: number;
+  z: number;
+  normal: ColliderShapeSpec[];
+  alternate?: { when: 'harvested' | 'repaired'; shapes: ColliderShapeSpec[] };
 };
 
 export type InteractableSpec = {
@@ -30,10 +39,10 @@ export type InteractableSpec = {
 const DEFAULT_INTERACT_RADIUS = 2;
 /** 格子大小約為查詢半徑的一半，避免單次查詢掃過太多格 */
 const GRID_CELL = 8;
-/** 最大碰撞體的水平半徑上限（建築約 3.5 m），isOccupied 以此為查詢半徑 */
-const MAX_COLLIDER_REACH = 6;
+/** 碰撞形狀離 placement 原點的最大水平距離（木橋約 7 m），isOccupied 以此為查詢半徑 */
+const MAX_COLLIDER_REACH = 9;
 
-function scaledShape(shape: CollisionShape, scale: readonly number[]): StaticColliderSpec['shape'] {
+function scaledShape(shape: CollisionShape, scale: readonly number[]): ColliderShapeSpec['shape'] {
   const [sx = 1, sy = 1, sz = 1] = scale;
   if (shape.shape === 'cylinder') {
     // 非等比縮放時取水平較大者，寧可略大也不要讓角色穿進模型
@@ -43,34 +52,35 @@ function scaledShape(shape: CollisionShape, scale: readonly number[]): StaticCol
   return { kind: 'box', halfExtents: [(w * sx) / 2, (h * sy) / 2, (d * sz) / 2] };
 }
 
-function colliderSpec(p: Placement, prefab: Prefab): StaticColliderSpec | null {
-  if (prefab.collider !== 'static' || !prefab.collision) return null;
-  const spec = shapeSpec(p, prefab.collision);
-  if (prefab.harvest) {
-    const after = prefab.harvest.harvestedCollision;
-    spec.harvested = after ? shapeSpec(p, after) : null;
-  }
-  return spec;
-}
-
-function shapeSpec(p: Placement, collision: CollisionShape): StaticColliderSpec {
+/** 局部位移先縮放再依 yaw 旋轉（與 three 的 Y 軸旋轉一致：x' = x cos + z sin，z' = −x sin + z cos） */
+function localToWorld(p: Placement, offset: readonly number[] | undefined): { x: number; y: number; z: number } {
   const [x, y, z] = p.position;
   const scale = p.scale ?? [1, 1, 1];
   const yaw = p.rotation?.[1] ?? 0;
-  // 局部位移先縮放再依 yaw 旋轉（與 three 的 Y 軸旋轉一致：x' = x cos + z sin，z' = −x sin + z cos）
-  const [ox = 0, oy = 0, oz = 0] = collision.offset ?? [];
+  const [ox = 0, oy = 0, oz = 0] = offset ?? [];
   const lx = ox * scale[0]!;
   const lz = oz * scale[2]!;
   const cos = Math.cos(yaw);
   const sin = Math.sin(yaw);
-  return {
-    id: p.id,
-    x: x + lx * cos + lz * sin,
-    y: y + oy * scale[1]!,
-    z: z - lx * sin + lz * cos,
+  return { x: x + lx * cos + lz * sin, y: y + oy * scale[1]!, z: z - lx * sin + lz * cos };
+}
+
+function shapeSpecs(p: Placement, collision: Collision | undefined): ColliderShapeSpec[] {
+  const yaw = p.rotation?.[1] ?? 0;
+  return collisionShapes(collision).map((c) => ({
+    ...localToWorld(p, c.offset),
     yaw,
-    shape: scaledShape(collision, scale),
-  };
+    shape: scaledShape(c, p.scale ?? [1, 1, 1]),
+    cameraIgnore: c.cameraIgnore === true,
+  }));
+}
+
+function colliderSpec(p: Placement, prefab: Prefab): StaticColliderSpec | null {
+  if (prefab.collider !== 'static' || !prefab.collision) return null;
+  const spec: StaticColliderSpec = { id: p.id, x: p.position[0], z: p.position[2], normal: shapeSpecs(p, prefab.collision) };
+  if (prefab.harvest) spec.alternate = { when: 'harvested', shapes: shapeSpecs(p, prefab.harvest.harvestedCollision) };
+  else if (prefab.repair) spec.alternate = { when: 'repaired', shapes: shapeSpecs(p, prefab.repair.collision) };
+  return spec;
 }
 
 /**
@@ -95,7 +105,8 @@ export class WorldIndex implements WorldLookup {
       const c = colliderSpec(p, prefab);
       if (c) colliders.push(c);
       if (prefab.interaction) {
-        interactables.push({ id: p.id, x: p.position[0], z: p.position[2], radius: prefab.interactRadius ?? DEFAULT_INTERACT_RADIUS, prefab });
+        const at = localToWorld(p, prefab.interactOffset);
+        interactables.push({ id: p.id, x: at.x, z: at.z, radius: prefab.interactRadius ?? DEFAULT_INTERACT_RADIUS, prefab });
       }
     }
     this.colliderCount = colliders.length;
@@ -104,24 +115,26 @@ export class WorldIndex implements WorldLookup {
   }
 
   /**
-   * (x, z) 是否落在任何靜態碰撞體的水平範圍內（含 margin）。給草花散佈避開樹幹、岩石與建築。
+   * (x, z) 是否落在任何靜態碰撞體（平常的形狀）的水平範圍內（含 margin）。給草花散佈避開樹幹、岩石與建築。
    * 只在載入時呼叫，因此每次配置查詢陣列沒有問題。
    */
   isOccupied(x: number, z: number, margin = 0.15): boolean {
-    for (const c of this.colliders.query(x, z, MAX_COLLIDER_REACH)) {
-      const dx = x - c.x;
-      const dz = z - c.z;
-      if (c.shape.kind === 'cylinder') {
-        if (dx * dx + dz * dz < (c.shape.radius + margin) ** 2) return true;
-        continue;
+    for (const spec of this.colliders.query(x, z, MAX_COLLIDER_REACH)) {
+      for (const c of spec.normal) {
+        const dx = x - c.x;
+        const dz = z - c.z;
+        if (c.shape.kind === 'cylinder') {
+          if (dx * dx + dz * dz < (c.shape.radius + margin) ** 2) return true;
+          continue;
+        }
+        // 轉到方塊的局部座標（反向 yaw）
+        const cos = Math.cos(c.yaw);
+        const sin = Math.sin(c.yaw);
+        const lx = dx * cos - dz * sin;
+        const lz = dx * sin + dz * cos;
+        const [hx, , hz] = c.shape.halfExtents;
+        if (Math.abs(lx) < hx + margin && Math.abs(lz) < hz + margin) return true;
       }
-      // 轉到方塊的局部座標（反向 yaw）
-      const cos = Math.cos(c.yaw);
-      const sin = Math.sin(c.yaw);
-      const lx = dx * cos - dz * sin;
-      const lz = dx * sin + dz * cos;
-      const [hx, , hz] = c.shape.halfExtents;
-      if (Math.abs(lx) < hx + margin && Math.abs(lz) < hz + margin) return true;
     }
     return false;
   }

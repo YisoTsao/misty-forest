@@ -5,7 +5,8 @@ import { isControllable } from '@/game-core/flow/gameFlow';
 import { selectInteractTarget, type InteractCandidate } from '@/game-core/interaction/target';
 import { canInteract } from '@/game-core/world/objects';
 import type { Prefab } from '@/game-core/world/types';
-import { authority, npcs } from '@/game/authority';
+import { authority, npcs, quests } from '@/game/authority';
+import { questStatus } from '@/game-core/quest/quest';
 import { startTalk } from '@/game/dialogueController';
 import { input } from '@/game/input/inputManager';
 import { npcRuntime } from '@/game/npc/npcRuntime';
@@ -39,6 +40,8 @@ function commandFor(prefab: Prefab, placementId: string): GameCommand | null {
       return { type: 'HarvestObject', placementId };
     case 'open':
       return { type: 'OpenChest', placementId };
+    case 'repair':
+      return { type: 'RepairObject', placementId };
     default:
       return null;
   }
@@ -73,11 +76,15 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
 
   const selectTarget = (): Target | null => {
     const { position, locomotion } = playerRuntime;
-    const objects = useGameStateStore.getState().state.objects;
+    const state = useGameStateStore.getState().state;
+    const isQuestActive = (id: string) => {
+      const def = quests.get(id);
+      return def !== undefined && questStatus(state, def) === 'active';
+    };
     const nearby = index.interactables.query(position.x, position.z, QUERY_RADIUS, scratch.nearby);
     scratch.candidates.length = 0;
     for (const spec of nearby) {
-      if (canInteract(spec.prefab, objects.get(spec.id))) scratch.candidates.push(spec);
+      if (canInteract(spec.prefab, state.objects.get(spec.id), isQuestActive)) scratch.candidates.push(spec);
     }
     // NPC 會移動，不放進靜態格網；數量少，直接逐一檢查
     for (const npc of npcs) {

@@ -153,6 +153,13 @@ describe('版本遷移', () => {
     expect(roundTrip(toSaveData(state, player, new Date())).state.quests).toEqual(state.quests);
   });
 
+  it('修好的物件寫入存檔並讀回', () => {
+    const state = { ...initialGameState(), objects: new Map([['b1', { placementId: 'b1', repaired: true }]]) };
+    const data = toSaveData(state, player, new Date());
+    expect(data.world.objects).toEqual([{ placementId: 'b1', repaired: true }]);
+    expect(roundTrip(data).state.objects.get('b1')?.repaired).toBe(true);
+  });
+
   it('各區域迷霧寫入存檔並讀回', () => {
     const state = { ...initialGameState(), mist: { ...initialGameState().mist, forest: 'clear' as const } };
     expect(roundTrip(toSaveData(state, player, new Date())).state.mist.forest).toBe('clear');

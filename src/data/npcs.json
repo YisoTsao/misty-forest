@@ -76,11 +76,34 @@
       },
       {
         "when": {
+          "type": "questReady",
+          "quest": "repair_bridge"
+        },
+        "dialogue": "balu_bridge_turnin"
+      },
+      {
+        "when": {
           "type": "questStatus",
-          "quest": "wood_for_bridge",
+          "quest": "repair_bridge",
+          "is": "active"
+        },
+        "dialogue": "balu_bridge_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "repair_bridge",
+          "is": "available"
+        },
+        "dialogue": "balu_bridge_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "repair_bridge",
           "is": "completed"
         },
-        "dialogue": "balu_after_wood"
+        "dialogue": "balu_after_bridge"
       },
       {
         "dialogue": "balu_intro"

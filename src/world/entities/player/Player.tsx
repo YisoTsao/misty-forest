@@ -7,7 +7,7 @@ import { initialLocomotionState, stepLocomotion } from '@/game-core/character/lo
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { movementAxes } from '@/game-core/input/actions';
 import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
-import { SPAWN_POINT, TERRAIN_SIZE, terrainHeight } from '@/game-core/world/terrain';
+import { LAKE, SPAWN_POINT, TERRAIN_SIZE, terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
@@ -18,6 +18,8 @@ import { CharacterModel } from './CharacterModel';
 const MAX_DT = 1 / 20;
 /** 低於此高度視為掉出地圖 */
 const KILL_Y = -25;
+/** 腳底沉到湖面以下這麼深就算落水（不做游泳，回到最近的安全點） */
+const DROWN_DEPTH = 0.6;
 const deg = Math.PI / 180;
 const safePointOptions = { ...defaultSafePointOptions, halfExtent: TERRAIN_SIZE / 2 };
 const NO_MOVE = { right: 0, forward: 0, run: false, jumpPressed: false };
@@ -117,11 +119,14 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     const next = { x: t.x + moved.x, y: t.y + moved.y, z: t.z + moved.z };
 
     const teleport = playerRuntime.teleportRequest;
-    const fellOut = next.y < KILL_Y;
+    const feetY = next.y - footOffset;
+    const inLake = feetY < WATER_LEVEL - DROWN_DEPTH && Math.hypot(next.x - LAKE.x, next.z - LAKE.z) < LAKE.radius + 2;
+    const fellOut = next.y < KILL_Y || inLake;
     if (teleport) {
-      Object.assign(next, { x: teleport.x, y: terrainHeight(teleport.x, teleport.z) + footOffset + 0.05, z: teleport.z });
+      const feet = teleport.feetY ?? terrainHeight(teleport.x, teleport.z);
+      Object.assign(next, { x: teleport.x, y: feet + footOffset + 0.05, z: teleport.z });
     } else if (fellOut) {
-      // 掉出地圖：回到離掉落處最近、曾經站穩過的安全點（規格 6.1）
+      // 掉出地圖或落水：回到離掉落處最近、曾經站穩過的安全點（規格 6.1）
       const to = nearestSafePoint(playerRuntime.safePoints, next, spawn);
       Object.assign(next, { x: to.x, y: to.y + 0.05, z: to.z });
       playerRuntime.respawnCount++;
@@ -133,7 +138,8 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       playerRuntime.safePoints.groundedFor = 0;
     } else {
       body.setNextKinematicTranslation(next);
-      recordSafePoint(playerRuntime.safePoints, next, state.grounded, dt, safePointOptions);
+      // 水邊（腳底接近湖面）不記錄安全點，避免重生在水裡
+      recordSafePoint(playerRuntime.safePoints, next, state.grounded && feetY > WATER_LEVEL + 0.2, dt, safePointOptions);
     }
 
     playerRuntime.locomotion = state;

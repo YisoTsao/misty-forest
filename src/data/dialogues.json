@@ -172,12 +172,77 @@
     }
   },
   {
-    "id": "balu_after_wood",
-    "start": "busy",
+    "id": "balu_bridge_offer",
+    "start": "plan",
     "nodes": {
-      "busy": {
+      "plan": {
         "speakerKey": "npc.balu",
-        "textKey": "dlg.balu.busy"
+        "textKey": "dlg.balu.bridgePlan",
+        "options": [
+          {
+            "textKey": "dlg.balu.opt.fixBridge",
+            "next": "how",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "repair_bridge"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.balu.opt.later"
+          }
+        ]
+      },
+      "how": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.balu.bridgeHow"
+      }
+    }
+  },
+  {
+    "id": "balu_bridge_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.balu.bridgeRemind"
+      }
+    }
+  },
+  {
+    "id": "balu_bridge_turnin",
+    "start": "heard",
+    "nodes": {
+      "heard": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.balu.bridgeDone",
+        "options": [
+          {
+            "textKey": "dlg.balu.opt.fixed",
+            "next": "gift",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "repair_bridge"
+              }
+            ]
+          }
+        ]
+      },
+      "gift": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.balu.bridgeGift"
+      }
+    }
+  },
+  {
+    "id": "balu_after_bridge",
+    "start": "island",
+    "nodes": {
+      "island": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.balu.island"
       }
     }
   }

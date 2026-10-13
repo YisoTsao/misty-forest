@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 import { useGameStore } from '@/game/state/gameStore';
+import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 
 const SENSITIVITY = 0.0025; // 弧度 / 像素
 const PITCH_MIN = -0.15;
@@ -61,7 +62,20 @@ export function FollowCamera({ playerCollider }: { playerCollider: RefObject<Rap
 
     let allowed = distance;
     // dir 為單位向量，time_of_impact 即沿線距離；targetDistance 0 表示接觸即算命中
-    const hit = world.castShape(sp, identityRot, dir, probe, 0, distance, true, undefined, undefined, playerCollider.current ?? undefined);
+    const hit = world.castShape(
+      sp,
+      identityRot,
+      dir,
+      probe,
+      0,
+      distance,
+      true,
+      undefined,
+      undefined,
+      playerCollider.current ?? undefined,
+      undefined,
+      (c) => !cameraIgnoredColliders.has(c.handle),
+    );
     if (hit) allowed = Math.max(MIN_ALLOWED, hit.time_of_impact - 0.05);
 
     // 被擋：立刻拉近；解除：平滑退回

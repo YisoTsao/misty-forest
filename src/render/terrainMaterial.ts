@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PATH_HALF_WIDTH } from '@/game-core/world/terrain';
+import { PATH_HALF_WIDTH, WATER_LEVEL } from '@/game-core/world/terrain';
 import { patchMist } from './mist';
 import { palette } from './palette';
 import { toonGradient } from './toon';
@@ -74,6 +74,15 @@ const SPLAT = /* glsl */ `
 
     vec3 col = mix(grass, dirt, pathW);
     col = mix(col, rock, rockW * (1.0 - pathW));
+
+    // 湖岸：接近水面處為沙岸，水面下為較深的濕沙與湖底
+    float h = vTerrainWorld.y;
+    float shoreNoise = (tNoise(wp * 0.8) - 0.5) * 0.25;
+    float sandW = 1.0 - smoothstep(uWaterLevel + 0.35, uWaterLevel + 0.85, h + shoreNoise);
+    vec3 sand = mix(uSand, uSand * 0.82, tNoise(wp * 2.7) * 0.6);
+    float bedW = 1.0 - smoothstep(uWaterLevel - 1.6, uWaterLevel - 0.1, h);
+    sand = mix(sand, uLakeBed, bedW);
+    col = mix(col, sand, sandW);
     diffuseColor.rgb *= col;
   }
 `;
@@ -86,6 +95,9 @@ export function createTerrainMaterial(): THREE.MeshToonMaterial {
     uDirtDark: { value: new THREE.Color(palette.dirtDark) },
     uRock: { value: new THREE.Color(palette.rock) },
     uPathHalf: { value: PATH_HALF_WIDTH },
+    uWaterLevel: { value: WATER_LEVEL },
+    uSand: { value: new THREE.Color(palette.sand) },
+    uLakeBed: { value: new THREE.Color(palette.lakeBed) },
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -114,6 +126,9 @@ export function createTerrainMaterial(): THREE.MeshToonMaterial {
         uniform vec3 uDirtDark;
         uniform vec3 uRock;
         uniform float uPathHalf;
+        uniform float uWaterLevel;
+        uniform vec3 uSand;
+        uniform vec3 uLakeBed;
         varying float vPathDist;
         varying vec3 vTerrainWorld;
         varying vec3 vTerrainNormal;
