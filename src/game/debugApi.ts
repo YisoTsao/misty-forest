@@ -1,13 +1,14 @@
 import { requiredClipKeys, type ClipKey } from '@/game-core/character/characterDef';
 import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
 import { parseMistLevel, type MistStage } from '@/game-core/world/mist';
+import { questStatus } from '@/game-core/quest/quest';
 import { regionAt } from '@/game-core/world/regions';
 import type { RegionId } from '@/game-core/world/types';
 import { initialGameState, type GameCommand } from '@/game-core/authority/rules';
 import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
-import { authority, regions } from './authority';
+import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { npcRuntime } from './npc/npcRuntime';
 import { perfStats } from './perfStats';
@@ -77,6 +78,8 @@ export type MistwoodDebugApi = {
   settings: () => { quality: string };
   /** NPC 目前的位置與狀態 */
   npcState: (id: string) => { x: number; z: number; yaw: number; walking: boolean; talking: boolean } | null;
+  /** 任務狀態（locked / available / active / completed） */
+  questState: (id: string) => string;
   /** 進行中的對話 */
   dialogue: () => { npcId: string; dialogueId: string; nodeId: string } | null;
   /** 目前畫面上的通知 */
@@ -174,6 +177,11 @@ export function installDebugApi(): void {
       return rt ? { x: rt.x, z: rt.z, yaw: rt.yaw, walking: rt.walking, talking: rt.talking } : null;
     },
     dialogue: () => useUiStore.getState().dialogue,
+    questState: (id) => {
+      const def = quests.get(id);
+      if (!def) throw new Error(`未知的任務：${id}`);
+      return questStatus(authority.getState(), def);
+    },
     toasts: () => useUiStore.getState().toasts.map(({ itemId, count, textKey }) => ({ itemId, count, textKey })),
     activeColliders: () => perfStats.activeColliders,
     perf: () => {

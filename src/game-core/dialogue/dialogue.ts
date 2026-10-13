@@ -1,9 +1,15 @@
 // 節點式對話（規格 6.4）：id、說話者、文字 key、選項、條件、效果。
-// 對話本身是本機 UI 流程；選項的「效果」（接任務、回報等）是送給權威層的指令，於任務 3C 加入。
-// 這裡只負責「目前顯示哪個節點、有哪些選項、選了之後去哪裡」。
+// 對話本身是本機 UI 流程；選項的「效果」（接任務、回報）是送給權威層的指令，由呼叫端送出。
+// 這裡只負責「目前顯示哪個節點、有哪些選項、選了之後去哪裡、要送出哪些效果」。
+
+export const dialogueEffectSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('acceptQuest'), quest: z.string().min(1) }),
+  z.object({ type: z.literal('turnInQuest'), quest: z.string().min(1) }),
+]);
+export type DialogueEffect = z.infer<typeof dialogueEffectSchema>;
 import { z } from 'zod';
 import type { GameState } from '../authority/rules';
-import { conditionSchema, evaluateCondition, type Condition } from './conditions';
+import { conditionSchema, evaluateCondition, type Condition, type ConditionContext } from './conditions';
 
 const optionSchema = z.object({
   textKey: z.string().min(1),
@@ -11,6 +17,8 @@ const optionSchema = z.object({
   next: z.string().min(1).optional(),
   /** 不符合條件的選項不顯示 */
   when: conditionSchema.optional(),
+  /** 選擇後送出的效果 */
+  effects: z.array(dialogueEffectSchema).optional(),
 });
 
 const nodeSchema = z
@@ -63,31 +71,31 @@ export type DialogueView = {
   options: { index: number; textKey: string }[] | null;
 };
 
-export function viewNode(def: DialogueDef, nodeId: string, state: GameState): DialogueView {
+export function viewNode(def: DialogueDef, nodeId: string, state: GameState, ctx: ConditionContext): DialogueView {
   const node = def.nodes[nodeId];
   if (!node) throw new DialogueDataError(`對話 ${def.id} 沒有節點 ${nodeId}`);
   const options = node.options
-    ? node.options.flatMap((o, index) => (evaluateCondition(o.when, state) ? [{ index, textKey: o.textKey }] : []))
+    ? node.options.flatMap((o, index) => (evaluateCondition(o.when, state, ctx) ? [{ index, textKey: o.textKey }] : []))
     : null;
   return { nodeId, speakerKey: node.speakerKey, textKey: node.textKey, options };
 }
 
-export type DialogueStep = { next: string | null };
+export type DialogueStep = { next: string | null; effects: DialogueEffect[] };
 
 /**
  * 從目前節點前進：有選項時必須給 optionIndex（且該選項符合條件），否則前往 next。
- * 回傳下一個節點（null = 結束）。
+ * 回傳下一個節點（null = 結束）與選項的效果。
  */
-export function advanceDialogue(def: DialogueDef, nodeId: string, state: GameState, optionIndex?: number): DialogueStep {
+export function advanceDialogue(def: DialogueDef, nodeId: string, state: GameState, ctx: ConditionContext, optionIndex?: number): DialogueStep {
   const node = def.nodes[nodeId];
   if (!node) throw new DialogueDataError(`對話 ${def.id} 沒有節點 ${nodeId}`);
-  if (!node.options) return { next: node.next ?? null };
+  if (!node.options) return { next: node.next ?? null, effects: [] };
   const option = optionIndex === undefined ? undefined : node.options[optionIndex];
-  if (!option || !evaluateCondition(option.when, state)) throw new DialogueDataError(`節點 ${nodeId} 沒有可選的選項 ${optionIndex}`);
-  return { next: option.next ?? null };
+  if (!option || !evaluateCondition(option.when, state, ctx)) throw new DialogueDataError(`節點 ${nodeId} 沒有可選的選項 ${optionIndex}`);
+  return { next: option.next ?? null, effects: option.effects ?? [] };
 }
 
 /** NPC 依目前狀態選擇要說的對話：第一個符合條件者 */
-export function pickDialogue(talk: readonly { when?: Condition; dialogue: string }[], state: GameState): string | null {
-  return talk.find((t) => evaluateCondition(t.when, state))?.dialogue ?? null;
+export function pickDialogue(talk: readonly { when?: Condition; dialogue: string }[], state: GameState, ctx: ConditionContext): string | null {
+  return talk.find((t) => evaluateCondition(t.when, state, ctx))?.dialogue ?? null;
 }

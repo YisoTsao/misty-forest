@@ -4,7 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
-//   --npc：村莊 NPC 全身、與長老對話（一般段落與選項）（任務 3B）
+//   --npc：村莊 NPC 全身、與長老對話（一般段落與選項）（任務 3B）、任務追蹤（任務 3C）
 //   --region：森林空地在濃霧與迷霧清除後的跟隨視角、區域名稱（任務 3A）
 //   --harvest：輸出可採集的花叢、草藥特寫、砍樹前 / 揮砍中 / 樹樁與取得通知（任務 2A）與背包（任務 2B）
 // 注意：截圖只用來檢查畫面正確性，不可用於推斷效能。
@@ -192,6 +192,14 @@ try {
     await page.waitForTimeout(300);
     await shot('npc_dialogue_options');
     await page.keyboard.press('Escape');
+    // 任務追蹤（任務 3C）：接取任務並砍兩棵樹
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.send({ type: 'AcceptQuest', quest: 'wood_for_bridge' });
+      d.send({ type: 'HarvestObject', placementId: 'meadow_tree_002' });
+    });
+    await page.waitForTimeout(800);
+    await shot('quest_tracker');
   }
 
   if (withRegion) {

@@ -17,6 +17,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   1: (data) => ({ ...data, tutorial: 'done' }),
   // v2 → v3：加入各區域迷霧。v2 時還沒有任何會改變迷霧的任務，所以就是新遊戲的初始值
   2: (data) => ({ ...data, mist: { ...initialMistStages } }),
+  // v3 → v4：加入任務紀錄；v3 時還沒有任務系統，沒有接過任何任務
+  3: (data) => ({ ...data, quests: {} }),
 };
 
 /** 把任何版本的存檔升到 targetVersion。缺版本號、比程式新或缺少遷移函式時拋 SaveFormatError。 */

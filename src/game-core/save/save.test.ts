@@ -133,6 +133,26 @@ describe('版本遷移', () => {
     expect(loaded.state.tutorial).toBe('harvest');
   });
 
+  it('實際的 v3 存檔（任務 3A 格式）可讀入：沒有任務紀錄', () => {
+    const v3 = {
+      version: 3,
+      savedAt: '2026-10-13T04:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 5, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: { ...initialGameState().mist, forest: 'light' },
+    };
+    const loaded = fromSaveData(v3, ctx);
+    expect(loaded.state.quests).toEqual({});
+    expect(loaded.state.mist.forest).toBe('light');
+  });
+
+  it('任務紀錄寫入存檔並讀回', () => {
+    const state = { ...initialGameState(), quests: { gather: { status: 'completed' as const }, clear: { status: 'active' as const } } };
+    expect(roundTrip(toSaveData(state, player, new Date())).state.quests).toEqual(state.quests);
+  });
+
   it('各區域迷霧寫入存檔並讀回', () => {
     const state = { ...initialGameState(), mist: { ...initialGameState().mist, forest: 'clear' as const } };
     expect(roundTrip(toSaveData(state, player, new Date())).state.mist.forest).toBe('clear');

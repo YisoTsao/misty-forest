@@ -37,7 +37,7 @@ function ToastRow({ toast }: { toast: Toast }) {
           </span>
         </>
       ) : (
-        <span className="px-3 py-1">{t(toast.textKey ?? '')}</span>
+        <span className="px-3 py-1">{t(toast.textKey ?? '', toast.vars)}</span>
       )}
     </div>
   );

@@ -1,7 +1,8 @@
-import { conditionItemIds } from '../dialogue/conditions';
+import { conditionItemIds, conditionQuestIds } from '../dialogue/conditions';
 import { parseDialogues, type DialogueDef } from '../dialogue/dialogue';
 import { parseItemData, type ItemCatalog, type LootTables } from '../items/items';
 import { parseNpcs, type NpcDef } from '../npc/npc';
+import { parseQuests, type QuestCatalog } from '../quest/quest';
 import { parseRegions, type RegionDef } from './regions';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
 
@@ -12,6 +13,7 @@ export type GameData = WorldData & {
   regions: readonly RegionDef[];
   dialogues: ReadonlyMap<string, DialogueDef>;
   npcs: readonly NpcDef[];
+  quests: QuestCatalog;
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -23,6 +25,7 @@ export function parseGameData(raw: {
   regions: unknown;
   dialogues: unknown;
   npcs: unknown;
+  quests: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -54,5 +57,18 @@ export function parseGameData(raw: {
   for (const itemId of conditions.flatMap(conditionItemIds)) {
     if (!items.has(itemId)) throw new WorldDataError(`對話條件參照不存在的物品：${itemId}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs };
+  let quests: QuestCatalog;
+  try {
+    quests = parseQuests(raw.quests, { items: new Set(items.keys()), npcs: new Set(npcs.map((n) => n.id)) });
+  } catch (err) {
+    throw new WorldDataError(`quests 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  // 對話條件與效果參照的任務必須存在
+  const effectQuests = [...dialogues.values()].flatMap((d) =>
+    Object.values(d.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => (o.effects ?? []).map((e) => e.quest))),
+  );
+  for (const questId of [...conditions.flatMap(conditionQuestIds), ...effectQuests]) {
+    if (!quests.has(questId)) throw new WorldDataError(`對話參照不存在的任務：${questId}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests };
 }

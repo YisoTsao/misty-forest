@@ -78,7 +78,7 @@ await runE2e('region e2e（1/2）', { env }, async ({ page, check, debug, camera
   await check('進入新區域時自動存檔', async () => {
     await page.waitForTimeout(500);
     assert.ok(existsSync(primary), '沒有存檔');
-    assert.equal(JSON.parse(readFileSync(primary, 'utf8')).version, 3);
+    assert.equal(JSON.parse(readFileSync(primary, 'utf8')).version, 4);
   });
 
   await check('區域邊界：迷霧依距離平滑混合（約一半）', async () => {

@@ -1,8 +1,9 @@
 // 權威規則（規格 3.2：指令 → 權威層 → 事件）。
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
-import { addItems, createInventory, type Inventory } from '../inventory/inventory';
+import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
+import { questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { MistStage } from '../world/mist';
 import { initialMistStages, type MistStages } from '../world/regions';
@@ -20,10 +21,12 @@ export type GameState = {
   readonly tutorial: TutorialStep;
   /** 各區域的迷霧階段（規格 1.4） */
   readonly mist: MistStages;
+  /** 已接取或完成的任務（規格 6.5）；沒有紀錄表示尚未接取 */
+  readonly quests: Readonly<Record<string, QuestRecord>>;
 };
 
 export function initialGameState(): GameState {
-  return { time: 0, objects: new Map(), inventory: createInventory(), tutorial: 'move', mist: initialMistStages };
+  return { time: 0, objects: new Map(), inventory: createInventory(), tutorial: 'move', mist: initialMistStages, quests: {} };
 }
 
 export type GameCommand =
@@ -33,6 +36,9 @@ export type GameCommand =
   | { type: 'AdvanceTime'; dt: number; player?: { x: number; z: number } }
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
+  | { type: 'AcceptQuest'; quest: string }
+  /** 回報任務：目標全部達成時交出物品、領取獎勵 */
+  | { type: 'TurnInQuest'; quest: string }
   /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
   | { type: 'DebugSetMistStage'; region: RegionId; stage: MistStage };
 
@@ -43,6 +49,9 @@ export type RejectReason =
   | 'already-harvested'
   | 'inventory-full'
   | 'tutorial-mismatch'
+  | 'unknown-quest'
+  | 'quest-unavailable'
+  | 'quest-incomplete'
   | 'not-allowed'
   | 'invalid-command';
 
@@ -54,6 +63,9 @@ export type GameEvent =
   | { type: 'ItemsGained'; items: ItemStack[]; source?: string }
   | { type: 'TutorialAdvanced'; step: TutorialStep }
   | { type: 'MistStageChanged'; region: RegionId; stage: MistStage }
+  | { type: 'QuestAccepted'; quest: string }
+  | { type: 'QuestCompleted'; quest: string }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -62,6 +74,7 @@ export type RulesContext = {
   items: ItemCatalog;
   lootTables: LootTables;
   random: () => number;
+  quests: QuestCatalog;
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
   allowDebugCommands?: boolean;
 };
@@ -80,6 +93,10 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'AdvanceTutorial':
       if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
+    case 'AcceptQuest':
+      return acceptQuest(state, cmd.quest, ctx);
+    case 'TurnInQuest':
+      return turnInQuest(state, cmd.quest, ctx);
     case 'DebugSetMistStage':
       if (!ctx.allowDebugCommands) return reject('DebugSetMistStage', 'not-allowed');
       if (state.mist[cmd.region] === cmd.stage) return [];
@@ -137,6 +154,34 @@ function openChest(state: GameState, placementId: string, ctx: RulesContext): Ga
   ];
 }
 
+function acceptQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
+  const def = ctx.quests.get(questId);
+  if (!def) return reject('AcceptQuest', 'unknown-quest');
+  if (questStatus(state, def) !== 'available') return reject('AcceptQuest', 'quest-unavailable');
+  return [{ type: 'QuestAccepted', quest: questId }];
+}
+
+function turnInQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
+  const def = ctx.quests.get(questId);
+  if (!def) return reject('TurnInQuest', 'unknown-quest');
+  if (questStatus(state, def) !== 'active') return reject('TurnInQuest', 'quest-unavailable');
+  if (!isQuestReady(state, def)) return reject('TurnInQuest', 'quest-incomplete');
+  // 先交出物品再放入獎勵，檢查背包放得下（放不下時任務維持進行中，物品不會被拿走）
+  const consumed = questConsumption(def);
+  const afterConsume = removeItems(state.inventory, consumed);
+  if (!afterConsume) return reject('TurnInQuest', 'quest-incomplete');
+  const rewards = def.rewards.items ?? [];
+  if (rewards.length > 0 && !addItems(afterConsume, rewards, ctx.items)) return reject('TurnInQuest', 'inventory-full');
+  const events: GameEvent[] = [];
+  if (consumed.length > 0) events.push({ type: 'ItemsRemoved', items: consumed, reason: 'quest' });
+  events.push({ type: 'QuestCompleted', quest: questId });
+  if (rewards.length > 0) events.push({ type: 'ItemsGained', items: rewards, source: `quest:${questId}` });
+  for (const m of def.rewards.mist ?? []) {
+    if (state.mist[m.region] !== m.stage) events.push({ type: 'MistStageChanged', region: m.region, stage: m.stage });
+  }
+  return events;
+}
+
 function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'AdvanceTime' }>, ctx: RulesContext): GameEvent[] {
   if (!(cmd.dt > 0) || !Number.isFinite(cmd.dt)) return reject('AdvanceTime', 'invalid-command');
   const time = state.time + cmd.dt;
@@ -152,7 +197,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist } = state;
+  let { time, objects, inventory, tutorial, mist, quests } = state;
   let nextObjects: Map<string, ObjectRuntime> | null = null;
   const mutableObjects = () => (nextObjects ??= new Map(objects));
   const patch = (id: string, change: Partial<ObjectRuntime>) => {
@@ -190,10 +235,22 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'MistStageChanged':
         mist = { ...mist, [e.region]: e.stage };
         break;
+      case 'QuestAccepted':
+        quests = { ...quests, [e.quest]: { status: 'active' } };
+        break;
+      case 'QuestCompleted':
+        quests = { ...quests, [e.quest]: { status: 'completed' } };
+        break;
+      case 'ItemsRemoved': {
+        const next = removeItems(inventory, e.items);
+        if (!next) throw new Error('ItemsRemoved 事件超過持有數量（事件與狀態不一致）');
+        inventory = next;
+        break;
+      }
       case 'CommandRejected':
         break;
     }
   }
   if (nextObjects) objects = nextObjects;
-  return { time, objects, inventory, tutorial, mist };
+  return { time, objects, inventory, tutorial, mist, quests };
 }

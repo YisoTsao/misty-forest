@@ -72,7 +72,7 @@ function DialogueWindow() {
           </span>
         )}
         <p className="min-h-14 text-lg leading-8 whitespace-pre-line" data-testid="dialogue-text">
-          {t(view.textKey)}
+          {t(view.textKey, keyVars(bindings))}
         </p>
         {view.options ? (
           <div className="mt-3 flex flex-col gap-2">

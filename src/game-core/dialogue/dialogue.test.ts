@@ -4,11 +4,12 @@ import npcsData from '@/data/npcs.json';
 import { initialGameState, type GameState } from '../authority/rules';
 import { addItems } from '../inventory/inventory';
 import { parseNpcs, stepPatrol } from '../npc/npc';
-import { testItems } from '../testing/fixtures';
+import { testContext, testItems } from '../testing/fixtures';
 import { evaluateCondition } from './conditions';
 import { advanceDialogue, DialogueDataError, parseDialogues, pickDialogue, viewNode, type DialogueDef } from './dialogue';
 
 const catalog = new Map(testItems.map((i) => [i.id, i]));
+const cctx = { quests: testContext().quests };
 const def: DialogueDef = {
   id: 'd',
   start: 'a',
@@ -38,43 +39,43 @@ describe('dialogue', () => {
 
   it('沒有選項的節點前往 next；最後一個節點結束', () => {
     const s = initialGameState();
-    expect(advanceDialogue(def, 'a', s)).toEqual({ next: 'b' });
-    expect(advanceDialogue(def, 'c', s)).toEqual({ next: null });
+    expect(advanceDialogue(def, 'a', s, cctx)).toEqual({ next: 'b', effects: [] });
+    expect(advanceDialogue(def, 'c', s, cctx)).toEqual({ next: null, effects: [] });
   });
 
   it('選項依條件顯示；index 為原始索引', () => {
     const poor = initialGameState();
-    expect(viewNode(def, 'b', poor).options).toEqual([
+    expect(viewNode(def, 'b', poor, cctx).options).toEqual([
       { index: 0, textKey: 'o.again' },
       { index: 2, textKey: 'o.bye' },
     ]);
     const rich: GameState = { ...poor, inventory: addItems(poor.inventory, [{ itemId: 'wood', count: 5 }], catalog)! };
-    expect(viewNode(def, 'b', rich).options?.map((o) => o.index)).toEqual([0, 1, 2]);
-    expect(advanceDialogue(def, 'b', rich, 1)).toEqual({ next: 'c' });
-    expect(advanceDialogue(def, 'b', poor, 2)).toEqual({ next: null });
+    expect(viewNode(def, 'b', rich, cctx).options?.map((o) => o.index)).toEqual([0, 1, 2]);
+    expect(advanceDialogue(def, 'b', rich, cctx, 1)).toEqual({ next: 'c', effects: [] });
+    expect(advanceDialogue(def, 'b', poor, cctx, 2)).toEqual({ next: null, effects: [] });
   });
 
   it('不符合條件或不存在的選項不能選', () => {
-    expect(() => advanceDialogue(def, 'b', initialGameState(), 1)).toThrow(DialogueDataError);
-    expect(() => advanceDialogue(def, 'b', initialGameState(), 9)).toThrow(DialogueDataError);
-    expect(() => advanceDialogue(def, 'b', initialGameState())).toThrow(DialogueDataError);
+    expect(() => advanceDialogue(def, 'b', initialGameState(), cctx, 1)).toThrow(DialogueDataError);
+    expect(() => advanceDialogue(def, 'b', initialGameState(), cctx, 9)).toThrow(DialogueDataError);
+    expect(() => advanceDialogue(def, 'b', initialGameState(), cctx)).toThrow(DialogueDataError);
   });
 
   it('NPC 依狀態挑選第一個符合條件的對話', () => {
     const talk = [{ when: { type: 'mistStage' as const, region: 'forest' as const, is: 'clear' as const }, dialogue: 'cleared' }, { dialogue: 'intro' }];
     const s = initialGameState();
-    expect(pickDialogue(talk, s)).toBe('intro');
-    expect(pickDialogue(talk, { ...s, mist: { ...s.mist, forest: 'clear' } })).toBe('cleared');
+    expect(pickDialogue(talk, s, cctx)).toBe('intro');
+    expect(pickDialogue(talk, { ...s, mist: { ...s.mist, forest: 'clear' } }, cctx)).toBe('cleared');
   });
 });
 
 describe('conditions', () => {
   it('not / all / tutorialDone', () => {
     const s = initialGameState();
-    expect(evaluateCondition({ type: 'tutorialDone' }, s)).toBe(false);
-    expect(evaluateCondition({ type: 'not', condition: { type: 'tutorialDone' } }, s)).toBe(true);
-    expect(evaluateCondition({ type: 'all', conditions: [{ type: 'tutorialDone' }, { type: 'mistStage', region: 'meadow', is: 'clear' }] }, { ...s, tutorial: 'done' })).toBe(true);
-    expect(evaluateCondition(undefined, s)).toBe(true);
+    expect(evaluateCondition({ type: 'tutorialDone' }, s, cctx)).toBe(false);
+    expect(evaluateCondition({ type: 'not', condition: { type: 'tutorialDone' } }, s, cctx)).toBe(true);
+    expect(evaluateCondition({ type: 'all', conditions: [{ type: 'tutorialDone' }, { type: 'mistStage', region: 'meadow', is: 'clear' }] }, { ...s, tutorial: 'done' }, cctx)).toBe(true);
+    expect(evaluateCondition(undefined, s, cctx)).toBe(true);
   });
 });
 

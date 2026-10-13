@@ -1,15 +1,19 @@
-import { advanceDialogue, pickDialogue, viewNode, type DialogueView } from '@/game-core/dialogue/dialogue';
-import { authority, dialogues, npcs } from './authority';
+import { advanceDialogue, pickDialogue, viewNode, type DialogueEffect, type DialogueView } from '@/game-core/dialogue/dialogue';
+import type { GameCommand } from '@/game-core/authority/rules';
+import { authority, dialogues, npcs, quests } from './authority';
 import { npcRuntime } from './npc/npcRuntime';
 import { useUiStore } from './state/uiStore';
 
-// 對話流程（規格 6.4）：開始 → 逐節點前進 / 選擇 → 結束。只在本機 UI 進行，狀態只讀權威層。
+// 對話流程（規格 6.4）：開始 → 逐節點前進 / 選擇 → 結束。對話本身在本機進行；
+// 選項的效果（接任務、回報）轉成指令送給權威層，結果由事件決定。
+
+const conditionCtx = { quests };
 
 /** 與 NPC 開始對話；沒有符合條件的對話時回傳 false */
 export function startTalk(npcId: string): boolean {
   const npc = npcs.find((n) => n.id === npcId);
   if (!npc) throw new Error(`未知的 NPC：${npcId}`);
-  const dialogueId = pickDialogue(npc.talk, authority.getState());
+  const dialogueId = pickDialogue(npc.talk, authority.getState(), conditionCtx);
   const def = dialogueId ? dialogues.get(dialogueId) : undefined;
   if (!def) return false;
   const runtime = npcRuntime.get(npcId);
@@ -22,7 +26,16 @@ export function startTalk(npcId: string): boolean {
 export function currentDialogueView(): DialogueView | null {
   const active = useUiStore.getState().dialogue;
   const def = active && dialogues.get(active.dialogueId);
-  return active && def ? viewNode(def, active.nodeId, authority.getState()) : null;
+  return active && def ? viewNode(def, active.nodeId, authority.getState(), conditionCtx) : null;
+}
+
+function commandFor(effect: DialogueEffect): GameCommand {
+  switch (effect.type) {
+    case 'acceptQuest':
+      return { type: 'AcceptQuest', quest: effect.quest };
+    case 'turnInQuest':
+      return { type: 'TurnInQuest', quest: effect.quest };
+  }
 }
 
 /** 繼續（沒有選項的節點）或選擇選項（optionIndex 為節點內的原始索引） */
@@ -31,7 +44,8 @@ export function advanceTalk(optionIndex?: number): void {
   const active = ui.dialogue;
   const def = active && dialogues.get(active.dialogueId);
   if (!active || !def) return;
-  const { next } = advanceDialogue(def, active.nodeId, authority.getState(), optionIndex);
+  const { next, effects } = advanceDialogue(def, active.nodeId, authority.getState(), conditionCtx, optionIndex);
+  for (const effect of effects) authority.send(commandFor(effect));
   if (next) ui.setDialogue({ ...active, nodeId: next });
   else endTalk();
 }

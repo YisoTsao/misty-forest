@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { tutorialSteps } from '../tutorial/tutorial';
 import { mistStagesSchema } from '../world/regions';
 
-/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist */
-export const SAVE_VERSION = 3;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests */
+export const SAVE_VERSION = 4;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 
@@ -35,6 +35,7 @@ export const saveDataSchema = z.object({
   }),
   tutorial: z.enum(tutorialSteps),
   mist: mistStagesSchema,
+  quests: z.record(z.string(), z.object({ status: z.enum(['active', 'completed']) })),
 });
 export type SaveData = z.infer<typeof saveDataSchema>;
 

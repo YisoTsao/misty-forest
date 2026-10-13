@@ -16,6 +16,7 @@ import { InventoryPanel } from '@/ui/InventoryPanel';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
+import { QuestTracker } from '@/ui/QuestTracker';
 import { RegionBanner } from '@/ui/RegionBanner';
 import { SettingsPanel } from '@/ui/SettingsPanel';
 import { TitleScreen } from '@/ui/TitleScreen';
@@ -50,6 +51,7 @@ export function App() {
       <Toasts />
       <TutorialPanel />
       <RegionBanner />
+      <QuestTracker />
       <ControlHint />
       {debugEnabled && (
         <>

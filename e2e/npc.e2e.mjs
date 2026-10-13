@@ -105,7 +105,8 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
     const a = await debug(() => window.__mistwoodDebug.npcState('leo'));
     let moved = 0;
     let walked = false;
-    for (let i = 0; i < 16; i++) {
+    // 巡邏：走 6 m（約 5 秒）、兩端各停 4 秒；觀察 12 秒一定涵蓋一整段行走
+    for (let i = 0; i < 24; i++) {
       await page.waitForTimeout(500);
       const b = await debug(() => window.__mistwoodDebug.npcState('leo'));
       moved = Math.max(moved, Math.hypot(b.x - a.x, b.z - a.z));

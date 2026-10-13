@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import type { GameState } from '../authority/rules';
 import { hasItems } from '../inventory/inventory';
+import { isQuestReady, questStatus, type QuestCatalog } from '../quest/quest';
 import { mistStages } from '../world/mist';
 import { regionIds } from '../world/types';
 
@@ -11,6 +12,9 @@ export type Condition =
   | { type: 'hasItems'; items: { itemId: string; count: number }[] }
   | { type: 'mistStage'; region: (typeof regionIds)[number]; is: (typeof mistStages)[number] }
   | { type: 'tutorialDone' }
+  | { type: 'questStatus'; quest: string; is: 'locked' | 'available' | 'active' | 'completed' }
+  /** 任務進行中且目標全部達成（可以回報） */
+  | { type: 'questReady'; quest: string }
   | { type: 'not'; condition: Condition }
   | { type: 'all'; conditions: Condition[] };
 
@@ -19,13 +23,23 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ type: z.literal('hasItems'), items: z.array(itemStack).min(1) }),
     z.object({ type: z.literal('mistStage'), region: z.enum(regionIds), is: z.enum(mistStages) }),
     z.object({ type: z.literal('tutorialDone') }),
+    z.object({ type: z.literal('questStatus'), quest: z.string().min(1), is: z.enum(['locked', 'available', 'active', 'completed']) }),
+    z.object({ type: z.literal('questReady'), quest: z.string().min(1) }),
     z.object({ type: z.literal('not'), condition: conditionSchema }),
     z.object({ type: z.literal('all'), conditions: z.array(conditionSchema).min(1) }),
   ]),
 );
 
-export function evaluateCondition(condition: Condition | undefined, state: GameState): boolean {
+/** 條件判斷需要的靜態資料 */
+export type ConditionContext = { quests: QuestCatalog };
+
+export function evaluateCondition(condition: Condition | undefined, state: GameState, ctx: ConditionContext): boolean {
   if (!condition) return true;
+  const quest = (id: string) => {
+    const def = ctx.quests.get(id);
+    if (!def) throw new Error(`條件參照不存在的任務：${id}`);
+    return def;
+  };
   switch (condition.type) {
     case 'hasItems':
       return hasItems(state.inventory, condition.items);
@@ -33,10 +47,30 @@ export function evaluateCondition(condition: Condition | undefined, state: GameS
       return state.mist[condition.region] === condition.is;
     case 'tutorialDone':
       return state.tutorial === 'done';
+    case 'questStatus':
+      return questStatus(state, quest(condition.quest)) === condition.is;
+    case 'questReady':
+      return isQuestReady(state, quest(condition.quest));
     case 'not':
-      return !evaluateCondition(condition.condition, state);
+      return !evaluateCondition(condition.condition, state, ctx);
     case 'all':
-      return condition.conditions.every((c) => evaluateCondition(c, state));
+      return condition.conditions.every((c) => evaluateCondition(c, state, ctx));
+  }
+}
+
+/** 條件中參照的任務 id（資料驗證用） */
+export function conditionQuestIds(condition: Condition | undefined): string[] {
+  if (!condition) return [];
+  switch (condition.type) {
+    case 'questStatus':
+    case 'questReady':
+      return [condition.quest];
+    case 'not':
+      return conditionQuestIds(condition.condition);
+    case 'all':
+      return condition.conditions.flatMap(conditionQuestIds);
+    default:
+      return [];
   }
 }
 

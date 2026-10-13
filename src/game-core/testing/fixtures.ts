@@ -1,6 +1,7 @@
 // 規則測試共用的小型世界：寶箱、可採集的樹（會重生）與花（不重生）、不可互動的岩石。
 import type { RulesContext } from '../authority/rules';
 import type { ItemDef, LootTable } from '../items/items';
+import type { QuestDef } from '../quest/quest';
 import { mulberry32 } from '../util/random';
 import type { WorldLookup } from '../world/objects';
 import type { Placement, Prefab } from '../world/types';
@@ -51,6 +52,27 @@ export const testLootTables: LootTable[] = [
   { id: 'chest_loot', drops: [{ itemId: 'shard', min: 1, max: 1 }] },
 ];
 
+export const testQuests: QuestDef[] = [
+  {
+    id: 'gather',
+    nameKey: 'q.gather',
+    descKey: 'q.gather.desc',
+    giver: 'npc_a',
+    requires: [],
+    objectives: [{ type: 'collect', itemId: 'wood', count: 4, consume: true }],
+    rewards: { items: [{ itemId: 'shard', count: 1 }] },
+  },
+  {
+    id: 'clear',
+    nameKey: 'q.clear',
+    descKey: 'q.clear.desc',
+    giver: 'npc_a',
+    requires: ['gather'],
+    objectives: [{ type: 'collect', itemId: 'flower', count: 1, consume: false }],
+    rewards: { mist: [{ region: 'forest', stage: 'clear' }] },
+  },
+];
+
 export const testWorld: WorldLookup = {
   placement: (id) => testPlacements.find((p) => p.id === id),
   prefab: (id) => testPrefabs.find((p) => p.id === id),
@@ -62,5 +84,6 @@ export function testContext(seed = 1): RulesContext {
     items: new Map(testItems.map((i) => [i.id, i])),
     lootTables: new Map(testLootTables.map((t) => [t.id, t])),
     random: mulberry32(seed),
+    quests: new Map(testQuests.map((q) => [q.id, q])),
   };
 }

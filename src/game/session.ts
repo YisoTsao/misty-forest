@@ -34,11 +34,14 @@ const CHANGE_DEBOUNCE_MS = 2000;
 /** 遊玩中的定時存檔間隔 */
 const INTERVAL_MS = 60_000;
 
-/** 自動存檔：權威狀態改變後（採集、開箱）延遲存檔，以及遊玩中定時存檔。只在啟動時安裝一次。 */
+/** 自動存檔：權威狀態改變後（採集、開箱、接取 / 完成任務、迷霧改變）延遲存檔，以及遊玩中定時存檔。只在啟動時安裝一次。 */
 export function installAutosave(): void {
   let timer: number | null = null;
   authority.subscribe((events) => {
-    if (!events.some((e) => e.type === 'ObjectHarvested' || e.type === 'ChestOpened' || e.type === 'ItemsGained')) return;
+    const changed = events.some((e) =>
+      ['ObjectHarvested', 'ChestOpened', 'ItemsGained', 'QuestAccepted', 'QuestCompleted', 'MistStageChanged'].includes(e.type),
+    );
+    if (!changed) return;
     if (timer !== null) window.clearTimeout(timer);
     timer = window.setTimeout(() => {
       timer = null;
