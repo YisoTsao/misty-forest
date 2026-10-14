@@ -13,18 +13,30 @@ function buildTerrainGeometry(): THREE.BufferGeometry {
   geo.rotateX(-Math.PI / 2);
 
   const pos = geo.attributes.position as THREE.BufferAttribute;
+  const p = pos.array as Float32Array;
+  const n = grid.size;
   // 到小路中心的距離：地形 shader 以此計算泥土路的 splat 權重
   const pathDist = new Float32Array(pos.count);
+  // 法線直接由取樣格的中央差分計算（與 computeVertexNormals 結果相近，但不必走過 20 萬個三角形）
+  const normals = new Float32Array(pos.count * 3);
   const half = TERRAIN_SIZE / 2;
+  const h = (i: number, j: number) => grid.height[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))]!;
   for (let v = 0; v < pos.count; v++) {
-    const i = Math.round((pos.getX(v) + half) / grid.step);
-    const j = Math.round((pos.getZ(v) + half) / grid.step);
-    pos.setY(v, grid.height[j * grid.size + i]!);
-    pathDist[v] = grid.pathDist[j * grid.size + i]!;
+    const i = Math.round((p[v * 3]! + half) / grid.step);
+    const j = Math.round((p[v * 3 + 2]! + half) / grid.step);
+    p[v * 3 + 1] = grid.height[j * n + i]!;
+    pathDist[v] = grid.pathDist[j * n + i]!;
+    const dx = (h(i + 1, j) - h(i - 1, j)) / (2 * grid.step);
+    const dz = (h(i, j + 1) - h(i, j - 1)) / (2 * grid.step);
+    const len = Math.hypot(dx, 1, dz);
+    normals[v * 3] = -dx / len;
+    normals[v * 3 + 1] = 1 / len;
+    normals[v * 3 + 2] = -dz / len;
   }
 
   geo.setAttribute('aPathDist', new THREE.BufferAttribute(pathDist, 1));
-  geo.computeVertexNormals();
+  geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+  geo.computeBoundingSphere();
   return geo;
 }
 

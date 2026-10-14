@@ -1,7 +1,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { isUnderwater, TERRAIN_SIZE } from '@/game-core/world/terrain';
+import { TERRAIN_SIZE, WATER_LEVEL } from '@/game-core/world/terrain';
+import { getTerrainGrid, sampleGrid } from '@/game-core/world/terrainGrid';
 import { flowerPatchMask, scatterChunk, type VegetationInstance } from '@/game-core/world/vegetation';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import type { WorldIndex } from '@/game/world/worldIndex';
@@ -21,7 +22,10 @@ const VISIBILITY_INTERVAL = 0.2;
 /** 地圖邊緣抬升成丘陵，最外圈不長草（減少看不到的實例） */
 const EDGE_MARGIN = 4;
 
-type Chunk = { center: THREE.Vector3; meshes: THREE.InstancedMesh[] };
+/** 區塊：位置先算好，草花網格在攝影機第一次靠近時才建立（任務 7A：地圖 320 m，啟動時全部散佈要好幾秒） */
+type Chunk = { x0: number; z0: number; size: number; center: THREE.Vector3; meshes: THREE.InstancedMesh[] | null };
+/** 每幀最多建立幾個區塊（攝影機跳到遠處時分散到幾幀） */
+const BUILDS_PER_FRAME = 4;
 
 const tmpMatrix = new THREE.Matrix4();
 const tmpQuat = new THREE.Quaternion();
@@ -49,7 +53,7 @@ function buildInstanced(
 }
 
 /**
- * 草叢與野花（規格 4.3）。以 16 m 區塊建立 InstancedMesh：
+ * 草叢與野花（規格 4.3）。以 16 m 區塊建立 InstancedMesh（攝影機第一次靠近時才建立）：
  * 視錐外的區塊由 three 剔除，超過可見距離的區塊直接隱藏；區塊內的草花在 shader 中依距離縮入地面。
  * 密度與距離依畫質（規格 4.4）。
  */
@@ -62,60 +66,68 @@ export function GrassField({ index }: { index: WorldIndex }) {
   const group = useRef<THREE.Group>(null);
   const since = useRef(Infinity);
 
+  // 區塊只先算位置；網格在攝影機靠近時才建立（buildChunk）
   const chunks = useMemo<Chunk[]>(() => {
     const list: Chunk[] = [];
     const half = TERRAIN_SIZE / 2 - EDGE_MARGIN;
-    // 湖裡與水邊不長草
-    const accept = (x: number, z: number) => !index.isOccupied(x, z) && !isUnderwater(x, z, 0.25);
-    const palette = flowerColors.map((c) => new THREE.Color(c));
     for (let x0 = -half; x0 < half; x0 += CHUNK) {
       for (let z0 = -half; z0 < half; z0 += CHUNK) {
         const size = Math.min(CHUNK, half - x0, half - z0);
-        const grass = scatterChunk(x0, z0, size, {
-          density: preset.grassDensity,
-          seed: 1,
-          accept,
-          scale: [0.8, 1.35],
-        });
-        const flowers = scatterChunk(x0, z0, size, {
-          density: preset.flowerDensity,
-          seed: 2,
-          accept,
-          mask: flowerPatchMask,
-          variants: flowerColors.length,
-          scale: [1.3, 1.9],
-        });
-        const meshes: THREE.InstancedMesh[] = [];
-        if (grass.length > 0) meshes.push(buildInstanced(grass, grassGeometry, grassMaterial, 'grass'));
-        if (flowers.length > 0) {
-          // 每個區塊有自己的花色屬性，因此複製（很小的）花朵幾何
-          const geo = flowerGeometry.clone();
-          const colors = new Float32Array(flowers.length * 3);
-          flowers.forEach((f, i) => palette[f.variant]!.toArray(colors, i * 3));
-          geo.setAttribute('aFlowerColor', new THREE.InstancedBufferAttribute(colors, 3));
-          meshes.push(buildInstanced(flowers, geo, flowerMaterial, 'flowers'));
-        }
-        if (meshes.length > 0) list.push({ center: new THREE.Vector3(x0 + size / 2, 0, z0 + size / 2), meshes });
+        list.push({ x0, z0, size, center: new THREE.Vector3(x0 + size / 2, 0, z0 + size / 2), meshes: null });
       }
     }
     return list;
+  }, []);
+
+  const buildChunk = useMemo(() => {
+    const grid = getTerrainGrid();
+    const heightAt = (x: number, z: number) => sampleGrid(grid, grid.height, x, z);
+    const pathDistAt = (x: number, z: number) => sampleGrid(grid, grid.pathDist, x, z);
+    // 湖裡、溪裡與水邊不長草
+    const accept = (x: number, z: number) => heightAt(x, z) >= WATER_LEVEL + 0.25 && !index.isOccupied(x, z);
+    const palette = flowerColors.map((c) => new THREE.Color(c));
+    return (c: Chunk): THREE.InstancedMesh[] => {
+      const grass = scatterChunk(c.x0, c.z0, c.size, { density: preset.grassDensity, seed: 1, accept, scale: [0.8, 1.35], heightAt, pathDistAt });
+      const flowers = scatterChunk(c.x0, c.z0, c.size, {
+        density: preset.flowerDensity,
+        seed: 2,
+        accept,
+        mask: flowerPatchMask,
+        variants: flowerColors.length,
+        scale: [1.3, 1.9],
+        heightAt,
+        pathDistAt,
+      });
+      const meshes: THREE.InstancedMesh[] = [];
+      if (grass.length > 0) meshes.push(buildInstanced(grass, grassGeometry, grassMaterial, 'grass'));
+      if (flowers.length > 0) {
+        // 每個區塊有自己的花色屬性，因此複製（很小的）花朵幾何
+        const geo = flowerGeometry.clone();
+        const colors = new Float32Array(flowers.length * 3);
+        flowers.forEach((f, i) => palette[f.variant]!.toArray(colors, i * 3));
+        geo.setAttribute('aFlowerColor', new THREE.InstancedBufferAttribute(colors, 3));
+        meshes.push(buildInstanced(flowers, geo, flowerMaterial, 'flowers'));
+      }
+      return meshes;
+    };
   }, [index, preset.grassDensity, preset.flowerDensity, grassGeometry, flowerGeometry, grassMaterial, flowerMaterial]);
 
   useEffect(() => {
     const g = group.current;
-    if (!g) return;
-    for (const c of chunks) g.add(...c.meshes);
     since.current = Infinity;
     return () => {
       for (const c of chunks) {
-        g.remove(...c.meshes);
+        if (!c.meshes) continue;
+        g?.remove(...c.meshes);
         for (const m of c.meshes) {
           if (m.geometry !== grassGeometry) m.geometry.dispose(); // 花朵的複製幾何
           m.dispose();
         }
+        c.meshes = null;
       }
     };
-  }, [chunks, grassGeometry]);
+    // 畫質改變（密度不同，buildChunk 換新）時清掉已建立的區塊，之後依新密度重建
+  }, [buildChunk, chunks, grassGeometry]);
 
   useEffect(
     () => () => {
@@ -135,14 +147,26 @@ export function GrassField({ index }: { index: WorldIndex }) {
     since.current += dt;
     if (since.current < VISIBILITY_INTERVAL) return;
     since.current = 0;
-    // 區塊中心到攝影機的水平距離超過「可見距離 + 半個對角線」即隱藏
+    const g = group.current;
+    if (!g) return;
+    // 區塊中心到攝影機的水平距離超過「可見距離 + 半個對角線」即隱藏；第一次進入範圍時建立（由近到遠，每次最多幾塊）
     const limit = (preset.vegetationDistance + CHUNK * 0.71) ** 2;
+    const toBuild: { c: Chunk; d: number }[] = [];
     for (const c of chunks) {
       const dx = c.center.x - camera.position.x;
       const dz = c.center.z - camera.position.z;
-      const visible = dx * dx + dz * dz < limit;
-      for (const m of c.meshes) m.visible = visible;
+      const d = dx * dx + dz * dz;
+      const visible = d < limit;
+      if (visible && !c.meshes) toBuild.push({ c, d });
+      if (c.meshes) for (const m of c.meshes) m.visible = visible;
     }
+    toBuild.sort((a, b) => a.d - b.d);
+    for (const { c } of toBuild.slice(0, BUILDS_PER_FRAME)) {
+      c.meshes = buildChunk(c);
+      if (c.meshes.length > 0) g.add(...c.meshes);
+    }
+    // 還有沒建完的就下一幀繼續
+    if (toBuild.length > BUILDS_PER_FRAME) since.current = VISIBILITY_INTERVAL;
   });
 
   return <group ref={group} />;

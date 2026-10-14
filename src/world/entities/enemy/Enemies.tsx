@@ -73,10 +73,12 @@ function MistWisp({ id, geometry }: { id: string; geometry: { body: THREE.Buffer
     [],
   );
 
-  useFrame((_, rawDt) => {
+  useFrame(({ camera }, rawDt) => {
     const v = enemyRuntime.get(id);
     const g = group.current;
     if (!v || !g) return;
+    // 遠處的迷霧噗啾不畫（與模型怪物相同的距離）
+    g.visible = Math.hypot(camera.position.x - v.ai.x, camera.position.z - v.ai.z) < 90;
     if (ignoredHandle.current === null && collider.current) {
       ignoredHandle.current = collider.current.handle;
       cameraIgnoredColliders.add(ignoredHandle.current);

@@ -16,6 +16,9 @@ export type ScatterOptions = {
   /** 外觀變化數量（花色等），variant 介於 0 與 variants - 1 */
   variants?: number;
   scale?: [number, number];
+  /** 取樣函式（省略時用 terrainHeight / distanceToPath）；渲染層傳入共用取樣格的內插，載入時快很多 */
+  heightAt?: (x: number, z: number) => number;
+  pathDistAt?: (x: number, z: number) => number;
 };
 
 /** 小路上不長草花（留一點邊緣讓路緣自然） */
@@ -45,9 +48,9 @@ export function scatterChunk(x0: number, z0: number, size: number, opts: Scatter
       const variant = Math.floor(rand() * variants);
       const keep = rand();
       if (opts.mask && keep > opts.mask(x, z)) continue;
-      if (!offPath(x, z)) continue;
+      if ((opts.pathDistAt ? opts.pathDistAt(x, z) : distanceToPath(x, z)) <= PATH_HALF_WIDTH * 0.85) continue;
       if (opts.accept && !opts.accept(x, z)) continue;
-      out.push({ x, y: terrainHeight(x, z), z, yaw, scale, variant });
+      out.push({ x, y: opts.heightAt ? opts.heightAt(x, z) : terrainHeight(x, z), z, yaw, scale, variant });
     }
   }
   return out;

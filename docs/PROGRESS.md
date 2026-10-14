@@ -20,6 +20,10 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### Phase 7 效能（2026-10-14）
+- 地圖擴大與怪物加入後 draw calls 941–1330、冷啟動 9.0 s；優化後 draw calls 358–530、冷啟動 3.6 s（怪物遠處隱藏、點綴的距離剔除與不投影、模型部件合併、草花延後建立、地形法線直接計算；T-116，`PERF.md`）。畫面經截圖確認不變。
+- 量測時電腦有其他程式在執行，每幀時間偏慢，需在空閒時重測（「待使用者處理」第 0 項）。
+
 ### 任務 7C：多樣的怪物（2026-10-14）
 - 12 種新怪物（Quaternius Ultimate Monsters，CC0，骨架動畫）：迷霧芽怪、霧凝史萊姆（霧林深處）、風絮團（西坊農田、南方草原）、水泡精、沼澤蛙（碎光溪）、暮影蝙蝠、岩芽石偶、雪球怪（晨風高地）、荊棘噗啾、霧魂、蘑菇王（古樹遺跡，頭目級）、角角龍（溪東荒野，衝撞）；加上原本的迷霧噗啾（霧林邊緣、望星丘），共 13 種、16 個生成點（T-113–T-115）。
 - 模型怪物依 AI 狀態播放待機 / 移動 / 攻擊 / 受擊 / 倒下動畫，被打閃白，攻擊前搖時轉紅，倒下後淡出；各有掉落表，新物品「霧凝膠」（圖示 SVG）。
@@ -296,7 +300,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 基準截圖：`docs/screenshots/baseline7/`。
 
 ## 待使用者處理（不阻擋開發）
-0. **Phase 6 效能重測**：在無人操作電腦時執行 `node scripts/perf.mjs` 與 `node scripts/perf.mjs --magic`，補進 `PERF.md`（6E 的量測受到干擾）。
+0. **效能重測（Phase 6、7）**：在無人操作、關閉 Chrome 時執行 `node scripts/perf.mjs` 與 `node scripts/perf.mjs --magic`，補進 `PERF.md`（6E 與 Phase 7 的量測都受到干擾；Phase 7 的每幀時間約為 Phase 6 的 2 倍，需確認是否為環境因素）。
 1. **風格判定（規格 4.8）**：把參考圖放進 `docs/art/reference/`，與 `docs/screenshots/phase1/`、`phase2/` 並排比對。
 2. **B 級機器量測**：在 M1 / Iris Xe 8 GB 等級的機器執行 `node scripts/perf.mjs`，補進 `PERF.md`。
 

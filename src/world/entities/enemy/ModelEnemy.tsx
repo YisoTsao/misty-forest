@@ -7,7 +7,6 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import type { EnemyDef } from '@/game-core/combat/combat';
 import { combat } from '@/game/authority';
 import { enemyRuntime, enemyY, removeEnemyVisual } from '@/game/combat/combatRuntime';
-import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 import { assetUrl } from '@/game/worldData';
@@ -18,8 +17,8 @@ type ModelDef = EnemyDef & { model: NonNullable<EnemyDef['model']> };
 const FADE_IN_SEC = 1.0;
 const VANISH_SEC = 1.6;
 const CROSSFADE = 0.18;
-/** 超過這個距離不更新骨架動畫（看不清楚，省下每幀的骨架計算） */
-const ANIM_DISTANCE = 70;
+/** 攝影機超過這個距離就不畫、也不更新骨架動畫（怪物不剔除視錐，遠處的要自己隱藏） */
+const VISIBLE_DISTANCE = 90;
 const tmpColor = new THREE.Color();
 
 /** 每種模型只量一次：模型頂端的高度（模型單位），換算成資料指定的身高 */
@@ -107,10 +106,12 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
     local.current = next;
   };
 
-  useFrame((_, rawDt) => {
+  useFrame(({ camera }, rawDt) => {
     const v = enemyRuntime.get(id);
     const g = group.current;
     if (!v || !g) return;
+    const near = Math.hypot(camera.position.x - v.ai.x, camera.position.z - v.ai.z) < VISIBLE_DISTANCE;
+    g.visible = near;
     if (ignoredHandle.current === null && collider.current) {
       ignoredHandle.current = collider.current.handle;
       cameraIgnoredColliders.add(ignoredHandle.current);
@@ -155,8 +156,7 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
     }
     local.lastFlash = v.flash;
 
-    const player = playerRuntime.position;
-    if (!paused && Math.hypot(player.x - ai.x, player.z - ai.z) < ANIM_DISTANCE) mixer.update(dt);
+    if (!paused && near) mixer.update(dt);
 
     // 外觀：淡入、閃白、倒下後淡出
     let opacity = v.fadeIn;

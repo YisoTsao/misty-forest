@@ -110,7 +110,9 @@
       "respawnSec": 300,
       "anim": "interact"
     },
-    "persists": true
+    "persists": true,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "herb_bush",
@@ -124,7 +126,9 @@
       "respawnSec": 420,
       "anim": "interact"
     },
-    "persists": true
+    "persists": true,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "chest_wood",
@@ -532,13 +536,17 @@
     "id": "sack",
     "model": "models/kaykit-hexagon/sack.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "bucket_water",
     "model": "models/kaykit-hexagon/bucket_water.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "build_campfire",
@@ -1734,145 +1742,193 @@
     "id": "k_bush",
     "model": "models/kenney-nature/plant_bush.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_bush_large",
     "model": "models/kenney-nature/plant_bushLarge.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_bush_detailed",
     "model": "models/kenney-nature/plant_bushDetailed.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_bush_small",
     "model": "models/kenney-nature/plant_bushSmall.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_mushroom_red",
     "model": "models/kenney-nature/mushroom_red.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_mushroom_group",
     "model": "models/kenney-nature/mushroom_redGroup.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_mushroom_tan",
     "model": "models/kenney-nature/mushroom_tanGroup.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_mushroom_tall",
     "model": "models/kenney-nature/mushroom_redTall.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_grass_large",
     "model": "models/kenney-nature/grass_large.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_grass_leafs",
     "model": "models/kenney-nature/grass_leafsLarge.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_flower_red",
     "model": "models/kenney-nature/flower_redA.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_flower_purple",
     "model": "models/kenney-nature/flower_purpleA.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_flower_yellow",
     "model": "models/kenney-nature/flower_yellowA.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_lily_large",
     "model": "models/kenney-nature/lily_large.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_lily_small",
     "model": "models/kenney-nature/lily_small.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_corn",
     "model": "models/kenney-nature/crops_cornStageD.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_wheat",
     "model": "models/kenney-nature/crops_wheatStageB.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_pumpkin",
     "model": "models/kenney-nature/crop_pumpkin.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_melon",
     "model": "models/kenney-nature/crop_melon.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_carrot",
     "model": "models/kenney-nature/crop_carrot.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_leafy_crop",
     "model": "models/kenney-nature/crops_leafsStageB.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_dirt_row",
     "model": "models/kenney-nature/crops_dirtRow.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_campfire_stones",
     "model": "models/kenney-nature/campfire_stones.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_campfire_logs",
     "model": "models/kenney-nature/campfire_logs.glb",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "k_canoe",
@@ -2235,25 +2291,33 @@
     "id": "water_lily",
     "model": "models/kaykit-hexagon/waterlily_A.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "water_plant",
     "model": "models/kaykit-hexagon/waterplant_A.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "pebble_d",
     "model": "models/kaykit-hexagon/rock_single_D.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "pebble_e",
     "model": "models/kaykit-hexagon/rock_single_E.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "flag_yellow",
@@ -2285,7 +2349,9 @@
     "id": "pallet",
     "model": "models/kaykit-hexagon/pallet.gltf",
     "collider": "none",
-    "persists": false
+    "persists": false,
+    "cullDistance": 70,
+    "castShadow": false
   },
   {
     "id": "stage",

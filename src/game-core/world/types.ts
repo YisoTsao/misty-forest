@@ -110,6 +110,10 @@ export const prefabSchema = z
         }),
       )
       .optional(),
+    /** 超過這個距離（公尺，攝影機到區塊）就不畫（小型點綴：草叢、小花、蘑菇、作物；任務 7A 效能） */
+    cullDistance: z.number().positive().optional(),
+    /** false：不投射陰影（小型點綴，省下陰影 pass 的 draw call） */
+    castShadow: z.boolean().optional(),
     /** 煙囪頂端（模型單位，乘上縮放與旋轉）：冒出炊煙 */
     smoke: vec3.optional(),
     persists: z.boolean(),
