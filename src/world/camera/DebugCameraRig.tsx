@@ -12,7 +12,7 @@ export function DebugCameraRig() {
 
   useEffect(() => {
     if (!bookmark) return;
-    const def = cameraBookmarks.find((b) => b.id === bookmark.id);
+    const def = bookmark.view ?? cameraBookmarks.find((b) => b.id === bookmark.id);
     const ctrl = controls.current;
     if (!def || !ctrl) return;
     camera.position.fromArray(def.position);

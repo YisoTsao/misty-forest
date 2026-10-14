@@ -1,4 +1,4 @@
-// 戰鬥資料與數值（規格 6.6）：一種敵人（迷霧生物）、一種主要攻擊、一種特殊技能。
+// 戰鬥資料與數值（規格 6.6）：敵人（迷霧噗啾與任務 7C 的 3D 模型怪物）與玩家數值。
 // 生成規則由 game-core 決定（規格 1.4：迷霧生物生成率依區域迷霧階段）。
 import { z } from 'zod';
 import type { MistStage } from '../world/mist';
@@ -23,6 +23,29 @@ export const enemyDefSchema = z.object({
   leashRadius: z.number().positive(),
   /** 擊敗後掉落（掉落表 id） */
   lootTableId: z.string().min(1).optional(),
+  /** 出手時往前衝的速度（m/s，之後衰減；角角龍、蘑菇王的衝撞） */
+  lunge: z.number().positive().optional(),
+  /**
+   * 3D 模型（任務 7C）：省略時為程式產生的迷霧噗啾。
+   * height 為模型頂端離地的高度（公尺，載入時換算縮放）；radius 為碰撞球半徑；hover 為離地高度（飛行）；
+   * colors 依材質名稱換底色（同一個模型做出不同怪物、把素材偏暗的顏色調亮）；clips 為各動作使用的動畫片段名稱。
+   */
+  model: z
+    .object({
+      path: z.string().min(1),
+      height: z.number().positive(),
+      radius: z.number().positive(),
+      hover: z.number().nonnegative().optional(),
+      colors: z.record(z.string().min(1), z.string().regex(/^#[0-9a-fA-F]{6}$/)).optional(),
+      clips: z.object({
+        idle: z.string().min(1),
+        move: z.string().min(1),
+        attack: z.string().min(1),
+        hit: z.string().min(1),
+        death: z.string().min(1),
+      }),
+    })
+    .optional(),
 });
 export type EnemyDef = z.infer<typeof enemyDefSchema>;
 

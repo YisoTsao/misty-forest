@@ -18,7 +18,7 @@ import { audio } from './audio/audioEngine';
 import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
-import { combatRuntime, enemyRuntime } from './combat/combatRuntime';
+import { combatRuntime, enemyRuntime, enemyY } from './combat/combatRuntime';
 import { companionRuntime } from './companion/companionRuntime';
 import { ambientRuntime } from './ambient/ambientRuntime';
 import { useInputDeviceStore } from './input/device';
@@ -45,6 +45,8 @@ export type MistwoodDebugApi = {
   isReady: () => boolean;
   bookmarks: () => string[];
   setBookmark: (id: string) => void;
+  /** 自由視角：攝影機放在 position 看向 target */
+  viewAt: (position: [number, number, number], target: [number, number, number]) => void;
   setCameraMode: (mode: CameraMode) => void;
   /** 規格 4.6 要求的動畫鍵 */
   animKeys: () => readonly string[];
@@ -130,6 +132,9 @@ export type MistwoodDebugApi = {
   /** 背包格子快照 */
   inventory: () => InventorySlot[];
   itemCount: (itemId: string) => number;
+  /** 敵人是否還在權威狀態裡；enemyAnim 為模型怪物目前播放的動畫（含正在倒下消失的） */
+  enemyKnown: (id: string) => boolean;
+  enemyAnim: (id: string) => string | null;
   /** 遊戲時間（秒） */
   gameTime: () => number;
   /** 直接送出指令給權威層（測試用，例如快轉時間驗證重生） */
@@ -147,7 +152,7 @@ export type MistwoodDebugApi = {
   /** 任務第一個目標的進度 */
   questProgress: (id: string) => number;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
-  enemies: () => { id: string; x: number; z: number; state: string; hp: number }[];
+  enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
   /** 和平模式：迷霧生物不追擊、不攻擊（截圖與測試用） */
   setPeaceful: (peaceful: boolean) => void;
   /** 星光夥伴：是否解鎖、目前位置 */
@@ -208,6 +213,7 @@ export function installDebugApi(): void {
       useDebugStore.getState().requestBookmark(id);
     },
     setCameraMode: (mode) => useDebugStore.getState().setCameraMode(mode),
+    viewAt: (position, target) => useDebugStore.getState().requestView({ position, target }),
     animKeys: () => requiredClipKeys,
     previewClip: (clip, fraction) => {
       playerRuntime.animPreview = { clip, fraction };
@@ -319,6 +325,8 @@ export function installDebugApi(): void {
     },
     inventory: () => [...authority.getState().inventory.slots],
     itemCount: (itemId) => countItem(authority.getState().inventory, itemId),
+    enemyKnown: (id) => authority.getState().enemies.has(id),
+    enemyAnim: (id) => enemyRuntime.get(id)?.anim ?? null,
     gameTime: () => authority.getState().time,
     send: (command) => authority.send(command),
     saveNow: () => saveGame(),
@@ -332,7 +340,7 @@ export function installDebugApi(): void {
     enemies: () =>
       [...enemyRuntime]
         .filter(([, v]) => v.vanishing === null)
-        .map(([id, v]) => ({ id, x: v.ai.x, z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0 })),
+        .map(([id, v]) => ({ id, kind: v.kind, x: v.ai.x, y: enemyY(v.ai.x, v.ai.z), z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0, anim: v.anim ?? null })),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
     tap: (code) => input.injectTap(code),
     setPad: (pad) =>

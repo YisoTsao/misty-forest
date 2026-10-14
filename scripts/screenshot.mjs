@@ -5,6 +5,7 @@
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
+//   --monsters：每種怪物在自己的生成區域的近照與總覽（任務 7C）
 //   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
 //   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
 //   --daynight：日夜：三個書籤 × 06 / 12 / 18 / 21 / 00 時、夜晚迷霧、夜晚草原（螢火蟲、月亮）、日出與夕陽（任務 6B）
@@ -48,6 +49,7 @@ const withDaynight = flags.has('--daynight');
 const withMelee = flags.has('--melee');
 const withMagic = flags.has('--magic');
 const withMap = flags.has('--map');
+const withMonsters = flags.has('--monsters');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -209,6 +211,96 @@ try {
     await page.waitForTimeout(700);
     await shot('tavern_molly');
     await page.keyboard.press('Escape');
+  }
+
+  if (withMonsters) {
+    const spawners = JSON.parse(readFileSync('src/data/spawners.json', 'utf8'));
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+      d.setPeaceful(true);
+    });
+    const seen = new Set();
+    for (const sp of spawners) {
+      if (seen.has(sp.enemy)) continue;
+      seen.add(sp.enemy);
+      const [cx, cz] = sp.center;
+      // 站在生成區域南側，等這一種怪物生成，再走到牠旁邊拍
+      await page.evaluate(([x, z]) => {
+        const d = window.__mistwoodDebug;
+        d.setCameraMode('follow');
+        d.teleport(x, z);
+      }, [cx, cz + sp.radius + 6]);
+      await page
+        .waitForFunction((kind) => window.__mistwoodDebug.enemies().some((e) => e.kind === kind), sp.enemy, { timeout: 25_000 })
+        .catch(() => {});
+      const e = await page.evaluate((kind) => window.__mistwoodDebug.enemies().find((n) => n.kind === kind), sp.enemy);
+      if (!e) {
+        console.error(`沒有生成：${sp.enemy}`);
+        continue;
+      }
+      // 玩家退到一旁，以自由視角從怪物正面（面向玩家的方向）略高處拍
+      await page.evaluate(([x, z, h]) => {
+        const d = window.__mistwoodDebug;
+        d.teleport(x + 5, z + 5);
+        const y = h + 0.6;
+        d.viewAt([x + 1.6, y + 1.2, z + 4.2], [x, y * 0.55, z]);
+      }, [e.x, e.z, sp.enemy === 'mob_mushroom_king' ? 3 : 1.6]);
+      await page.waitForTimeout(400);
+      // 面向攝影機（模型面向 yaw）：把位置與 y 換算成地面高度後重新取景
+      const t = await page.evaluate((id) => window.__mistwoodDebug.enemies().find((n) => n.id === id), e.id);
+      if (t) {
+        // 挑一個攝影機到怪物之間沒有樹、岩石或建築的角度（自由視角不會避讓）
+        const allPlacements = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
+        const solid = allPlacements.filter((p) => !/grass|flower|bush|mushroom|lily|pebble|dirt_row|corn|wheat|pumpkin|melon|carrot|leafy/.test(p.prefabId) && Math.hypot(p.position[0] - t.x, p.position[2] - t.z) < 14);
+        const h = sp.enemy === 'mob_mushroom_king' ? 3 : 1.6;
+        const dist = h * 2.4 + 1.5;
+        let best = 0;
+        let bestClear = -1;
+        for (let k = 0; k < 12; k++) {
+          const a = (k / 12) * Math.PI * 2;
+          const cx = t.x + Math.sin(a) * dist;
+          const cz = t.z + Math.cos(a) * dist;
+          let clear = Infinity;
+          for (const p of solid) {
+            const [px, , pz] = p.position;
+            const dx = cx - t.x;
+            const dz = cz - t.z;
+            const u = Math.max(0, Math.min(1, ((px - t.x) * dx + (pz - t.z) * dz) / (dx * dx + dz * dz)));
+            clear = Math.min(clear, Math.hypot(px - (t.x + dx * u), pz - (t.z + dz * u)));
+          }
+          if (clear > bestClear) {
+            bestClear = clear;
+            best = a;
+          }
+        }
+        await page.evaluate(([x, z, hh, ground, a, d]) => {
+          const y = ground + hh * 0.55;
+          window.__mistwoodDebug.viewAt([x + Math.sin(a) * d, y + 1.1, z + Math.cos(a) * d], [x, y, z]);
+        }, [t.x, t.z, h, t.y ?? 0, best, dist]);
+      }
+      await page.waitForTimeout(1400);
+      await shot(`monster_${sp.enemy}`);
+    }
+    // 追擊：角角龍朝玩家跑來（檢查模型面向）
+    const dinoSp = spawners.find((sp) => sp.enemy === 'mob_horn_dino');
+    if (dinoSp) {
+      const dino = await page.evaluate(() => window.__mistwoodDebug.enemies().find((n) => n.kind === 'mob_horn_dino'));
+      if (dino) {
+        await page.evaluate(([x, z]) => {
+          const d = window.__mistwoodDebug;
+          d.setPeaceful(false);
+          d.setCameraMode('follow');
+          d.teleport(x - 6, z);
+          d.face(x, z);
+          d.camera({ yaw: -Math.PI / 2 + 0.9, pitch: 0.25, distance: 7 });
+        }, [dino.x, dino.z]);
+        await page.waitForTimeout(1100);
+        await shot('monster_chase');
+      }
+    }
+    await page.evaluate(() => window.__mistwoodDebug.setPeaceful(false));
   }
 
   if (withMap) {

@@ -30,7 +30,17 @@ describe('combat data', () => {
   it('專案的敵人與生成點資料合法', () => {
     const data = parseCombatData(enemiesData, spawnersData, new Set(lootData.map((t) => t.id)));
     expect(data.enemies.has('mist_wisp')).toBe(true);
-    expect(data.spawners.every((s) => s.budget.clear === 0)).toBe(true);
+    // 迷霧生物（迷霧噗啾、霧凝史萊姆、霧魂）在迷霧清除後不再出現；野生的怪物（任務 7C）不受影響
+    const mistBorn = new Set(['mist_wisp', 'mob_mist_slime', 'mob_mist_ghost']);
+    for (const sp of data.spawners) if (mistBorn.has(sp.enemy)) expect(sp.budget.clear, sp.id).toBe(0);
+    // 濃霧時不會比晴朗時少
+    for (const sp of data.spawners) expect(sp.budget.dense, sp.id).toBeGreaterThanOrEqual(sp.budget.clear);
+  });
+
+  it('任務 7C：至少 10 種不同的怪物，各有自己的生成點', () => {
+    const data = parseCombatData(enemiesData, spawnersData, new Set(lootData.map((t) => t.id)));
+    expect(data.enemies.size).toBeGreaterThanOrEqual(10);
+    for (const id of data.enemies.keys()) expect(data.spawners.some((sp) => sp.enemy === id), id).toBe(true);
   });
 
   it('拒絕參照不存在的敵人', () => {
@@ -196,6 +206,26 @@ describe('enemy AI 狀態機', () => {
     expect(ai.state).toBe('chase');
     stepEnemyAi(ai, wisp, input(-1, 0));
     expect(ai.x).toBeGreaterThan(0);
+  });
+
+  it('衝撞型（lunge）：出手時往面向衝出，之後減速；一般敵人出手時不移動', () => {
+    const charger = { ...wisp, lunge: 9 };
+    const ai = createEnemyAi(0, 0);
+    stepEnemyAi(ai, charger, input(1.2, 0)); // 待機 → 追擊
+    stepEnemyAi(ai, charger, input(1.2, 0)); // 追擊 → 攻擊前搖
+    expect(ai.state).toBe('attack');
+    stepEnemyAi(ai, charger, input(1.2, 0, charger.attackWindup + 0.01));
+    expect(ai.knockback.x).toBeCloseTo(9 * Math.sin(ai.yaw));
+    const x0 = ai.x;
+    stepEnemyAi(ai, charger, input(1.2, 0, 0.1));
+    expect(ai.x).toBeGreaterThan(x0 + 0.5);
+    for (let i = 0; i < 20; i++) stepEnemyAi(ai, charger, input(ai.x + 1.2, 0, 0.05, false));
+    expect(Math.hypot(ai.knockback.x, ai.knockback.z)).toBeLessThan(0.5);
+    const plain = createEnemyAi(0, 0);
+    stepEnemyAi(plain, wisp, input(1.2, 0));
+    stepEnemyAi(plain, wisp, input(1.2, 0));
+    stepEnemyAi(plain, wisp, input(1.2, 0, wisp.attackWindup + 0.01));
+    expect(plain.knockback).toEqual({ x: 0, z: 0 });
   });
 
   it('依距離降頻、太遠暫停', () => {

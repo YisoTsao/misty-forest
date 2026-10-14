@@ -16,7 +16,9 @@ const firstSlash = weapons.find((w) => w.id === 'sword').light[0];
 const saveDir = tempSaveDir();
 
 await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page, check, debug, state, camera, teleport }) => {
-  const enemies = () => debug(() => window.__mistwoodDebug.enemies());
+  // 只看霧林邊緣的迷霧噗啾（任務 7C 之後地圖其他地方也有怪物）
+  const forestSpawners = spawners.filter((sp) => sp.regionId === 'forest' && sp.enemy === 'mist_wisp').map((sp) => sp.id);
+  const enemies = () => debug((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))), forestSpawners);
   const combat = () => debug(() => window.__mistwoodDebug.combatState());
   const send = (cmd) => debug((c) => window.__mistwoodDebug.send(c), cmd);
   const [sx, sz] = spawners[0].center;
@@ -30,7 +32,7 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
 
   await check('森林濃霧時迷霧噗啾陸續出現（兩個生成點各 3 隻）', async () => {
     await teleport(sx - 6, sz + 6);
-    await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 6, null, { timeout: 30_000 });
+    await page.waitForFunction((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))).length >= 6, forestSpawners, { timeout: 30_000 });
     const list = await enemies();
     assert.ok(list.every((e) => e.hp === 60), JSON.stringify(list));
   });
@@ -67,7 +69,11 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     const p = await state();
     const near = list.filter((e) => Math.hypot(e.x - p.x, e.z - p.z) < 3.2);
     assert.ok(near.length >= 1, '身邊沒有迷霧噗啾，測試前提不成立');
-    await page.keyboard.press('KeyQ');
+    // 傳送後的那一幀還在處理落地與面向；確定沒有動作在進行再按，按住一小段時間（機器忙碌時一幀很長）
+    await page.waitForFunction(() => window.__mistwoodDebug.playerState().action === null, null, { timeout: 2000 });
+    await page.keyboard.down('KeyQ');
+    await page.waitForTimeout(60);
+    await page.keyboard.up('KeyQ');
     await page.waitForTimeout(600);
     const cd = (await combat()).skillCooldown;
     assert.ok(cd > 4 && cd <= 6, `冷卻 ${cd}`);
@@ -167,7 +173,8 @@ await runE2e('combat e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD
     const file = JSON.parse(readFileSync(path.join(saveDir, 'slot1.json'), 'utf8'));
     assert.equal(file.version, SAVE_VERSION);
     assert.equal(file.quests.clear_forest.status, 'completed');
-    assert.equal(file.combat.enemies.length, 0);
+    // 森林晴朗：林緣的迷霧噗啾都不在存檔裡（其他區域的怪物照常存在）
+    assert.equal(file.combat.enemies.filter((e) => forestSpawners.includes(e.spawner)).length, 0);
     assert.ok(file.combat.hp > 0);
   });
 });

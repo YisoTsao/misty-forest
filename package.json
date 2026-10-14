@@ -20,7 +20,7 @@
     "screenshot": "pnpm build && node scripts/screenshot.mjs",
     "data:placements": "node scripts/gen-placements.ts",
     "pack": "pnpm build && electron-builder --dir",
-    "e2e": "pnpm build && node e2e/movement.e2e.mjs && node e2e/world.e2e.mjs && node e2e/harvest.e2e.mjs && node e2e/save.e2e.mjs && node e2e/tutorial.e2e.mjs && node e2e/settings.e2e.mjs && node e2e/region.e2e.mjs && node e2e/npc.e2e.mjs && node e2e/quest.e2e.mjs && node e2e/lake.e2e.mjs && node e2e/combat.e2e.mjs && node e2e/companion.e2e.mjs && node e2e/build.e2e.mjs && node e2e/audio.e2e.mjs && node e2e/tavern.e2e.mjs && node e2e/gamepad.e2e.mjs && node e2e/ambient.e2e.mjs && node e2e/bounds.e2e.mjs && node e2e/daynight.e2e.mjs && node e2e/melee.e2e.mjs && node e2e/magic.e2e.mjs && node e2e/map.e2e.mjs && node e2e/dev.e2e.mjs"
+    "e2e": "pnpm build && node e2e/movement.e2e.mjs && node e2e/world.e2e.mjs && node e2e/harvest.e2e.mjs && node e2e/save.e2e.mjs && node e2e/tutorial.e2e.mjs && node e2e/settings.e2e.mjs && node e2e/region.e2e.mjs && node e2e/npc.e2e.mjs && node e2e/quest.e2e.mjs && node e2e/lake.e2e.mjs && node e2e/combat.e2e.mjs && node e2e/companion.e2e.mjs && node e2e/build.e2e.mjs && node e2e/audio.e2e.mjs && node e2e/tavern.e2e.mjs && node e2e/gamepad.e2e.mjs && node e2e/ambient.e2e.mjs && node e2e/bounds.e2e.mjs && node e2e/daynight.e2e.mjs && node e2e/melee.e2e.mjs && node e2e/magic.e2e.mjs && node e2e/map.e2e.mjs && node e2e/monsters.e2e.mjs && node e2e/dev.e2e.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

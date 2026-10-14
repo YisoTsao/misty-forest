@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import type { GameState } from '@/game-core/authority/rules';
 import { createEnemyAi, type EnemyAi } from '@/game-core/combat/enemyAi';
 import { createCombo, DEFAULT_WEAPON, type ComboState } from '@/game-core/combat/weapons';
-import { terrainHeight } from '@/game-core/world/terrain';
+import { terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
 import { authority, combat, spells, weapons } from '../authority';
 import { playerRuntime } from '../player/localRuntime';
 
@@ -20,6 +20,8 @@ export type EnemyVisual = {
   vanishing: number | null;
   /** AI 降頻用：距離上次更新的時間 */
   sinceUpdate: number;
+  /** 模型怪物目前播放的動畫片段（ModelEnemy 寫入；除錯與測試用） */
+  anim?: string;
 };
 
 export const enemyRuntime = new Map<string, EnemyVisual>();
@@ -93,6 +95,8 @@ function spawnPosition(spawnerId: string): { x: number; z: number } {
     const a = Math.random() * Math.PI * 2;
     const r = Math.sqrt(Math.random()) * spawner.radius;
     const p = { x: cx + Math.cos(a) * r, z: cz + Math.sin(a) * r };
+    // 不生成在湖或溪裡
+    if (terrainHeight(p.x, p.z) < WATER_LEVEL + 0.3) continue;
     const d = Math.hypot(p.x - playerRuntime.position.x, p.z - playerRuntime.position.z);
     if (d >= SPAWN_MIN_PLAYER_DIST) return p;
     if (d > bestDist) {

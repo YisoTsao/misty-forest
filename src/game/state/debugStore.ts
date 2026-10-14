@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 
 export type CameraMode = 'follow' | 'free';
+export type FreeView = { position: [number, number, number]; target: [number, number, number] };
 
 // 本機暫態（規格 3-7）：攝影機模式、除錯書籤與場景就緒旗標，不進存檔。
 type DebugState = {
   cameraMode: CameraMode;
   /** 目前套用的書籤；每次 requestBookmark 都會遞增 nonce 以便重複套用同一書籤。 */
-  bookmark: { id: string; nonce: number } | null;
+  bookmark: { id: string; nonce: number; view?: FreeView } | null;
   sceneReady: boolean;
   /**
    * 迷霧覆寫值（0 晴朗 – 1 迷霧）：除錯滑桿與截圖用。null 表示依玩家所在區域的迷霧階段（正常遊玩）。
@@ -20,6 +21,8 @@ type DebugState = {
   peaceful: boolean;
   /** 切到自由視角並套用書籤 */
   requestBookmark: (id: string) => void;
+  /** 切到自由視角，攝影機放在指定位置看向目標（截圖用） */
+  requestView: (view: FreeView) => void;
   setCameraMode: (mode: CameraMode) => void;
   setSceneReady: (ready: boolean) => void;
   setMistOverride: (value: number | null, instant?: boolean) => void;
@@ -36,6 +39,7 @@ export const useDebugStore = create<DebugState>((set) => ({
   clockOverride: null,
   peaceful: new URLSearchParams(window.location.search).has('peaceful'),
   requestBookmark: (id) => set((s) => ({ cameraMode: 'free', bookmark: { id, nonce: (s.bookmark?.nonce ?? 0) + 1 } })),
+  requestView: (view) => set((s) => ({ cameraMode: 'free', bookmark: { id: 'custom', nonce: (s.bookmark?.nonce ?? 0) + 1, view } })),
   setCameraMode: (cameraMode) => set({ cameraMode }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
   setPeaceful: (peaceful) => set({ peaceful }),

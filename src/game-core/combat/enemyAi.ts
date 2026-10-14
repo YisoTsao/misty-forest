@@ -120,6 +120,11 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       if (ai.timer >= def.attackWindup) {
         strike = true;
         ai.cooldown = def.attackCooldown;
+        // 衝撞型（角角龍等）：出手時往面向衝出，速度之後隨擊退一起衰減
+        if (def.lunge) {
+          ai.knockback.x = Math.sin(ai.yaw) * def.lunge;
+          ai.knockback.z = Math.cos(ai.yaw) * def.lunge;
+        }
         set('chase');
       }
       break;

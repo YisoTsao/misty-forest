@@ -17,7 +17,9 @@ const saveDir = tempSaveDir();
 
 await runE2e('magic e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page, check, debug }) => {
   const magic = () => debug(() => window.__mistwoodDebug.magic());
-  const enemies = () => debug(() => window.__mistwoodDebug.enemies());
+  // 只看霧林邊緣的迷霧噗啾（任務 7C 之後地圖其他地方也有怪物）
+  const forestSpawners = spawners.filter((sp) => sp.regionId === 'forest' && sp.enemy === 'mist_wisp').map((sp) => sp.id);
+  const enemies = () => debug((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))), forestSpawners);
   const player = () => debug(() => window.__mistwoodDebug.playerState());
   const [sx, sz] = spawners[0].center;
   const ready = () => page.waitForFunction(() => window.__mistwoodDebug.playerState().action === null, null, { timeout: 3000 });
@@ -35,7 +37,7 @@ await runE2e('magic e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
 
   await check('新遊戲星光值全滿，HUD 顯示星光條與三個法術', async () => {
     await debug(([x, z]) => window.__mistwoodDebug.teleport(x - 6, z + 6), [sx, sz]);
-    await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 4, null, { timeout: 30_000 });
+    await page.waitForFunction((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))).length >= 4, forestSpawners, { timeout: 30_000 });
     assert.equal((await magic()).mp, 100);
     assert.equal(await page.locator('[data-testid="mp-bar"]').count(), 1);
     assert.equal(await page.locator('[data-testid="skill-slot"]').count(), 1);
@@ -86,7 +88,7 @@ await runE2e('magic e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
 
   await check(`F 星屑飛彈：射出 ${bolt.projectiles.count} 枚追蹤彈，命中前方的迷霧噗啾（每發 ${bolt.damage}）`, async () => {
     await debug(() => window.__mistwoodDebug.resetWorld());
-    await page.waitForFunction(() => window.__mistwoodDebug.enemies().filter((e) => e.hp === 60).length >= 3, null, { timeout: 30_000 });
+    await page.waitForFunction((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))).filter((e) => e.hp === 60).length >= 3, forestSpawners, { timeout: 30_000 });
     await standNear(5);
     const before = await magic();
     const hpBefore = new Map((await enemies()).map((e) => [e.id, e.hp]));
@@ -155,7 +157,7 @@ await runE2e('magic e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
 
   await check(`C 流星雨：前方地面出現落點魔法陣，${meteor.meteor.count} 顆流星依序落下命中範圍內的迷霧噗啾；扣 ${meteor.mpCost} 星光`, async () => {
     await debug(() => window.__mistwoodDebug.resetWorld());
-    await page.waitForFunction(() => window.__mistwoodDebug.enemies().filter((e) => e.hp === 60).length >= 3, null, { timeout: 30_000 });
+    await page.waitForFunction((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))).filter((e) => e.hp === 60).length >= 3, forestSpawners, { timeout: 30_000 });
     await debug(() => window.__mistwoodDebug.setMp(100));
     const target = await standNear(meteor.meteor.distance);
     const before = await magic();

@@ -100,6 +100,13 @@ const icons: Record<string, ReactNode> = {
       <path d="M16 9 L36 13 L16 19 Z" fill="#ff5a5a" stroke="#b02a2a" strokeWidth="1.5" strokeLinejoin="round" />
     </>
   ),
+  gel: (
+    <>
+      <path d="M24 8 Q34 20 37 28 Q40 40 24 41 Q8 40 11 28 Q14 20 24 8 Z" fill="#b9a2e6" stroke="#6b55a3" strokeWidth="2" />
+      <path d="M17 27 Q18 21 22 17" stroke="#efe6ff" strokeWidth="3" strokeLinecap="round" fill="none" />
+      <circle cx="29" cy="31" r="2.2" fill="#8e76c9" />
+    </>
+  ),
   starlight: (
     <>
       <circle cx="24" cy="24" r="16" fill="#fff4b0" opacity="0.55" />

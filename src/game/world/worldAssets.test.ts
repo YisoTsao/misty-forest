@@ -72,3 +72,22 @@ describe('world prefab assets', () => {
     parts.forEach((p) => p.geometry.dispose());
   });
 });
+
+// 任務 7C：怪物模型存在、動作使用的動畫片段都在模型裡
+describe('enemy models', async () => {
+  const enemies = (await import('@/data/enemies.json')).default as { id: string; model?: { path: string; clips: Record<string, string>; colors?: Record<string, string> } }[];
+  for (const e of enemies) {
+    if (!e.model) continue;
+    const { path: model, clips, colors } = e.model;
+    it(`${e.id}：模型存在、${Object.keys(clips).length} 個動作的動畫片段與染色材質都存在`, () => {
+      const file = path.join('public', model);
+      expect(existsSync(file), file).toBe(true);
+      const json = readGltfJson(file) as GltfJson & { animations?: { name?: string }[]; materials?: { name?: string }[]; skins?: unknown[] };
+      expect(json.skins?.length ?? 0).toBeGreaterThan(0);
+      const names = new Set((json.animations ?? []).map((a) => a.name));
+      for (const clip of Object.values(clips)) expect(names.has(clip), clip).toBe(true);
+      const mats = new Set((json.materials ?? []).map((m) => m.name));
+      for (const m of Object.keys(colors ?? {})) expect(mats.has(m), m).toBe(true);
+    });
+  }
+});

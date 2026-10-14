@@ -1,28 +1,33 @@
+import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { BallCollider, RigidBody, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { aiUpdateInterval, stepEnemyAi } from '@/game-core/combat/enemyAi';
-import { isControllable } from '@/game-core/flow/gameFlow';
-import { authority, combat } from '@/game/authority';
-import { combatRuntime, enemyRuntime, enemyY, removeEnemyVisual, useEnemyListStore } from '@/game/combat/combatRuntime';
-import { playerRuntime } from '@/game/player/localRuntime';
-import { useDebugStore } from '@/game/state/debugStore';
+import { combat } from '@/game/authority';
+import { enemyRuntime, enemyY, removeEnemyVisual, useEnemyListStore } from '@/game/combat/combatRuntime';
 import { currentScreen } from '@/game/state/gameStore';
+import { assetUrl } from '@/game/worldData';
 import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 import { createWispMaterial, wispEyeMaterial } from '@/render/mistWisp';
+import { updateEnemyAi } from './enemyUpdate';
+import { ModelEnemy } from './ModelEnemy';
 
 /** 身體浮在地面上方的高度（身體中心） */
 const HOVER = 1.05;
 const BODY_RADIUS = 0.5;
 const VANISH_SEC = 0.9;
 const FADE_IN_SEC = 1.2;
-/** 出手時玩家還在這個距離內才算命中（給攻擊距離一點寬容） */
-const STRIKE_SLACK = 0.45;
 
-/** 迷霧生物（規格 6.6）：位置與 AI 在本機模擬，出手與受傷交給權威層判定。 */
+/** 所有怪物模型的路徑：場景載入時一起載入，之後生成新怪物不會觸發 Suspense 讓世界閃爍 */
+const MODEL_URLS = [...new Set([...combat.enemies.values()].flatMap((e) => (e.model ? [assetUrl(e.model.path)] : [])))];
+
+/**
+ * 敵人（規格 6.6、任務 7C）：位置與 AI 在本機模擬，出手與受傷交給權威層判定。
+ * 有模型的敵人以骨架動畫模型呈現（ModelEnemy），迷霧噗啾是程式產生的霧團。
+ */
 export function Enemies() {
   const ids = useEnemyListStore((s) => s.ids);
+  useGLTF(MODEL_URLS);
   const shared = useMemo(
     () => ({
       body: new THREE.IcosahedronGeometry(BODY_RADIUS, 3),
@@ -41,9 +46,11 @@ export function Enemies() {
   );
   return (
     <>
-      {ids.map((id) => (
-        <MistWisp key={id} id={id} geometry={shared} />
-      ))}
+      {ids.map((id) => {
+        const def = combat.enemies.get(enemyRuntime.get(id)?.kind ?? '');
+        if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
+        return <MistWisp key={id} id={id} geometry={shared} />;
+      })}
     </>
   );
 }
@@ -81,29 +88,7 @@ function MistWisp({ id, geometry }: { id: string; geometry: { body: THREE.Buffer
     const paused = currentScreen() === 'paused';
     if (!paused) uniforms.uTime.value += dt;
     const ai = v.ai;
-
-    // AI：遊玩中才更新；依距離降頻、太遠暫停（規格 6.6）
-    const player = playerRuntime.position;
-    const toPlayer = Math.hypot(player.x - ai.x, player.z - ai.z);
-    const interval = aiUpdateInterval(toPlayer);
-    if (isControllable(currentScreen()) && v.vanishing === null && interval !== null) {
-      v.sinceUpdate += dt;
-      if (v.sinceUpdate >= interval) {
-        const peaceful = useDebugStore.getState().peaceful;
-        const alive = !authority.getState().player.defeated && !peaceful;
-        const out = stepEnemyAi(ai, def, {
-          dt: v.sinceUpdate,
-          player: { x: player.x, z: player.z, alive },
-          home: { x: spawner.center[0], z: spawner.center[1], radius: spawner.radius },
-          random: Math.random,
-        });
-        v.sinceUpdate = 0;
-        // 出手：玩家仍在範圍內且不在無敵時間，交給權威層結算傷害
-        if (out.strike && alive && combatRuntime.invulnerable <= 0 && toPlayer <= def.attackRange + STRIKE_SLACK) {
-          authority.send({ type: 'EnemyStrike', enemyId: id });
-        }
-      }
-    }
+    updateEnemyAi(id, v, def, spawner, dt);
 
     // 表現：淡入、閃白、攻擊前搖、消失
     if (!paused) {

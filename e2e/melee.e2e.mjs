@@ -15,7 +15,9 @@ const KEY = { fist: 'Digit1', knife: 'Digit2', sword: 'Digit3' };
 
 await runE2e('melee e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_SAVE_DIR: saveDir } }, async ({ page, check, debug }) => {
   const melee = () => debug(() => window.__mistwoodDebug.melee());
-  const enemies = () => debug(() => window.__mistwoodDebug.enemies());
+  // 只看霧林邊緣的迷霧噗啾（任務 7C 之後地圖其他地方也有怪物）
+  const forestSpawners = spawners.filter((sp) => sp.regionId === 'forest' && sp.enemy === 'mist_wisp').map((sp) => sp.id);
+  const enemies = () => debug((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))), forestSpawners);
   const [sx, sz] = spawners[0].center;
 
   /** 站到血量足夠的迷霧噗啾旁邊、面向牠（不等待，連段才接得上） */
@@ -53,7 +55,7 @@ await runE2e('melee e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
 
   await check('預設裝備單手劍，手上顯示的也是劍；HUD 標示目前武器', async () => {
     await debug(([x, z]) => window.__mistwoodDebug.teleport(x - 6, z + 6), [sx, sz]);
-    await page.waitForFunction(() => window.__mistwoodDebug.enemies().length >= 4, null, { timeout: 30_000 });
+    await page.waitForFunction((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))).length >= 4, forestSpawners, { timeout: 30_000 });
     const m = await melee();
     assert.equal(m.weapon, 'sword');
     assert.equal(m.shown, 'sword');
@@ -65,7 +67,7 @@ await runE2e('melee e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
       await page.waitForFunction(() => window.__mistwoodDebug.playerState().action === null, null, { timeout: 3000 });
       // 每種武器用一批新的迷霧噗啾（被打過的不會回血、補充要等生成點冷卻）；重設世界會回到預設的單手劍
       await debug(() => window.__mistwoodDebug.resetWorld());
-      await page.waitForFunction(() => window.__mistwoodDebug.enemies().filter((e) => e.hp === 60).length >= 4, null, { timeout: 30_000 });
+      await page.waitForFunction((ids) => window.__mistwoodDebug.enemies().filter((e) => ids.some((id) => e.id.startsWith(`${id}#`))).filter((e) => e.hp === 60).length >= 4, forestSpawners, { timeout: 30_000 });
       if (w.id !== 'sword') assert.equal((await melee()).weapon, 'sword');
       await page.keyboard.press(KEY[w.id]);
       await page.waitForTimeout(200);
