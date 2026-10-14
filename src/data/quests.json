@@ -374,5 +374,43 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_dawn_005",
+    "nameKey": "quest.dawn5.name",
+    "category": "story",
+    "descKey": "quest.dawn5.desc",
+    "giver": "tao",
+    "requires": [
+      "repair_bridge"
+    ],
+    "objectives": [
+      {
+        "type": "build",
+        "buildable": "garden_plot",
+        "count": 1,
+        "descKey": "quest.dawn5.plot"
+      }
+    ],
+    "start": {
+      "items": [
+        {
+          "itemId": "wildflower_seed",
+          "count": 2
+        }
+      ]
+    },
+    "rewards": {
+      "items": [
+        {
+          "itemId": "wildflower_seed",
+          "count": 3
+        },
+        {
+          "itemId": "seed_coin",
+          "count": 15
+        }
+      ]
+    }
   }
 ]

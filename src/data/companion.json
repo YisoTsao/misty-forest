@@ -223,6 +223,21 @@
     },
     {
       "when": {
+        "type": "questReady",
+        "quest": "quest_dawn_005"
+      },
+      "textKey": "companion.hint.dawn5Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_dawn_005",
+        "is": "active"
+      },
+      "textKey": "companion.hint.dawn5"
+    },
+    {
+      "when": {
         "type": "not",
         "condition": {
           "type": "tutorialDone"

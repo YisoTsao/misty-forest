@@ -8,5 +8,6 @@
   {"id": "lantern", "nameKey": "build.lantern", "prefabId": "build_lantern", "scale": 0.9, "footprint": 0.35, "category": "decoration", "icon": "lantern", "cost": [{"itemId": "wood", "count": 1}, {"itemId": "stone", "count": 1}, {"itemId": "starlight_shard", "count": 1}]},
   {"id": "flower_bed", "nameKey": "build.flower_bed", "prefabId": "build_flower_bed", "scale": 2, "footprint": 0.55, "category": "decoration", "icon": "flower", "cost": [{"itemId": "flower", "count": 3}]},
   {"id": "pumpkin", "nameKey": "build.pumpkin", "prefabId": "build_pumpkin", "scale": 0.6, "footprint": 0.35, "category": "decoration", "icon": "pumpkin", "cost": [{"itemId": "herb", "count": 2}]},
-  {"id": "flag", "nameKey": "build.flag", "prefabId": "build_flag", "scale": 5.5, "footprint": 0.3, "category": "decoration", "icon": "flag", "cost": [{"itemId": "wood", "count": 2}, {"itemId": "flower", "count": 2}]}
+  {"id": "flag", "nameKey": "build.flag", "prefabId": "build_flag", "scale": 5.5, "footprint": 0.3, "category": "decoration", "icon": "flag", "cost": [{"itemId": "wood", "count": 2}, {"itemId": "flower", "count": 2}]},
+  {"id": "garden_plot", "nameKey": "build.garden_plot", "prefabId": "build_garden_plot_0", "scale": 1.4, "footprint": 0.75, "category": "decoration", "icon": "seed", "cost": [{"itemId": "wood", "count": 4}, {"itemId": "loose_soil", "count": 3}, {"itemId": "wildflower_seed", "count": 1}], "unlock": {"quest": "quest_dawn_005"}, "growth": {"stages": ["build_garden_plot_0", "build_garden_plot_1", "build_garden_plot_2"], "seconds": [120, 360]}}
 ]

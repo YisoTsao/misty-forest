@@ -54,7 +54,8 @@ export const saveDataSchema = z.object({
   }),
   companion: z.object({ unlocked: z.boolean() }),
   build: z.object({
-    buildings: z.array(z.object({ id: z.string().min(1), buildable: z.string().min(1), x: finite, z: finite, yaw: finite })),
+    // placedAt（任務 7K 會長大的花圃）是選填欄位，舊存檔沒有也能讀，不升版本
+    buildings: z.array(z.object({ id: z.string().min(1), buildable: z.string().min(1), x: finite, z: finite, yaw: finite, placedAt: finite.optional() })),
     nextBuildingId: z.number().int().positive(),
   }),
   /** 裝備（v8，GAME_DESIGN 5.3）：目前的近戰武器 */

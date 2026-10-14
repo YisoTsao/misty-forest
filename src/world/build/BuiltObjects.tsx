@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRapier, type RapierCollider } from '@react-three/rapier';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import type { Building, BuildableDef } from '@/game-core/build/build';
+import { growthStage, type Building, type BuildableDef } from '@/game-core/build/build';
 import { collisionShapes, type Placement } from '@/game-core/world/types';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { buildables, worldIndex } from '@/game/authority';
@@ -17,10 +17,10 @@ import { sparkTexture } from '@/render/sparkTexture';
 import { MAX_CLEARINGS, vegetationUniforms } from '@/render/vegetation';
 import { InstancedPrefab } from '../vegetation/InstancedPrefab';
 
-function placementOf(b: Building, def: BuildableDef): Placement {
+function placementOf(b: Building, def: BuildableDef, stage: number): Placement {
   return {
     id: b.id,
-    prefabId: def.prefabId,
+    prefabId: def.growth?.stages[stage] ?? def.prefabId,
     regionId: 'home',
     position: [b.x, terrainHeight(b.x, b.z), b.z],
     rotation: [0, b.yaw, 0],
@@ -28,13 +28,25 @@ function placementOf(b: Building, def: BuildableDef): Placement {
   };
 }
 
+/** 會長大的建造物的階段，例如 "building_3:1,building_5:2"（字串比較，階段不變時不重新渲染） */
+function growthKey(buildings: readonly Building[], time: number): string {
+  return buildings
+    .flatMap((b) => {
+      const def = buildables.get(b.buildable);
+      return def?.growth ? [`${b.id}:${growthStage(def, b, time)}`] : [];
+    })
+    .join(',');
+}
+
 /** 已放置的建造物（規格 6.7）：依類型以 InstancedMesh 渲染，並建立碰撞體。只讀權威狀態。 */
 export function BuiltObjects() {
   const buildings = useGameStateStore((s) => s.state.buildings);
+  // 會長大的花圃（任務 7K）：只有階段改變時才重新分組
+  const stages = useGameStateStore((s) => growthKey(s.state.buildings, s.state.time));
   // 所有可建造的模型在場景載入時一起載入，放置當下不會觸發 Suspense
   const models = useMemo(
     () =>
-      [...new Set([...buildables.values()].map((b) => worldIndex.prefab(b.prefabId)?.model))]
+      [...new Set([...buildables.values()].flatMap((b) => [b.prefabId, ...(b.growth?.stages ?? [])]).map((p) => worldIndex.prefab(p)?.model))]
         .filter((m): m is string => m !== undefined && !m.startsWith(PROCEDURAL_PREFIX))
         .map(assetUrl),
     [],
@@ -48,15 +60,17 @@ export function BuiltObjects() {
   }, [buildings]);
   const groups = useMemo(() => {
     const map = new Map<string, Placement[]>();
+    const stageOf = new Map(stages.split(',').filter(Boolean).map((e) => e.split(':') as [string, string]));
     for (const b of buildings) {
       const def = buildables.get(b.buildable);
       if (!def) continue;
-      const list = map.get(def.prefabId) ?? [];
-      list.push(placementOf(b, def));
-      map.set(def.prefabId, list);
+      const placement = placementOf(b, def, Number(stageOf.get(b.id) ?? 0));
+      const list = map.get(placement.prefabId) ?? [];
+      list.push(placement);
+      map.set(placement.prefabId, list);
     }
     return [...map];
-  }, [buildings]);
+  }, [buildings, stages]);
 
   return (
     <>

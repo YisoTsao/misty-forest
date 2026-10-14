@@ -25,6 +25,8 @@ export const objectiveSchema = z.discriminatedUnion('type', [
   }),
   /** 擊敗頭目（任務 8D-2）：以「已擊敗的頭目」判斷，接任務前就打倒的也算 */
   z.object({ type: z.literal('boss'), boss: z.string().min(1), descKey: z.string().min(1) }),
+  /** 在家園蓋出指定數量的建造物（任務 7K 花圃）：以目前已放置的數量判斷 */
+  z.object({ type: z.literal('build'), buildable: z.string().min(1), count: z.number().int().positive(), descKey: z.string().min(1) }),
   /**
    * 和某位 NPC 談（任務 7G 送信）：在對話選項裡完成（效果 questTalk），item 為交出去的物品。
    * 進度存完成的順序（1、2、3…），對話可以依「誰是第一個」換台詞。
@@ -110,6 +112,8 @@ type QuestState = {
   objects: ReadonlyMap<string, { repaired?: boolean; active?: boolean }>;
   /** 已擊敗的頭目（省略視為沒有） */
   defeatedBosses?: readonly string[];
+  /** 已放置的建造物（省略視為沒有） */
+  buildings?: readonly { buildable: string }[];
 };
 
 export function questStatus(state: QuestState, def: QuestDef): QuestStatus {
@@ -134,6 +138,8 @@ export function objectiveProgress(state: QuestState, def: QuestDef): { current: 
         return { current: state.defeatedBosses?.includes(o.boss) ? 1 : 0, target: 1 };
       case 'talk':
         return { current: (state.quests[def.id]?.progress?.[i] ?? 0) > 0 ? 1 : 0, target: 1 };
+      case 'build':
+        return { current: Math.min(o.count, (state.buildings ?? []).filter((b) => b.buildable === o.buildable).length), target: o.count };
     }
   });
 }

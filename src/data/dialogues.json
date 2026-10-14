@@ -1390,5 +1390,107 @@
         "textKey": "dlg.letter.linna.end"
       }
     }
+  },
+  {
+    "id": "tao_garden_offer",
+    "start": "seeds",
+    "nodes": {
+      "seeds": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.seeds",
+        "next": "fear"
+      },
+      "fear": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.fear",
+        "next": "ask"
+      },
+      "ask": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.ask",
+        "options": [
+          {
+            "textKey": "dlg.tao.opt.help",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_dawn_005"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.tao.opt.how",
+            "next": "how"
+          },
+          {
+            "textKey": "dlg.tao.opt.bye"
+          }
+        ]
+      },
+      "how": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.how",
+        "next": "ask"
+      },
+      "accept": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.accept"
+      }
+    }
+  },
+  {
+    "id": "tao_garden_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.remind"
+      }
+    }
+  },
+  {
+    "id": "tao_garden_turnin",
+    "start": "look",
+    "nodes": {
+      "look": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.look",
+        "options": [
+          {
+            "textKey": "dlg.tao.opt.done",
+            "next": "thanks",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_dawn_005"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.tao.opt.later"
+          }
+        ]
+      },
+      "thanks": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.thanks",
+        "next": "time"
+      },
+      "time": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.time"
+      }
+    }
+  },
+  {
+    "id": "tao_after",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.tao",
+        "textKey": "dlg.tao.after"
+      }
+    }
   }
 ]

@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { countItem } from '@/game-core/inventory/inventory';
+import { isBuildableUnlocked } from '@/game-core/build/build';
 import { authority, buildables } from '@/game/authority';
 import { buildRuntime, REMOVE_TOOL } from '@/game/build/buildRuntime';
 import { t } from '@/game/i18n';
@@ -60,6 +61,13 @@ function Cost({ cost }: { cost: { itemId: string; count: number }[] }) {
 
 function BuildMenu() {
   const bindings = useBindings();
+  // 任務教的建造物（花圃）接了任務才出現（任務 7K）
+  const quests = useGameStateStore((s) => s.state.quests);
+  const visible = useMemo(() => list.filter((b) => isBuildableUnlocked(b, quests)), [quests]);
+  const visibleRef = useRef(visible);
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
   const choose = (id: string) => {
     useUiStore.getState().setBuild({ menu: false, selected: id });
     buildRuntime.ready = false;
@@ -69,7 +77,7 @@ function BuildMenu() {
     const onKey = (e: KeyboardEvent) => {
       const n = /^Digit([0-9])$/.exec(e.code)?.[1];
       if (!n) return;
-      const item = list[(Number(n) + 9) % 10];
+      const item = visibleRef.current[(Number(n) + 9) % 10];
       if (item) choose(item.id);
     };
     window.addEventListener('keydown', onKey);
@@ -83,7 +91,7 @@ function BuildMenu() {
           <span className="text-xs opacity-60">{t('build.menuHint', keyVars(bindings))}</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {list.map((b, i) => (
+          {visible.map((b, i) => (
             <button
               key={b.id}
               type="button"

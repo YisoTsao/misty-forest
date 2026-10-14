@@ -61,6 +61,8 @@ export function questMarkers(
     npcPosition: (npcId: string) => { x: number; z: number } | null;
     placement: (id: string) => Placement | undefined;
     spawners: readonly SpawnerDef[];
+    /** 建造目標的地點（家園小島） */
+    buildArea?: { x: number; z: number };
   },
 ): QuestMarker[] {
   const out: QuestMarker[] = [];
@@ -88,6 +90,9 @@ export function questMarkers(
           const p = ctx.placement(id);
           if (p) out.push({ questId: q.id, kind: 'objective', x: p.position[0], z: p.position[2] });
         }
+      } else if (o.type === 'build') {
+        // 建造的地方：家園小島
+        if (ctx.buildArea) out.push({ questId: q.id, kind: 'objective', x: ctx.buildArea.x, z: ctx.buildArea.z });
       } else if (o.type === 'talk') {
         // 還沒談的對象標在 NPC 身上
         const i = q.objectives.indexOf(o);

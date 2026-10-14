@@ -1,3 +1,4 @@
+import { growthStage } from '@/game-core/build/build';
 import { exploredRatio, isExploredAt } from '@/game-core/map/explore';
 import type { BossMoveId } from '@/game-core/combat/combat';
 import { bossDebug, bossDebugState } from './combat/bossRuntime';
@@ -17,7 +18,7 @@ import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { audio } from './audio/audioEngine';
-import { authority, quests, regions, waterways } from './authority';
+import { authority, buildables, quests, regions, waterways } from './authority';
 import { waterwayFlow } from '@/game-core/world/waterway';
 import { waterwayRuntime } from './world/waterwayRuntime';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
@@ -178,6 +179,8 @@ export type MistwoodDebugApi = {
   /** 直接打開商店 / 工作台（截圖用，任務 7H、7J） */
   openShop: (shop: string) => void;
   openCraft: (station: string) => void;
+  /** 建造物目前的成長階段（任務 7K 花圃；不會長大的為 0） */
+  buildingStage: (id: string) => number | null;
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
@@ -427,6 +430,12 @@ export function installDebugApi(): void {
     lighthouseBeam: () => lighthouseVisual.beam,
     openShop: (shop) => useUiStore.getState().setShop(shop),
     openCraft: (station) => useUiStore.getState().setCraft(station),
+    buildingStage: (id) => {
+      const state = authority.getState();
+      const b = state.buildings.find((x) => x.id === id);
+      const def = b && buildables.get(b.buildable);
+      return b && def ? growthStage(def, b, state.time) : null;
+    },
     slowPlayer: (sec, scale) => {
       combatRuntime.slow.remaining = sec;
       combatRuntime.slow.scale = scale;

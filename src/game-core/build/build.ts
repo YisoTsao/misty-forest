@@ -19,6 +19,13 @@ export const buildableSchema = z.object({
   category: z.enum(['structure', 'furniture', 'decoration']),
   /** 選單顯示用的圖示（物品圖示 id） */
   icon: z.string().min(1),
+  /** 接過這個任務（進行中或完成）才出現在建造選單（任務 7K：桃樂教的花圃） */
+  unlock: z.object({ quest: z.string().min(1) }).optional(),
+  /**
+   * 會長大的建造物（任務 7K 花圃）：放置後依遊戲時間換成下一階段的 prefab（Bible §22.1：簡化的階段式成長，不依賴真實世界時間）。
+   * stages 為各階段的 prefab，seconds 為進入第 2、3…階段所需的遊戲秒數。
+   */
+  growth: z.object({ stages: z.array(z.string().min(1)).min(2), seconds: z.array(z.number().positive()).min(1) }).optional(),
 });
 export type BuildableDef = z.infer<typeof buildableSchema>;
 export type BuildableCatalog = ReadonlyMap<string, BuildableDef>;
@@ -29,13 +36,29 @@ export function parseBuildables(raw: unknown, refs: { prefabs: ReadonlySet<strin
     if (map.has(b.id)) throw new Error(`建造物 id 重複：${b.id}`);
     if (!refs.prefabs.has(b.prefabId)) throw new Error(`建造物 ${b.id} 參照不存在的 prefab：${b.prefabId}`);
     for (const c of b.cost) if (!refs.items.has(c.itemId)) throw new Error(`建造物 ${b.id} 參照不存在的物品：${c.itemId}`);
+    if (b.growth) {
+      if (b.growth.seconds.length !== b.growth.stages.length - 1) throw new Error(`建造物 ${b.id} 的成長時間數量必須是階段數 - 1`);
+      for (const p of b.growth.stages) if (!refs.prefabs.has(p)) throw new Error(`建造物 ${b.id} 參照不存在的 prefab：${p}`);
+    }
     map.set(b.id, b);
   }
   return map;
 }
 
-/** 已放置的建造物（權威狀態）；高度一律貼齊地形 */
-export type Building = { readonly id: string; readonly buildable: string; readonly x: number; readonly z: number; readonly yaw: number };
+/** 已放置的建造物（權威狀態）；高度一律貼齊地形。placedAt：放置時的遊戲時間（會長大的建造物用，舊存檔沒有） */
+export type Building = { readonly id: string; readonly buildable: string; readonly x: number; readonly z: number; readonly yaw: number; readonly placedAt?: number };
+
+/** 會長大的建造物目前的階段（0 起算）；不會長大的為 0 */
+export function growthStage(def: BuildableDef, building: Building, time: number): number {
+  if (!def.growth) return 0;
+  const age = time - (building.placedAt ?? -Infinity);
+  return def.growth.seconds.filter((s) => age >= s).length;
+}
+
+/** 建造選單是否顯示（unlock 的任務已接取或完成） */
+export function isBuildableUnlocked(def: BuildableDef, quests: Readonly<Record<string, { status: string }>>): boolean {
+  return !def.unlock || quests[def.unlock.quest] !== undefined;
+}
 
 /** 可以建造的範圍：湖心小島「旅人小屋」的平坦頂面 */
 export const BUILD_AREA = { x: ISLAND.x, z: ISLAND.z, radius: ISLAND.radius } as const;

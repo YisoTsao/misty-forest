@@ -579,6 +579,8 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
     clear.push({ x: PUFF_ARENA.x, z: PUFF_ARENA.z, r: PUFF_ARENA.r + 1 });
     // 任務 7G 送信：村子裡的兩籃乾布（曬衣繩下、黃色小屋旁）
     DRY_CLOTH.forEach(([x, z], i) => quest(`village_dry_cloth_${String(i + 1).padStart(2, '0')}`, 'dry_cloth', x, z, { yaw: i * 1.3, r: 0.8 }));
+    // 任務 7K 花園：西坊農田田邊的鬆土（可重生）
+    SOIL_MOUNDS.forEach(([x, z], i) => quest(`farm_soil_mound_${String(i + 1).padStart(2, '0')}`, 'soil_mound', x, z, { yaw: i * 2.4, r: 0.9 }));
     const scatterId = /^(?!edge_tree_)[a-z_]+_\d{3}$/;
     const before = out.length;
     const kept = out.filter((o) => !scatterId.test(o.id) || !clear.some((c) => Math.hypot(c.x - o.position[0], c.z - o.position[2]) < c.r + 0.6));
@@ -595,6 +597,12 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
 /** 任務 7D：燈塔頂（燈籠室的原點）離地高度、迷霧核心、三片燈罩碎片（登山客營地、廢屋、燈塔後面） */
 const LIGHTHOUSE_TOP = 15.3;
 const MIST_CORE = { x: LIGHTHOUSE.x + 8.5, z: LIGHTHOUSE.z + 7.5 } as const;
+/** 任務 7K：田邊的鬆土 */
+const SOIL_MOUNDS: readonly [number, number][] = [
+  [-92, -22],
+  [-96, -34],
+  [-70, -30],
+];
 /** 任務 7G：兩籃乾布 */
 const DRY_CLOTH: readonly [number, number][] = [
   [-21.4, -22.4],

@@ -1,6 +1,7 @@
 // 世界地圖與小地圖共用的繪製（任務 7B）：底圖、探索霧罩、地標、任務標記、NPC、寶箱、玩家箭頭。
 // 只讀狀態（權威狀態、本機暫態），不修改任何東西；每次呼叫畫一整幀。
 import type { GameState } from '@/game-core/authority/rules';
+import { BUILD_AREA } from '@/game-core/build/build';
 import { EXPLORE_CELL, EXPLORE_GRID, isCellExplored, isExploredAt, mapCellOffset, type Explored } from '@/game-core/map/explore';
 import { isOnMapTerrain, mapAt, mapIdAt, mapIds, MAPS, type MapId } from '@/game-core/world/maps';
 import { landmarkShown, questMarkers, type LandmarkIcon, type QuestMarker } from '@/game-core/map/markers';
@@ -213,6 +214,7 @@ export function currentQuestMarkers(state: GameState): QuestMarker[] {
     },
     placement: (id) => worldIndex.placement(id),
     spawners: combat.spawners,
+    buildArea: BUILD_AREA,
   });
 }
 

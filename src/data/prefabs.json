@@ -3528,5 +3528,19 @@
     "interactRadius": 1.8,
     "harvest": { "lootTableId": "dry_cloth_pick", "anim": "interact", "quest": "quest_dawn_004" },
     "persists": true
-  }
+  },
+  {
+    "id": "soil_mound",
+    "model": "procedural:soil_mound",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.soilMound",
+    "verbKey": "interact.dig",
+    "interactRadius": 1.8,
+    "harvest": { "lootTableId": "loose_soil_dig", "respawnSec": 240, "anim": "interact" },
+    "persists": true
+  },
+  { "id": "build_garden_plot_0", "model": "procedural:garden_plot_0", "collider": "none", "persists": false },
+  { "id": "build_garden_plot_1", "model": "procedural:garden_plot_1", "collider": "none", "persists": false },
+  { "id": "build_garden_plot_2", "model": "procedural:garden_plot_2", "collider": "none", "persists": false }
 ]

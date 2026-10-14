@@ -1,7 +1,7 @@
 import { countItem } from '@/game-core/inventory/inventory';
 import { isQuestReady, isQuestTracked, objectiveProgress, type Objective } from '@/game-core/quest/quest';
 import type { GameState } from '@/game-core/authority/rules';
-import { npcs, quests, worldIndex } from '@/game/authority';
+import { buildables, npcs, quests, worldIndex } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
@@ -71,6 +71,26 @@ export function ObjectiveRow({ objective: o, progress, state }: { objective: Obj
           <span className="ml-auto font-mono" data-testid="quest-progress">
             {progress.current} / {progress.target}
           </span>
+        </li>
+      );
+    }
+    case 'build': {
+      // 建造目標（任務 7K 花圃）：還沒蓋好時列出需要的材料與目前持有數
+      const done = progress.current >= progress.target;
+      const materials = buildables.get(o.buildable)?.cost ?? [];
+      return (
+        <li className="flex flex-col gap-0.5">
+          <span className={done ? 'text-emerald-300' : ''} data-testid="quest-build">
+            {done ? '✓ ' : ''}
+            {t(o.descKey)}
+          </span>
+          {!done && (
+            <ul className="ml-2 flex flex-col gap-0.5 text-xs">
+              {materials.map((m) => (
+                <ItemCount key={m.itemId} itemId={m.itemId} current={countItem(state.inventory, m.itemId)} target={m.count} />
+              ))}
+            </ul>
+          )}
         </li>
       );
     }

@@ -766,5 +766,71 @@
         "dialogue": "niko_after"
       }
     ]
+  },
+  {
+    "id": "tao",
+    "nameKey": "npc.tao",
+    "regionId": "lake",
+    "model": "models/characters/kaykit-adventurers/Mage.glb",
+    "scale": 0.6,
+    "hiddenNodes": [
+      "1H_Wand",
+      "2H_Staff",
+      "Spellbook",
+      "Spellbook_open",
+      "Mage_Hat"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Interact"
+    },
+    "visible": {
+      "type": "questStatus",
+      "quest": "repair_bridge",
+      "is": "completed"
+    },
+    "position": [
+      18,
+      4
+    ],
+    "facingYaw": -1.5708,
+    "interactRadius": 2.4,
+    "talk": [
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_dawn_005"
+        },
+        "dialogue": "tao_garden_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_005",
+          "is": "active"
+        },
+        "dialogue": "tao_garden_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_005",
+          "is": "completed"
+        },
+        "dialogue": "tao_after"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_005",
+          "is": "available"
+        },
+        "dialogue": "tao_garden_offer"
+      },
+      {
+        "dialogue": "tao_after"
+      }
+    ]
   }
 ]

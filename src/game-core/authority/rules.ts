@@ -1,7 +1,7 @@
 // 權威規則（規格 3.2：指令 → 權威層 → 事件）。
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
-import { placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
+import { isBuildableUnlocked, placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
 import { bossRequirementsMet, bossShieldScale, bossSpawner, PLAYER_STATS, stanceDamageScale, type BossDef, type BossMoveId, type CombatData, type EnemyStance } from '../combat/combat';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
@@ -618,9 +618,10 @@ function placeBuilding(state: GameState, cmd: Extract<GameCommand, { type: 'Plac
   if (!def) return reject('PlaceBuilding', 'unknown-buildable');
   if (![cmd.x, cmd.z, cmd.yaw].every(Number.isFinite)) return reject('PlaceBuilding', 'invalid-command');
   const at = { x: snapToGrid(cmd.x), z: snapToGrid(cmd.z) };
+  if (!isBuildableUnlocked(def, state.quests)) return reject('PlaceBuilding', 'recipe-locked');
   const problem = placementProblem(def, at, state.buildings, ctx.buildables, state.inventory, ctx.isOccupied ?? (() => false));
   if (problem) return reject('PlaceBuilding', problem);
-  const building: Building = { id: `building_${state.nextBuildingId}`, buildable: def.id, ...at, yaw: snapYaw(cmd.yaw) };
+  const building: Building = { id: `building_${state.nextBuildingId}`, buildable: def.id, ...at, yaw: snapYaw(cmd.yaw), ...(def.growth ? { placedAt: state.time } : {}) };
   return [{ type: 'BuildingPlaced', building, cost: def.cost.map((c) => ({ ...c })) }];
 }
 

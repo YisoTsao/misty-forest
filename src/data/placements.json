@@ -52755,6 +52755,66 @@
     ]
   },
   {
+    "id": "farm_soil_mound_01",
+    "prefabId": "soil_mound",
+    "regionId": "farmland",
+    "position": [
+      -92,
+      0.37,
+      -22
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "farm_soil_mound_02",
+    "prefabId": "soil_mound",
+    "regionId": "farmland",
+    "position": [
+      -96,
+      0.37,
+      -34
+    ],
+    "rotation": [
+      0,
+      2.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "farm_soil_mound_03",
+    "prefabId": "soil_mound",
+    "regionId": "farmland",
+    "position": [
+      -70,
+      0.37,
+      -30
+    ],
+    "rotation": [
+      0,
+      4.8,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "dawn_gate_glowmoss",
     "prefabId": "gate_to_glowmoss",
     "regionId": "meadow",

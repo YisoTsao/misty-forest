@@ -147,6 +147,60 @@ function dryCloth(): ForestModel {
   return { solid: merge([basket, paint(rim, c('#8a6a3a')), cloth('#f4efe2', 0.25, 0.1), cloth('#a9cfe0', 0.32, -0.25)], '乾布') };
 }
 
+/**
+ * 花圃（任務 7K，Bible §22.1 quest_dawn_005）：木框圍起來的一小塊鬆土（模型 1 單位約 1 m，建造時再縮放）。
+ * 階段 0 剛種下（土裡冒出一點綠）、1 長出葉子與花苞、2 開滿野花。
+ */
+function gardenPlot(stage: 0 | 1 | 2): ForestModel {
+  const rand = mulberry32(80 + stage);
+  const wood = c('#8a5a33');
+  const solid: THREE.BufferGeometry[] = [];
+  for (const [sx, sz, w, d] of [[0, 0.45, 1.0, 0.1], [0, -0.45, 1.0, 0.1], [0.45, 0, 0.1, 0.8], [-0.45, 0, 0.1, 0.8]] as const) {
+    const g = new THREE.BoxGeometry(w, 0.16, d);
+    g.translate(sx, 0.08, sz);
+    solid.push(paint(g, wood, 0.08, rand));
+  }
+  const soil = new THREE.BoxGeometry(0.82, 0.1, 0.82);
+  soil.translate(0, 0.07, 0);
+  solid.push(paint(soil, c('#6b4a33')));
+  for (let i = 0; i < 8; i++) solid.push(sphere(0.05, [(rand() - 0.5) * 0.7, 0.13, (rand() - 0.5) * 0.7], c('#5a3d29'), [1.3, 0.5, 1.2], 0));
+  const plant: THREE.BufferGeometry[] = [];
+  const glow: THREE.BufferGeometry[] = [];
+  const spots = [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2], [0, 0]] as const;
+  spots.forEach(([x, z], i) => {
+    const h = stage === 0 ? 0.08 : stage === 1 ? 0.22 : 0.32;
+    const leaves = stage === 0 ? 2 : 4;
+    for (let k = 0; k < leaves; k++) plant.push(leaf((k / leaves) * Math.PI * 2 + i, stage === 0 ? 0.07 : 0.14, 0.04, 0.9, c('#4f8a3a'), c('#9fd06a'), 0.11).translate(x, 0, z));
+    if (stage >= 1) {
+      const stem = cylinder(0.008, 0.012, h, [x, 0.11, z], c('#4f8a3a'), 4);
+      solid.push(stem);
+      const colors = ['#f2a7c8', '#ffd86b', '#b9a2e6', '#ffffff', '#f6b16b'];
+      if (stage === 1) solid.push(sphere(0.035, [x, 0.11 + h, z], c('#8fc06a'), [1, 1.3, 1], 0));
+      else {
+        for (let p = 0; p < 5; p++) {
+          const a = (p / 5) * Math.PI * 2;
+          solid.push(sphere(0.045, [x + Math.cos(a) * 0.05, 0.11 + h, z + Math.sin(a) * 0.05], c(colors[i % colors.length]!), [1, 0.4, 1], 0));
+        }
+        glow.push(sphere(0.025, [x, 0.12 + h, z], glowColor('#fff2a0', 1.3), [1, 1, 1], 0));
+      }
+    }
+  });
+  return { solid: merge(solid, '花圃'), plant: merge(plant, '花圃的葉子'), ...(glow.length ? { glow: merge(glow, '花心') } : {}) };
+}
+
+/** 鬆土（任務 7K）：田邊翻鬆的一小堆土，插著一把小鏟子 */
+function soilMound(): ForestModel {
+  const rand = mulberry32(84);
+  const solid = [sphere(0.42, [0, 0.02, 0], c('#6b4a33'), [1.2, 0.38, 1], 1)];
+  for (let i = 0; i < 6; i++) solid.push(sphere(0.08, [(rand() - 0.5) * 0.8, 0.12, (rand() - 0.5) * 0.7], c('#7d5a3d'), [1.2, 0.6, 1], 0));
+  solid.push(cylinder(0.02, 0.02, 0.45, [0.18, 0.15, 0.05], c('#8a5a33'), 5, [0, 0, -0.4]));
+  const blade = new THREE.BoxGeometry(0.12, 0.16, 0.02);
+  blade.rotateZ(-0.4);
+  blade.translate(0.12, 0.12, 0.05);
+  solid.push(paint(blade, c('#9a9a9a')));
+  return { solid: merge(solid, '鬆土') };
+}
+
 export const dawnBuilders: Record<string, () => ForestModel> = {
   lantern_shard: lanternShard,
   mist_core: () => mistCore(false),
@@ -155,4 +209,8 @@ export const dawnBuilders: Record<string, () => ForestModel> = {
   lighthouse_lamp_lit: () => lighthouseLamp(true),
   star_mirror: starMirror,
   dry_cloth: dryCloth,
+  garden_plot_0: () => gardenPlot(0),
+  garden_plot_1: () => gardenPlot(1),
+  garden_plot_2: () => gardenPlot(2),
+  soil_mound: soilMound,
 };

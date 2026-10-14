@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --garden：花園第一顆種子（任務 7K）：桃樂、田邊的鬆土、花圃三個成長階段
 //   --shop：米菈的雜貨補給（任務 7H）：購買、出售分頁；琳娜的草藥桌（任務 7J）
 //   --letters：郵袋裡的三封信（任務 7G）：郵差尼可、村子裡的乾布籃
 //   --journal：任務日誌（任務 7F）：進行中 / 可接取 / 已完成三個分頁
@@ -66,6 +67,7 @@ const withPuffKing = flags.has('--puffking');
 const withJournal = flags.has('--journal');
 const withLetters = flags.has('--letters');
 const withShop = flags.has('--shop');
+const withGarden = flags.has('--garden');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1093,6 +1095,46 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withGarden) {
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const tao = JSON.parse(readFileSync('src/data/npcs.json', 'utf8')).find((n) => n.id === 'tao').position;
+    const soil = JSON.parse(readFileSync('src/data/placements.json', 'utf8')).find((p) => p.id === 'farm_soil_mound_01').position;
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(9);
+      for (const q of ['wood_for_bridge', 'repair_bridge']) g.setQuestCompleted(q);
+    });
+    await d(([x, z]) => {
+      const g = window.__mistwoodDebug;
+      g.teleport(x - 2.2, z - 1.5);
+      g.viewAt([x - 3.4, 2.1, z + 1.8], [x, 0.9, z]);
+    }, tao);
+    await page.waitForTimeout(1500);
+    await shot('garden_tao');
+    await d(([x, y, z]) => window.__mistwoodDebug.viewAt([x + 2, y + 1.6, z + 2], [x, y + 0.2, z]), soil);
+    await page.waitForTimeout(1200);
+    await shot('garden_soil');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.send({ type: 'AcceptQuest', quest: 'quest_dawn_005' });
+      g.send({ type: 'DebugGiveItems', items: [{ itemId: 'wood', count: 4 }, { itemId: 'loose_soil', count: 3 }] });
+      g.send({ type: 'PlaceBuilding', buildable: 'garden_plot', x: 39, z: 8, yaw: 0 });
+      g.teleport(36, 9.5);
+      g.viewAt([37.4, 2.2, 10.2], [39, 0.4, 8]);
+    });
+    await page.waitForTimeout(1500);
+    await shot('garden_stage0');
+    await d(() => window.__mistwoodDebug.setClock(12));
+    await page.waitForTimeout(1200);
+    await shot('garden_stage1');
+    await d(() => window.__mistwoodDebug.setClock(16));
+    await page.waitForTimeout(1200);
+    await shot('garden_stage2');
+    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
   }
 
   if (withShop) {
