@@ -175,8 +175,9 @@ export type MistwoodDebugApi = {
   lighthouseBeam: () => boolean;
   /** 讓玩家被緩速（測試用，任務 7I） */
   slowPlayer: (sec: number, scale: number) => void;
-  /** 直接打開商店（截圖用，任務 7H） */
+  /** 直接打開商店 / 工作台（截圖用，任務 7H、7J） */
   openShop: (shop: string) => void;
+  openCraft: (station: string) => void;
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
@@ -425,6 +426,7 @@ export function installDebugApi(): void {
     defeatedBosses: () => [...authority.getState().defeatedBosses],
     lighthouseBeam: () => lighthouseVisual.beam,
     openShop: (shop) => useUiStore.getState().setShop(shop),
+    openCraft: (station) => useUiStore.getState().setCraft(station),
     slowPlayer: (sec, scale) => {
       combatRuntime.slow.remaining = sec;
       combatRuntime.slow.scale = scale;

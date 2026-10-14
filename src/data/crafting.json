@@ -1,0 +1,50 @@
+{
+  "stations": [
+    {
+      "id": "linna_herbtable",
+      "nameKey": "craft.station.linna_herbtable",
+      "npc": "linna"
+    }
+  ],
+  "recipes": [
+    {
+      "id": "recipe_small_heal",
+      "station": "linna_herbtable",
+      "output": {
+        "itemId": "herb_potion",
+        "count": 1
+      },
+      "inputs": [
+        {
+          "itemId": "moondew_herb",
+          "count": 2
+        },
+        {
+          "itemId": "herb",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "recipe_moondew_balm",
+      "station": "linna_herbtable",
+      "output": {
+        "itemId": "moondew_salve",
+        "count": 1
+      },
+      "inputs": [
+        {
+          "itemId": "moondew_herb",
+          "count": 2
+        },
+        {
+          "itemId": "glow_moss",
+          "count": 2
+        }
+      ],
+      "requires": {
+        "questCompleted": "quest_forest_001"
+      }
+    }
+  ]
+}

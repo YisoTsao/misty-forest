@@ -532,7 +532,21 @@
     "nodes": {
       "talk": {
         "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.afterPath"
+        "textKey": "dlg.linna.afterPath",
+        "options": [
+          {
+            "textKey": "dlg.linna.opt.craft",
+            "effects": [
+              {
+                "type": "openCraft",
+                "station": "linna_herbtable"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.linna.opt.bye"
+          }
+        ]
       }
     }
   },
@@ -542,7 +556,21 @@
     "nodes": {
       "talk": {
         "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.afterWater"
+        "textKey": "dlg.linna.afterWater",
+        "options": [
+          {
+            "textKey": "dlg.linna.opt.craft",
+            "effects": [
+              {
+                "type": "openCraft",
+                "station": "linna_herbtable"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.linna.opt.bye"
+          }
+        ]
       }
     }
   },

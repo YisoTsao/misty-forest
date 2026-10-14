@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），35 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），36 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -37,6 +37,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），35 個全跑
 | 音效與音樂 | `audio` | 不拍 |
 | 手把 | `gamepad` | `--gamepad` |
 | 設定、按鍵重新配置 | `settings` | `--menu` |
+| 製作（`craft.ts`、`crafting.json`、`Craft`、`CraftPanel`、對話效果 `openCraft`） | `craft`（改到琳娜的對話時加 `forestquest`、`letters`） | `--shop`（含草藥桌） |
 | 消耗品（`UseItem`、`consumables.ts`、背包的「使用」、快速鍵 X、HUD 回復藥數量） | `potion`（改到戰鬥時加 `combat`） | 不拍 |
 | 商店（`shop.ts`、`shops.json`、`BuyItem` / `SellItem`、`ShopPanel`、對話效果 `openShop`） | `shop`（改到米菈的對話時加 `npc`） | `--shop` |
 | 送信（`quest_dawn_004`、`talk` 目標 / `QuestTalk`、`questTalk*` 條件、尼可、乾布） | `letters`（改到對話或條件時加 `npc`、`quest`） | `--letters` |

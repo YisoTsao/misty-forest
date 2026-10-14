@@ -21,6 +21,7 @@ import { Minimap } from '@/ui/map/Minimap';
 import { WorldMap } from '@/ui/map/WorldMap';
 import { QuestJournal } from '@/ui/QuestJournal';
 import { ShopPanel } from '@/ui/ShopPanel';
+import { CraftPanel } from '@/ui/CraftPanel';
 import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
@@ -86,6 +87,7 @@ export function App() {
       <WorldMap />
       <QuestJournal />
       <ShopPanel />
+      <CraftPanel />
       <SettingsPanel />
       <ErrorOverlay />
     </div>

@@ -1,4 +1,5 @@
 import type { ShopCatalog } from '@/game-core/shop/shop';
+import type { CraftData } from '@/game-core/craft/craft';
 import { LocalAuthority } from '@/game-core/authority/authority';
 import type { DialogueDef } from '@/game-core/dialogue/dialogue';
 import type { NpcDef } from '@/game-core/npc/npc';
@@ -40,6 +41,7 @@ const data = worldDataResult.ok
       landmarks: [] as Landmark[],
       waterways: [] as WaterwayDef[],
       shops: new Map() as ShopCatalog,
+      crafting: { stations: [], recipes: [] } as CraftData,
     };
 
 /** NPC 與對話資料 */
@@ -66,6 +68,9 @@ export const waterways: readonly WaterwayDef[] = data.waterways;
 /** 商店（任務 7H） */
 export const shops: ShopCatalog = data.shops;
 
+/** 工作台與配方（任務 7J） */
+export const crafting: CraftData = data.crafting;
+
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;
 
@@ -87,6 +92,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   buildables: data.buildables,
   waterways: data.waterways,
   shops: data.shops,
+  crafting: data.crafting,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),
   allowDebugCommands,
 });

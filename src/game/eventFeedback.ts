@@ -13,6 +13,7 @@ const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejec
   'not-enough-coins': 'toast.notEnoughCoins',
   'hp-full': 'toast.hpFull',
   'not-usable': 'toast.notUsable',
+  'recipe-locked': 'toast.recipeLocked',
   'not-for-sale': 'toast.notForSale',
 };
 
@@ -48,7 +49,7 @@ export function installEventFeedback(): void {
         if (objectNameKey(e.placementId) === 'object.waterWheel') ui.pushToast({ textKey: 'toast.wheelTurned' });
       } else if (e.type === 'ItemsRemoved') {
         // 喝藥不顯示「交出」（體力條本身就會變化）
-        if (e.reason === 'use') continue;
+        if (e.reason === 'use' || e.reason === 'craft') continue;
         const key = e.reason === 'shop' ? 'toast.paid' : 'toast.itemsGiven';
         for (const stack of e.items) ui.pushToast({ textKey: key, vars: { item: itemName(stack.itemId), count: stack.count } });
       } else if (e.type === 'QuestAccepted' || e.type === 'QuestCompleted') {

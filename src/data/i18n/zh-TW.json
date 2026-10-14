@@ -759,5 +759,13 @@
   "toast.noHeal": "身上沒有回復藥了",
   "toast.notUsable": "這個不能直接使用",
   "combat.slowCured": "藥膏涼涼的，腳上的泥巴和睡意都不見了",
-  "hud.potions": "回復藥"
+  "hud.potions": "回復藥",
+  "dlg.linna.opt.craft": "借用草藥桌。",
+  "craft.station.linna_herbtable": "琳娜的草藥桌",
+  "craft.owner": "{npc}的工作台",
+  "craft.make": "製作",
+  "craft.missing": "還缺：{items}",
+  "craft.hint": "材料夠了就能製作。新的配方會隨著旅程慢慢學會。Esc 關閉",
+  "craft.owned": "持有 {count}",
+  "toast.recipeLocked": "還不會做這個"
 }

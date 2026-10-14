@@ -18,6 +18,7 @@ import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 import { outletsToWake, type WaterwayDef } from '../world/waterway';
 import { availableStock, COIN, MAX_TRADE, type ShopCatalog } from '../shop/shop';
+import type { CraftData } from '../craft/craft';
 
 /** 權威遊戲狀態。之後的階段會加入任務、各區域迷霧、建造物件等。 */
 export type GameState = {
@@ -79,6 +80,8 @@ export type GameCommand =
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
   | { type: 'AcceptQuest'; quest: string }
+  /** 在工作台製作（任務 7J） */
+  | { type: 'Craft'; recipe: string }
   /** 使用消耗品（任務 7I）：藥水回血、藥膏回血並解除緩速 */
   | { type: 'UseItem'; itemId: string }
   /** 在商店買 / 賣（任務 7H）：以種籽幣交易，count 為數量 */
@@ -168,6 +171,7 @@ export type RejectReason =
   | 'track-limit'
   | 'not-enough-coins'
   | 'not-usable'
+  | 'recipe-locked'
   | 'hp-full'
   | 'not-for-sale'
   | 'invalid-command';
@@ -183,7 +187,7 @@ export type GameEvent =
   | { type: 'QuestAccepted'; quest: string }
   | { type: 'QuestTracked'; quest: string; tracked: boolean }
   | { type: 'QuestCompleted'; quest: string }
-  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
   | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'water' | 'quest' }
@@ -229,6 +233,8 @@ export type RulesContext = {
   weapons: WeaponCatalog;
   spells: SpellCatalog;
   buildables: BuildableCatalog;
+  /** 工作台與配方（任務 7J）；省略時沒有配方 */
+  crafting?: CraftData;
   /** 商店（任務 7H）；省略時沒有商店 */
   shops?: ShopCatalog;
   /** 水道謎題（任務 8C）；省略時沒有水道 */
@@ -328,6 +334,8 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     }
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
+    case 'Craft':
+      return craft(state, cmd.recipe, ctx);
     case 'UseItem':
       return consumeItem(state, cmd.itemId, ctx);
     case 'BuyItem':
@@ -633,6 +641,20 @@ function acceptQuest(state: GameState, questId: string, ctx: RulesContext): Game
   // 已經追蹤滿了：新接的支線先不追蹤（可在任務日誌切換）
   if (def.category !== 'main' && trackedSideCount(state.quests, ctx.quests) >= MAX_TRACKED_SIDE) events.push({ type: 'QuestTracked', quest: questId, tracked: false });
   return events;
+}
+
+function craft(state: GameState, recipeId: string, ctx: RulesContext): GameEvent[] {
+  const recipe = ctx.crafting?.recipes.find((r) => r.id === recipeId);
+  if (!recipe) return reject('Craft', 'invalid-command');
+  if (recipe.requires && state.quests[recipe.requires.questCompleted]?.status !== 'completed') return reject('Craft', 'recipe-locked');
+  const afterUse = removeItems(state.inventory, recipe.inputs);
+  if (!afterUse) return reject('Craft', 'missing-materials');
+  const output = [{ ...recipe.output }];
+  if (!addItems(afterUse, output, ctx.items)) return reject('Craft', 'inventory-full');
+  return [
+    { type: 'ItemsRemoved', items: recipe.inputs.map((i) => ({ ...i })), reason: 'craft' },
+    { type: 'ItemsGained', items: output, source: `craft:${recipe.id}` },
+  ];
 }
 
 function consumeItem(state: GameState, itemId: string, ctx: RulesContext): GameEvent[] {
