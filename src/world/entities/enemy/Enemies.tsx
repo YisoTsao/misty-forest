@@ -11,6 +11,9 @@ import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 import { createWispMaterial, wispEyeMaterial } from '@/render/mistWisp';
 import { updateEnemyAi } from './enemyUpdate';
 import { ModelEnemy } from './ModelEnemy';
+import { CritterEnemy } from './CritterEnemy';
+import { clearSpits, stepSpits } from '@/game/combat/enemySpits';
+import { isControllable } from '@/game-core/flow/gameFlow';
 
 /** 身體浮在地面上方的高度（身體中心） */
 const HOVER = 1.05;
@@ -44,11 +47,18 @@ export function Enemies() {
     },
     [shared],
   );
+  // 迷霧芽怪的泥團：遊玩中才飛，回到主選單時清掉
+  useFrame((_, dt) => {
+    const screen = currentScreen();
+    if (screen === 'title') clearSpits();
+    else if (isControllable(screen)) stepSpits(Math.min(dt, 1 / 20));
+  });
   return (
     <>
       {ids.map((id) => {
         const def = combat.enemies.get(enemyRuntime.get(id)?.kind ?? '');
         if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
+        if (def?.procedural) return <CritterEnemy key={id} id={id} def={{ ...def, procedural: def.procedural }} />;
         return <MistWisp key={id} id={id} geometry={shared} />;
       })}
     </>

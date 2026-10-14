@@ -2,7 +2,7 @@
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
 import { placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
-import { PLAYER_STATS, type CombatData } from '../combat/combat';
+import { PLAYER_STATS, stanceDamageScale, type CombatData, type EnemyStance } from '../combat/combat';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
@@ -80,13 +80,15 @@ export type GameCommand =
    * 玩家攻擊命中敵人（命中判定在本機以招式範圍計算，規則驗證目標存在並結算傷害）。
    * attack：近戰招式 id（必須屬於目前裝備的武器，data/weapons.json），或法術 id（data/spells.json）
    */
-  | { type: 'AttackEnemy'; enemyId: string; attack: string }
+  /** stance：敵人出手當下的姿態（本機 AI；根鬚甲蟲縮殼減傷、破綻加傷，任務 8B） */
+  | { type: 'AttackEnemy'; enemyId: string; attack: string; stance?: EnemyStance }
   /** 施放法術：扣除星光值（GAME_DESIGN 5.4）；冷卻在本機計算 */
   | { type: 'CastSpell'; spell: string }
   /** 切換近戰武器（GAME_DESIGN 5.3） */
   | { type: 'EquipWeapon'; weapon: WeaponId }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
-  | { type: 'EnemyStrike'; enemyId: string }
+  /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢） */
+  | { type: 'EnemyStrike'; enemyId: string; spit?: boolean }
   /** 倒下後重新站起來 */
   | { type: 'RespawnPlayer' }
   /** 在酒館休息（對話選項）：體力回滿 */
@@ -160,6 +162,8 @@ export type GameEvent =
   | { type: 'EnemyDefeated'; enemyId: string; kind: string; spawner: string }
   | { type: 'SpawnerCooldown'; spawner: string; nextSpawnAt: number }
   | { type: 'PlayerDamaged'; amount: number; hp: number; enemyId: string }
+  /** 被迷霧芽怪的泥團打中：一段時間內移動變慢（本機表現，不存檔） */
+  | { type: 'PlayerSlowed'; sec: number; scale: number }
   | { type: 'PlayerHealed'; hp: number }
   | { type: 'PlayerDefeated' }
   | { type: 'PlayerRespawned'; hp: number }
@@ -205,7 +209,7 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     case 'RepairObject':
       return repairObject(state, cmd.placementId, ctx);
     case 'AttackEnemy':
-      return attackEnemy(state, cmd.enemyId, cmd.attack, ctx);
+      return attackEnemy(state, cmd.enemyId, cmd.attack, ctx, cmd.stance);
     case 'CastSpell': {
       if (state.player.defeated) return reject('CastSpell', 'player-defeated');
       const spell = ctx.spells.get(cmd.spell);
@@ -222,7 +226,7 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       if (state.player.weapon === cmd.weapon) return [];
       return [{ type: 'WeaponEquipped', weapon: cmd.weapon }];
     case 'EnemyStrike':
-      return enemyStrike(state, cmd.enemyId, ctx);
+      return enemyStrike(state, cmd.enemyId, ctx, cmd.spit === true);
     case 'RespawnPlayer':
       if (!state.player.defeated) return reject('RespawnPlayer', 'invalid-command');
       return [{ type: 'PlayerRespawned', hp: PLAYER_STATS.maxHp }];
@@ -355,13 +359,15 @@ function attackDamage(state: GameState, attack: string, ctx: RulesContext): numb
   return entry.move.damage;
 }
 
-function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: RulesContext): GameEvent[] {
+function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: RulesContext, stance?: EnemyStance): GameEvent[] {
   if (state.player.defeated) return reject('AttackEnemy', 'player-defeated');
   const enemy = state.enemies.get(enemyId);
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('AttackEnemy', 'unknown-enemy');
-  const amount = attackDamage(state, attack, ctx);
-  if (typeof amount === 'string') return reject('AttackEnemy', amount);
+  const base = attackDamage(state, attack, ctx);
+  if (typeof base === 'string') return reject('AttackEnemy', base);
+  // 根鬚甲蟲縮殼時減傷、出手後的破綻時加傷（其他敵人的姿態倍率一律為 1）
+  const amount = Math.round(base * stanceDamageScale(def, stance));
   const hp = Math.max(0, enemy.hp - amount);
   const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount, hp, attack }];
   if (hp > 0) return events;
@@ -392,13 +398,17 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   return events;
 }
 
-function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext): GameEvent[] {
+function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit: boolean): GameEvent[] {
   const enemy = state.enemies.get(enemyId);
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('EnemyStrike', 'unknown-enemy');
   if (state.player.defeated) return reject('EnemyStrike', 'player-defeated');
-  const hp = Math.max(0, state.player.hp - def.damage);
-  const events: GameEvent[] = [{ type: 'PlayerDamaged', amount: def.damage, hp, enemyId }];
+  const behavior = def.behavior;
+  if (spit && behavior?.kind !== 'spit') return reject('EnemyStrike', 'invalid-command');
+  const amount = spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  const hp = Math.max(0, state.player.hp - amount);
+  const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId }];
+  if (spit && behavior?.kind === 'spit' && hp > 0) events.push({ type: 'PlayerSlowed', sec: behavior.slowSec, scale: behavior.slowScale });
   if (hp <= 0) events.push({ type: 'PlayerDefeated' });
   return events;
 }

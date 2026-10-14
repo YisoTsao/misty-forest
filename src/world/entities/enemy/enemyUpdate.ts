@@ -3,7 +3,9 @@ import type { EnemyDef, SpawnerDef } from '@/game-core/combat/combat';
 import { aiUpdateInterval, stepEnemyAi } from '@/game-core/combat/enemyAi';
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { authority } from '@/game/authority';
-import { combatRuntime, type EnemyVisual } from '@/game/combat/combatRuntime';
+import { combatRuntime, enemyY, type EnemyVisual } from '@/game/combat/combatRuntime';
+import { spawnSpit } from '@/game/combat/enemySpits';
+import { vfx } from '@/game/vfx/vfxQueue';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen } from '@/game/state/gameStore';
@@ -33,4 +35,10 @@ export function updateEnemyAi(id: string, v: EnemyVisual, def: EnemyDef, spawner
   if (out.strike && alive && combatRuntime.invulnerable <= 0 && toPlayer <= def.attackRange + STRIKE_SLACK) {
     authority.send({ type: 'EnemyStrike', enemyId: id });
   }
+  // 霧孢飛蛾出手時散出迷霧粉塵（Bible §6.6）
+  if (out.strike && def.procedural === 'fog_moth') {
+    vfx({ type: 'burst', preset: 'boltHit', x: ai.x + Math.sin(ai.yaw) * 0.8, y: enemyY(ai.x, ai.z) + 1.3, z: ai.z + Math.cos(ai.yaw) * 0.8, color: [0.66, 0.6, 0.86], scale: 1.6 });
+  }
+  // 迷霧芽怪吐泥團
+  if (out.spit && alive) spawnSpit(id, def, ai, out.spit);
 }

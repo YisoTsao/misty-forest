@@ -18,7 +18,7 @@ import { audio } from './audio/audioEngine';
 import { authority, quests, regions } from './authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
-import { combatRuntime, enemyRuntime, enemyY } from './combat/combatRuntime';
+import { attackEnemy, combatRuntime, enemyRuntime, enemyY } from './combat/combatRuntime';
 import { companionRuntime } from './companion/companionRuntime';
 import { ambientRuntime } from './ambient/ambientRuntime';
 import { useInputDeviceStore } from './input/device';
@@ -160,6 +160,10 @@ export type MistwoodDebugApi = {
   questProgress: (id: string) => number;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
+  /** 以玩家的招式打敵人（附上敵人目前的姿態，與實際出招相同；任務 8B 甲蟲縮殼） */
+  hitEnemy: (id: string, attack: string) => void;
+  /** 玩家的緩速（迷霧芽怪的泥團） */
+  playerSlow: () => { remaining: number; scale: number };
   /** 和平模式：迷霧生物不追擊、不攻擊（截圖與測試用） */
   setPeaceful: (peaceful: boolean) => void;
   /** 星光夥伴：是否解鎖、目前位置 */
@@ -354,6 +358,8 @@ export function installDebugApi(): void {
       [...enemyRuntime]
         .filter(([, v]) => v.vanishing === null)
         .map(([id, v]) => ({ id, kind: v.kind, x: v.ai.x, y: enemyY(v.ai.x, v.ai.z), z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0, anim: v.anim ?? null })),
+    hitEnemy: (id, attack) => attackEnemy(id, attack),
+    playerSlow: () => ({ ...combatRuntime.slow }),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),
     tap: (code) => input.injectTap(code),
     setPad: (pad) =>

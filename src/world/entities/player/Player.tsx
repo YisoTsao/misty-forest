@@ -8,6 +8,7 @@ import { isControllable } from '@/game-core/flow/gameFlow';
 import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
 import { mapAt } from '@/game-core/world/maps';
 import { SPAWN_POINT, terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
+import { combatRuntime } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
@@ -113,6 +114,13 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       dt,
     );
 
+    // 被泥團打中：一段時間內走得比較慢（任務 8B，迷霧芽怪）
+    const slow = combatRuntime.slow;
+    if (slow.remaining > 0) {
+      slow.remaining = Math.max(0, slow.remaining - dt);
+      delta.x *= slow.scale;
+      delta.z *= slow.scale;
+    }
     if (lunge > 0) {
       delta.x += Math.sin(state.facingYaw) * lunge;
       delta.z += Math.cos(state.facingYaw) * lunge;

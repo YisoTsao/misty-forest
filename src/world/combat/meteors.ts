@@ -5,8 +5,7 @@ import { isInBlast, meteorPlan } from '@/game-core/combat/spells';
 import { clampInsideMap } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
-import { authority } from '@/game/authority';
-import { enemyRuntime } from '@/game/combat/combatRuntime';
+import { attackEnemy, enemyRuntime } from '@/game/combat/combatRuntime';
 import { spellRuntime } from '@/game/combat/spellRuntime';
 import { cameraRuntime } from '@/game/player/localRuntime';
 import { useSettingsStore } from '@/game/state/settingsStore';
@@ -67,7 +66,7 @@ function impact(spell: SpellDef, x: number, y: number, z: number, final: boolean
   for (const [id, v] of enemyRuntime) {
     if (v.vanishing !== null) continue;
     if (isInBlast({ x, z }, radius, { x: v.ai.x, z: v.ai.z, radius: ENEMY_RADIUS })) {
-      authority.send({ type: 'AttackEnemy', enemyId: id, attack: spell.id });
+      attackEnemy(id, spell.id);
       spellRuntime.hits++;
     }
   }

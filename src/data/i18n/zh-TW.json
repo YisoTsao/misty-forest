@@ -444,5 +444,12 @@
   "sign.mossCrown.title": "苔冠空地",
   "sign.mossCrown.body": "森林守衛的領地。請不要大聲喧嘩，也不要挖走任何一塊石頭。",
   "sign.channel.title": "斷流小渠",
-  "sign.channel.body": "這條古水渠以前從北邊的泉眼一路流進林地，現在只剩乾裂的泥面。苔蘚都變灰了……水到底被什麼擋住了？"
+  "sign.channel.body": "這條古水渠以前從北邊的泉眼一路流進林地，現在只剩乾裂的泥面。苔蘚都變灰了……水到底被什麼擋住了？",
+  "enemy.mob_fog_moth": "霧孢飛蛾",
+  "enemy.mob_root_beetle": "根鬚甲蟲",
+  "item.glow_pollen.name": "螢光花粉",
+  "item.glow_pollen.desc": "霧孢飛蛾翅膀上抖落的花粉，在暗處會微微發亮。可以做成發光藥劑或染色材料。",
+  "item.root_fiber.name": "根纖維",
+  "item.root_fiber.desc": "根鬚甲蟲殼上剝下來的堅韌纖維。適合搓成繩子，也能用在家具與工具上。",
+  "combat.slowed": "腳上沾滿了泥巴，走不快……"
 }

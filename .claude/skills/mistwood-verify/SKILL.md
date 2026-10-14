@@ -29,6 +29,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），24 個全跑
 | 戰鬥、敵人、掉落（`game/combat`、`world/combat`） | `combat`、`melee` | `--combat` / `--melee` |
 | 魔法（星光衝擊、流星雨） | `magic` | `--magic` |
 | 怪物模型與生成 | `monsters` | `--monsters` |
+| 怪物行為（盤旋、縮殼、吐泥，`enemyAi` 的 behavior）、程式造型怪物（`CritterEnemy`）、泥團 | `forestmobs`（改到共用 AI 時加 `combat`） | `--monsters --enemies=<id>` |
 | 建造（湖心島） | `build` | `--build` |
 | 酒館與室內子場景 | `tavern` | `--tavern` |
 | 日夜、天空、光照（`world/sky`、`GameClock`、`render/timeLook`） | `daynight` | `--daynight` |

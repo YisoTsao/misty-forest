@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/game/state/settingsStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { audio } from '@/game/audio/audioEngine';
 import { authority, weapons } from '@/game/authority';
-import { combatRuntime, enemyRuntime, pushImpact } from '@/game/combat/combatRuntime';
+import { attackEnemy, combatRuntime, enemyRuntime, pushImpact } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 
@@ -159,7 +159,7 @@ function resolveHit(hit: PendingHit): void {
     if (!isInMoveArea(hit.move, self, target)) continue;
     // 切換武器後，前一把武器還沒揮下的招式不算
     if (authority.getState().player.weapon !== hit.weapon) continue;
-    authority.send({ type: 'AttackEnemy', enemyId: id, attack: hit.move.id });
+    attackEnemy(id, hit.move.id);
     landed = true;
     pushImpact({ x: v.ai.x, y: terrainHeight(v.ai.x, v.ai.z) + 0.9, z: v.ai.z, kind: hit.weapon === 'fist' ? 'dust' : 'spark', power: hit.move.damage / 20 });
   }

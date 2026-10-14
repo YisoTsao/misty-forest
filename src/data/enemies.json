@@ -38,6 +38,17 @@
       "colors": {
         "MushroomKing_Main": "#b98ad8"
       }
+    },
+    "behavior": {
+      "kind": "spit",
+      "minRange": 3.2,
+      "range": 8,
+      "windup": 0.7,
+      "cooldown": 4.5,
+      "speed": 8,
+      "damage": 6,
+      "slowSec": 2.5,
+      "slowScale": 0.55
     }
   },
   {
@@ -345,6 +356,48 @@
       "colors": {
         "MushroomKing_Main": "#d8574a"
       }
+    }
+  },
+  {
+    "id": "mob_fog_moth",
+    "nameKey": "enemy.mob_fog_moth",
+    "maxHp": 34,
+    "damage": 7,
+    "moveSpeed": 3.6,
+    "aggroRadius": 10,
+    "attackRange": 1.7,
+    "attackWindup": 0.6,
+    "attackCooldown": 1.8,
+    "leashRadius": 18,
+    "lootTableId": "mob_fog_moth_drop",
+    "procedural": "fog_moth",
+    "behavior": {
+      "kind": "orbit",
+      "radius": 3.2,
+      "sec": 2.4,
+      "speed": 4
+    }
+  },
+  {
+    "id": "mob_root_beetle",
+    "nameKey": "enemy.mob_root_beetle",
+    "maxHp": 80,
+    "damage": 13,
+    "moveSpeed": 2.6,
+    "aggroRadius": 8,
+    "attackRange": 2.0,
+    "attackWindup": 0.75,
+    "attackCooldown": 2.2,
+    "leashRadius": 16,
+    "lootTableId": "mob_root_beetle_drop",
+    "lunge": 8,
+    "procedural": "root_beetle",
+    "behavior": {
+      "kind": "shell",
+      "guardSec": 1.6,
+      "guardScale": 0.25,
+      "recoverSec": 1.4,
+      "recoverScale": 1.5
     }
   }
 ]

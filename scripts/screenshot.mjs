@@ -5,7 +5,7 @@
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
-//   --monsters：每種怪物在自己的生成區域的近照與總覽（任務 7C）
+//   --monsters：每種怪物在自己的生成區域的近照與總覽（任務 7C）；--enemies=a,b 只拍這幾種（任務 8B）
 //   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
 //   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
 //   --daynight：日夜：三個書籤 × 06 / 12 / 18 / 21 / 00 時、夜晚迷霧、夜晚草原（螢火蟲、月亮）、日出與夕陽（任務 6B）
@@ -50,6 +50,7 @@ const withMelee = flags.has('--melee');
 const withMagic = flags.has('--magic');
 const withMap = flags.has('--map');
 const withMonsters = flags.has('--monsters');
+const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -223,7 +224,7 @@ try {
     });
     const seen = new Set();
     for (const sp of spawners) {
-      if (seen.has(sp.enemy)) continue;
+      if (seen.has(sp.enemy) || (onlyEnemies && !onlyEnemies.includes(sp.enemy))) continue;
       seen.add(sp.enemy);
       const [cx, cz] = sp.center;
       // 站在生成區域南側，等這一種怪物生成，再走到牠旁邊拍

@@ -4,7 +4,7 @@ import { assistFacing } from '@/game-core/combat/weapons';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
 import { authority, spells } from '@/game/authority';
-import { combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
+import { attackEnemy, combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
 import { cooldownOf, spellRuntime, type Projectile } from '@/game/combat/spellRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
@@ -151,7 +151,7 @@ function release(spell: SpellDef): void {
     for (const [id, v] of enemyRuntime) {
       if (v.vanishing !== null) continue;
       if (isInBlast(position, spell.radius, { x: v.ai.x, z: v.ai.z, radius: ENEMY_RADIUS })) {
-        authority.send({ type: 'AttackEnemy', enemyId: id, attack: spell.id });
+        attackEnemy(id, spell.id);
         spellRuntime.hits++;
       }
     }
@@ -210,7 +210,7 @@ function updateProjectiles(dt: number): void {
 
     const hitId = hitEnemy(pr);
     if (hitId) {
-      authority.send({ type: 'AttackEnemy', enemyId: hitId, attack: pr.spell.id });
+      attackEnemy(hitId, pr.spell.id);
       spellRuntime.hits++;
       vfx({ type: 'burst', preset: 'boltHit', x: pr.x, y: pr.y, z: pr.z, color: pr.spell.color as Rgb });
       audio.play('hit');

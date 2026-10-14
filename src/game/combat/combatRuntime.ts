@@ -2,11 +2,12 @@
 // 敵人「存在與血量」是權威狀態；這裡依權威層的事件建立 / 移除對應的模擬與表現。
 import { create } from 'zustand';
 import type { GameState } from '@/game-core/authority/rules';
-import { createEnemyAi, type EnemyAi } from '@/game-core/combat/enemyAi';
+import { aiStance, applyHitReaction, createEnemyAi, type EnemyAi } from '@/game-core/combat/enemyAi';
 import { createCombo, DEFAULT_WEAPON, type ComboState } from '@/game-core/combat/weapons';
 import { terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
 import { authority, combat, spells, weapons } from '../authority';
 import { playerRuntime } from '../player/localRuntime';
+import { useUiStore } from '../state/uiStore';
 
 export type EnemyVisual = {
   ai: EnemyAi;
@@ -41,6 +42,8 @@ export const combatRuntime = {
   hurtFlash: 0,
   /** 倒下後經過的時間 */
   defeatedFor: 0,
+  /** 被泥團打中後的緩速（任務 8B）：剩餘秒數與移動速度倍率 */
+  slow: { remaining: 0, scale: 1 },
   damageNumbers: [] as DamageNumber[],
   /** 近戰（GAME_DESIGN 5.3）：連段、重擊冷卻、命中停頓、切換武器的出現動畫 */
   melee: {
@@ -124,6 +127,13 @@ export function removeEnemyVisual(id: string): void {
   if (enemyRuntime.delete(id)) publishList();
 }
 
+/** 對敵人出手（近戰、法術共用）：附上敵人目前的姿態，權威層依此計算傷害倍率（根鬚甲蟲縮殼 / 破綻） */
+export function attackEnemy(enemyId: string, attack: string): void {
+  const v = enemyRuntime.get(enemyId);
+  const stance = v ? aiStance(v.ai) : undefined;
+  authority.send(stance ? { type: 'AttackEnemy', enemyId, attack, stance } : { type: 'AttackEnemy', enemyId, attack });
+}
+
 export function enemyY(x: number, z: number): number {
   return terrainHeight(x, z);
 }
@@ -132,6 +142,7 @@ export function enemyY(x: number, z: number): number {
 export function installCombatRuntime(): void {
   authority.subscribe((events, state) => {
     if (events.length === 0) {
+      combatRuntime.slow.remaining = 0;
       rebuild(state);
       return;
     }
@@ -146,18 +157,9 @@ export function installCombatRuntime(): void {
           const v = enemyRuntime.get(e.enemyId);
           if (!v) break;
           v.flash = 0.18;
-          const { x, z } = playerRuntime.position;
-          // 擊退：往遠離玩家的方向（規格 6.6）
-          const dx = v.ai.x - x;
-          const dz = v.ai.z - z;
-          const d = Math.hypot(dx, dz) || 1;
+          // 擊退：往遠離玩家的方向（規格 6.6）；根鬚甲蟲會縮殼
           const knockback = spells.get(e.attack)?.knockback ?? weapons.moves.get(e.attack)?.move.knockback ?? 0;
-          v.ai.knockback.x = (dx / d) * knockback;
-          v.ai.knockback.z = (dz / d) * knockback;
-          if (v.ai.state !== 'attack') {
-            v.ai.state = 'chase';
-            v.ai.timer = 0;
-          }
+          applyHitReaction(v.ai, playerRuntime.position, knockback, combat.enemies.get(v.kind));
           pushDamageNumber({ x: v.ai.x, y: enemyY(v.ai.x, v.ai.z) + 1.9, z: v.ai.z, amount: e.amount, target: 'enemy' });
           break;
         }
@@ -179,7 +181,13 @@ export function installCombatRuntime(): void {
           if (!playerRuntime.action) playerRuntime.action = { clip: 'hit', remaining: 0.35 };
           break;
         }
+        case 'PlayerSlowed':
+          if (combatRuntime.slow.remaining <= 0) useUiStore.getState().pushToast({ textKey: 'combat.slowed' });
+          combatRuntime.slow.remaining = e.sec;
+          combatRuntime.slow.scale = e.scale;
+          break;
         case 'PlayerDefeated':
+          combatRuntime.slow.remaining = 0;
           combatRuntime.defeatedFor = 0;
           playerRuntime.action = { clip: 'death', remaining: Infinity };
           break;

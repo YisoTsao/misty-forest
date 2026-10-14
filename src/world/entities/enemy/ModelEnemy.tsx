@@ -121,6 +121,8 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
     const dt = Math.min(rawDt, 1 / 20);
     const paused = currentScreen() === 'paused';
     const ai = v.ai;
+    const winding = ai.state === 'attack' || ai.state === 'spit';
+    const windup = ai.state === 'spit' && def.behavior?.kind === 'spit' ? def.behavior.windup : def.attackWindup;
     updateEnemyAi(id, v, def, spawner, dt);
 
     if (!paused) {
@@ -142,11 +144,12 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
       play(actions.hit, true);
     } else if (local.time < local.hitUntil) {
       // 受擊動作播完
-    } else if (ai.state === 'attack') {
+    } else if (winding) {
+      // 攻擊與吐泥（迷霧芽怪，任務 8B）共用攻擊動作
       if (local.current !== actions.attack) {
         play(actions.attack, true);
         // 攻擊動作的出手點對齊前搖結束
-        if (actions.attack) actions.attack.timeScale = Math.max(0.6, Math.min(2, (actions.attack.getClip().duration * 0.45) / Math.max(def.attackWindup, 0.2)));
+        if (actions.attack) actions.attack.timeScale = Math.max(0.6, Math.min(2, (actions.attack.getClip().duration * 0.45) / Math.max(windup, 0.2)));
       }
     } else if (ai.state === 'chase' || ai.state === 'patrol' || ai.state === 'return') {
       play(actions.move ?? actions.idle);
@@ -169,8 +172,8 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
         return;
       }
     }
-    const flash = v.flash > 0 ? 0.85 : ai.state === 'attack' ? 0.35 * Math.min(1, ai.timer / Math.max(def.attackWindup, 0.01)) : 0;
-    tmpColor.setRGB(flash, flash * (ai.state === 'attack' && v.flash <= 0 ? 0.25 : 1), flash * (ai.state === 'attack' && v.flash <= 0 ? 0.2 : 1));
+    const flash = v.flash > 0 ? 0.85 : winding ? 0.35 * Math.min(1, ai.timer / Math.max(windup, 0.01)) : 0;
+    tmpColor.setRGB(flash, flash * (winding && v.flash <= 0 ? 0.25 : 1), flash * (winding && v.flash <= 0 ? 0.2 : 1));
     for (const m of materials) {
       m.opacity = opacity;
       m.depthWrite = opacity > 0.98;

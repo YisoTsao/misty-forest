@@ -14,5 +14,13 @@
   { "id": "ruins_ghosts", "regionId": "ruins", "enemy": "mob_mist_ghost", "center": [44, 120], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 50 },
   { "id": "ruins_king", "regionId": "ruins", "enemy": "mob_mushroom_king", "center": [62, 112], "radius": 6, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 240 },
   { "id": "east_dinos", "regionId": "meadow", "enemy": "mob_horn_dino", "center": [132, 40], "radius": 12, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
-  { "id": "stargaze_wisps", "regionId": "overlook", "enemy": "mist_wisp", "center": [-66, 112], "radius": 10, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 30 }
+  { "id": "stargaze_wisps", "regionId": "overlook", "enemy": "mist_wisp", "center": [-66, 112], "radius": 10, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 30 },
+  { "id": "glade_moths", "regionId": "moss_glade", "enemy": "mob_fog_moth", "center": [1992, 28], "radius": 9, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
+  { "id": "ring_moths", "regionId": "moss_glade", "enemy": "mob_fog_moth", "center": [2036, 32], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 40 },
+  { "id": "trail_moths", "regionId": "moss_trail", "enemy": "mob_fog_moth", "center": [1922, 20], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 45 },
+  { "id": "maze_beetles", "regionId": "root_maze", "enemy": "mob_root_beetle", "center": [2076, -74], "radius": 14, "budget": { "dense": 3, "light": 3, "clear": 2 }, "respawnSec": 60 },
+  { "id": "channel_beetles", "regionId": "moss_glade", "enemy": "mob_root_beetle", "center": [2040, -96], "radius": 10, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
+  { "id": "glade_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1972, 84], "radius": 10, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
+  { "id": "maze_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [2038, -46], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 45 },
+  { "id": "crescent_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1952, -44], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 }
 ]

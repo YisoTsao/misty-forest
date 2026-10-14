@@ -60,6 +60,29 @@ const icons: Record<string, ReactNode> = {
       <circle cx="31" cy="11" r="1.6" fill="#e9f6ff" />
     </>
   ),
+  pollen: (
+    <>
+      <path d="M24 8 Q34 16 32 28 Q30 40 24 42 Q18 40 16 28 Q14 16 24 8 Z" fill="#efe8fb" stroke="#8b8aa8" strokeWidth="1.8" />
+      {[
+        [21, 20],
+        [27, 24],
+        [22, 31],
+        [27, 34],
+        [24, 15],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="2.6" fill="#ffe98a" stroke="#d9b440" strokeWidth="1" />
+      ))}
+      <circle cx="36" cy="12" r="2" fill="#fff6b8" />
+      <circle cx="12" cy="18" r="1.6" fill="#fff6b8" />
+    </>
+  ),
+  fiber: (
+    <>
+      <path d="M10 38 Q18 26 16 14 M18 40 Q26 28 24 10 M26 40 Q34 30 34 12" stroke="#8a5c3a" strokeWidth="3.4" fill="none" strokeLinecap="round" />
+      <path d="M10 38 Q18 26 16 14 M18 40 Q26 28 24 10 M26 40 Q34 30 34 12" stroke="#c49a6c" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <ellipse cx="22" cy="27" rx="15" ry="3.5" fill="#5f9a6a" stroke="#2f6a48" strokeWidth="1.4" transform="rotate(-12 22 27)" />
+    </>
+  ),
   campfire: (
     <>
       <path d="M24 10 Q31 20 28 28 Q34 24 33 18 Q40 27 34 35 L14 35 Q8 26 16 18 Q16 25 21 27 Q17 18 24 10 Z" fill="#ff9a2e" stroke="#c45a10" strokeWidth="1.5" />

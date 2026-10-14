@@ -2,7 +2,8 @@
 // 規則（傷害、死亡）在權威層；這裡只決定「怎麼動、什麼時候出手」。
 import type { EnemyDef } from './combat';
 
-export type AiState = 'idle' | 'patrol' | 'chase' | 'attack' | 'return' | 'dead';
+// 任務 8B：orbit（飛蛾繞圈）、spit（芽怪吐泥前搖）、guard（甲蟲縮殼）、recover（甲蟲出手後的破綻）
+export type AiState = 'idle' | 'patrol' | 'chase' | 'orbit' | 'attack' | 'spit' | 'guard' | 'recover' | 'return' | 'dead';
 
 export type EnemyAi = {
   state: AiState;
@@ -18,10 +19,20 @@ export type EnemyAi = {
   patrolTarget: { x: number; z: number } | null;
   /** 擊退速度（被打到時往後飄，逐漸衰減） */
   knockback: { x: number; z: number };
+  /** 盤旋（orbit）：繞玩家的角度與這一輪已盤旋的時間 */
+  orbitAngle: number;
+  orbitFor: number;
+  /** 吐泥（spit）的冷卻 */
+  spitCooldown: number;
+  /** 縮殼（guard）結束後多久內不會再縮殼（避免一直被打就一直縮著、永遠不還手） */
+  guardCooldown: number;
 };
 
+/** 縮殼結束後的冷卻（秒） */
+export const GUARD_COOLDOWN = 2.5;
+
 export function createEnemyAi(x: number, z: number, yaw = 0): EnemyAi {
-  return { state: 'idle', x, z, yaw, timer: 0, cooldown: 0, patrolTarget: null, knockback: { x: 0, z: 0 } };
+  return { state: 'idle', x, z, yaw, timer: 0, cooldown: 0, patrolTarget: null, knockback: { x: 0, z: 0 }, orbitAngle: 0, orbitFor: 0, spitCooldown: 0, guardCooldown: 0 };
 }
 
 export type AiInput = {
@@ -35,7 +46,12 @@ export type AiInput = {
 export type AiOutput = {
   /** 這一幀出手（攻擊前搖結束）：呼叫端送出攻擊指令，由權威層判定是否命中 */
   strike: boolean;
+  /** 這一幀吐出泥團（吐泥前搖結束）：瞄準的位置（出手當下玩家的位置） */
+  spit: { x: number; z: number } | null;
 };
+
+/** 盤旋時離目標點多近才開始繞圈（超過時先飛過去） */
+const ORBIT_ENTER = 1.6;
 
 const IDLE_SEC = 2.5;
 const KNOCKBACK_DECAY = 6;
@@ -56,8 +72,12 @@ function moveToward(ai: EnemyAi, tx: number, tz: number, speed: number, dt: numb
 export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutput {
   const { dt, player, home } = input;
   let strike = false;
+  let spit: AiOutput['spit'] = null;
+  const behavior = def.behavior;
   ai.timer += dt;
   ai.cooldown = Math.max(0, ai.cooldown - dt);
+  ai.spitCooldown = Math.max(0, ai.spitCooldown - dt);
+  ai.guardCooldown = Math.max(0, ai.guardCooldown - dt);
 
   // 擊退（任何狀態都會被推開，死亡除外）
   if (ai.state !== 'dead') {
@@ -98,12 +118,38 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       break;
     }
     case 'chase':
+    case 'orbit':
       if (!player.alive || fromHome > def.leashRadius) {
         set('return');
         break;
       }
       if (toPlayer > def.aggroRadius * 1.6) {
         set('return');
+        break;
+      }
+      // 霧孢飛蛾：先在玩家周圍盤旋一段時間，才俯衝出手（Bible §6.6：繞玩家盤旋）
+      if (behavior?.kind === 'orbit' && ai.orbitFor < behavior.sec) {
+        if (ai.state === 'chase' && toPlayer <= behavior.radius + ORBIT_ENTER) {
+          ai.orbitAngle = Math.atan2(ai.z - player.z, ai.x - player.x);
+          set('orbit');
+        }
+        if (ai.state === 'orbit') {
+          ai.orbitFor += dt;
+          ai.orbitAngle += (behavior.speed / behavior.radius) * dt;
+          const tx = player.x + Math.cos(ai.orbitAngle) * behavior.radius;
+          const tz = player.z + Math.sin(ai.orbitAngle) * behavior.radius;
+          moveToward(ai, tx, tz, Math.max(def.moveSpeed, behavior.speed) * 1.2, dt);
+          // 盤旋時看著玩家
+          ai.yaw = Math.atan2(player.x - ai.x, player.z - ai.z);
+          break;
+        }
+      } else if (ai.state === 'orbit') {
+        set('chase');
+      }
+      // 迷霧芽怪：距離適中時吐泥團（近身時改用咬）
+      if (behavior?.kind === 'spit' && ai.spitCooldown <= 0 && toPlayer >= behavior.minRange && toPlayer <= behavior.range) {
+        ai.yaw = Math.atan2(player.x - ai.x, player.z - ai.z);
+        set('spit');
         break;
       }
       if (toPlayer <= def.attackRange && ai.cooldown <= 0) {
@@ -125,25 +171,70 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
           ai.knockback.x = Math.sin(ai.yaw) * def.lunge;
           ai.knockback.z = Math.cos(ai.yaw) * def.lunge;
         }
+        ai.orbitFor = 0;
+        // 根鬚甲蟲：衝撞後有一段停下來的破綻
+        set(behavior?.kind === 'shell' ? 'recover' : 'chase');
+      }
+      break;
+    case 'spit':
+      if (behavior?.kind !== 'spit') {
+        set('chase');
+        break;
+      }
+      ai.yaw = Math.atan2(player.x - ai.x, player.z - ai.z);
+      if (ai.timer >= behavior.windup) {
+        spit = { x: player.x, z: player.z };
+        ai.spitCooldown = behavior.cooldown;
         set('chase');
       }
+      break;
+    case 'guard':
+      // 縮在殼裡不動，時間到再繼續追
+      if (behavior?.kind !== 'shell' || ai.timer >= behavior.guardSec) {
+        // 從殼裡出來就馬上反擊
+        ai.guardCooldown = GUARD_COOLDOWN;
+        ai.cooldown = 0;
+        set('chase');
+      }
+      break;
+    case 'recover':
+      if (behavior?.kind !== 'shell' || ai.timer >= behavior.recoverSec) set('chase');
       break;
     case 'return':
       if (moveToward(ai, home.x, home.z, def.moveSpeed * 1.2, dt) <= 0.3) set('idle');
       break;
   }
-  return { strike };
+  return { strike, spit };
 }
 
-/** 被擊中：往遠離玩家的方向擊退；在返回途中被打會重新追擊 */
-export function applyHitReaction(ai: EnemyAi, from: { x: number; z: number }, strength: number): void {
+/** 目前的姿態（給權威層計算受到的傷害倍率） */
+export function aiStance(ai: EnemyAi): 'guard' | 'recover' | undefined {
+  return ai.state === 'guard' || ai.state === 'recover' ? ai.state : undefined;
+}
+
+/**
+ * 被擊中：往遠離玩家的方向擊退；在返回途中被打會重新追擊。
+ * 根鬚甲蟲（shell）被打到會縮殼（破綻中與出手前搖時不會）；縮殼時幾乎推不動。
+ */
+export function applyHitReaction(ai: EnemyAi, from: { x: number; z: number }, strength: number, def?: EnemyDef): void {
   if (ai.state === 'dead') return;
+  const shell = def?.behavior?.kind === 'shell';
+  // 縮殼（已經縮著，或不在出手 / 破綻中且縮殼冷卻已過）：幾乎推不動
+  const guards = shell && ai.state !== 'attack' && ai.state !== 'recover' && (ai.state === 'guard' || ai.guardCooldown <= 0);
   const dx = ai.x - from.x;
   const dz = ai.z - from.z;
   const d = Math.hypot(dx, dz) || 1;
-  ai.knockback.x = (dx / d) * strength;
-  ai.knockback.z = (dz / d) * strength;
-  if (ai.state !== 'attack') {
+  const k = guards ? 0.2 : 1;
+  ai.knockback.x = (dx / d) * strength * k;
+  ai.knockback.z = (dz / d) * strength * k;
+  if (guards) {
+    if (ai.state !== 'guard') {
+      ai.state = 'guard';
+      ai.timer = 0;
+    }
+    return;
+  }
+  if (ai.state !== 'attack' && ai.state !== 'recover' && ai.state !== 'spit') {
     ai.state = 'chase';
     ai.timer = 0;
   }
