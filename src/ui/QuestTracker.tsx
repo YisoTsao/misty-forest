@@ -62,7 +62,8 @@ export function ObjectiveRow({ objective: o, progress, state }: { objective: Obj
       return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
     case 'activate':
     case 'defeat':
-    case 'boss': {
+    case 'boss':
+    case 'talk': {
       const done = progress.current >= progress.target;
       return (
         <li className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>

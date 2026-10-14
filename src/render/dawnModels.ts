@@ -132,6 +132,21 @@ function starMirror(): ForestModel {
   return { solid: merge(solid, '星光鏡'), glow: merge(glow, '星光鏡的鏡面') };
 }
 
+/** 乾布（任務 7G）：小竹籃裡疊著兩塊摺好的布 */
+function dryCloth(): ForestModel {
+  const basket = cylinder(0.32, 0.26, 0.22, [0, 0, 0], c('#b08850'), 10);
+  const rim = new THREE.TorusGeometry(0.32, 0.025, 5, 16);
+  rim.rotateX(Math.PI / 2);
+  rim.translate(0, 0.22, 0);
+  const cloth = (color: string, y: number, yaw: number) => {
+    const g = new THREE.BoxGeometry(0.42, 0.07, 0.3);
+    g.rotateY(yaw);
+    g.translate(0, y, 0);
+    return paint(g, c(color));
+  };
+  return { solid: merge([basket, paint(rim, c('#8a6a3a')), cloth('#f4efe2', 0.25, 0.1), cloth('#a9cfe0', 0.32, -0.25)], '乾布') };
+}
+
 export const dawnBuilders: Record<string, () => ForestModel> = {
   lantern_shard: lanternShard,
   mist_core: () => mistCore(false),
@@ -139,4 +154,5 @@ export const dawnBuilders: Record<string, () => ForestModel> = {
   lighthouse_lamp: () => lighthouseLamp(false),
   lighthouse_lamp_lit: () => lighthouseLamp(true),
   star_mirror: starMirror,
+  dry_cloth: dryCloth,
 };

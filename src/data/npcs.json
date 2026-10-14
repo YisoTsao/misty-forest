@@ -24,6 +24,71 @@
     "talk": [
       {
         "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_dawn_004",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_dawn_004",
+                "npc": "elder"
+              }
+            },
+            {
+              "type": "hasItems",
+              "items": [
+                {
+                  "itemId": "letter_elder",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "type": "questTalkCount",
+              "quest": "quest_dawn_004",
+              "count": 0
+            }
+          ]
+        },
+        "dialogue": "elder_letter_first"
+      },
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_dawn_004",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_dawn_004",
+                "npc": "elder"
+              }
+            },
+            {
+              "type": "hasItems",
+              "items": [
+                {
+                  "itemId": "letter_elder",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        "dialogue": "elder_letter"
+      },
+      {
+        "when": {
           "type": "questReady",
           "quest": "quest_dawn_003"
         },
@@ -97,6 +162,71 @@
     "facingYaw": 0.9,
     "interactRadius": 2.4,
     "talk": [
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_dawn_004",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_dawn_004",
+                "npc": "balu"
+              }
+            },
+            {
+              "type": "hasItems",
+              "items": [
+                {
+                  "itemId": "letter_balu",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "type": "questTalkCount",
+              "quest": "quest_dawn_004",
+              "count": 0
+            }
+          ]
+        },
+        "dialogue": "balu_letter_first"
+      },
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_dawn_004",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_dawn_004",
+                "npc": "balu"
+              }
+            },
+            {
+              "type": "hasItems",
+              "items": [
+                {
+                  "itemId": "letter_balu",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        "dialogue": "balu_letter"
+      },
       {
         "when": {
           "type": "questReady",
@@ -279,6 +409,71 @@
     "facingYaw": -1.1,
     "interactRadius": 2.4,
     "talk": [
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_dawn_004",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_dawn_004",
+                "npc": "linna"
+              }
+            },
+            {
+              "type": "hasItems",
+              "items": [
+                {
+                  "itemId": "letter_linna",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "type": "questTalkCount",
+              "quest": "quest_dawn_004",
+              "count": 0
+            }
+          ]
+        },
+        "dialogue": "linna_letter_first"
+      },
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_dawn_004",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_dawn_004",
+                "npc": "linna"
+              }
+            },
+            {
+              "type": "hasItems",
+              "items": [
+                {
+                  "itemId": "letter_linna",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        "dialogue": "linna_letter"
+      },
       {
         "when": {
           "type": "questReady",
@@ -468,6 +663,107 @@
     "talk": [
       {
         "dialogue": "puff_buddy"
+      }
+    ]
+  },
+  {
+    "id": "niko",
+    "nameKey": "npc.niko",
+    "regionId": "village",
+    "model": "models/characters/kaykit-adventurers/Rogue.glb",
+    "scale": 0.56,
+    "hiddenNodes": [
+      "1H_Crossbow",
+      "2H_Crossbow",
+      "Knife",
+      "Knife_Offhand",
+      "Throwable",
+      "Rogue_Cape"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Cheer"
+    },
+    "visible": {
+      "type": "questStatus",
+      "quest": "repair_bridge",
+      "is": "completed"
+    },
+    "position": [
+      3,
+      -26
+    ],
+    "facingYaw": -2.4,
+    "interactRadius": 2.4,
+    "talk": [
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questReady",
+              "quest": "quest_dawn_004"
+            },
+            {
+              "type": "questTalkFirst",
+              "quest": "quest_dawn_004",
+              "npc": "elder"
+            }
+          ]
+        },
+        "dialogue": "niko_turnin_elder"
+      },
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questReady",
+              "quest": "quest_dawn_004"
+            },
+            {
+              "type": "questTalkFirst",
+              "quest": "quest_dawn_004",
+              "npc": "balu"
+            }
+          ]
+        },
+        "dialogue": "niko_turnin_balu"
+      },
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_dawn_004"
+        },
+        "dialogue": "niko_turnin_linna"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_004",
+          "is": "active"
+        },
+        "dialogue": "niko_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_004",
+          "is": "completed"
+        },
+        "dialogue": "niko_after"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_004",
+          "is": "available"
+        },
+        "dialogue": "niko_offer"
+      },
+      {
+        "dialogue": "niko_after"
       }
     ]
   }

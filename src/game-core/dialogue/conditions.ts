@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import type { GameState } from '../authority/rules';
 import { hasItems } from '../inventory/inventory';
-import { isQuestReady, questStatus, type QuestCatalog } from '../quest/quest';
+import { isQuestReady, questStatus, talkObjectiveIndex, talksDone, type QuestCatalog } from '../quest/quest';
 import { mistStages } from '../world/mist';
 import { clockAt, inTimeRange } from '../world/timeOfDay';
 import { regionIds } from '../world/types';
@@ -22,6 +22,12 @@ export type Condition =
   | { type: 'timeRange'; from: number; to: number }
   /** 這個頭目已經被擊敗（任務 8D-2：戰後的苔咚） */
   | { type: 'bossDefeated'; boss: string }
+  /** 任務中「和 npc 談」的目標已完成（任務 7G 送信） */
+  | { type: 'questTalkDone'; quest: string; npc: string }
+  /** 任務中已完成的談話目標數 */
+  | { type: 'questTalkCount'; quest: string; count: number }
+  /** 任務中第一個完成的談話目標是這位 npc（尼可依先送給誰換感謝語） */
+  | { type: 'questTalkFirst'; quest: string; npc: string }
   | { type: 'not'; condition: Condition }
   | { type: 'all'; conditions: Condition[] };
 
@@ -35,6 +41,9 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ type: z.literal('hasBuilt'), buildable: z.string().min(1).optional() }),
     z.object({ type: z.literal('timeRange'), from: z.number().min(0).max(24), to: z.number().min(0).max(24) }),
     z.object({ type: z.literal('bossDefeated'), boss: z.string().min(1) }),
+    z.object({ type: z.literal('questTalkDone'), quest: z.string().min(1), npc: z.string().min(1) }),
+    z.object({ type: z.literal('questTalkCount'), quest: z.string().min(1), count: z.number().int().nonnegative() }),
+    z.object({ type: z.literal('questTalkFirst'), quest: z.string().min(1), npc: z.string().min(1) }),
     z.object({ type: z.literal('not'), condition: conditionSchema }),
     z.object({ type: z.literal('all'), conditions: z.array(conditionSchema).min(1) }),
   ]),
@@ -67,6 +76,16 @@ export function evaluateCondition(condition: Condition | undefined, state: GameS
       return inTimeRange(clockAt(state.time), condition.from, condition.to);
     case 'bossDefeated':
       return state.defeatedBosses.includes(condition.boss);
+    case 'questTalkDone': {
+      const i = talkObjectiveIndex(quest(condition.quest), condition.npc);
+      return i >= 0 && (state.quests[condition.quest]?.progress?.[i] ?? 0) > 0;
+    }
+    case 'questTalkCount':
+      return talksDone(state.quests[condition.quest], quest(condition.quest)) === condition.count;
+    case 'questTalkFirst': {
+      const i = talkObjectiveIndex(quest(condition.quest), condition.npc);
+      return i >= 0 && state.quests[condition.quest]?.progress?.[i] === 1;
+    }
     case 'not':
       return !evaluateCondition(condition.condition, state, ctx);
     case 'all':
@@ -80,6 +99,9 @@ export function conditionQuestIds(condition: Condition | undefined): string[] {
   switch (condition.type) {
     case 'questStatus':
     case 'questReady':
+    case 'questTalkDone':
+    case 'questTalkCount':
+    case 'questTalkFirst':
       return [condition.quest];
     case 'not':
       return conditionQuestIds(condition.condition);

@@ -208,6 +208,21 @@
     },
     {
       "when": {
+        "type": "questReady",
+        "quest": "quest_dawn_004"
+      },
+      "textKey": "companion.hint.dawn4Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_dawn_004",
+        "is": "active"
+      },
+      "textKey": "companion.hint.dawn4"
+    },
+    {
+      "when": {
         "type": "not",
         "condition": {
           "type": "tutorialDone"

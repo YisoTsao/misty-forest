@@ -8,7 +8,7 @@ import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
-import { earlierObjectivesDone, isQuestTracked, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
+import { earlierObjectivesDone, isQuestTracked, talkObjectiveIndex, talksDone, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { MistStage } from '../world/mist';
 import { secondsUntilHour } from '../world/timeOfDay';
@@ -78,6 +78,8 @@ export type GameCommand =
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
   | { type: 'AcceptQuest'; quest: string }
+  /** 在對話中完成「和 npc 談」的任務目標（任務 7G 送信）：交出物品、記錄順序 */
+  | { type: 'QuestTalk'; quest: string; npc: string }
   /** 任務日誌：追蹤 / 取消追蹤進行中的任務（主線一定追蹤；其他最多 MAX_TRACKED_SIDE 個，任務 7F） */
   | { type: 'TrackQuest'; quest: string; tracked: boolean }
   /** 修復物件（木橋）：消耗材料 */
@@ -302,6 +304,8 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     }
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
+    case 'QuestTalk':
+      return questTalk(state, cmd.quest, cmd.npc, ctx);
     case 'TrackQuest': {
       const def = ctx.quests.get(cmd.quest);
       const record = state.quests[cmd.quest];
@@ -591,9 +595,32 @@ function acceptQuest(state: GameState, questId: string, ctx: RulesContext): Game
   const def = ctx.quests.get(questId);
   if (!def) return reject('AcceptQuest', 'unknown-quest');
   if (questStatus(state, def) !== 'available') return reject('AcceptQuest', 'quest-unavailable');
+  const start = def.start?.items ?? [];
+  // 接取時拿到的物品（要送的信）放不下時不能接
+  if (start.length > 0 && !addItems(state.inventory, start, ctx.items)) return reject('AcceptQuest', 'inventory-full');
   const events: GameEvent[] = [{ type: 'QuestAccepted', quest: questId }];
+  if (start.length > 0) events.push({ type: 'ItemsGained', items: start, source: `quest:${questId}` });
   // 已經追蹤滿了：新接的支線先不追蹤（可在任務日誌切換）
   if (def.category !== 'main' && trackedSideCount(state.quests, ctx.quests) >= MAX_TRACKED_SIDE) events.push({ type: 'QuestTracked', quest: questId, tracked: false });
+  return events;
+}
+
+function questTalk(state: GameState, questId: string, npc: string, ctx: RulesContext): GameEvent[] {
+  const def = ctx.quests.get(questId);
+  if (!def) return reject('QuestTalk', 'unknown-quest');
+  if (questStatus(state, def) !== 'active') return reject('QuestTalk', 'quest-unavailable');
+  const index = talkObjectiveIndex(def, npc);
+  const objective = def.objectives[index];
+  if (!objective || objective.type !== 'talk') return reject('QuestTalk', 'invalid-command');
+  const record = state.quests[questId];
+  if ((record?.progress?.[index] ?? 0) > 0) return reject('QuestTalk', 'already-active');
+  const events: GameEvent[] = [];
+  if (objective.item) {
+    const items = [{ itemId: objective.item, count: 1 }];
+    if (!removeItems(state.inventory, items)) return reject('QuestTalk', 'missing-materials');
+    events.push({ type: 'ItemsRemoved', items, reason: 'quest' });
+  }
+  events.push({ type: 'QuestProgressed', quest: questId, objective: index, count: talksDone(record, def) + 1 });
   return events;
 }
 

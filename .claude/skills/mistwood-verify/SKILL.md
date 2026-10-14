@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），32 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），33 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -37,6 +37,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），32 個全跑
 | 音效與音樂 | `audio` | 不拍 |
 | 手把 | `gamepad` | `--gamepad` |
 | 設定、按鍵重新配置 | `settings` | `--menu` |
+| 送信（`quest_dawn_004`、`talk` 目標 / `QuestTalk`、`questTalk*` 條件、尼可、乾布） | `letters`（改到對話或條件時加 `npc`、`quest`） | `--letters` |
 | 任務日誌（`QuestJournal`、`TrackQuest`、任務分類、追蹤列篩選） | `journal`（改到追蹤列時加 `quest`） | `--journal` |
 | 小地圖、世界地圖 | `map` | `--map` |
 | 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |

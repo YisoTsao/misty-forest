@@ -310,5 +310,69 @@
         "glowmoss_lake_roots"
       ]
     }
+  },
+  {
+    "id": "quest_dawn_004",
+    "nameKey": "quest.dawn4.name",
+    "category": "story",
+    "descKey": "quest.dawn4.desc",
+    "giver": "niko",
+    "requires": [
+      "repair_bridge"
+    ],
+    "objectives": [
+      {
+        "type": "collect",
+        "itemId": "dry_cloth",
+        "count": 2,
+        "consume": true
+      },
+      {
+        "type": "talk",
+        "npc": "elder",
+        "item": "letter_elder",
+        "descKey": "quest.dawn4.elder"
+      },
+      {
+        "type": "talk",
+        "npc": "balu",
+        "item": "letter_balu",
+        "descKey": "quest.dawn4.balu"
+      },
+      {
+        "type": "talk",
+        "npc": "linna",
+        "item": "letter_linna",
+        "descKey": "quest.dawn4.linna"
+      }
+    ],
+    "start": {
+      "items": [
+        {
+          "itemId": "letter_elder",
+          "count": 1
+        },
+        {
+          "itemId": "letter_balu",
+          "count": 1
+        },
+        {
+          "itemId": "letter_linna",
+          "count": 1
+        }
+      ]
+    },
+    "rewards": {
+      "items": [
+        {
+          "itemId": "postcard_blank",
+          "count": 3
+        },
+        {
+          "itemId": "seed_coin",
+          "count": 30
+        }
+      ]
+    }
   }
 ]

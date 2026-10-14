@@ -170,6 +170,38 @@ const icons: Record<string, ReactNode> = {
       <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </>
   ),
+  letter: (
+    <>
+      <rect x="7" y="13" width="34" height="23" rx="2.5" fill="#f6eedb" stroke="#8a6a3a" strokeWidth="2" />
+      <path d="M7.5 14 L24 27 L40.5 14" stroke="#8a6a3a" strokeWidth="2" fill="none" />
+      <circle cx="24" cy="27" r="3.4" fill="#c8483a" />
+      <path d="M10 33 Q14 31 17 34" stroke="#9fb7c9" strokeWidth="1.6" fill="none" />
+    </>
+  ),
+  cloth: (
+    <>
+      <path d="M9 17 Q24 12 39 17 L37 27 Q24 23 11 27 Z" fill="#a9cfe0" stroke="#4f7a90" strokeWidth="2" />
+      <path d="M11 26 Q24 22 37 26 L36 36 Q24 32 12 36 Z" fill="#f4efe2" stroke="#8a7a5a" strokeWidth="2" />
+    </>
+  ),
+  postcard: (
+    <>
+      <rect x="6" y="11" width="36" height="26" rx="2" fill="#fff8e6" stroke="#8a6a3a" strokeWidth="2" />
+      <rect x="9" y="14" width="15" height="20" rx="1" fill="#9fd0e6" />
+      <path d="M16 34 V21 L18 18 L20 21 V34 Z" fill="#f2e2c0" stroke="#7a5a3a" strokeWidth="1" />
+      <circle cx="18" cy="17.5" r="1.6" fill="#ffd77a" />
+      <path d="M28 18 H38 M28 23 H38 M28 28 H35" stroke="#b39a74" strokeWidth="1.6" />
+    </>
+  ),
+  seed_coin: (
+    <>
+      <circle cx="24" cy="24" r="16" fill="#e8c25a" stroke="#9a7420" strokeWidth="2.4" />
+      <circle cx="24" cy="24" r="11.5" fill="none" stroke="#c99b33" strokeWidth="1.6" />
+      <path d="M24 31 V22" stroke="#4f7a2a" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M24 24 Q18 23 17 17 Q23 17 24 24 Z" fill="#6cc164" />
+      <path d="M24 22 Q30 20 31 15 Q25 15 24 22 Z" fill="#8fd47a" />
+    </>
+  ),
   puff_horn: (
     <>
       <path d="M14 40 Q12 22 24 8 Q36 22 34 40 Q24 44 14 40 Z" fill="#cdb8ee" stroke="#7a62a8" strokeWidth="2" />

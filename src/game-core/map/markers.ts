@@ -88,6 +88,12 @@ export function questMarkers(
           const p = ctx.placement(id);
           if (p) out.push({ questId: q.id, kind: 'objective', x: p.position[0], z: p.position[2] });
         }
+      } else if (o.type === 'talk') {
+        // 還沒談的對象標在 NPC 身上
+        const i = q.objectives.indexOf(o);
+        if ((state.quests[q.id]?.progress?.[i] ?? 0) > 0) continue;
+        const at = ctx.npcPosition(o.npc);
+        if (at) out.push({ questId: q.id, kind: 'objective', ...at });
       } else if (o.type === 'defeat' || o.type === 'boss') {
         // 頭目：標出戰場（頭目的生成點）
         const enemy = o.type === 'defeat' ? o.enemy : o.boss;

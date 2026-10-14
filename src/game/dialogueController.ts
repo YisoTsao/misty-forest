@@ -29,8 +29,10 @@ export function currentDialogueView(): DialogueView | null {
   return active && def ? viewNode(def, active.nodeId, authority.getState(), conditionCtx) : null;
 }
 
-function commandFor(effect: DialogueEffect): GameCommand {
+function commandFor(effect: DialogueEffect, npcId: string): GameCommand {
   switch (effect.type) {
+    case 'questTalk':
+      return { type: 'QuestTalk', quest: effect.quest, npc: npcId };
     case 'acceptQuest':
       return { type: 'AcceptQuest', quest: effect.quest };
     case 'turnInQuest':
@@ -49,7 +51,7 @@ export function advanceTalk(optionIndex?: number): void {
   const def = active && dialogues.get(active.dialogueId);
   if (!active || !def) return;
   const { next, effects } = advanceDialogue(def, active.nodeId, authority.getState(), conditionCtx, optionIndex);
-  for (const effect of effects) authority.send(commandFor(effect));
+  for (const effect of effects) authority.send(commandFor(effect, active.npcId));
   if (next) ui.setDialogue({ ...active, nodeId: next });
   else endTalk();
 }

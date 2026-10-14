@@ -3517,5 +3517,16 @@
     "interactRadius": 2.4,
     "turn": { "positions": 2 },
     "persists": false
+  },
+  {
+    "id": "dry_cloth",
+    "model": "procedural:dry_cloth",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.dryCloth",
+    "verbKey": "interact.pickUp",
+    "interactRadius": 1.8,
+    "harvest": { "lootTableId": "dry_cloth_pick", "anim": "interact", "quest": "quest_dawn_004" },
+    "persists": true
   }
 ]

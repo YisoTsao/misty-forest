@@ -918,5 +918,384 @@
         "textKey": "dlg.puff.nuzzle"
       }
     }
+  },
+  {
+    "id": "niko_offer",
+    "start": "lost",
+    "nodes": {
+      "lost": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.lost",
+        "next": "bud"
+      },
+      "bud": {
+        "speakerKey": "companion.name",
+        "textKey": "dlg.niko.bud",
+        "next": "hours"
+      },
+      "hours": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.hours",
+        "next": "wet"
+      },
+      "wet": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.wet",
+        "options": [
+          {
+            "textKey": "dlg.niko.opt.help",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.niko.opt.order",
+            "next": "order"
+          },
+          {
+            "textKey": "dlg.niko.opt.bye"
+          }
+        ]
+      },
+      "order": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.order",
+        "next": "wet"
+      },
+      "accept": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.accept"
+      }
+    }
+  },
+  {
+    "id": "niko_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.remind"
+      }
+    }
+  },
+  {
+    "id": "niko_turnin_elder",
+    "start": "listen",
+    "nodes": {
+      "listen": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.listen",
+        "options": [
+          {
+            "textKey": "dlg.niko.opt.done",
+            "next": "thanks",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.niko.opt.later"
+          }
+        ]
+      },
+      "thanks": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.thanks.elder",
+        "next": "lesson"
+      },
+      "lesson": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.lesson"
+      }
+    }
+  },
+  {
+    "id": "niko_turnin_balu",
+    "start": "listen",
+    "nodes": {
+      "listen": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.listen",
+        "options": [
+          {
+            "textKey": "dlg.niko.opt.done",
+            "next": "thanks",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.niko.opt.later"
+          }
+        ]
+      },
+      "thanks": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.thanks.balu",
+        "next": "lesson"
+      },
+      "lesson": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.lesson"
+      }
+    }
+  },
+  {
+    "id": "niko_turnin_linna",
+    "start": "listen",
+    "nodes": {
+      "listen": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.listen",
+        "options": [
+          {
+            "textKey": "dlg.niko.opt.done",
+            "next": "thanks",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.niko.opt.later"
+          }
+        ]
+      },
+      "thanks": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.thanks.linna",
+        "next": "lesson"
+      },
+      "lesson": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.lesson"
+      }
+    }
+  },
+  {
+    "id": "niko_after",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.niko",
+        "textKey": "dlg.niko.after"
+      }
+    }
+  },
+  {
+    "id": "elder_letter_first",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.letter.ask",
+        "options": [
+          {
+            "textKey": "dlg.letter.opt.give",
+            "next": "read",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.letter.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.letter.elder.first",
+        "next": "end"
+      },
+      "end": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.letter.elder.end"
+      }
+    }
+  },
+  {
+    "id": "elder_letter",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.letter.ask",
+        "options": [
+          {
+            "textKey": "dlg.letter.opt.give",
+            "next": "read",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.letter.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.letter.elder",
+        "next": "end"
+      },
+      "end": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.letter.elder.end"
+      }
+    }
+  },
+  {
+    "id": "balu_letter_first",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.letter.ask",
+        "options": [
+          {
+            "textKey": "dlg.letter.opt.give",
+            "next": "read",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.letter.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.letter.balu.first",
+        "next": "end"
+      },
+      "end": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.letter.balu.end"
+      }
+    }
+  },
+  {
+    "id": "balu_letter",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.letter.ask",
+        "options": [
+          {
+            "textKey": "dlg.letter.opt.give",
+            "next": "read",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.letter.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.letter.balu",
+        "next": "end"
+      },
+      "end": {
+        "speakerKey": "npc.balu",
+        "textKey": "dlg.letter.balu.end"
+      }
+    }
+  },
+  {
+    "id": "linna_letter_first",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.linna",
+        "textKey": "dlg.letter.ask",
+        "options": [
+          {
+            "textKey": "dlg.letter.opt.give",
+            "next": "read",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.letter.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.linna",
+        "textKey": "dlg.letter.linna.first",
+        "next": "end"
+      },
+      "end": {
+        "speakerKey": "npc.linna",
+        "textKey": "dlg.letter.linna.end"
+      }
+    }
+  },
+  {
+    "id": "linna_letter",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.linna",
+        "textKey": "dlg.letter.ask",
+        "options": [
+          {
+            "textKey": "dlg.letter.opt.give",
+            "next": "read",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_dawn_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.letter.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.linna",
+        "textKey": "dlg.letter.linna",
+        "next": "end"
+      },
+      "end": {
+        "speakerKey": "npc.linna",
+        "textKey": "dlg.letter.linna.end"
+      }
+    }
   }
 ]

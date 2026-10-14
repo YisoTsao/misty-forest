@@ -5,6 +5,8 @@
 export const dialogueEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('acceptQuest'), quest: z.string().min(1) }),
   z.object({ type: z.literal('turnInQuest'), quest: z.string().min(1) }),
+  /** 完成這個任務裡「和目前對話的 NPC 談」的目標（任務 7G 送信） */
+  z.object({ type: z.literal('questTalk'), quest: z.string().min(1) }),
   /** 在酒館休息：體力回滿 */
   z.object({ type: z.literal('rest') }),
   /** 在酒館睡到指定時刻：體力回滿、時間前進（GAME_DESIGN 5.2） */

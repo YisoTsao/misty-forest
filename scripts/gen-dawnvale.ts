@@ -577,6 +577,8 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
     // 任務 7E 霧團噗啾王：戰場邊的星光鏡（鏡面朝向燈塔），戰場內清空散佈的樹與石頭
     quest('highland_star_mirror', 'star_mirror', PUFF_ARENA.x - PUFF_ARENA.r - 1, PUFF_ARENA.z - 2, { yaw: Math.atan2(L.x - (PUFF_ARENA.x - PUFF_ARENA.r - 1), L.z - (PUFF_ARENA.z - 2)), r: 1.5 });
     clear.push({ x: PUFF_ARENA.x, z: PUFF_ARENA.z, r: PUFF_ARENA.r + 1 });
+    // 任務 7G 送信：村子裡的兩籃乾布（曬衣繩下、黃色小屋旁）
+    DRY_CLOTH.forEach(([x, z], i) => quest(`village_dry_cloth_${String(i + 1).padStart(2, '0')}`, 'dry_cloth', x, z, { yaw: i * 1.3, r: 0.8 }));
     const scatterId = /^(?!edge_tree_)[a-z_]+_\d{3}$/;
     const before = out.length;
     const kept = out.filter((o) => !scatterId.test(o.id) || !clear.some((c) => Math.hypot(c.x - o.position[0], c.z - o.position[2]) < c.r + 0.6));
@@ -593,6 +595,11 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
 /** 任務 7D：燈塔頂（燈籠室的原點）離地高度、迷霧核心、三片燈罩碎片（登山客營地、廢屋、燈塔後面） */
 const LIGHTHOUSE_TOP = 15.3;
 const MIST_CORE = { x: LIGHTHOUSE.x + 8.5, z: LIGHTHOUSE.z + 7.5 } as const;
+/** 任務 7G：兩籃乾布 */
+const DRY_CLOTH: readonly [number, number][] = [
+  [-21.4, -22.4],
+  [-0.6, -42.6],
+];
 /** 任務 7E：霧團噗啾王的戰場（燈塔東邊的平地） */
 const PUFF_ARENA = { x: -4, z: -118, r: 13 } as const;
 const LANTERN_SHARDS: readonly [number, number][] = [

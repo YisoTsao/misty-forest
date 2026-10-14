@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --letters：郵袋裡的三封信（任務 7G）：郵差尼可、村子裡的乾布籃
 //   --journal：任務日誌（任務 7F）：進行中 / 可接取 / 已完成三個分頁
 //   --puffking：霧團噗啾王（任務 7E）：開場、衝撞 / 霧球 / 膨脹震地的預兆、星光鏡讓牠暈眩、倒下縮小、村外的小噗啾
 //   --lighthouse：燈塔的最後一盞光（任務 7D）：燈罩碎片、迷霧核心（淨化前後）、熄滅 / 點亮的燈塔（白天、夜晚的光柱）、點亮瞬間的金光
@@ -62,6 +63,7 @@ const withGuardian = flags.has('--guardian');
 const withLighthouse = flags.has('--lighthouse');
 const withPuffKing = flags.has('--puffking');
 const withJournal = flags.has('--journal');
+const withLetters = flags.has('--letters');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1089,6 +1091,31 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withLetters) {
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const niko = JSON.parse(readFileSync('src/data/npcs.json', 'utf8')).find((n) => n.id === 'niko').position;
+    const cloth = JSON.parse(readFileSync('src/data/placements.json', 'utf8')).find((p) => p.id === 'village_dry_cloth_01').position;
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(10);
+      for (const q of ['wood_for_bridge', 'repair_bridge']) g.setQuestCompleted(q);
+      g.send({ type: 'AcceptQuest', quest: 'quest_dawn_004' });
+    });
+    await d(([x, z]) => {
+      const g = window.__mistwoodDebug;
+      g.teleport(x - 2, z - 2.5);
+      g.viewAt([x - 3.2, 2.2, z - 3.6], [x, 0.9, z]);
+    }, niko);
+    await page.waitForTimeout(1500);
+    await shot('letters_niko');
+    await d(([x, y, z]) => window.__mistwoodDebug.viewAt([x + 2.2, y + 1.6, z + 2.2], [x, y + 0.2, z]), cloth);
+    await page.waitForTimeout(1200);
+    await shot('letters_cloth');
+    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
   }
 
   if (withJournal) {
