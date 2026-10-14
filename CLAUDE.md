@@ -5,4 +5,10 @@
 - 進度與續作：`docs/PROGRESS.md`（每次任務開始先讀、結束時更新）
 - 決策紀錄：`docs/DECISIONS.md`；資產授權：`docs/ASSETS.md`；效能量測：`docs/PERF.md`
 
-規則：單次只做一個可驗收功能。完成前必須通過 `pnpm typecheck`、`pnpm lint`、`pnpm test`、`pnpm build`、`pnpm e2e`；涉及畫面者執行 `node scripts/screenshot.mjs <階段> [--anim] [--mist] [--interact] [--menu] [--harvest] [--region] [--npc] [--lake] [--combat] [--companion] [--build] [--tavern] [--gamepad] [--ambient] [--bounds] [--daynight] [--melee] [--magic] [--map] [--monsters]` 並實際檢視截圖；效能量測用 `node scripts/perf.mjs`（有視窗、實機 GPU，量測時不要操作電腦）。`pnpm e2e` 含開發模式（StrictMode）的實際操作測試。
+規則：單次只做一個可驗收功能。驗證依「分層驗證」執行（詳見 skill `mistwood-verify`）：
+- 每次改動：`pnpm vitest related <檔案> --run`
+- 任務完成前必過：`pnpm check`、`pnpm build`
+- e2e（24 個 suite，每個都會啟動 Electron）：依 skill `mistwood-verify` 的對照表只跑改動範圍的 suite，不整組跑；純 game-core、資料、文件不跑
+- 收尾、push 前跑一次完整 `pnpm e2e`（會先 build），並在 PROGRESS.md 記錄結果
+- 截圖只拍受影響的書籤：`node scripts/screenshot.mjs <階段> <書籤...> [--flag]`，不重拍整組
+- 效能量測（perf.mjs）只在階段驗收或改到渲染負載時跑

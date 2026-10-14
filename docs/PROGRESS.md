@@ -13,7 +13,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 ## 在另一台電腦續作
 1. `git clone https://github.com/YisoTsao/misty-forest.git && cd misty-forest`
 2. 需要 Node 24、pnpm 12（`corepack enable` 或 `npm i -g pnpm`）。`pnpm install`（會下載 Electron 執行檔；`pnpm-workspace.yaml` 已允許 electron / esbuild 的 install script）。
-3. 確認環境：`pnpm typecheck && pnpm lint && pnpm test`，再 `pnpm e2e`（會開 Electron 視窗，執行時不要操作電腦）。
+3. 確認環境：`pnpm check`，再 `pnpm build`。e2e 只跑改動範圍的 suite（對照表見 `.claude/skills/mistwood-verify`）；要跑完整 `pnpm e2e` 會開約 24 個 Electron 視窗，執行時不要操作電腦。
 4. 試玩：`pnpm dev:electron`。
 5. 未納入版本控制、需要時重新產生：`node_modules/`、`dist/`、`dist-electron/`、`release/`（`pnpm build`、`pnpm run pack`）。
 6. AI 續作需要的文件：`CLAUDE.md`、`GAME_DESIGN.md`（規格 v3，優先依此）、`Mistwood_World_Bible_v2.md`（世界觀與內容）、本檔、`DECISIONS.md`。原始需求 `mistwood_game_spec.md` 與 skill `r3f-game-dev-spec` 不在 repo 內；最終規格書已涵蓋其內容。
@@ -290,7 +290,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 ## 使用者新指示（2026-10-14，優先於上方順序）：擴大第一章地圖、建立第二章，另加世界地圖、小地圖、場景豐富化、多樣怪物
 進度：7A、7B、7C 完成；接著是 8A–8D 螢苔祕林（Bible §6 的三種森林怪物可沿用 7C 的模型怪物做法）。
 原規劃（7A 實作時的差異見 DECISIONS T-103–T-109：北方是 -Z，所以高地在 z < -100）：
-已完成調查，規劃如下（單次一個任務，每個都要通過全部檢查）：
+已完成調查，規劃如下（單次一個任務；驗證依 `mistwood-verify` 分層執行）：
 - **任務 7A 晨曦谷地擴大**：`TERRAIN_SIZE` 160 → 320（Bible §5.2），可玩區 ±148、圓角 18；地形網格 320 段。既有中心內容（出生點、村莊、湖、森林）座標不變，`gen-placements.ts` 舊散佈保留原 `half = 74` 以維持 id/位置，舊邊界樹移除、新邊界重新產生。
   - 地形：北方高地（懸崖線 `cliffZ(x) = 95 + 6 sin(0.05x) + max(0, x−60)²·0.02`，高 10 m，主路處做緩坡）、東側河谷（折線河道，下切到湖底高度，兩處淺灘＋一座木橋，水面改為沿河道的帶狀網格、水深改用頂點屬性）、望星丘（−85, 88，高約 16 m）、數個小丘、西坊農田平台、古樹遺跡（88, 95）；`distanceToPath` 改為主路＋支線折線網路；`FLAT_PADS` 給房屋用的整平區；落水判定改為一般化的「低於水面」。
   - 區域：新增 `highland`、`farmland`、`river`，`overlook`、`ruins` 補上範圍 → 存檔 v10 遷移（補齊缺少的區域迷霧階段）。

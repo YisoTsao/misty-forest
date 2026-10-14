@@ -1,0 +1,69 @@
+---
+name: mistwood-verify
+description: Mistwood 專案的分層驗證流程。完成任何程式改動、準備 commit / push、決定要跑哪個 e2e suite 或要不要截圖時使用。
+---
+# 分層驗證
+
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），24 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
+
+## 每次改動後（L1，秒級）
+`pnpm vitest related <改過的檔案> --run`
+
+## 任務完成前（L2，必過）
+`pnpm check`（typecheck + lint + test），再 `pnpm build`。
+
+## 改動位置 → 要跑的 e2e 與截圖
+
+| 改到 | 跑的 e2e（`node e2e/<名稱>.e2e.mjs`） | 截圖 |
+|---|---|---|
+| `src/game-core/**`（不含 save）、`src/data/**`、文件、`scripts/gen-*` | 不跑 | 不拍 |
+| `src/game-core/save/**`、存檔相關 | `save` | 不拍 |
+| `src/game/character`、`src/game/input`、`src/world/physics`、`game-core/character`、`game-core/input` | `movement`、`bounds` | 動畫改動才拍（`--anim`） |
+| `src/world/terrain`、`boundary`、`water`、湖與木橋 | `bounds`、`lake` | 受影響書籤 |
+| `src/world/**` 的互動、碰撞、寶箱 | `world`、`harvest` | 受影響書籤 |
+| 採集（樹、岩、花、草藥） | `harvest` | `--harvest` |
+| 任務、對話、NPC（`game/npc`、`dialogueController`、`game-core/quest|dialogue|npc`） | `npc`、`quest` | `--npc` |
+| 教學（`TutorialSystem`） | `tutorial` | 不拍 |
+| 區域迷霧（`RegionTracker`、`LocationVisibility`、區域判定） | `region` | `--region` |
+| 星光夥伴 | `companion` | `--companion` |
+| 戰鬥、敵人、掉落（`game/combat`、`world/combat`） | `combat`、`melee` | `--combat` / `--melee` |
+| 魔法（星光衝擊、流星雨） | `magic` | `--magic` |
+| 怪物模型與生成 | `monsters` | `--monsters` |
+| 建造（湖心島） | `build` | `--build` |
+| 酒館與室內子場景 | `tavern` | `--tavern` |
+| 日夜、天空、光照（`world/sky`、`GameClock`、`render/timeLook`） | `daynight` | `--daynight` |
+| 環境生命（羊、炊煙、風車、告示板） | `ambient` | `--ambient` |
+| 音效與音樂 | `audio` | 不拍 |
+| 手把 | `gamepad` | `--gamepad` |
+| 設定、按鍵重新配置 | `settings` | `--menu` |
+| 小地圖、世界地圖 | `map` | `--map` |
+| 存檔（`game/save`） | `save` | 不拍 |
+| `src/render/**`（shader、後處理、植被、迷霧外觀） | 所屬功能的 suite（上表）；純視覺不跑 | 受影響書籤（`--mist` 只在迷霧相關時加） |
+| `src/app`、`src/ui`、React effect / 生命週期 | `dev`（StrictMode）＋所屬畫面的 suite | 有改畫面才用 `--menu` |
+| `e2e/**` 本身 | 只跑改到的那個 suite | 不拍 |
+| `electron/**`、`vite.config.ts`、`package.json` 建置設定、`public/` 資產載入 | 完整 `pnpm e2e` | 不拍 |
+| `docs/**`、`*.md` | 不跑 | 不拍 |
+
+改動跨多個區域時，取各列的並集，去掉重複的。
+
+## 收尾與 push 前（L4）
+- 一個任務收尾時跑一次 `pnpm e2e`（它會先 build，不必再手動 build）。
+- 只改純 game-core、資料、文件：可以略過，並在 `docs/PROGRESS.md` 註明「略過 e2e：純 game-core / 文件」。
+
+## 跑 e2e 的細節
+- 單獨跑 suite 前，若 `src/`、`electron/` 有改動，先執行一次 `pnpm build`。多個 suite 共用同一份 dist，不要每個 suite 前都 build。
+- 要跑的 suite 數量：先看上表，改幾個區域就跑幾個，不要整組跑。
+- 失敗時先修，然後只重跑「同一個」失敗的 suite，不要重跑全部。
+- 若某 suite 在整組連跑時才失敗（例如視窗崩潰），先單獨重跑：單獨通過表示是記憶體壓力，記入 `docs/PROGRESS.md`「已知問題」，不要無限重跑。
+
+## 截圖
+- 只拍受影響的書籤：`node scripts/screenshot.mjs <階段> <書籤...> [--flag]`，書籤與旗標說明見 `scripts/screenshot.mjs` 檔頭。
+- 不要重拍整組。需要比對時，前後各一張即可。
+- 截圖只用來檢查畫面是否正確，不用來推斷效能。
+
+## 原則
+1. 邏輯寫成 game-core 純函式，用 Vitest 驗證；不要靠 e2e 算數值。
+2. e2e 只驗「接起來能不能跑」，用 `__mistwoodDebug` 讀狀態再 assert，不靠截圖判斷。
+3. 回報結果只列失敗項目與總數（例如「24 中 1 失敗：movement ✗ …」），不貼整段 log。
+4. 手感與好不好玩由使用者自己試玩判斷，不要花 token 讓 AI 試玩。
+5. 效能量測（`scripts/perf.mjs`）只在階段驗收或改到渲染負載時跑，且量測時使用者不要操作電腦。

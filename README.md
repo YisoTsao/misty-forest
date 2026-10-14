@@ -111,8 +111,10 @@ pnpm dev:electron
 | `pnpm typecheck` | 三個 tsconfig 的型別檢查 |
 | `pnpm lint` | ESLint（含 game-core 的依賴限制） |
 | `pnpm test` | Vitest 單元測試 |
-| `pnpm build` | 型別檢查 + 建置網頁版與 Electron 程式 |
-| `pnpm e2e` | 建置後執行三組 Electron 端對端測試（移動、世界、開發模式實際操作） |
+| `pnpm check` | typecheck + lint + test（任務完成前必過） |
+| `pnpm build` | 建置網頁版與 Electron 程式（不含型別檢查，請先跑 `pnpm check`） |
+| `pnpm e2e` | 建置後執行全部 24 組 Electron 端對端測試（約數分鐘；日常開發改用單一 suite，見 `.claude/skills/mistwood-verify`） |
+| `pnpm e2e:movement` / `e2e:world` / `e2e:dev` | 單一 suite（需先 `pnpm build`） |
 | `pnpm pack` | 產生未壓縮的桌面版目錄（`release/`） |
 | `pnpm dist` | 產生安裝檔：macOS `.dmg`、Windows `.exe`（NSIS） |
 | `node scripts/screenshot.mjs <階段> [--anim] [--mist] [--interact] [--menu]` | 依攝影機書籤截圖，輸出到 `docs/screenshots/<階段>/` |
