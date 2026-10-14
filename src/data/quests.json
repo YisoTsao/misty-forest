@@ -1,5 +1,29 @@
 [
   {
+    "id": "quest_dawn_001",
+    "nameKey": "quest.dawn1.name",
+    "category": "main",
+    "descKey": "quest.dawn1.desc",
+    "requires": [],
+    "objectives": [
+      {
+        "type": "visit",
+        "x": -11,
+        "z": -34,
+        "radius": 16,
+        "descKey": "quest.dawn1.village"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ]
+    }
+  },
+  {
     "id": "wood_for_bridge",
     "nameKey": "quest.wood.name",
     "category": "main",

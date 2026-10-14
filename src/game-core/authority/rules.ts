@@ -339,7 +339,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
     case 'ExploreArea': {
       if (!Number.isFinite(cmd.x) || !Number.isFinite(cmd.z)) return reject('ExploreArea', 'invalid-command');
       const cells = cellsToReveal(state.explored, cmd.x, cmd.z);
-      return cells.length > 0 ? [{ type: 'AreaExplored', cells }] : [];
+      const events: GameEvent[] = cells.length > 0 ? [{ type: 'AreaExplored', cells }] : [];
+      return [...events, ...visitEvents(state, cmd.x, cmd.z, ctx)];
     }
     case 'DebugRevealMap':
       if (!ctx.allowDebugCommands) return reject('DebugRevealMap', 'not-allowed');
@@ -447,6 +448,8 @@ function openChest(state: GameState, placementId: string, ctx: RulesContext): Ga
     { type: 'ItemsGained', items, source: placementId },
   ];
   if (contents.unlocksCompanion && !state.companion.unlocked) events.push({ type: 'CompanionUnlocked' });
+  const started = contents.startsQuest ? ctx.quests.get(contents.startsQuest) : undefined;
+  if (started && questStatus(state, started) === 'available') events.push({ type: 'QuestAccepted', quest: started.id });
   return events;
 }
 
@@ -748,6 +751,19 @@ function sellItem(state: GameState, cmd: Extract<GameCommand, { type: 'SellItem'
     { type: 'ItemsRemoved', items, reason: 'shop' },
     { type: 'ItemsGained', items: coins, source: `shop:${shop.id}` },
   ];
+}
+
+/** 走到任務指定的地方（任務 7O）：進行中任務裡還沒完成的 visit 目標 */
+function visitEvents(state: GameState, x: number, z: number, ctx: RulesContext): GameEvent[] {
+  const events: GameEvent[] = [];
+  for (const [questId, record] of Object.entries(state.quests)) {
+    if (record.status !== 'active') continue;
+    ctx.quests.get(questId)?.objectives.forEach((o, i) => {
+      if (o.type !== 'visit' || (record.progress?.[i] ?? 0) > 0) return;
+      if (Math.hypot(x - o.x, z - o.z) <= o.radius) events.push({ type: 'QuestProgressed', quest: questId, objective: i, count: 1 });
+    });
+  }
+  return events;
 }
 
 function questTalk(state: GameState, questId: string, npc: string, ctx: RulesContext): GameEvent[] {

@@ -261,6 +261,14 @@
     },
     {
       "when": {
+        "type": "questStatus",
+        "quest": "quest_dawn_001",
+        "is": "active"
+      },
+      "textKey": "companion.hint.dawn1"
+    },
+    {
+      "when": {
         "type": "not",
         "condition": {
           "type": "tutorialDone"

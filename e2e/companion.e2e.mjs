@@ -31,6 +31,13 @@ await runE2e('companion e2e（1/2）', { env }, async ({ page, check, debug, sta
     assert.match(await bubble(page).innerText(), /芽芽/);
   });
 
+  await check('打開寶箱時開始「找到回家的路」；走進晨曦村自動完成（任務 7O）', async () => {
+    assert.equal(await debug(() => window.__mistwoodDebug.questState('quest_dawn_001')), 'active');
+    await teleport(-9, -30, 1200);
+    await page.waitForFunction(() => window.__mistwoodDebug.questState('quest_dawn_001') === 'completed', null, { timeout: 4000 });
+    await teleport(chest.position[0] + 0.5, chest.position[2] + 1.4, 800);
+  });
+
   await check('芽芽跟著玩家（跑 4 秒後仍在身邊）', async () => {
     await camera({ yaw: 0, pitch: 0.35, distance: 6 });
     await page.keyboard.down('ShiftLeft');

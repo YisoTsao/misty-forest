@@ -149,7 +149,8 @@
     "persists": true,
     "contents": {
       "lootTableId": "chest_meadow",
-      "unlocksCompanion": true
+      "unlocksCompanion": true,
+      "startsQuest": "quest_dawn_001"
     }
   },
   {

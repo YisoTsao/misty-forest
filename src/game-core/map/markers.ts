@@ -90,6 +90,8 @@ export function questMarkers(
           const p = ctx.placement(id);
           if (p) out.push({ questId: q.id, kind: 'objective', x: p.position[0], z: p.position[2] });
         }
+      } else if (o.type === 'visit') {
+        if ((state.quests[q.id]?.progress?.[q.objectives.indexOf(o)] ?? 0) === 0) out.push({ questId: q.id, kind: 'objective', x: o.x, z: o.z, radius: o.radius });
       } else if (o.type === 'build') {
         // 建造的地方：家園小島
         if (ctx.buildArea) out.push({ questId: q.id, kind: 'objective', x: ctx.buildArea.x, z: ctx.buildArea.z });
