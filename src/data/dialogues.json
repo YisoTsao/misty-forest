@@ -26,6 +26,15 @@
             "next": "forest"
           },
           {
+            "textKey": "dlg.elder.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_mira_supply"
+              }
+            ]
+          },
+          {
             "textKey": "dlg.elder.opt.bye"
           }
         ]
@@ -52,7 +61,21 @@
       },
       "next": {
         "speakerKey": "npc.elder",
-        "textKey": "dlg.elder.cleared2"
+        "textKey": "dlg.elder.cleared2",
+        "options": [
+          {
+            "textKey": "dlg.elder.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_mira_supply"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.elder.opt.bye"
+          }
+        ]
       }
     }
   },
@@ -836,7 +859,21 @@
     "nodes": {
       "remind": {
         "speakerKey": "npc.elder",
-        "textKey": "dlg.elder.lighthouse.remind"
+        "textKey": "dlg.elder.lighthouse.remind",
+        "options": [
+          {
+            "textKey": "dlg.elder.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_mira_supply"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.elder.opt.bye"
+          }
+        ]
       }
     }
   },
@@ -885,7 +922,21 @@
     "nodes": {
       "talk": {
         "speakerKey": "npc.elder",
-        "textKey": "dlg.elder.lighthouse.after"
+        "textKey": "dlg.elder.lighthouse.after",
+        "options": [
+          {
+            "textKey": "dlg.elder.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_mira_supply"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.elder.opt.bye"
+          }
+        ]
       }
     }
   },
@@ -900,7 +951,21 @@
       },
       "care": {
         "speakerKey": "npc.elder",
-        "textKey": "dlg.elder.puff2"
+        "textKey": "dlg.elder.puff2",
+        "options": [
+          {
+            "textKey": "dlg.elder.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_mira_supply"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.elder.opt.bye"
+          }
+        ]
       }
     }
   },

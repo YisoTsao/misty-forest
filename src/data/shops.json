@@ -1,0 +1,77 @@
+[
+  {
+    "id": "shop_mira_supply",
+    "nameKey": "shop.mira.name",
+    "npc": "elder",
+    "stock": [
+      {
+        "itemId": "wood",
+        "price": 3
+      },
+      {
+        "itemId": "stone",
+        "price": 3
+      },
+      {
+        "itemId": "herb",
+        "price": 4
+      },
+      {
+        "itemId": "herb_potion",
+        "price": 12
+      },
+      {
+        "itemId": "moondew_salve",
+        "price": 15,
+        "requires": {
+          "questCompleted": "quest_forest_001"
+        }
+      },
+      {
+        "itemId": "dry_cloth",
+        "price": 5,
+        "requires": {
+          "questCompleted": "quest_dawn_004"
+        }
+      }
+    ],
+    "buys": [
+      {
+        "itemId": "wood",
+        "price": 1
+      },
+      {
+        "itemId": "stone",
+        "price": 1
+      },
+      {
+        "itemId": "flower",
+        "price": 1
+      },
+      {
+        "itemId": "herb",
+        "price": 2
+      },
+      {
+        "itemId": "mist_gel",
+        "price": 2
+      },
+      {
+        "itemId": "root_fiber",
+        "price": 2
+      },
+      {
+        "itemId": "glow_moss",
+        "price": 2
+      },
+      {
+        "itemId": "moondew_herb",
+        "price": 3
+      },
+      {
+        "itemId": "glow_pollen",
+        "price": 3
+      }
+    ]
+  }
+]

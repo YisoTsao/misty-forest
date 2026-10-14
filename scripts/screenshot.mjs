@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --shop：米菈的雜貨補給（任務 7H）：購買、出售分頁
 //   --letters：郵袋裡的三封信（任務 7G）：郵差尼可、村子裡的乾布籃
 //   --journal：任務日誌（任務 7F）：進行中 / 可接取 / 已完成三個分頁
 //   --puffking：霧團噗啾王（任務 7E）：開場、衝撞 / 霧球 / 膨脹震地的預兆、星光鏡讓牠暈眩、倒下縮小、村外的小噗啾
@@ -64,6 +65,7 @@ const withLighthouse = flags.has('--lighthouse');
 const withPuffKing = flags.has('--puffking');
 const withJournal = flags.has('--journal');
 const withLetters = flags.has('--letters');
+const withShop = flags.has('--shop');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1091,6 +1093,22 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withShop) {
+    await page.evaluate(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.send({ type: 'DebugGiveItems', items: [{ itemId: 'seed_coin', count: 20 }, { itemId: 'wood', count: 8 }, { itemId: 'herb', count: 3 }] });
+      g.openShop('shop_mira_supply');
+    });
+    await page.getByTestId('shop').waitFor({ timeout: 3000 });
+    await page.waitForTimeout(300);
+    await shot('shop_buy');
+    await page.getByTestId('shop-tab-sell').click();
+    await page.waitForTimeout(300);
+    await shot('shop_sell');
+    await page.keyboard.press('Escape');
   }
 
   if (withLetters) {

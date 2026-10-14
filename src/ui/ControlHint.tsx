@@ -13,7 +13,7 @@ export function ControlHint() {
   const playing = useGameStore((s) => s.screen === 'playing');
   const bindings = useBindings();
   // 對話、背包、訊息視窗開啟時不顯示，避免與視窗重疊
-  const modal = useUiStore((s) => s.dialogue !== null || s.inventoryOpen || s.mapOpen || s.journalOpen || s.message !== null || s.build !== null);
+  const modal = useUiStore((s) => s.dialogue !== null || s.inventoryOpen || s.mapOpen || s.journalOpen || s.shop !== null || s.message !== null || s.build !== null);
   // 手把不需要鎖定滑鼠：使用手把時不顯示「點擊畫面開始操作」
   const gamepad = useInputDeviceStore((s) => s.device === 'gamepad');
   const [locked, setLocked] = useState(() => document.pointerLockElement !== null);

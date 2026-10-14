@@ -734,5 +734,21 @@
   "dlg.letter.balu.end": "下次修橋，我就照著這張圖來，保證比上次更結實。",
   "dlg.letter.linna.first": "你從村子一路送進森林，還是第一個送來？……是我妹妹寫的信。她說家裡的藥草園開花了。",
   "dlg.letter.linna": "是妹妹的信！她說家裡的藥草園開花了。",
-  "dlg.letter.linna.end": "等林子裡的霧散了，我想請她來看看螢苔。謝謝你。"
+  "dlg.letter.linna.end": "等林子裡的霧散了，我想請她來看看螢苔。謝謝你。",
+  "dlg.elder.opt.shop": "看看補給品。",
+  "shop.mira.name": "米菈的雜貨補給",
+  "shop.owner": "店主：{npc}",
+  "shop.tab.buy": "購買",
+  "shop.tab.sell": "出售",
+  "shop.price": "{price} 種籽幣",
+  "shop.owned": "持有 {count}",
+  "shop.buy": "買（{total}）",
+  "shop.sell": "賣（{total}）",
+  "shop.noCoins": "種籽幣不夠",
+  "shop.noItems": "持有的數量不夠",
+  "shop.hint.buy": "村裡的補給都在這裡。新的補給會隨著旅程慢慢進貨。Esc 關閉",
+  "shop.hint.sell": "採集來的木材、石頭和藥草，米菈都會收。任務需要的東西不能賣。Esc 關閉",
+  "toast.paid": "付出 {item} ×{count}",
+  "toast.notEnoughCoins": "種籽幣不夠",
+  "toast.notForSale": "這裡不買賣這個東西"
 }

@@ -1,3 +1,4 @@
+import type { ShopCatalog } from '@/game-core/shop/shop';
 import { LocalAuthority } from '@/game-core/authority/authority';
 import type { DialogueDef } from '@/game-core/dialogue/dialogue';
 import type { NpcDef } from '@/game-core/npc/npc';
@@ -38,6 +39,7 @@ const data = worldDataResult.ok
       spells: new Map() as SpellCatalog,
       landmarks: [] as Landmark[],
       waterways: [] as WaterwayDef[],
+      shops: new Map() as ShopCatalog,
     };
 
 /** NPC 與對話資料 */
@@ -61,6 +63,9 @@ export const landmarks: readonly Landmark[] = data.landmarks;
 /** 水道謎題（任務 8C） */
 export const waterways: readonly WaterwayDef[] = data.waterways;
 
+/** 商店（任務 7H） */
+export const shops: ShopCatalog = data.shops;
+
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;
 
@@ -81,6 +86,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   spells: data.spells,
   buildables: data.buildables,
   waterways: data.waterways,
+  shops: data.shops,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),
   allowDebugCommands,
 });

@@ -56,6 +56,8 @@ await runE2e('forestguard e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({
       await page.keyboard.press('Space');
       await page.waitForTimeout(200);
     }
+    // 最後一個節點有選項（例如米菈的「看看補給品」）時 Space 不會關閉，改按 Esc
+    if ((await box.count()) > 0) await page.keyboard.press('Escape');
     await box.waitFor({ state: 'detached', timeout: 2000 });
   };
   /** 從根源石正面（刻紋那一面，西側）走近 */

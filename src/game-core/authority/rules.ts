@@ -17,6 +17,7 @@ import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 import { outletsToWake, type WaterwayDef } from '../world/waterway';
+import { availableStock, COIN, MAX_TRADE, type ShopCatalog } from '../shop/shop';
 
 /** 權威遊戲狀態。之後的階段會加入任務、各區域迷霧、建造物件等。 */
 export type GameState = {
@@ -78,6 +79,9 @@ export type GameCommand =
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
   | { type: 'AcceptQuest'; quest: string }
+  /** 在商店買 / 賣（任務 7H）：以種籽幣交易，count 為數量 */
+  | { type: 'BuyItem'; shop: string; itemId: string; count: number }
+  | { type: 'SellItem'; shop: string; itemId: string; count: number }
   /** 在對話中完成「和 npc 談」的任務目標（任務 7G 送信）：交出物品、記錄順序 */
   | { type: 'QuestTalk'; quest: string; npc: string }
   /** 任務日誌：追蹤 / 取消追蹤進行中的任務（主線一定追蹤；其他最多 MAX_TRACKED_SIDE 個，任務 7F） */
@@ -158,6 +162,8 @@ export type RejectReason =
   | 'boss-not-defeated'
   | 'out-of-order'
   | 'track-limit'
+  | 'not-enough-coins'
+  | 'not-for-sale'
   | 'invalid-command';
 
 export type GameEvent =
@@ -171,7 +177,7 @@ export type GameEvent =
   | { type: 'QuestAccepted'; quest: string }
   | { type: 'QuestTracked'; quest: string; tracked: boolean }
   | { type: 'QuestCompleted'; quest: string }
-  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
   | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'water' | 'quest' }
@@ -215,6 +221,8 @@ export type RulesContext = {
   weapons: WeaponCatalog;
   spells: SpellCatalog;
   buildables: BuildableCatalog;
+  /** 商店（任務 7H）；省略時沒有商店 */
+  shops?: ShopCatalog;
   /** 水道謎題（任務 8C）；省略時沒有水道 */
   waterways?: readonly WaterwayDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
@@ -304,6 +312,10 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     }
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
+    case 'BuyItem':
+      return buyItem(state, cmd, ctx);
+    case 'SellItem':
+      return sellItem(state, cmd, ctx);
     case 'QuestTalk':
       return questTalk(state, cmd.quest, cmd.npc, ctx);
     case 'TrackQuest': {
@@ -603,6 +615,44 @@ function acceptQuest(state: GameState, questId: string, ctx: RulesContext): Game
   // 已經追蹤滿了：新接的支線先不追蹤（可在任務日誌切換）
   if (def.category !== 'main' && trackedSideCount(state.quests, ctx.quests) >= MAX_TRACKED_SIDE) events.push({ type: 'QuestTracked', quest: questId, tracked: false });
   return events;
+}
+
+function tradeCount(count: number): boolean {
+  return Number.isInteger(count) && count >= 1 && count <= MAX_TRADE;
+}
+
+function buyItem(state: GameState, cmd: Extract<GameCommand, { type: 'BuyItem' }>, ctx: RulesContext): GameEvent[] {
+  const shop = ctx.shops?.get(cmd.shop);
+  if (!shop) return reject('BuyItem', 'invalid-command');
+  if (!tradeCount(cmd.count)) return reject('BuyItem', 'invalid-command');
+  const entry = availableStock(shop, state.quests).find((s) => s.itemId === cmd.itemId);
+  if (!entry) return reject('BuyItem', 'not-for-sale');
+  const cost = [{ itemId: COIN, count: entry.price * cmd.count }];
+  const afterPay = removeItems(state.inventory, cost);
+  if (!afterPay) return reject('BuyItem', 'not-enough-coins');
+  const items = [{ itemId: cmd.itemId, count: cmd.count }];
+  if (!addItems(afterPay, items, ctx.items)) return reject('BuyItem', 'inventory-full');
+  return [
+    { type: 'ItemsRemoved', items: cost, reason: 'shop' },
+    { type: 'ItemsGained', items, source: `shop:${shop.id}` },
+  ];
+}
+
+function sellItem(state: GameState, cmd: Extract<GameCommand, { type: 'SellItem' }>, ctx: RulesContext): GameEvent[] {
+  const shop = ctx.shops?.get(cmd.shop);
+  if (!shop) return reject('SellItem', 'invalid-command');
+  if (!tradeCount(cmd.count)) return reject('SellItem', 'invalid-command');
+  const entry = shop.buys.find((b) => b.itemId === cmd.itemId);
+  if (!entry) return reject('SellItem', 'not-for-sale');
+  const items = [{ itemId: cmd.itemId, count: cmd.count }];
+  const afterSell = removeItems(state.inventory, items);
+  if (!afterSell) return reject('SellItem', 'missing-materials');
+  const coins = [{ itemId: COIN, count: entry.price * cmd.count }];
+  if (!addItems(afterSell, coins, ctx.items)) return reject('SellItem', 'inventory-full');
+  return [
+    { type: 'ItemsRemoved', items, reason: 'shop' },
+    { type: 'ItemsGained', items: coins, source: `shop:${shop.id}` },
+  ];
 }
 
 function questTalk(state: GameState, questId: string, npc: string, ctx: RulesContext): GameEvent[] {

@@ -10,6 +10,8 @@ const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejec
   'not-in-fight': 'toast.troughIdle',
   'boss-not-defeated': 'toast.guardianAwake',
   'out-of-order': 'toast.notYet',
+  'not-enough-coins': 'toast.notEnoughCoins',
+  'not-for-sale': 'toast.notForSale',
 };
 
 function itemName(itemId: string): string {
@@ -43,7 +45,8 @@ export function installEventFeedback(): void {
         // 星光鏡（任務 7E）的提示由頭目戰處理
         if (objectNameKey(e.placementId) === 'object.waterWheel') ui.pushToast({ textKey: 'toast.wheelTurned' });
       } else if (e.type === 'ItemsRemoved') {
-        for (const stack of e.items) ui.pushToast({ textKey: 'toast.itemsGiven', vars: { item: itemName(stack.itemId), count: stack.count } });
+        const key = e.reason === 'shop' ? 'toast.paid' : 'toast.itemsGiven';
+        for (const stack of e.items) ui.pushToast({ textKey: key, vars: { item: itemName(stack.itemId), count: stack.count } });
       } else if (e.type === 'QuestAccepted' || e.type === 'QuestCompleted') {
         const def = quests.get(e.quest);
         const key = e.type === 'QuestAccepted' ? 'toast.questAccepted' : 'toast.questCompleted';

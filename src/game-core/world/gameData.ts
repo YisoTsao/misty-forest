@@ -14,6 +14,7 @@ import { parseInteriors, type InteriorDef } from './interiors';
 import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
 import { parseWaterways, type WaterwayDef } from './waterway';
+import { parseShops, type ShopDef } from '../shop/shop';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
 
 /** 遊戲啟動時載入的全部靜態資料：世界物件 + 物品與掉落表。 */
@@ -37,6 +38,8 @@ export type GameData = WorldData & {
   landmarks: readonly Landmark[];
   /** 水道謎題（任務 8C） */
   waterways: readonly WaterwayDef[];
+  /** 商店（任務 7H） */
+  shops: ReadonlyMap<string, ShopDef>;
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -61,6 +64,7 @@ export function parseGameData(raw: {
   landmarks?: unknown;
   /** 省略時沒有水道（測試用的最小資料） */
   waterways?: unknown;
+  shops?: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -204,5 +208,11 @@ export function parseGameData(raw: {
       if (!p?.activate && !p?.repair) throw new WorldDataError(`水道 ${w.id} 的阻擋點不能排除（需要 activate 或 repair）：${id}`);
     }
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways };
+  let shops: Map<string, ShopDef>;
+  try {
+    shops = parseShops(raw.shops ?? [], { items, npcs: new Set(npcs.map((n) => n.id)), quests: new Set(quests.keys()) });
+  } catch (err) {
+    throw new WorldDataError(`shops 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways, shops };
 }

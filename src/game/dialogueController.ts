@@ -29,7 +29,7 @@ export function currentDialogueView(): DialogueView | null {
   return active && def ? viewNode(def, active.nodeId, authority.getState(), conditionCtx) : null;
 }
 
-function commandFor(effect: DialogueEffect, npcId: string): GameCommand {
+function commandFor(effect: Exclude<DialogueEffect, { type: 'openShop' }>, npcId: string): GameCommand {
   switch (effect.type) {
     case 'questTalk':
       return { type: 'QuestTalk', quest: effect.quest, npc: npcId };
@@ -51,7 +51,17 @@ export function advanceTalk(optionIndex?: number): void {
   const def = active && dialogues.get(active.dialogueId);
   if (!active || !def) return;
   const { next, effects } = advanceDialogue(def, active.nodeId, authority.getState(), conditionCtx, optionIndex);
-  for (const effect of effects) authority.send(commandFor(effect, active.npcId));
+  let shop: string | null = null;
+  for (const effect of effects) {
+    // 打開商店是本機畫面：對話結束後開啟（任務 7H）
+    if (effect.type === 'openShop') shop = effect.shop;
+    else authority.send(commandFor(effect, active.npcId));
+  }
+  if (shop) {
+    endTalk();
+    ui.setShop(shop);
+    return;
+  }
   if (next) ui.setDialogue({ ...active, nodeId: next });
   else endTalk();
 }

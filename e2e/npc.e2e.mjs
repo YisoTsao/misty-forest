@@ -43,12 +43,12 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
     assert.ok(Math.hypot(after.x - before.x, after.z - before.z) < 0.02);
   });
 
-  await check('空白鍵 / E 繼續，到達選項節點顯示 3 個選項', async () => {
+  await check('空白鍵 / E 繼續，到達選項節點顯示 4 個選項（含「看看補給品」）', async () => {
     await page.keyboard.press('Space');
     await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'tree');
     await page.keyboard.press('KeyE');
     await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'mist');
-    assert.equal(await page.locator('[data-testid="dialogue-option"]').count(), 3);
+    assert.equal(await page.locator('[data-testid="dialogue-option"]').count(), 4);
   });
 
   await check('按 2 選「森林裡發生了什麼事？」→ 回答後回到選項', async () => {

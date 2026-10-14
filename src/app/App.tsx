@@ -20,6 +20,7 @@ import { InventoryPanel } from '@/ui/InventoryPanel';
 import { Minimap } from '@/ui/map/Minimap';
 import { WorldMap } from '@/ui/map/WorldMap';
 import { QuestJournal } from '@/ui/QuestJournal';
+import { ShopPanel } from '@/ui/ShopPanel';
 import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
@@ -84,6 +85,7 @@ export function App() {
       <PauseMenu />
       <WorldMap />
       <QuestJournal />
+      <ShopPanel />
       <SettingsPanel />
       <ErrorOverlay />
     </div>
