@@ -79,6 +79,8 @@ export type GameCommand =
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
   | { type: 'AcceptQuest'; quest: string }
+  /** 使用消耗品（任務 7I）：藥水回血、藥膏回血並解除緩速 */
+  | { type: 'UseItem'; itemId: string }
   /** 在商店買 / 賣（任務 7H）：以種籽幣交易，count 為數量 */
   | { type: 'BuyItem'; shop: string; itemId: string; count: number }
   | { type: 'SellItem'; shop: string; itemId: string; count: number }
@@ -132,7 +134,9 @@ export type GameCommand =
   /** 除錯 / 美術驗收：時間往前推進到指定時刻（只往前，不倒轉；ctx.allowDebugCommands 為 true 時才接受） */
   | { type: 'DebugSetClock'; hour: number }
   /** 除錯 / 測試：直接設定星光值（ctx.allowDebugCommands 為 true 時才接受） */
-  | { type: 'DebugSetMp'; mp: number };
+  | { type: 'DebugSetMp'; mp: number }
+  /** 除錯 / 測試：直接設定體力（ctx.allowDebugCommands 為 true 時才接受） */
+  | { type: 'DebugSetHp'; hp: number };
 
 export type RejectReason =
   | 'unknown-object'
@@ -163,6 +167,8 @@ export type RejectReason =
   | 'out-of-order'
   | 'track-limit'
   | 'not-enough-coins'
+  | 'not-usable'
+  | 'hp-full'
   | 'not-for-sale'
   | 'invalid-command';
 
@@ -177,7 +183,7 @@ export type GameEvent =
   | { type: 'QuestAccepted'; quest: string }
   | { type: 'QuestTracked'; quest: string; tracked: boolean }
   | { type: 'QuestCompleted'; quest: string }
-  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
   | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'water' | 'quest' }
@@ -200,6 +206,8 @@ export type GameEvent =
   /** cause：spores 為頭目的睡眠孢子（任務 8D），省略為泥團 */
   | { type: 'PlayerSlowed'; sec: number; scale: number; cause?: 'spores' }
   | { type: 'PlayerHealed'; hp: number }
+  /** 用月露藥膏解除緩速（本機表現，任務 7I） */
+  | { type: 'PlayerSlowCured' }
   | { type: 'PlayerDefeated' }
   | { type: 'PlayerRespawned'; hp: number }
   | { type: 'QuestProgressed'; quest: string; objective: number; count: number }
@@ -260,6 +268,14 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       if (state.player.mp < spell.mpCost) return reject('CastSpell', 'not-enough-mp');
       return [{ type: 'SpellCast', spell: spell.id, mp: state.player.mp - spell.mpCost }];
     }
+    case 'DebugSetHp':
+      if (!ctx.allowDebugCommands) return reject('DebugSetHp', 'not-allowed');
+      if (!Number.isFinite(cmd.hp) || state.player.defeated) return reject('DebugSetHp', 'invalid-command');
+      {
+        const hp = Math.min(PLAYER_STATS.maxHp, Math.max(1, cmd.hp));
+        // 調低時當作受傷（記錄受傷時間，之後一段時間才開始回血）
+        return hp < state.player.hp ? [{ type: 'PlayerDamaged', amount: state.player.hp - hp, hp, enemyId: 'debug' }] : [{ type: 'PlayerHealed', hp }];
+      }
     case 'DebugSetMp':
       if (!ctx.allowDebugCommands) return reject('DebugSetMp', 'not-allowed');
       if (!Number.isFinite(cmd.mp)) return reject('DebugSetMp', 'invalid-command');
@@ -312,6 +328,8 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     }
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
+    case 'UseItem':
+      return consumeItem(state, cmd.itemId, ctx);
     case 'BuyItem':
       return buyItem(state, cmd, ctx);
     case 'SellItem':
@@ -614,6 +632,22 @@ function acceptQuest(state: GameState, questId: string, ctx: RulesContext): Game
   if (start.length > 0) events.push({ type: 'ItemsGained', items: start, source: `quest:${questId}` });
   // 已經追蹤滿了：新接的支線先不追蹤（可在任務日誌切換）
   if (def.category !== 'main' && trackedSideCount(state.quests, ctx.quests) >= MAX_TRACKED_SIDE) events.push({ type: 'QuestTracked', quest: questId, tracked: false });
+  return events;
+}
+
+function consumeItem(state: GameState, itemId: string, ctx: RulesContext): GameEvent[] {
+  const use = ctx.items.get(itemId)?.use;
+  if (!use) return reject('UseItem', 'not-usable');
+  if (state.player.defeated) return reject('UseItem', 'player-defeated');
+  // 體力已滿時只回血的藥不能用（避免浪費）；能解除緩速的藥膏照樣可以用
+  if (state.player.hp >= PLAYER_STATS.maxHp && !use.cureSlow) return reject('UseItem', 'hp-full');
+  const items = [{ itemId, count: 1 }];
+  if (!removeItems(state.inventory, items)) return reject('UseItem', 'missing-materials');
+  const events: GameEvent[] = [
+    { type: 'ItemsRemoved', items, reason: 'use' },
+    { type: 'PlayerHealed', hp: Math.min(PLAYER_STATS.maxHp, state.player.hp + use.heal) },
+  ];
+  if (use.cureSlow) events.push({ type: 'PlayerSlowCured' });
   return events;
 }
 

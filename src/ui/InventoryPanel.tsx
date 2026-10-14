@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { InventorySlot } from '@/game-core/inventory/inventory';
+import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { input } from '@/game/input/inputManager';
 import { actionKey } from '@/game/input/keyLabels';
@@ -87,6 +88,16 @@ function InventoryWindow() {
                 {t(`inventory.category.${def.category}`)} · {t('inventory.owned')} {slot.count}
               </p>
               <p className="mt-3 text-sm leading-6">{t(def.descKey)}</p>
+              {def.use && (
+                <button
+                  type="button"
+                  data-testid="inventory-use"
+                  onClick={() => authority.send({ type: 'UseItem', itemId: def.id })}
+                  className="mt-3 rounded-full bg-emerald-500 px-4 py-1.5 font-bold text-white hover:bg-emerald-600"
+                >
+                  {t('inventory.use', { heal: def.use.heal })}
+                </button>
+              )}
             </>
           ) : (
             <p className="mt-16 text-center text-sm whitespace-pre-line opacity-60">{t('inventory.empty')}</p>

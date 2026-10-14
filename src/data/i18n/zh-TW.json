@@ -12,7 +12,7 @@
   "bookmark.overlook": "觀景點",
   "bookmark.character": "角色特寫",
   "hint.clickToPlay": "點擊畫面開始操作",
-  "hint.controls": "{move} 移動 · {run} 跑步 · {jump} 跳躍 · {interact} 互動 · {attack} 攻擊 · {heavy} 重擊 · {weapons} 換武器 · {skill} 星光衝擊 · {spell2} 星屑飛彈 · {spell3} 流星雨 · {inventory} 背包 · {map} 地圖 · {journal} 任務 · {build} 建造 · {companion} 問芽芽 · {pause} 暫停",
+  "hint.controls": "{move} 移動 · {run} 跑步 · {jump} 跳躍 · {interact} 互動 · {attack} 攻擊 · {heavy} 重擊 · {weapons} 換武器 · {skill} 星光衝擊 · {spell2} 星屑飛彈 · {spell3} 流星雨 · {inventory} 背包 · {quickHeal} 喝藥 · {map} 地圖 · {journal} 任務 · {build} 建造 · {companion} 問芽芽 · {pause} 暫停",
   "debug.mist": "迷霧",
   "mist.dense": "濃",
   "mist.light": "淡",
@@ -60,6 +60,7 @@
   "inventory.category.material": "材料",
   "inventory.category.special": "珍貴物品",
   "inventory.category.quest": "任務物品",
+  "inventory.category.consumable": "消耗品",
   "inventory.close": "關閉",
   "title.continue": "繼續遊戲",
   "title.newGame": "新遊戲",
@@ -750,5 +751,13 @@
   "shop.hint.sell": "採集來的木材、石頭和藥草，米菈都會收。任務需要的東西不能賣。Esc 關閉",
   "toast.paid": "付出 {item} ×{count}",
   "toast.notEnoughCoins": "種籽幣不夠",
-  "toast.notForSale": "這裡不買賣這個東西"
+  "toast.notForSale": "這裡不買賣這個東西",
+  "action.quickHeal": "快速使用回復藥",
+  "inventory.use": "使用（回復 {heal}）",
+  "inventory.category.currency": "貨幣",
+  "toast.hpFull": "體力是滿的，先留著吧",
+  "toast.noHeal": "身上沒有回復藥了",
+  "toast.notUsable": "這個不能直接使用",
+  "combat.slowCured": "藥膏涼涼的，腳上的泥巴和睡意都不見了",
+  "hud.potions": "回復藥"
 }

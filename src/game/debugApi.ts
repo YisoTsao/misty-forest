@@ -173,6 +173,8 @@ export type MistwoodDebugApi = {
   defeatedBosses: () => readonly string[];
   /** 晨曦燈塔的光柱是否已建立（任務 7D） */
   lighthouseBeam: () => boolean;
+  /** 讓玩家被緩速（測試用，任務 7I） */
+  slowPlayer: (sec: number, scale: number) => void;
   /** 直接打開商店（截圖用，任務 7H） */
   openShop: (shop: string) => void;
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
@@ -423,6 +425,10 @@ export function installDebugApi(): void {
     defeatedBosses: () => [...authority.getState().defeatedBosses],
     lighthouseBeam: () => lighthouseVisual.beam,
     openShop: (shop) => useUiStore.getState().setShop(shop),
+    slowPlayer: (sec, scale) => {
+      combatRuntime.slow.remaining = sec;
+      combatRuntime.slow.scale = scale;
+    },
     waterway: () => {
       const def = waterways[0];
       if (!def) return null;

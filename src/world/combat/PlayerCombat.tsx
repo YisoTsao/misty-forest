@@ -1,4 +1,6 @@
 import { useFrame } from '@react-three/fiber';
+import { chooseQuickHeal } from '@/game-core/items/consumables';
+import { worldDataResult } from '@/game/worldData';
 import { useMemo } from 'react';
 import { assistFacing, isInMoveArea, startHeavy, startLight, weaponIds, type MoveDef, type WeaponId } from '@/game-core/combat/weapons';
 import { mapAt } from '@/game-core/world/maps';
@@ -6,6 +8,7 @@ import { terrainHeight } from '@/game-core/world/terrain';
 import { currentScreen } from '@/game/state/gameStore';
 import { useSettingsStore } from '@/game/state/settingsStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
+import { PLAYER_STATS } from '@/game-core/combat/combat';
 import { audio } from '@/game/audio/audioEngine';
 import { authority, weapons } from '@/game/authority';
 import { bossRetryPoint } from '@/game/combat/bossRuntime';
@@ -41,6 +44,17 @@ function pressedWeapon(current: WeaponId): WeaponId | null {
  * - 揮下的瞬間以招式範圍判定命中的敵人，送出指令由權威層結算傷害；冷卻與連段在本機計算。
  * - 倒下後過一段時間重新站起來。
  */
+/** 快速使用回復藥（任務 7I）：依體力與是否被緩速選藥，沒有可用的藥時提示 */
+function quickHeal(): void {
+  const state = authority.getState();
+  if (state.player.defeated) return;
+  const itemId = chooseQuickHeal(state.inventory, itemCatalog, { hp: state.player.hp, maxHp: PLAYER_STATS.maxHp, slowed: combatRuntime.slow.remaining > 0 });
+  if (itemId) authority.send({ type: 'UseItem', itemId });
+  else useUiStore.getState().pushToast({ textKey: state.player.hp >= PLAYER_STATS.maxHp ? 'toast.hpFull' : 'toast.noHeal' });
+}
+
+const itemCatalog = worldDataResult.ok ? worldDataResult.data.items : new Map();
+
 export function PlayerCombat() {
   const pending = useMemo(() => [] as PendingHit[], []);
   const buffer = useMemo(() => ({ kind: null as 'light' | 'heavy' | null, until: 0 }), []);
@@ -64,6 +78,7 @@ export function PlayerCombat() {
     // 每幀都讀掉按鍵，避免在選單或對話中按的鍵（數字鍵選選項）之後才生效
     const attackPressed = input.consumePressed('attack');
     const heavyPressed = input.consumePressed('heavyAttack');
+    const healPressed = input.consumePressed('quickHeal');
     const state = authority.getState();
     const switchTo = pressedWeapon(state.player.weapon);
     // 建造模式中左鍵用來放置（BuildController），數字鍵選建造物
@@ -72,6 +87,7 @@ export function PlayerCombat() {
       pending.length = 0;
       return;
     }
+    if (healPressed && !isModalOpen()) quickHeal();
 
     // 倒下：一段時間後重新站起來，回到重生點
     if (state.player.defeated) {

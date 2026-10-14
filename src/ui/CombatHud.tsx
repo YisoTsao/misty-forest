@@ -1,3 +1,5 @@
+import { worldDataResult } from '@/game/worldData';
+import { countItem } from '@/game-core/inventory/inventory';
 import { useEffect, useRef } from 'react';
 import { PLAYER_STATS } from '@/game-core/combat/combat';
 import { nearCampfire } from '@/game-core/authority/rules';
@@ -118,6 +120,7 @@ export function CombatHud() {
           </div>
           <span ref={mpTextRef} className="w-14 text-right font-mono text-[10px] opacity-90" />
         </div>
+        <PotionCount keyLabel={actionKey(bindings, 'quickHeal')} />
       </div>
       <div className="pointer-events-none absolute right-6 bottom-6 flex gap-3">
         <div className="flex flex-col items-end gap-2">
@@ -185,6 +188,20 @@ function SkillSlot({ refEl, keyLabel, label, icon, testId }: { refEl: React.Ref<
         <kbd className="absolute right-0.5 bottom-0.5 rounded bg-amber-200 px-1 text-[10px] font-bold text-amber-950">{keyLabel}</kbd>
       </div>
       <span className="text-[11px] text-white drop-shadow">{label}</span>
+    </div>
+  );
+}
+
+/** 身上的回復藥總數與快速使用鍵（任務 7I）；沒有藥時不顯示 */
+function PotionCount({ keyLabel }: { keyLabel: string }) {
+  const inventory = useGameStateStore((s) => s.state.inventory);
+  const items = worldDataResult.ok ? worldDataResult.data.items : null;
+  const count = items ? [...items.values()].filter((d) => d.use).reduce((n, d) => n + countItem(inventory, d.id), 0) : 0;
+  if (count === 0) return null;
+  return (
+    <div className="mt-1.5 flex w-fit items-center gap-1.5 rounded-full bg-black/40 px-2 py-0.5 text-xs text-white" data-testid="potion-count">
+      <span className="rounded bg-white/85 px-1 font-mono text-[10px] font-bold text-amber-950">{keyLabel}</span>
+      <span>🧪 {t('hud.potions')} ×{count}</span>
     </div>
   );
 }

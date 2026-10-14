@@ -71,6 +71,9 @@
   "journal": [
     "KeyJ"
   ],
+  "quickHeal": [
+    "KeyX"
+  ],
   "pause": [
     "Escape"
   ]

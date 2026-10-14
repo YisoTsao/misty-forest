@@ -208,6 +208,10 @@ export function installCombatRuntime(): void {
           combatRuntime.slow.remaining = e.sec;
           combatRuntime.slow.scale = e.scale;
           break;
+        case 'PlayerSlowCured':
+          if (combatRuntime.slow.remaining > 0) useUiStore.getState().pushToast({ textKey: 'combat.slowCured' });
+          combatRuntime.slow.remaining = 0;
+          break;
         case 'PlayerDefeated':
           combatRuntime.slow.remaining = 0;
           combatRuntime.defeatedFor = 0;

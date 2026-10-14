@@ -14,6 +14,8 @@ export const itemDefSchema = z.object({
   category: z.enum(itemCategories),
   /** 單格堆疊上限 */
   maxStack: z.number().int().positive(),
+  /** 可以使用（任務 7I，Bible §25.3）：回復 heal 點體力；cureSlow 時同時解除泥巴 / 孢子造成的緩速 */
+  use: z.object({ heal: z.number().int().positive(), cureSlow: z.boolean().optional() }).optional(),
 });
 export type ItemDef = z.infer<typeof itemDefSchema>;
 

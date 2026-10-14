@@ -29,6 +29,8 @@ export const actionIds = [
   'map',
   /** 任務日誌（任務 7F） */
   'journal',
+  /** 快速使用回復藥（任務 7I） */
+  'quickHeal',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];

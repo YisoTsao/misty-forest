@@ -91,3 +91,25 @@ describe('買賣', () => {
     expect(rejection(s, { type: 'SellItem', shop: SHOP, itemId: 'dawn_resonance', count: 1 })).toBe('not-for-sale');
   });
 });
+
+describe('使用消耗品（任務 7I）', () => {
+  const hurt = (items: { itemId: string; count: number }[], hp: number): GameState => {
+    const s = withItems(items);
+    return { ...s, player: { ...s.player, hp } };
+  };
+  it('小瓶草藥水回血；體力滿時不能用；沒有就不能用；不是消耗品不能用', () => {
+    const heal = data.items.get('herb_potion')!.use!.heal;
+    const r = run(hurt([{ itemId: 'herb_potion', count: 1 }], 40), { type: 'UseItem', itemId: 'herb_potion' });
+    expect(r.state.player.hp).toBe(40 + heal);
+    expect(countItem(r.state.inventory, 'herb_potion')).toBe(0);
+    expect(rejection(hurt([{ itemId: 'herb_potion', count: 1 }], 100), { type: 'UseItem', itemId: 'herb_potion' })).toBe('hp-full');
+    expect(rejection(hurt([], 40), { type: 'UseItem', itemId: 'herb_potion' })).toBe('missing-materials');
+    expect(rejection(hurt([{ itemId: 'wood', count: 1 }], 40), { type: 'UseItem', itemId: 'wood' })).toBe('not-usable');
+  });
+  it('月露藥膏回血並解除緩速；回血不超過上限；體力滿也能用來解除緩速', () => {
+    const r = run(hurt([{ itemId: 'moondew_salve', count: 2 }], 90), { type: 'UseItem', itemId: 'moondew_salve' });
+    expect(r.state.player.hp).toBe(100);
+    expect(r.events).toContainEqual({ type: 'PlayerSlowCured' });
+    expect(rejection(hurt([{ itemId: 'moondew_salve', count: 1 }], 100), { type: 'UseItem', itemId: 'moondew_salve' })).toBeNull();
+  });
+});
