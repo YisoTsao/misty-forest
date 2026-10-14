@@ -891,5 +891,16 @@
   "bookmark.mirrorlake_temple": "水鏡神殿",
   "bookmark.mirrorlake_ruins": "水鏡遺構",
   "bookmark.mirrorlake_bell": "沉沒鐘樓",
-  "bookmark.mirrorlake_overview": "澄鏡湖俯瞰"
+  "bookmark.mirrorlake_overview": "澄鏡湖俯瞰",
+  "enemy.mob_bubble_wisp_small": "小水滴",
+  "enemy.mob_mist_heron": "霧鷺影",
+  "enemy.mob_mirror_crab": "鏡殼蟹",
+  "item.lake_pearl.name": "湖珠",
+  "item.lake_pearl.desc": "水泡精身體裡凝成的小珍珠，能做飾品與裝飾。",
+  "item.water_essence.name": "水之精華",
+  "item.water_essence.desc": "一小團不會散開的湖水，摸起來涼涼的。水系藥劑與製作的材料。",
+  "item.mist_feather.name": "霧羽",
+  "item.mist_feather.desc": "霧鷺影掉下的羽毛，末端像水墨暈開。可以當風向裝置的絕緣材料。",
+  "item.mirror_shell.name": "鏡殼片",
+  "item.mirror_shell.desc": "鏡殼蟹背上脫落的小鏡片，能映出模糊的影子。鏡面裝飾與護符升級的材料。"
 }

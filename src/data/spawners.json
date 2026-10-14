@@ -25,5 +25,12 @@
   { "id": "maze_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [2038, -46], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 45 },
   { "id": "highland_boss", "regionId": "highland", "enemy": "boss_dawn_mist_puff", "center": [-4, -122], "radius": 3, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true },
   { "id": "crown_boss", "regionId": "moss_crown", "enemy": "boss_moss_thump", "center": [2091, 46], "radius": 4, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true },
-  { "id": "crescent_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1952, -44], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 }
+  { "id": "crescent_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1952, -44], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 },
+  { "id": "lake_wisps_north", "regionId": "lake_shore", "enemy": "mob_bubble_wisp", "center": [3930, -30], "radius": 7, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 40 },
+  { "id": "lake_wisps_east", "regionId": "lake_shore", "enemy": "mob_bubble_wisp", "center": [4104, 22], "radius": 6, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 40 },
+  { "id": "lake_herons_south", "regionId": "lake_shore", "enemy": "mob_mist_heron", "center": [3944, 62], "radius": 8, "budget": { "dense": 2, "light": 2, "clear": 1 }, "respawnSec": 50 },
+  { "id": "lake_herons_east", "regionId": "lake_shore", "enemy": "mob_mist_heron", "center": [4084, 58], "radius": 8, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 50 },
+  { "id": "lake_crabs_ruins", "regionId": "mirror_ruins", "enemy": "mob_mirror_crab", "center": [4018, 88], "radius": 6, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 },
+  { "id": "lake_crabs_isle", "regionId": "reed_isle", "enemy": "mob_mirror_crab", "center": [3998, -16], "radius": 5, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 },
+  { "id": "lake_crabs_south", "regionId": "lake_shore", "enemy": "mob_mirror_crab", "center": [3966, 82], "radius": 6, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 }
 ]

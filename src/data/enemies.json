@@ -108,35 +108,6 @@
     }
   },
   {
-    "id": "mob_bubble_wisp",
-    "nameKey": "enemy.mob_bubble_wisp",
-    "maxHp": 40,
-    "damage": 9,
-    "moveSpeed": 2.8,
-    "aggroRadius": 9,
-    "attackRange": 1.8,
-    "attackWindup": 0.6,
-    "attackCooldown": 1.8,
-    "leashRadius": 16,
-    "lootTableId": "mob_bubble_wisp_drop",
-    "model": {
-      "path": "models/monsters/Squidle.glb",
-      "height": 1.5,
-      "radius": 0.5,
-      "clips": {
-        "idle": "CharacterArmature|Flying_Idle",
-        "move": "CharacterArmature|Fast_Flying",
-        "attack": "CharacterArmature|Headbutt",
-        "hit": "CharacterArmature|HitReact",
-        "death": "CharacterArmature|Death"
-      },
-      "hover": 0.4,
-      "colors": {
-        "Squidle_Main": "#7fd8ea"
-      }
-    }
-  },
-  {
     "id": "mob_dusk_bat",
     "nameKey": "enemy.mob_dusk_bat",
     "maxHp": 35,
@@ -466,6 +437,100 @@
         "slam": { "windup": 0.8, "air": 0.75, "damage": 20, "radius": 4, "recoverSec": 1.6, "minRange": 6, "cooldown": 2 },
         "spores": { "windup": 1.2, "damage": 6, "range": 7, "arcDeg": 70, "slowSec": 3, "slowScale": 0.5, "cooldown": 2.2 }
       }
+    }
+  },
+  {
+    "id": "mob_bubble_wisp",
+    "nameKey": "enemy.mob_bubble_wisp",
+    "maxHp": 36,
+    "damage": 7,
+    "moveSpeed": 2.6,
+    "aggroRadius": 9,
+    "attackRange": 1.5,
+    "attackWindup": 0.55,
+    "attackCooldown": 1.8,
+    "leashRadius": 18,
+    "lootTableId": "mob_bubble_wisp_drop",
+    "procedural": "bubble_wisp",
+    "behavior": {
+      "kind": "spit",
+      "minRange": 3,
+      "range": 7.5,
+      "windup": 0.8,
+      "cooldown": 4.2,
+      "speed": 7,
+      "damage": 5,
+      "slowSec": 1.6,
+      "slowScale": 0.6
+    },
+    "splitInto": {
+      "enemy": "mob_bubble_wisp_small",
+      "count": 2
+    }
+  },
+  {
+    "id": "mob_bubble_wisp_small",
+    "nameKey": "enemy.mob_bubble_wisp_small",
+    "maxHp": 14,
+    "damage": 4,
+    "moveSpeed": 3.4,
+    "aggroRadius": 12,
+    "attackRange": 1.2,
+    "attackWindup": 0.45,
+    "attackCooldown": 1.4,
+    "leashRadius": 22,
+    "lootTableId": "mob_bubble_wisp_small_drop",
+    "procedural": "bubble_wisp_small",
+    "hitRadius": 0.4
+  },
+  {
+    "id": "mob_mist_heron",
+    "nameKey": "enemy.mob_mist_heron",
+    "maxHp": 50,
+    "damage": 9,
+    "moveSpeed": 3.4,
+    "aggroRadius": 12,
+    "attackRange": 1.8,
+    "attackWindup": 0.6,
+    "attackCooldown": 2,
+    "leashRadius": 20,
+    "lootTableId": "mob_mist_heron_drop",
+    "procedural": "mist_heron",
+    "hitRadius": 0.6,
+    "behavior": {
+      "kind": "spit",
+      "minRange": 4,
+      "range": 11,
+      "windup": 0.9,
+      "cooldown": 3.8,
+      "speed": 11,
+      "damage": 8,
+      "slowSec": 1,
+      "slowScale": 0.8,
+      "retreat": 5
+    }
+  },
+  {
+    "id": "mob_mirror_crab",
+    "nameKey": "enemy.mob_mirror_crab",
+    "maxHp": 70,
+    "damage": 11,
+    "moveSpeed": 2.4,
+    "aggroRadius": 8,
+    "attackRange": 1.8,
+    "attackWindup": 0.7,
+    "attackCooldown": 2.2,
+    "leashRadius": 16,
+    "lootTableId": "mob_mirror_crab_drop",
+    "lunge": 5,
+    "procedural": "mirror_crab",
+    "hitRadius": 0.65,
+    "behavior": {
+      "kind": "carapace",
+      "arcDeg": 120,
+      "frontScale": 0.25,
+      "recoverSec": 1.4,
+      "recoverScale": 1.5
     }
   }
 ]

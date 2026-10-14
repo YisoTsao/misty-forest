@@ -17,7 +17,7 @@ import { updateEnemyAi } from './enemyUpdate';
  * - 根鬚甲蟲：木頭與苔蘚混合的圓殼、六隻腳；縮殼時身體壓低、腳收進殼裡；衝撞後有短暫的暈眩破綻，出手前轉紅
  * 部件以程式動畫擺動（沒有骨架）；每隻一份材質（閃白、淡入淡出、前搖），數量很少。
  */
-type Kind = NonNullable<EnemyDef['procedural']>;
+export type Kind = 'fog_moth' | 'root_beetle';
 
 const VANISH_SEC = 0.9;
 const FADE_IN_SEC = 1.2;

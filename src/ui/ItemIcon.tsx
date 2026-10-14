@@ -328,6 +328,43 @@ const icons: Record<string, ReactNode> = {
       <path d="M24 13 Q25.5 22 34 24" stroke="#fffbe0" strokeWidth="2" fill="none" strokeLinecap="round" />
     </>
   ),
+  // 澄鏡湖的材料（任務 9B）
+  pearl: (
+    <>
+      <path d="M8 34 Q24 22 40 34 Q24 44 8 34 Z" fill="#9fc3cf" stroke="#4f7f8f" strokeWidth="2" />
+      <circle cx="24" cy="25" r="10" fill="#f6f2ff" stroke="#a9a3c8" strokeWidth="2" />
+      <circle cx="20" cy="21" r="3" fill="#ffffff" />
+      <circle cx="28" cy="29" r="1.6" fill="#e0dcf4" />
+    </>
+  ),
+  water_essence: (
+    <>
+      <path d="M24 6 Q36 22 36 30 Q36 42 24 42 Q12 42 12 30 Q12 22 24 6 Z" fill="#77c9df" stroke="#2f7f9a" strokeWidth="2" />
+      <path d="M18 30 Q18 24 22 19" stroke="#e8fbff" strokeWidth="3" strokeLinecap="round" fill="none" />
+      <circle cx="28" cy="33" r="3" fill="#b9ecf6" />
+    </>
+  ),
+  feather: (
+    <>
+      <path d="M36 6 Q20 12 14 28 Q12 36 10 42 Q18 36 24 32 Q36 22 36 6 Z" fill="#c9d4e0" stroke="#5f6d82" strokeWidth="2" />
+      <path d="M36 6 Q22 22 10 42" stroke="#5f6d82" strokeWidth="1.6" fill="none" />
+      <path d="M33 10 Q30 16 26 18 M22 30 Q18 32 16 36" stroke="#3f4a5c" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+    </>
+  ),
+  mirror_shell: (
+    <>
+      <path d="M8 30 Q10 12 24 10 Q38 12 40 30 Q24 38 8 30 Z" fill="#4f9fa0" stroke="#2f6a6a" strokeWidth="2" />
+      {[
+        [17, 22],
+        [24, 18],
+        [31, 22],
+        [21, 28],
+        [28, 28],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="3.2" fill="#d8f4f8" stroke="#9fd0d8" strokeWidth="1" />
+      ))}
+    </>
+  ),
 };
 
 export function ItemIcon({ icon, className }: { icon: string; className?: string }) {

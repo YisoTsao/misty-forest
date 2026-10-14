@@ -88,7 +88,10 @@ export const enemyDefSchema = z.object({
    * 特殊行為（任務 8B，Bible §6.6）：
    * - orbit（霧孢飛蛾）：靠近後先繞著玩家盤旋 sec 秒，再俯衝出手
    * - shell（根鬚甲蟲）：被打到時縮殼 guardSec 秒（受到的傷害 × guardScale）；出手後有 recoverSec 秒的破綻（× recoverScale）
-   * - spit（迷霧芽怪）：在 minRange–range 之間時吐出緩速泥團（前搖 windup、冷卻 cooldown），命中扣 damage 並讓玩家變慢
+   * - spit（迷霧芽怪）：在 minRange–range 之間時吐出緩速泥團（前搖 windup、冷卻 cooldown），命中扣 damage 並讓玩家變慢；
+   *   retreat（任務 9B 霧鷺影）：吐完立刻向後瞬移 retreat 公尺，拉開距離
+   * - carapace（任務 9B 鏡殼蟹，Bible §7.6）：正面（面向兩側 arcDeg / 2 以內）被打時受到的傷害 × frontScale；
+   *   側面、背後一般傷害；出手後有 recoverSec 秒的破綻（× recoverScale，不分方向）
    */
   behavior: z
     .discriminatedUnion('kind', [
@@ -110,15 +113,25 @@ export const enemyDefSchema = z.object({
         damage: z.number().positive(),
         slowSec: z.number().positive(),
         slowScale: z.number().positive().max(1),
+        retreat: z.number().positive().optional(),
+      }),
+      z.object({
+        kind: z.literal('carapace'),
+        arcDeg: z.number().positive().max(360),
+        frontScale: z.number().min(0).max(1),
+        recoverSec: z.number().positive(),
+        recoverScale: z.number().min(1),
       }),
     ])
     .optional(),
+  /** 被擊敗時分裂成 count 隻 enemy（任務 9B 水泡精，Bible §7.6）：分裂出來的不會再分裂、不佔生成點的數量 */
+  splitInto: z.object({ enemy: z.string().min(1), count: z.number().int().positive().max(4) }).optional(),
   /** 被玩家攻擊命中的半徑（公尺，水平）；省略時 0.5（一般怪物），頭目較大 */
   hitRadius: z.number().positive().optional(),
   /** 區域頭目（任務 8D，Bible §27.4）：不由一般生成點補充，玩家走進戰場時開戰；有自己的 AI 與招式（bossAi.ts） */
   boss: bossDefSchema.optional(),
   /** 程式產生的造型（任務 8B：霧孢飛蛾、根鬚甲蟲）；與 model 二選一，都省略時為迷霧噗啾 */
-  procedural: z.enum(['fog_moth', 'root_beetle']).optional(),
+  procedural: z.enum(['fog_moth', 'root_beetle', 'bubble_wisp', 'bubble_wisp_small', 'mist_heron', 'mirror_crab']).optional(),
   /**
    * 3D 模型（任務 7C）：省略時為程式產生的迷霧噗啾。
    * height 為模型頂端離地的高度（公尺，載入時換算縮放）；radius 為碰撞球半徑；hover 為離地高度（飛行）；
@@ -168,9 +181,16 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
     if (e.lootTableId && !lootTableIds.has(e.lootTableId)) throw new Error(`敵人 ${e.id} 參照不存在的掉落表：${e.lootTableId}`);
     if (e.model && e.procedural) throw new Error(`敵人 ${e.id} 不能同時有模型與程式造型`);
     if (e.behavior?.kind === 'spit' && e.behavior.minRange >= e.behavior.range) throw new Error(`敵人 ${e.id} 的吐泥距離範圍無效`);
+    if (e.splitInto && e.boss) throw new Error(`頭目 ${e.id} 不能分裂`);
     if (e.boss && e.boss.shield.length !== e.boss.troughs.length + 1) throw new Error(`頭目 ${e.id} 的護盾倍率數量必須是水槽數 + 1`);
     if (e.boss && e.boss.shield.at(-1) !== 1) throw new Error(`頭目 ${e.id} 的水槽全部注水後護盾倍率必須是 1`);
     enemies.set(e.id, e);
+  }
+  for (const e of enemies.values()) {
+    if (!e.splitInto) continue;
+    const child = enemies.get(e.splitInto.enemy);
+    if (!child) throw new Error(`敵人 ${e.id} 分裂成不存在的敵人：${e.splitInto.enemy}`);
+    if (child.splitInto) throw new Error(`敵人 ${e.id} 分裂出來的 ${child.id} 不能再分裂`);
   }
   const spawners = z.array(spawnerSchema).parse(rawSpawners);
   const seen = new Set<string>();
@@ -198,12 +218,14 @@ export const PLAYER_STATS = {
   campfire: { radius: 3.5, regenDelay: 1, regenPerSec: 14 },
 } as const;
 
-/** 敵人目前的姿態對受到傷害的倍率（根鬚甲蟲縮殼時減傷、出手後的破綻時加傷；頭目縮入菌傘、震地後卡住） */
+/** 敵人目前的姿態對受到傷害的倍率（根鬚甲蟲縮殼 / 鏡殼蟹正面時減傷、出手後的破綻時加傷；頭目縮入菌傘、震地後卡住） */
 export type EnemyStance = 'guard' | 'recover';
 
 export function stanceDamageScale(def: EnemyDef, stance: EnemyStance | undefined): number {
   if (stance && def.boss) return stance === 'guard' ? (def.boss.guard?.scale ?? 1) : def.boss.recoverScale;
-  if (!stance || def.behavior?.kind !== 'shell') return 1;
+  if (!stance) return 1;
+  if (def.behavior?.kind === 'carapace') return stance === 'guard' ? def.behavior.frontScale : def.behavior.recoverScale;
+  if (def.behavior?.kind !== 'shell') return 1;
   return stance === 'guard' ? def.behavior.guardScale : def.behavior.recoverScale;
 }
 

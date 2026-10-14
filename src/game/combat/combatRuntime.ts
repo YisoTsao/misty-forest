@@ -122,6 +122,18 @@ function addEnemy(id: string, kind: string, spawner: string): void {
     enemyRuntime.set(id, { ai: createEnemyAi(x, z, Math.atan2(gx - x, gz - z)), kind, spawner, fadeIn: 0, flash: 0, vanishing: null, sinceUpdate: 0, boss: createBossAi() });
     return;
   }
+  // 分裂出來的小水滴（id 為「母體 id~序號」，任務 9B）：在母體消散的位置往外彈開
+  const split = /^(.*)~(\d+)$/.exec(id);
+  const parent = split ? enemyRuntime.get(split[1]!) : undefined;
+  if (parent) {
+    const a = Number(split![2]) * 2.4 + parent.ai.yaw;
+    const ai = createEnemyAi(parent.ai.x + Math.sin(a) * 0.6, parent.ai.z + Math.cos(a) * 0.6, a);
+    ai.knockback.x = Math.sin(a) * 4;
+    ai.knockback.z = Math.cos(a) * 4;
+    ai.state = 'chase';
+    enemyRuntime.set(id, { ai, kind, spawner, fadeIn: 0.6, flash: 0, vanishing: null, sinceUpdate: 0 });
+    return;
+  }
   const { x, z } = spawnPosition(spawner);
   enemyRuntime.set(id, { ai: createEnemyAi(x, z, Math.random() * Math.PI * 2), kind, spawner, fadeIn: 0, flash: 0, vanishing: null, sinceUpdate: 0 });
 }
@@ -138,10 +150,10 @@ export function removeEnemyVisual(id: string): void {
   if (enemyRuntime.delete(id)) publishList();
 }
 
-/** 對敵人出手（近戰、法術共用）：附上敵人目前的姿態，權威層依此計算傷害倍率（根鬚甲蟲縮殼 / 破綻） */
+/** 對敵人出手（近戰、法術共用）：附上敵人目前的姿態，權威層依此計算傷害倍率（根鬚甲蟲縮殼 / 破綻、鏡殼蟹的正面） */
 export function attackEnemy(enemyId: string, attack: string): void {
   const v = enemyRuntime.get(enemyId);
-  const stance = v?.boss ? bossStance(v.boss) : v ? aiStance(v.ai) : undefined;
+  const stance = v?.boss ? bossStance(v.boss) : v ? aiStance(v.ai, combat.enemies.get(v.kind), playerRuntime.position) : undefined;
   authority.send(stance ? { type: 'AttackEnemy', enemyId, attack, stance } : { type: 'AttackEnemy', enemyId, attack });
 }
 

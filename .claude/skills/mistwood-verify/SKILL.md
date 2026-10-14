@@ -48,6 +48,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），39 個全跑
 | 小地圖、世界地圖 | `map` | `--map` |
 | 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |
 | 澄鏡湖（`mirrorlakeTerrain`、`lakeModels.ts`、`gen-mirrorlake.ts`、各地圖的水面 `Water map=`、水道入口） | `mirrorlake`（改到共用的地圖切換或存檔遷移時加 `glowmoss`、`map`、`save`；改到水面或落水時加 `lake`） | `mirrorlake_*` 書籤（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple`） |
+| 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `forestmobs`、`monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |
 | 螢苔祕林的任務與水道（琳娜、奇奇、`activate` / `turn` 機關、`waterway.ts`、`Waterway.tsx`、`flowWater`） | `forestquest`（改到共用的互動或修理時加 `lake`、`world`） | `--waterway`（例如 `node scripts/screenshot.mjs phase8 glowmoss_wheel --waterway`） |
 | 頭目戰（`bossAi.ts`、`bossRuntime.ts`、`MossThump`、`BossArena`、`BossBar`、頭目資料） | `boss`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`、`forestmobs`） | `--boss`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --boss`） |
 | 霧團噗啾王（`PuffKing`、星光鏡、衝撞 / 霧球 / 暈眩、小噗啾 NPC；改到共用的 `bossAi` / `bossRuntime` 時兩個頭目都要跑） | `puffking`（改到共用頭目框架時加 `boss`、`forestguard`） | `--puffking`（例如 `node scripts/screenshot.mjs phase7 highland --puffking`） |

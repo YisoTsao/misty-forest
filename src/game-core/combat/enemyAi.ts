@@ -48,6 +48,8 @@ export type AiOutput = {
   strike: boolean;
   /** 這一幀吐出泥團（吐泥前搖結束）：瞄準的位置（出手當下玩家的位置） */
   spit: { x: number; z: number } | null;
+  /** 這一幀吐完後向後瞬移（霧鷺影）：瞬移前的位置（泥團 / 霧羽從這裡射出、留下一團霧） */
+  blink: { x: number; z: number } | null;
 };
 
 /** 盤旋時離目標點多近才開始繞圈（超過時先飛過去） */
@@ -73,6 +75,7 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
   const { dt, player, home } = input;
   let strike = false;
   let spit: AiOutput['spit'] = null;
+  let blink: AiOutput['blink'] = null;
   const behavior = def.behavior;
   ai.timer += dt;
   ai.cooldown = Math.max(0, ai.cooldown - dt);
@@ -172,8 +175,8 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
           ai.knockback.z = Math.cos(ai.yaw) * def.lunge;
         }
         ai.orbitFor = 0;
-        // 根鬚甲蟲：衝撞後有一段停下來的破綻
-        set(behavior?.kind === 'shell' ? 'recover' : 'chase');
+        // 根鬚甲蟲、鏡殼蟹：出手後有一段停下來的破綻
+        set(behavior?.kind === 'shell' || behavior?.kind === 'carapace' ? 'recover' : 'chase');
       }
       break;
     case 'spit':
@@ -185,6 +188,22 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       if (ai.timer >= behavior.windup) {
         spit = { x: player.x, z: player.z };
         ai.spitCooldown = behavior.cooldown;
+        // 霧鷺影：射出霧羽後向後瞬移（離開玩家的方向），不會離開巡邏範圍太遠
+        if (behavior.retreat) {
+          blink = { x: ai.x, z: ai.z };
+          const away = Math.atan2(ai.x - player.x, ai.z - player.z);
+          let nx = ai.x + Math.sin(away) * behavior.retreat;
+          let nz = ai.z + Math.cos(away) * behavior.retreat;
+          const out = Math.hypot(nx - home.x, nz - home.z) - def.leashRadius * 0.8;
+          if (out > 0) {
+            // 往家的方向拉回來
+            const back = Math.atan2(home.x - nx, home.z - nz);
+            nx += Math.sin(back) * out;
+            nz += Math.cos(back) * out;
+          }
+          ai.x = nx;
+          ai.z = nz;
+        }
         set('chase');
       }
       break;
@@ -198,17 +217,32 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       }
       break;
     case 'recover':
-      if (behavior?.kind !== 'shell' || ai.timer >= behavior.recoverSec) set('chase');
+      if ((behavior?.kind !== 'shell' && behavior?.kind !== 'carapace') || ai.timer >= behavior.recoverSec) set('chase');
       break;
     case 'return':
       if (moveToward(ai, home.x, home.z, def.moveSpeed * 1.2, dt) <= 0.3) set('idle');
       break;
   }
-  return { strike, spit };
+  return { strike, spit, blink };
 }
 
-/** 目前的姿態（給權威層計算受到的傷害倍率） */
-export function aiStance(ai: EnemyAi): 'guard' | 'recover' | undefined {
+/** 攻擊者是否在敵人的正面（面向兩側 arcDeg / 2 以內） */
+export function isInFront(ai: EnemyAi, from: { x: number; z: number }, arcDeg: number): boolean {
+  const toward = Math.atan2(from.x - ai.x, from.z - ai.z);
+  const diff = Math.atan2(Math.sin(toward - ai.yaw), Math.cos(toward - ai.yaw));
+  return Math.abs(diff) <= (arcDeg * Math.PI) / 360;
+}
+
+/**
+ * 目前的姿態（給權威層計算受到的傷害倍率）。
+ * 鏡殼蟹（carapace）依攻擊者的方位：破綻中一律 recover；否則從正面打是 guard（鏡殼擋住）。
+ */
+export function aiStance(ai: EnemyAi, def?: EnemyDef, from?: { x: number; z: number }): 'guard' | 'recover' | undefined {
+  if (def?.behavior?.kind === 'carapace') {
+    if (ai.state === 'dead') return undefined;
+    if (ai.state === 'recover') return 'recover';
+    return from && isInFront(ai, from, def.behavior.arcDeg) ? 'guard' : undefined;
+  }
   return ai.state === 'guard' || ai.state === 'recover' ? ai.state : undefined;
 }
 
@@ -219,6 +253,19 @@ export function aiStance(ai: EnemyAi): 'guard' | 'recover' | undefined {
 export function applyHitReaction(ai: EnemyAi, from: { x: number; z: number }, strength: number, def?: EnemyDef): void {
   if (ai.state === 'dead') return;
   const shell = def?.behavior?.kind === 'shell';
+  // 鏡殼蟹：正面被打幾乎推不動，也不會被打斷出手
+  if (def?.behavior?.kind === 'carapace' && ai.state !== 'recover' && isInFront(ai, from, def.behavior.arcDeg)) {
+    const dx = ai.x - from.x;
+    const dz = ai.z - from.z;
+    const d = Math.hypot(dx, dz) || 1;
+    ai.knockback.x = (dx / d) * strength * 0.15;
+    ai.knockback.z = (dz / d) * strength * 0.15;
+    if (ai.state !== 'attack' && ai.state !== 'spit') {
+      ai.state = 'chase';
+      ai.timer = 0;
+    }
+    return;
+  }
   // 縮殼（已經縮著，或不在出手 / 破綻中且縮殼冷卻已過）：幾乎推不動
   const guards = shell && ai.state !== 'attack' && ai.state !== 'recover' && (ai.state === 'guard' || ai.guardCooldown <= 0);
   const dx = ai.x - from.x;

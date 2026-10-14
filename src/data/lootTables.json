@@ -15,7 +15,6 @@
   {"id": "mob_root_beetle_drop", "drops": [{"itemId": "root_fiber", "min": 1, "max": 2, "chance": 0.7}, {"itemId": "wood", "min": 1, "max": 1, "chance": 0.3}]},
   {"id": "mob_windfluff_drop", "drops": [{"itemId": "flower", "min": 1, "max": 2, "chance": 0.7}, {"itemId": "mist_gel", "min": 1, "max": 1, "chance": 0.2}]},
   {"id": "mob_mist_slime_drop", "drops": [{"itemId": "mist_gel", "min": 1, "max": 2}]},
-  {"id": "mob_bubble_wisp_drop", "drops": [{"itemId": "mist_gel", "min": 1, "max": 1, "chance": 0.6}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.2}]},
   {"id": "mob_dusk_bat_drop", "drops": [{"itemId": "mist_gel", "min": 1, "max": 1, "chance": 0.4}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.25}]},
   {"id": "mob_pebble_golem_drop", "drops": [{"itemId": "stone", "min": 2, "max": 3}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.3}]},
   {"id": "mob_thorn_puff_drop", "drops": [{"itemId": "herb", "min": 1, "max": 2}, {"itemId": "mist_gel", "min": 1, "max": 1, "chance": 0.4}]},
@@ -34,5 +33,9 @@
   {"id": "dry_cloth_pick", "drops": [{"itemId": "dry_cloth", "min": 1, "max": 1}]},
   {"id": "lantern_shard_pick", "drops": [{"itemId": "lantern_shard", "min": 1, "max": 1}]},
   {"id": "root_stone_resonance", "drops": [{"itemId": "seed_resonance_bud", "min": 1, "max": 1}]},
-  {"id": "channel_roots_fiber", "drops": [{"itemId": "root_fiber", "min": 2, "max": 2}]}
+  {"id": "channel_roots_fiber", "drops": [{"itemId": "root_fiber", "min": 2, "max": 2}]},
+  {"id": "mob_bubble_wisp_drop", "drops": [{"itemId": "lake_pearl", "min": 1, "max": 1, "chance": 0.55}, {"itemId": "water_essence", "min": 1, "max": 1, "chance": 0.25}]},
+  {"id": "mob_bubble_wisp_small_drop", "drops": [{"itemId": "water_essence", "min": 1, "max": 1, "chance": 0.15}]},
+  {"id": "mob_mist_heron_drop", "drops": [{"itemId": "mist_feather", "min": 1, "max": 1, "chance": 0.6}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.15}]},
+  {"id": "mob_mirror_crab_drop", "drops": [{"itemId": "mirror_shell", "min": 1, "max": 1, "chance": 0.65}, {"itemId": "lake_pearl", "min": 1, "max": 1, "chance": 0.2}]}
 ]

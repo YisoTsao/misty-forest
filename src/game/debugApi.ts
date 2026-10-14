@@ -186,7 +186,7 @@ export type MistwoodDebugApi = {
   buildingStage: (id: string) => number | null;
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
-  enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
+  enemies: () => { id: string; kind: string; x: number; y: number; z: number; yaw: number; state: string; hp: number; anim: string | null }[];
   /** 以玩家的招式打敵人（附上敵人目前的姿態，與實際出招相同；任務 8B 甲蟲縮殼） */
   hitEnemy: (id: string, attack: string) => void;
   /** 玩家的緩速（迷霧芽怪的泥團） */
@@ -384,7 +384,7 @@ export function installDebugApi(): void {
     enemies: () =>
       [...enemyRuntime]
         .filter(([, v]) => v.vanishing === null)
-        .map(([id, v]) => ({ id, kind: v.kind, x: v.ai.x, y: enemyY(v.ai.x, v.ai.z), z: v.ai.z, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0, anim: v.anim ?? null })),
+        .map(([id, v]) => ({ id, kind: v.kind, x: v.ai.x, y: enemyY(v.ai.x, v.ai.z), z: v.ai.z, yaw: v.ai.yaw, state: v.ai.state, hp: authority.getState().enemies.get(id)?.hp ?? 0, anim: v.anim ?? null })),
     hitEnemy: (id, attack) => attackEnemy(id, attack),
     playerSlow: () => ({ ...combatRuntime.slow }),
     setPeaceful: (peaceful) => useDebugStore.getState().setPeaceful(peaceful),

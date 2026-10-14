@@ -19,8 +19,13 @@ export type Spit = {
   age: number;
 };
 
-/** 泥團的顏色（迷霧染成灰紫色的泥） */
+/** 泥團的顏色（迷霧染成灰紫色的泥）；湖區怪物（任務 9B）：水泡精的水泡、霧鷺影的霧羽 */
 const SPIT_COLOR: Rgb = [0.62, 0.5, 0.82];
+const SPIT_COLORS: Partial<Record<NonNullable<EnemyDef['procedural']>, Rgb>> = {
+  bubble_wisp: [0.55, 0.85, 0.95],
+  bubble_wisp_small: [0.55, 0.85, 0.95],
+  mist_heron: [0.72, 0.78, 0.86],
+};
 /** 離玩家身體中心這麼近算打中 */
 const HIT_RADIUS = 0.75;
 const GRAVITY = 9;
@@ -44,7 +49,7 @@ export function spawnSpit(enemyId: string, def: EnemyDef, from: { x: number; z: 
   const vy = (yTarget - y0 + 0.5 * GRAVITY * t * t) / t;
   const spit: Spit = { id: nextId++, enemyId, x: from.x, y: y0, z: from.z, vx: (dx / dist) * speed, vy, vz: (dz / dist) * speed, age: 0 };
   enemySpits.push(spit);
-  projectileVisuals.set(spit.id, { id: spit.id, x: spit.x, y: spit.y, z: spit.z, color: SPIT_COLOR, size: 0.32, trail: 0.5 });
+  projectileVisuals.set(spit.id, { id: spit.id, x: spit.x, y: spit.y, z: spit.z, color: (def.procedural && SPIT_COLORS[def.procedural]) ?? SPIT_COLOR, size: 0.32, trail: 0.5 });
 }
 
 function remove(i: number): void {

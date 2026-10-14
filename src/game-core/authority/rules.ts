@@ -561,6 +561,11 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
 
   events.push({ type: 'EnemyDefeated', enemyId, kind: enemy.kind, spawner: enemy.spawner });
   if (boss) events.push({ type: 'BossDefeated', boss: enemy.kind });
+  // 水泡精（任務 9B）：被打破時分裂成幾個小水滴（id 接在原本的後面，本機在原地生成）
+  const child = def.splitInto && ctx.combat.enemies.get(def.splitInto.enemy);
+  if (def.splitInto && child) {
+    for (let k = 1; k <= def.splitInto.count; k++) events.push({ type: 'EnemySpawned', enemyId: `${enemyId}~${k}`, kind: child.id, spawner: enemy.spawner, hp: child.maxHp });
+  }
   const spawner = ctx.combat.spawners.find((s) => s.id === enemy.spawner);
   if (spawner && !spawner.manual) events.push({ type: 'SpawnerCooldown', spawner: spawner.id, nextSpawnAt: state.time + spawner.respawnSec });
   // 掉落：背包放不下時不掉（不影響擊敗）
@@ -640,7 +645,8 @@ function spawnerEvents(state: GameState, time: number, ctx: RulesContext): GameE
   for (const spawner of ctx.combat.spawners) {
     if (spawner.manual) continue;
     const budget = spawner.budget[state.mist[spawner.regionId]];
-    const alive = [...state.enemies.values()].filter((e) => e.spawner === spawner.id);
+    // 分裂出來的小水滴（種類不同）不佔數量，也不會因為數量超過而消散
+    const alive = [...state.enemies.values()].filter((e) => e.spawner === spawner.id && e.kind === spawner.enemy);
     for (const extra of alive.slice(budget)) events.push({ type: 'EnemyDespawned', enemyId: extra.id });
     const runtime = state.spawners[spawner.id];
     if (alive.length >= budget || (runtime && time < runtime.nextSpawnAt)) continue;

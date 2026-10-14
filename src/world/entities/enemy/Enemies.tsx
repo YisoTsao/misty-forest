@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { BallCollider, RigidBody, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import type { EnemyDef } from '@/game-core/combat/combat';
 import { combat } from '@/game/authority';
 import { enemyRuntime, enemyY, removeEnemyVisual, useEnemyListStore } from '@/game/combat/combatRuntime';
 import { currentScreen } from '@/game/state/gameStore';
@@ -12,6 +13,7 @@ import { createWispMaterial, wispEyeMaterial } from '@/render/mistWisp';
 import { updateEnemyAi } from './enemyUpdate';
 import { ModelEnemy, ModelEnemyWarmup } from './ModelEnemy';
 import { CritterEnemy, CritterEnemyWarmup } from './CritterEnemy';
+import { LakeCritter, LakeCritterWarmup, type LakeKind } from './LakeCritter';
 import { MossThump, MossThumpWarmup } from './MossThump';
 import { PuffKing, PuffKingWarmup } from './PuffKing';
 import { clearSpits, stepSpits } from '@/game/combat/enemySpits';
@@ -65,11 +67,19 @@ export function Enemies() {
           return def.id === 'boss_dawn_mist_puff' ? <PuffKing key={id} id={id} def={boss} /> : <MossThump key={id} id={id} def={boss} />;
         }
         if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
-        if (def?.procedural) return <CritterEnemy key={id} id={id} def={{ ...def, procedural: def.procedural }} />;
+        if (def?.procedural) {
+          const kind = def.procedural;
+          return isLakeKind(kind) ? <LakeCritter key={id} id={id} def={{ ...def, procedural: kind }} /> : <CritterEnemy key={id} id={id} def={{ ...def, procedural: kind }} />;
+        }
         return <MistWisp key={id} id={id} geometry={shared} />;
       })}
     </>
   );
+}
+
+/** 澄鏡湖的程式造型怪物（任務 9B）另有元件 */
+function isLakeKind(kind: NonNullable<EnemyDef['procedural']>): kind is LakeKind {
+  return kind === 'bubble_wisp' || kind === 'bubble_wisp_small' || kind === 'mist_heron' || kind === 'mirror_crab';
 }
 
 /** 預熱幾幀後卸載（ShaderWarmup 在第一幀就畫過了，多留幾幀保險） */
@@ -92,7 +102,8 @@ function EnemyShaderWarmup({ geometry }: { geometry: { body: THREE.BufferGeometr
     <group visible={false} name="enemy-shader-warmup">
       {[...combat.enemies.values()].map((def) => {
         if (def.model) return <ModelEnemyWarmup key={def.id} def={{ ...def, model: def.model }} />;
-        if (def.procedural) return <CritterEnemyWarmup key={def.id} kind={def.procedural} />;
+        const kind = def.procedural;
+        if (kind) return isLakeKind(kind) ? <LakeCritterWarmup key={def.id} kind={kind} /> : <CritterEnemyWarmup key={def.id} kind={kind} />;
         if (def.boss) return def.id === 'boss_dawn_mist_puff' ? <PuffKingWarmup key={def.id} /> : <MossThumpWarmup key={def.id} />;
         return null;
       })}

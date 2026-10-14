@@ -40,7 +40,9 @@ describe('combat data', () => {
   it('任務 7C：至少 10 種不同的怪物，各有自己的生成點', () => {
     const data = parseCombatData(enemiesData, spawnersData, new Set(lootData.map((t) => t.id)));
     expect(data.enemies.size).toBeGreaterThanOrEqual(10);
-    for (const id of data.enemies.keys()) expect(data.spawners.some((sp) => sp.enemy === id), id).toBe(true);
+    // 分裂出來的（任務 9B 小水滴）由母體生成，沒有自己的生成點
+    const children = new Set([...data.enemies.values()].flatMap((e) => (e.splitInto ? [e.splitInto.enemy] : [])));
+    for (const id of data.enemies.keys()) if (!children.has(id)) expect(data.spawners.some((sp) => sp.enemy === id), id).toBe(true);
   });
 
   it('拒絕參照不存在的敵人', () => {

@@ -39,6 +39,11 @@ export function updateEnemyAi(id: string, v: EnemyVisual, def: EnemyDef, spawner
   if (out.strike && def.procedural === 'fog_moth') {
     vfx({ type: 'burst', preset: 'boltHit', x: ai.x + Math.sin(ai.yaw) * 0.8, y: enemyY(ai.x, ai.z) + 1.3, z: ai.z + Math.cos(ai.yaw) * 0.8, color: [0.66, 0.6, 0.86], scale: 1.6 });
   }
-  // 迷霧芽怪吐泥團
-  if (out.spit && alive) spawnSpit(id, def, ai, out.spit);
+  // 迷霧芽怪吐泥團、水泡精噴水泡、霧鷺影擲霧羽（瞬移前的位置射出）
+  if (out.spit && alive) spawnSpit(id, def, out.blink ?? ai, out.spit);
+  // 霧鷺影向後瞬移：原地留下一團水墨般的霧
+  if (out.blink) {
+    vfx({ type: 'burst', preset: 'boltHit', x: out.blink.x, y: enemyY(out.blink.x, out.blink.z) + 1.2, z: out.blink.z, color: [0.62, 0.7, 0.8], scale: 2 });
+    vfx({ type: 'burst', preset: 'boltHit', x: ai.x, y: enemyY(ai.x, ai.z) + 1.2, z: ai.z, color: [0.75, 0.82, 0.9], scale: 1.2 });
+  }
 }
