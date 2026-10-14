@@ -4690,5 +4690,31 @@
       "quest": "quest_lake_002"
     },
     "persists": true
+  },
+  {
+    "id": "temple_mirror",
+    "model": "procedural:temple_mirror",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 1.4,
+        "height": 0.5,
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.45,
+        "height": 4.4
+      }
+    ],
+    "interaction": "turn",
+    "nameKey": "object.templeMirror",
+    "verbKey": "interact.aimMirror",
+    "interactRadius": 2.6,
+    "turn": {
+      "positions": 2
+    },
+    "persists": false
   }
 ]

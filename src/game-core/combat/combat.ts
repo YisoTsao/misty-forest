@@ -36,6 +36,11 @@ export const bossDefSchema = z
      * 暈眩（任務 7E 霧團噗啾王，Bible §5.5 弱點）：蓄力時轉動 mirrors 裡的星光鏡把燈塔的光引過來，頭目暈眩 sec 秒（破綻）。
      */
     stun: z.object({ mirrors: z.array(z.string().min(1)).min(1), sec: z.number().positive() }).optional(),
+    /**
+     * 倒影（任務 9E 璃漪，Bible §7.5）：真身被分身倒影遮住，不在破綻（暈眩、震地後卡住）時受到的傷害 × scale；
+     * 用水鏡讓牠暈眩（真身顯形）時才打得痛。
+     */
+    veil: z.object({ scale: z.number().min(0).max(1) }).optional(),
     introSec: z.number().nonnegative(),
     moveSpeed: z.number().positive(),
     /** 身體半徑（避開樹幹、留在戰場內、追擊時保持的距離） */

@@ -67,7 +67,13 @@ await runE2e('lakemobs e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pa
     const p1 = await debug(() => window.__mistwoodDebug.playerState());
     const d1 = Math.hypot(after.x - p1.x, after.z - p1.z);
     assert.ok(d1 - d0 > 2.5, `擲羽前 ${d0.toFixed(1)} m、之後 ${d1.toFixed(1)} m`);
-    await page.waitForFunction(() => window.__mistwoodDebug.playerSlow().remaining > 0, null, { timeout: 15_000 });
+    // 霧羽在擲出時瞄準玩家的位置；瞬移後牠離得比較遠，站回牠前方等下一根霧羽（偶爾第一根會落空）
+    for (let i = 0; i < 3 && !((await debug(() => window.__mistwoodDebug.playerSlow().remaining)) > 0); i++) {
+      const h = await find(heron.id);
+      await teleport(h.x + 6.5, h.z, 200);
+      await page.waitForFunction(() => window.__mistwoodDebug.playerSlow().remaining > 0, null, { timeout: 8000 }).catch(() => {});
+    }
+    assert.ok((await debug(() => window.__mistwoodDebug.playerSlow().remaining)) > 0, '霧羽沒有打中');
     await setPeaceful(true);
     await debug(() => window.__mistwoodDebug.send({ type: 'Rest' }));
   });

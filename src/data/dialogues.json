@@ -1835,5 +1835,88 @@
         "textKey": "dlg.eve.mirrors"
       }
     }
+  },
+  {
+    "id": "eve_guardian_offer",
+    "start": "water",
+    "nodes": {
+      "water": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.water",
+        "next": "temple"
+      },
+      "temple": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.temple",
+        "options": [
+          {
+            "textKey": "dlg.eve.opt.go",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_lake_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.eve.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.accept"
+      }
+    }
+  },
+  {
+    "id": "eve_guardian_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.remind"
+      }
+    }
+  },
+  {
+    "id": "eve_guardian_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.report",
+        "options": [
+          {
+            "textKey": "dlg.eve.opt.done",
+            "next": "now",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_lake_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.eve.opt.later"
+          }
+        ]
+      },
+      "now": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.now"
+      }
+    }
+  },
+  {
+    "id": "eve_after_guardian",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.afterGuardian"
+      }
+    }
   }
 ]

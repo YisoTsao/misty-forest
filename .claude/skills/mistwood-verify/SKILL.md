@@ -51,6 +51,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），39 個全跑
 | 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `forestmobs`、`monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |
 | 澄鏡湖的任務（伊芙、`quest_lake_001` 倒影、`activate.message` 啟動時的訊息） | `lakequest`（改到奧林時加 `cellar`；改到 `activate` 或動物居民時加 `forestquest`、`npc`） | `mirrorlake_eve`、`mirrorlake_reflection` 書籤 |
 | 水鏡光路（`lightPath.ts`、`lightPaths.json`、`MirrorPuzzle.tsx`、`turn.quest`、水行護符的涉水深度） | `lightpuzzle`（改到 `turn` 時加 `forestquest`、`puffking`；改到落水時加 `lake`、`movement`） | `--lightpuzzle`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_entry --lightpuzzle`） |
+| 璃漪頭目戰（`LiyiKoi.tsx`、頭目資料的 `veil`、神殿兩側的水鏡、`quest_lake_003`） | `liyi`（改到共用的頭目 AI 或 `bossRuntime` 時加 `boss`、`puffking`） | `--liyi`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple --liyi`） |
 | 螢苔祕林的任務與水道（琳娜、奇奇、`activate` / `turn` 機關、`waterway.ts`、`Waterway.tsx`、`flowWater`） | `forestquest`（改到共用的互動或修理時加 `lake`、`world`） | `--waterway`（例如 `node scripts/screenshot.mjs phase8 glowmoss_wheel --waterway`） |
 | 頭目戰（`bossAi.ts`、`bossRuntime.ts`、`MossThump`、`BossArena`、`BossBar`、頭目資料） | `boss`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`、`forestmobs`） | `--boss`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --boss`） |
 | 霧團噗啾王（`PuffKing`、星光鏡、衝撞 / 霧球 / 暈眩、小噗啾 NPC；改到共用的 `bossAi` / `bossRuntime` 時兩個頭目都要跑） | `puffking`（改到共用頭目框架時加 `boss`、`forestguard`） | `--puffking`（例如 `node scripts/screenshot.mjs phase7 highland --puffking`） |

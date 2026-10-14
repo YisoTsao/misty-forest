@@ -578,5 +578,48 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_lake_003",
+    "nameKey": "quest.lake3.name",
+    "category": "main",
+    "descKey": "quest.lake3.desc",
+    "giver": "eve",
+    "requires": [
+      "quest_lake_002"
+    ],
+    "objectives": [
+      {
+        "type": "boss",
+        "boss": "boss_liyi_echo_koi",
+        "descKey": "quest.lake3.guardian"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ],
+      "mist": [
+        {
+          "region": "mirror_temple",
+          "stage": "clear"
+        },
+        {
+          "region": "reed_isle",
+          "stage": "clear"
+        },
+        {
+          "region": "mirror_ruins",
+          "stage": "clear"
+        },
+        {
+          "region": "lake_camp",
+          "stage": "clear"
+        }
+      ]
+    }
   }
 ]

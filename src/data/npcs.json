@@ -913,6 +913,37 @@
     "talk": [
       {
         "when": {
+          "type": "questReady",
+          "quest": "quest_lake_003"
+        },
+        "dialogue": "eve_guardian_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_003",
+          "is": "active"
+        },
+        "dialogue": "eve_guardian_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_003",
+          "is": "available"
+        },
+        "dialogue": "eve_guardian_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_003",
+          "is": "completed"
+        },
+        "dialogue": "eve_after_guardian"
+      },
+      {
+        "when": {
           "type": "questStatus",
           "quest": "quest_lake_002",
           "is": "active"

@@ -73,6 +73,7 @@ const withGarden = flags.has('--garden');
 const withFootprints = flags.has('--footprints');
 const withCellar = flags.has('--cellar');
 const withLightPuzzle = flags.has('--lightpuzzle');
+const withLiyi = flags.has('--liyi');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1325,6 +1326,60 @@ try {
     await page.waitForTimeout(300);
     await shot('journal_completed');
     await page.keyboard.press('Escape');
+  }
+
+  if (withLiyi) {
+    // 任務 9E 璃漪：開場、倒影、水柱 / 回聲波 / 尾部水浪的預兆、水鏡讓真身顯形
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const look = (cam) => d((c) => window.__mistwoodDebug.camera(c), cam);
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(16);
+      for (const q of ['quest_forest_003', 'quest_lake_001', 'quest_lake_002']) g.setQuestCompleted(q);
+      for (const from of ['move', 'interact', 'harvest', 'inventory']) g.send({ type: 'AdvanceTutorial', from });
+      g.send({ type: 'AcceptQuest', quest: 'quest_lake_003' });
+      g.setPeaceful(true);
+      g.setCameraMode('follow');
+      g.teleport(4040, 17);
+      g.face(4046, 22);
+    });
+    await look({ yaw: -Math.PI / 2 - 0.2, pitch: 0.28, distance: 11 });
+    await page.waitForTimeout(1500);
+    await shot('liyi_intro');
+    await page.waitForTimeout(2500);
+    await shot('liyi_veiled');
+    const force = async (move, wait) => {
+      await d((m) => {
+        const g = window.__mistwoodDebug;
+        g.send({ type: 'Rest' });
+        g.setPeaceful(false);
+        g.forceBossMove(m);
+      }, move);
+      await page.waitForFunction((m) => window.__mistwoodDebug.boss()?.state === m, move, { timeout: 8000 });
+      await page.waitForTimeout(wait);
+    };
+    await look({ yaw: -Math.PI / 2 - 0.3, pitch: 0.42, distance: 14 });
+    await force('spikes', 550);
+    await shot('liyi_columns_warn');
+    await page.waitForTimeout(450);
+    await shot('liyi_columns');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
+    await page.waitForTimeout(2500);
+    await force('spores', 600);
+    await shot('liyi_echo');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.send({ type: 'TurnObject', placementId: 'mirrorlake_temple_mirror_west' });
+      g.setPeaceful(true);
+    });
+    await page.waitForTimeout(900);
+    await shot('liyi_revealed');
+    await page.waitForTimeout(3500);
+    await force('slam', 1000);
+    await shot('liyi_leap');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
   }
 
   if (withPuffKing) {

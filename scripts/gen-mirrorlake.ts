@@ -72,6 +72,11 @@ function slopeAt(x: number, z: number): number {
 const LIGHT_SOURCE = { x: -46, z: -60 } as const;
 const LAKE_SLUICE = { x: 40, z: 62 } as const;
 const LIGHT_SOLUTION = [2, 1, 3] as const;
+/** 任務 9E：水鏡神殿兩側的水鏡（局部座標） */
+const TEMPLE_MIRRORS: [string, number, number][] = [
+  ['mirrorlake_temple_mirror_west', MIRROR_TEMPLE.x - 13, MIRROR_TEMPLE.z + 4],
+  ['mirrorlake_temple_mirror_east', MIRROR_TEMPLE.x + 13, MIRROR_TEMPLE.z - 4],
+];
 
 /** 螢苔祕林小渠南端的水道入口（局部座標，渠道中央；堵住的樹根在北邊 7 m，任務 8D-2 完成後退開） */
 const GLOWMOSS_LAKE_GATE_Z = 143;
@@ -332,6 +337,8 @@ export function addMirrorlake(placements: Out[]): void {
     ['mirrorlake_light_pillar', 'light_pillar', LIGHT_SOURCE.x, LIGHT_SOURCE.z, 0, null],
     // 閘門的原點在湖底（水面下 1.2 m），石樑露出水面；石框橫跨東西
     ['mirrorlake_sluice', 'lake_sluice', LAKE_SLUICE.x, LAKE_SLUICE.z, Math.atan2(MIRROR_PILLARS[2]![0] - LAKE_SLUICE.x, MIRROR_PILLARS[2]![1] - LAKE_SLUICE.z), WATER - 1.2],
+    // 任務 9E：神殿兩側的水鏡（頭目戰場外圈，鏡面朝神殿中央）
+    ...TEMPLE_MIRRORS.map(([id, x, z]) => [id, 'temple_mirror', x, z, Math.atan2(MIRROR_TEMPLE.x - x, MIRROR_TEMPLE.z - z), null] as [string, string, number, number, number, null]),
   ];
   for (let i = kept.length - 1; i >= 0; i--) {
     const o = kept[i]!;

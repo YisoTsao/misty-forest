@@ -364,7 +364,17 @@ function lakeSluice(open: boolean): ForestModel {
   return glow.length ? { solid: merge(solid, '湖底閘門'), glow: merge(glow, '閘門的潮紋') } : { solid: merge(solid, '湖底閘門') };
 }
 
+/** 神殿兩側的水鏡（任務 9E，Bible §7.5：啟動兩側水鏡令真身短暫顯形）：底座與鏡面合在一起，鏡面朝 +Z（神殿中央） */
+function templeMirror(): ForestModel {
+  const base = mirrorPillarBase();
+  const head = mirrorHead();
+  head.solid!.translate(0, 3.3, 0);
+  head.glow!.translate(0, 3.3, 0);
+  return { solid: merge([base.solid!, head.solid!], '神殿水鏡'), glow: head.glow! };
+}
+
 export const lakeBuilders: Record<string, () => ForestModel> = {
+  temple_mirror: templeMirror,
   mirror_pillar_base: mirrorPillarBase,
   mirror_head: mirrorHead,
   light_pillar: () => lightPillar(false),

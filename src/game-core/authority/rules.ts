@@ -564,7 +564,9 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   const boss = def.boss;
   const filled = boss ? filledTroughs(state, boss) : 0;
   const shield = boss ? bossShieldScale(boss, filled) : 1;
-  const amount = Math.round(base * stanceDamageScale(def, stance) * shield);
+  // 璃漪的倒影（任務 9E）：不在破綻時打到的多半是倒影
+  const veil = boss?.veil && stance !== 'recover' ? boss.veil.scale : 1;
+  const amount = Math.round(base * stanceDamageScale(def, stance) * shield * veil);
   // 水槽還沒全部注水前，迷霧把傷口補回去：頭目打不倒（Bible §6.5 戰鬥提示）
   const floor = boss && filled < boss.troughs.length ? 1 : 0;
   const hp = Math.max(floor, enemy.hp - amount);

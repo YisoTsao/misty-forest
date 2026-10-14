@@ -532,5 +532,93 @@
       "recoverSec": 1.4,
       "recoverScale": 1.5
     }
+  },
+  {
+    "id": "boss_liyi_echo_koi",
+    "nameKey": "enemy.boss_liyi_echo_koi",
+    "maxHp": 680,
+    "damage": 12,
+    "moveSpeed": 2.6,
+    "aggroRadius": 24,
+    "attackRange": 3,
+    "attackWindup": 0.8,
+    "attackCooldown": 2,
+    "leashRadius": 24,
+    "lootTableId": "boss_liyi_drop",
+    "hitRadius": 2.4,
+    "boss": {
+      "arena": {
+        "center": [
+          4046,
+          18
+        ],
+        "radius": 8,
+        "trigger": 7
+      },
+      "home": [
+        4046,
+        24
+      ],
+      "avoid": {
+        "center": [
+          4046,
+          18
+        ],
+        "radius": 1.8
+      },
+      "requires": {
+        "questActive": "quest_lake_003"
+      },
+      "retryAt": [
+        4031,
+        17
+      ],
+      "stun": {
+        "mirrors": [
+          "mirrorlake_temple_mirror_west",
+          "mirrorlake_temple_mirror_east"
+        ],
+        "sec": 3.5
+      },
+      "veil": {
+        "scale": 0.25
+      },
+      "introSec": 3,
+      "moveSpeed": 2.6,
+      "bodyRadius": 2.2,
+      "phase2Below": 0.5,
+      "phase2Cooldown": 0.7,
+      "recoverScale": 1.5,
+      "textKey": "liyi",
+      "moves": {
+        "spikes": {
+          "windup": 0.8,
+          "damage": 12,
+          "radius": 1.4,
+          "count": 3,
+          "count2": 5,
+          "spread": 3.5,
+          "cooldown": 2
+        },
+        "spores": {
+          "windup": 0.9,
+          "damage": 8,
+          "range": 8,
+          "arcDeg": 90,
+          "slowSec": 2.5,
+          "slowScale": 0.55,
+          "cooldown": 2.4
+        },
+        "slam": {
+          "windup": 0.8,
+          "air": 0.9,
+          "damage": 18,
+          "radius": 4,
+          "recoverSec": 1.8,
+          "minRange": 5,
+          "cooldown": 2.4
+        }
+      }
+    }
   }
 ]

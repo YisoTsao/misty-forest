@@ -129113,5 +129113,45 @@
       1,
       1
     ]
+  },
+  {
+    "id": "mirrorlake_temple_mirror_west",
+    "prefabId": "temple_mirror",
+    "regionId": "mirror_temple",
+    "position": [
+      4033,
+      0.57,
+      22
+    ],
+    "rotation": [
+      0,
+      1.87,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "mirrorlake_temple_mirror_east",
+    "prefabId": "temple_mirror",
+    "regionId": "mirror_temple",
+    "position": [
+      4059,
+      0.57,
+      14
+    ],
+    "rotation": [
+      0,
+      -1.27,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
   }
 ]

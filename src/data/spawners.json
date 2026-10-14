@@ -32,5 +32,6 @@
   { "id": "lake_herons_east", "regionId": "lake_shore", "enemy": "mob_mist_heron", "center": [4084, 58], "radius": 8, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 50 },
   { "id": "lake_crabs_ruins", "regionId": "mirror_ruins", "enemy": "mob_mirror_crab", "center": [4018, 88], "radius": 6, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 },
   { "id": "lake_crabs_isle", "regionId": "reed_isle", "enemy": "mob_mirror_crab", "center": [3998, -16], "radius": 5, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 },
-  { "id": "lake_crabs_south", "regionId": "lake_shore", "enemy": "mob_mirror_crab", "center": [3966, 82], "radius": 6, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 }
+  { "id": "lake_crabs_south", "regionId": "lake_shore", "enemy": "mob_mirror_crab", "center": [3966, 82], "radius": 6, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 },
+  { "id": "temple_boss", "regionId": "mirror_temple", "enemy": "boss_liyi_echo_koi", "center": [4046, 24], "radius": 4, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true }
 ]

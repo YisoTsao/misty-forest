@@ -169,6 +169,7 @@ function hudFor(enemyId: string, def: EnemyDef & { boss: BossDef }): BossHud {
 /** 依權威層事件更新 HUD 與提示。只在啟動時安裝一次。 */
 export function installBossRuntime(): void {
   let shieldedToastAt = -Infinity;
+  let veiledToastAt = -Infinity;
   authority.subscribe((events, state) => {
     if (events.length === 0) {
       // 讀檔 / 新遊戲：存檔不保留打到一半的頭目
@@ -192,6 +193,14 @@ export function installBossRuntime(): void {
           const hud = useBossStore.getState().hud;
           if (hud?.enemyId !== e.enemyId) break;
           patchHud({ hp: e.hp });
+          // 璃漪的倒影（任務 9E）：打到的是倒影時提醒用水鏡讓真身顯形（不要一直跳）
+          const veiled = bosses.find((b) => b.id === hud.bossId)?.boss.veil;
+          const visual = enemyRuntime.get(e.enemyId)?.boss;
+          if (veiled && visual && visual.state !== 'stunned' && visual.state !== 'recover' && state.time - veiledToastAt > 6) {
+            veiledToastAt = state.time;
+            const def = bosses.find((b) => b.id === hud.bossId)!;
+            ui.pushToast({ textKey: bossText(def, 'veiled') });
+          }
           // 打到剩 1 點還有迷霧護著：提醒先去引水（不要一直跳）
           if (e.hp === 1 && hud.filled < hud.total && state.time - shieldedToastAt > 6) {
             shieldedToastAt = state.time;
