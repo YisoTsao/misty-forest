@@ -285,7 +285,52 @@ function lakeGate(): ForestModel {
   return { solid: merge(solid, '水道入口'), glow: merge(glow, '水道入口的鏡片') };
 }
 
+/**
+ * 不自然的倒影（任務 9C，Bible §7.4 quest_lake_001）：水面上一圈不會散開的波紋，中央浮著一個發光的潮汐符號（三道波浪）。
+ * seen：調查過後只剩淡淡的波紋與暗下來的符號。原點在水面（或地面）。
+ */
+function oddReflection(seen: boolean): ForestModel {
+  const glow: THREE.BufferGeometry[] = [];
+  const solid: THREE.BufferGeometry[] = [];
+  const power = seen ? 0.55 : 1.6;
+  for (const [r, k] of [
+    [0.7, 1],
+    [1.25, 0.8],
+    [1.8, 0.6],
+  ] as const) {
+    const ring = new THREE.TorusGeometry(r, 0.035, 4, 36);
+    ring.rotateX(Math.PI / 2);
+    ring.translate(0, 0.04, 0);
+    glow.push(paint(ring, glowColor(MIST_WHITE, power * k)));
+  }
+  if (!seen) {
+    // 倒影裡的景象：一座小屋與燈塔的剪影（淡淡的湖藍光）
+    const house = new THREE.BoxGeometry(0.5, 0.35, 0.02);
+    house.translate(-0.35, 0.95, 0);
+    const roof = new THREE.ConeGeometry(0.38, 0.3, 4, 1);
+    roof.rotateY(Math.PI / 4);
+    roof.scale(1, 1, 0.05);
+    roof.translate(-0.35, 1.27, 0);
+    const tower = new THREE.CylinderGeometry(0.08, 0.12, 0.9, 6);
+    tower.translate(0.35, 1.2, 0);
+    glow.push(paint(house, glowColor(LAKE_BLUE, 0.9)), paint(roof, glowColor(LAKE_BLUE, 0.9)), paint(tower, glowColor(LAKE_BLUE, 0.9)));
+  }
+  // 潮汐符號：三道波浪
+  for (let k = 0; k < 3; k++) {
+    const pts: THREE.Vector3[] = [];
+    for (let i = 0; i <= 12; i++) {
+      const x = -0.32 + (i / 12) * 0.64;
+      pts.push(new THREE.Vector3(x, 1.75 + k * 0.14 + Math.sin(i * 1.05) * 0.04, 0));
+    }
+    glow.push(paint(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.022, 4), glowColor(seen ? MIST_WHITE : '#bff0ff', seen ? 0.5 : 2)));
+  }
+  solid.push(sphere(0.05, [0, 0.02, 0], STONE_DARK, [1, 0.3, 1], 0));
+  return { solid: merge(solid, '倒影'), glow: merge(glow, '倒影的光') };
+}
+
 export const lakeBuilders: Record<string, () => ForestModel> = {
+  odd_reflection: () => oddReflection(false),
+  odd_reflection_seen: () => oddReflection(true),
   lake_reeds: lakeReeds,
   moon_bridge: moonBridge,
   wood_dock: woodDock,

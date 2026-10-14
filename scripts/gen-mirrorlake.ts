@@ -301,6 +301,23 @@ export function addMirrorlake(placements: Out[]): void {
     console.log(`placed ${n} mirrorlake boundary trees`);
   }
 
-  placements.push(...out);
-  console.log(`added ${out.length} mirrorlake placements (${scattered} scattered)`);
+  // ── 10. 任務 9C：三處不自然的倒影（quest_lake_001）。附加在最後，只移除與它們重疊的散佈點綴 ──
+  // 倒影裡的剪影（+Z 面）朝向玩家走來的方向：營地（西）、月弧木橋（北）、遺構的岸邊（南）
+  const reflections: [string, string, number, number, number][] = [
+    ['mirrorlake_reflection_camp', 'reflection_camp', -71, -3, -Math.PI / 2],
+    ['mirrorlake_reflection_isle', 'reflection_isle', -2, -21, Math.PI],
+    ['mirrorlake_reflection_ruins', 'reflection_ruins', 11, 69, 0],
+  ];
+  const scatterIds = /^mirrorlake_(tree|bush|rock|shore_stone|reed|isle_reed|lily|grass)_\d+$/;
+  const kept = out.filter((o) => !scatterIds.test(o.id) || !reflections.some(([, , x, z]) => Math.hypot(o.position[0] - O.x - x, o.position[2] - O.z - z) < 2.6));
+  console.log(`quest 9C: removed ${out.length - kept.length} scattered placements overlapping reflections`);
+  for (const [id, prefabId, x, z, yaw] of reflections) {
+    if (ids.has(id)) throw new Error(`placement id 重複：${id}`);
+    ids.add(id);
+    // 倒影浮在水面上（陸上的貼地）
+    kept.push({ id, prefabId, regionId: regionAt(x + O.x, z + O.z), position: [round(x + O.x), round(Math.max(height(x, z), WATER) + 0.02), round(z + O.z)], rotation: [0, round(yaw), 0], scale: [1, 1, 1] });
+  }
+
+  placements.push(...kept);
+  console.log(`added ${kept.length} mirrorlake placements (${scattered} scattered)`);
 }

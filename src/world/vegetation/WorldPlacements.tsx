@@ -100,8 +100,8 @@ function ActivatableGroup({ prefab, placements }: { prefab: Prefab; placements: 
   const activeModel = prefab.activate?.model;
   return (
     <>
-      <InstancedPrefab model={prefab.model} placements={idle} />
-      {activeModel && <InstancedPrefab model={activeModel} placements={active} />}
+      <InstancedPrefab model={prefab.model} placements={idle} castShadow={prefab.castShadow} />
+      {activeModel && <InstancedPrefab model={activeModel} placements={active} castShadow={prefab.castShadow} />}
     </>
   );
 }

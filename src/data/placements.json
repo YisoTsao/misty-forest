@@ -109315,26 +109315,6 @@
     ]
   },
   {
-    "id": "mirrorlake_shore_stone_028",
-    "prefabId": "pebble_e",
-    "regionId": "lake_shore",
-    "position": [
-      3927,
-      -0.88,
-      -1.52
-    ],
-    "rotation": [
-      0,
-      4.71,
-      0
-    ],
-    "scale": [
-      3.63,
-      3.91,
-      3.63
-    ]
-  },
-  {
     "id": "mirrorlake_shore_stone_029",
     "prefabId": "pebble_d",
     "regionId": "lake_shore",
@@ -111995,26 +111975,6 @@
     ]
   },
   {
-    "id": "mirrorlake_reed_092",
-    "prefabId": "lake_reeds",
-    "regionId": "lake_shore",
-    "position": [
-      3928.31,
-      -1.06,
-      -1.79
-    ],
-    "rotation": [
-      0,
-      1.98,
-      0
-    ],
-    "scale": [
-      1.32,
-      1.37,
-      1.32
-    ]
-  },
-  {
     "id": "mirrorlake_reed_093",
     "prefabId": "lake_reeds",
     "regionId": "mirror_ruins",
@@ -113952,26 +113912,6 @@
       1.27,
       1.22,
       1.27
-    ]
-  },
-  {
-    "id": "mirrorlake_isle_reed_040",
-    "prefabId": "lake_reeds",
-    "regionId": "reed_isle",
-    "position": [
-      3999.97,
-      -0.25,
-      -22.12
-    ],
-    "rotation": [
-      0,
-      1.85,
-      0
-    ],
-    "scale": [
-      1.29,
-      1.29,
-      1.29
     ]
   },
   {
@@ -129072,6 +129012,66 @@
       8.25,
       8.38,
       8.25
+    ]
+  },
+  {
+    "id": "mirrorlake_reflection_camp",
+    "prefabId": "reflection_camp",
+    "regionId": "lake_shore",
+    "position": [
+      3929,
+      -0.98,
+      -3
+    ],
+    "rotation": [
+      0,
+      -1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "mirrorlake_reflection_isle",
+    "prefabId": "reflection_isle",
+    "regionId": "reed_isle",
+    "position": [
+      3998,
+      -0.18,
+      -21
+    ],
+    "rotation": [
+      0,
+      3.14,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "mirrorlake_reflection_ruins",
+    "prefabId": "reflection_ruins",
+    "regionId": "mirror_ruins",
+    "position": [
+      4011,
+      -0.98,
+      69
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
     ]
   }
 ]

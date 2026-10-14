@@ -31,5 +31,7 @@
   {"id": "mirrorlake_temple", "position": [4022, 8, 6], "target": [4046, 1.5, 18]},
   {"id": "mirrorlake_ruins", "position": [4036, 6, 98], "target": [4018, 0, 74]},
   {"id": "mirrorlake_bell", "position": [3944, 5, 30], "target": [3964, 3, 44]},
-  {"id": "mirrorlake_overview", "position": [3980, 70, 130], "target": [4000, 0, 0]}
+  {"id": "mirrorlake_overview", "position": [3980, 70, 130], "target": [4000, 0, 0]},
+  {"id": "mirrorlake_eve", "position": [3900.2, 1.6, 5.2], "target": [3897, 1, 4]},
+  {"id": "mirrorlake_reflection", "position": [3923, 2.2, -5], "target": [3930, -0.2, -3]}
 ]

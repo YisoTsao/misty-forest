@@ -35,5 +35,6 @@
   { "id": "lake_pearl", "nameKey": "item.lake_pearl.name", "descKey": "item.lake_pearl.desc", "icon": "pearl", "category": "material", "maxStack": 99 },
   { "id": "water_essence", "nameKey": "item.water_essence.name", "descKey": "item.water_essence.desc", "icon": "water_essence", "category": "material", "maxStack": 99 },
   { "id": "mist_feather", "nameKey": "item.mist_feather.name", "descKey": "item.mist_feather.desc", "icon": "feather", "category": "material", "maxStack": 99 },
-  { "id": "mirror_shell", "nameKey": "item.mirror_shell.name", "descKey": "item.mirror_shell.desc", "icon": "mirror_shell", "category": "material", "maxStack": 99 }
+  { "id": "mirror_shell", "nameKey": "item.mirror_shell.name", "descKey": "item.mirror_shell.desc", "icon": "mirror_shell", "category": "material", "maxStack": 99 },
+  { "id": "mirror_symbol_record", "nameKey": "item.mirror_symbol_record.name", "descKey": "item.mirror_symbol_record.desc", "icon": "tide_record", "category": "special", "maxStack": 1 }
 ]

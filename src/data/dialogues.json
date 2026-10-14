@@ -1619,5 +1619,128 @@
         "textKey": "dlg.orin.after"
       }
     }
+  },
+  {
+    "id": "orin_lake_offer",
+    "start": "lake",
+    "nodes": {
+      "lake": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lake",
+        "next": "ask"
+      },
+      "ask": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lakeAsk",
+        "options": [
+          {
+            "textKey": "dlg.orin.opt.lakeGo",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_lake_001"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.orin.opt.bye"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lakeAccept"
+      }
+    }
+  },
+  {
+    "id": "orin_lake_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lakeRemind"
+      }
+    }
+  },
+  {
+    "id": "orin_lake_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lakeReport",
+        "options": [
+          {
+            "textKey": "dlg.orin.opt.lakeSymbol",
+            "next": "symbol",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_lake_001"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.orin.opt.later"
+          }
+        ]
+      },
+      "symbol": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lakeSymbol",
+        "next": "meaning"
+      },
+      "meaning": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.lakeMeaning"
+      }
+    }
+  },
+  {
+    "id": "eve_intro",
+    "start": "hello",
+    "nodes": {
+      "hello": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.hello",
+        "next": "boat"
+      },
+      "boat": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.boat",
+        "next": "fear"
+      },
+      "fear": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.fear"
+      }
+    }
+  },
+  {
+    "id": "eve_reflection",
+    "start": "seen",
+    "nodes": {
+      "seen": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.reflection",
+        "next": "where"
+      },
+      "where": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.where"
+      }
+    }
+  },
+  {
+    "id": "eve_after_reflection",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.afterReflection"
+      }
+    }
   }
 ]

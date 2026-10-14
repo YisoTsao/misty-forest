@@ -63,6 +63,7 @@ const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => 
   villager_kiki: { radius: 0.3, render: (talking) => <AnimalVillager kind="kiki" talking={talking} /> },
   villager_niko: { radius: 0.26, render: (talking) => <AnimalVillager kind="niko" talking={talking} /> },
   villager_tao: { radius: 0.3, render: (talking) => <AnimalVillager kind="tao" talking={talking} /> },
+  villager_eve: { radius: 0.32, render: (talking) => <AnimalVillager kind="eve" talking={talking} /> },
 };
 
 function ProceduralNpcActor({ def }: { def: NpcDef }) {

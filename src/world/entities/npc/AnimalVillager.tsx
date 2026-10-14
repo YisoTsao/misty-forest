@@ -10,9 +10,9 @@ import { toonGradient } from '@/render/toon';
  * 依物種換耳朵、口鼻、尾巴與花紋，再依角色加上衣著與小道具。沒有骨架：待機時呼吸、耳朵抽動，說話時揮手。
  * 原點在腳底，面向 +Z；身高約 0.8–1.4 m（依角色）。
  */
-export type VillagerKind = 'mira' | 'bomu' | 'linna' | 'kiki' | 'niko' | 'tao';
+export type VillagerKind = 'mira' | 'bomu' | 'linna' | 'kiki' | 'niko' | 'tao' | 'eve';
 
-type Species = 'rabbit' | 'bear' | 'deer' | 'tanuki' | 'hedgehog';
+type Species = 'rabbit' | 'bear' | 'deer' | 'tanuki' | 'hedgehog' | 'otter';
 type Look = {
   species: Species;
   /** 整體縮放（基本身高約 1.1 m） */
@@ -24,7 +24,7 @@ type Look = {
   cloth: string;
   accent: string;
   /** 角色的小道具 */
-  props: ('scarf' | 'clipboard' | 'belt' | 'vest' | 'hammer' | 'shawl' | 'satchel' | 'vial' | 'goggles' | 'gloves' | 'mailbag' | 'hat' | 'apron' | 'seedpouch')[];
+  props: ('scarf' | 'clipboard' | 'belt' | 'vest' | 'hammer' | 'shawl' | 'satchel' | 'vial' | 'goggles' | 'gloves' | 'mailbag' | 'hat' | 'apron' | 'seedpouch' | 'headscarf' | 'driftwood')[];
 };
 
 const LOOKS: Record<VillagerKind, Look> = {
@@ -40,6 +40,8 @@ const LOOKS: Record<VillagerKind, Look> = {
   niko: { species: 'hedgehog', size: 0.75, fur: '#a8703f', light: '#f1dcc0', cloth: '#5a7a8a', accent: '#7fd6b8', props: ['mailbag'] },
   // 桃樂：兔族園丁，奶油白、寬草帽、花種腰包、沾泥圍裙
   tao: { species: 'rabbit', size: 0.95, fur: '#f4ead8', light: '#ffffff', cloth: '#a8c0d8', accent: '#e8c46a', props: ['hat', 'apron', 'seedpouch'] },
+  // 伊芙（任務 9C，Bible §21.5）：水獺族的木船修理師，藍色頭巾、修補工具腰包、小型浮木腰包
+  eve: { species: 'otter', size: 1, fur: '#8a6248', light: '#e8d2b4', cloth: '#5f7f6a', accent: '#3f7fc0', props: ['headscarf', 'belt', 'driftwood', 'hammer'] },
 };
 
 const materialCache = new Map<string, THREE.Material>();
@@ -155,6 +157,8 @@ export function AnimalVillager({ kind, talking }: { kind: VillagerKind; talking:
         {/* 尾巴 */}
         {look.species === 'rabbit' && <mesh geometry={g.lowSphere} material={m.light} position={[0, 0.3, -0.29]} scale={0.07} />}
         {look.species === 'deer' && <mesh geometry={g.lowSphere} material={m.light} position={[0, 0.38, -0.27]} scale={[0.05, 0.08, 0.04]} />}
+        {look.species === 'otter' && <mesh geometry={g.capsule} material={m.fur} position={[0, 0.16, -0.36]} rotation={[1.25, 0, 0]} scale={[0.07, 0.11, 0.045]} />}
+        {has('driftwood') && <mesh geometry={g.box} material={m.wood} position={[-0.24, 0.36, 0.1]} rotation={[0, 0.3, 0.4]} scale={[0.07, 0.16, 0.06]} />}
         {/* 小鹿背上的白色斑點 */}
         {look.species === 'deer' &&
           [
@@ -177,6 +181,9 @@ export function AnimalVillager({ kind, talking }: { kind: VillagerKind; talking:
           {/* 臉與口鼻 */}
           <mesh geometry={g.sphere} material={m.light} position={[0, -0.05, 0.14]} scale={look.species === 'hedgehog' ? [0.08, 0.07, 0.12] : look.species === 'deer' ? [0.09, 0.07, 0.1] : [0.11, 0.08, 0.08]} />
           <mesh geometry={g.lowSphere} material={m.dark} position={[0, -0.02, look.species === 'hedgehog' ? 0.27 : 0.22]} scale={0.025} />
+          {/* 水獺的鬍鬚 */}
+          {look.species === 'otter' &&
+            [-1, 1].flatMap((side) => [0, 1].map((k) => <mesh key={`${side}${k}`} geometry={g.cylinder} material={m.dark} position={[side * 0.1, -0.04 - k * 0.02, 0.2]} rotation={[0, 0, side * (1.45 + k * 0.15)]} scale={[0.004, 0.09, 0.004]} />))}
           {look.species === 'tanuki' &&
             [-1, 1].map((side) => <mesh key={side} geometry={g.lowSphere} material={m.dark} position={[side * 0.08, 0.03, 0.15]} scale={[0.065, 0.045, 0.04]} />)}
           {[-1, 1].map((side) => (
@@ -197,6 +204,7 @@ export function AnimalVillager({ kind, talking }: { kind: VillagerKind; talking:
                   </group>
                 );
               if (look.species === 'hedgehog') return <mesh key={side} geometry={g.lowSphere} material={m.light} position={[side * 0.12, 0.13, 0.02]} scale={0.035} />;
+              if (look.species === 'otter') return <mesh key={side} geometry={g.lowSphere} material={m.fur} position={[side * 0.17, 0.08, -0.02]} scale={[0.035, 0.035, 0.025]} />;
               return <mesh key={side} geometry={g.lowSphere} material={look.species === 'tanuki' ? m.dark : m.fur} position={[side * 0.13, 0.15, -0.02]} scale={[0.06, 0.06, 0.03]} />;
             })}
           </group>
@@ -206,6 +214,13 @@ export function AnimalVillager({ kind, talking }: { kind: VillagerKind; talking:
               const a = -Math.PI * 0.85 + (i / 10) * Math.PI * 1.7;
               return <mesh key={i} geometry={g.cone} material={m.fur} position={[Math.sin(a) * 0.17, 0.12 + Math.cos(a) * 0.05, -0.02 - Math.abs(Math.cos(a)) * 0.04]} rotation={[-0.5, 0, -Math.sin(a) * 1.1]} scale={[0.045, 0.15, 0.045]} />;
             })}
+          {has('headscarf') && (
+            <>
+              <mesh geometry={g.sphere} material={m.accent} position={[0, 0.07, -0.01]} scale={[0.215, 0.13, 0.205]} />
+              <mesh geometry={g.lowSphere} material={m.accent} position={[0.06, 0.04, -0.21]} scale={[0.05, 0.035, 0.05]} />
+              <mesh geometry={g.capsule} material={m.accent} position={[0.09, -0.03, -0.24]} rotation={[0.6, 0, 0.4]} scale={[0.025, 0.035, 0.015]} />
+            </>
+          )}
           {has('goggles') && [-1, 1].map((side) => <mesh key={side} geometry={g.torus} material={m.accent} position={[side * 0.07, 0.13, 0.15]} rotation={[-0.4, 0, 0]} scale={0.04} />)}
           {has('hat') && (
             <group position={[0, 0.14, 0]}>

@@ -500,5 +500,38 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_lake_001",
+    "nameKey": "quest.lake1.name",
+    "category": "main",
+    "descKey": "quest.lake1.desc",
+    "giver": "orin",
+    "requires": [
+      "quest_forest_003"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "mirrorlake_reflection_camp",
+          "mirrorlake_reflection_isle",
+          "mirrorlake_reflection_ruins"
+        ],
+        "descKey": "quest.lake1.reflections"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "mirror_symbol_record",
+          "count": 1
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ]
+    }
   }
 ]

@@ -824,6 +824,29 @@
       },
       {
         "when": {
+          "type": "questReady",
+          "quest": "quest_lake_001"
+        },
+        "dialogue": "orin_lake_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_001",
+          "is": "active"
+        },
+        "dialogue": "orin_lake_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_001",
+          "is": "available"
+        },
+        "dialogue": "orin_lake_offer"
+      },
+      {
+        "when": {
           "type": "questStatus",
           "quest": "quest_dawn_007",
           "is": "completed"
@@ -840,6 +863,41 @@
       },
       {
         "dialogue": "orin_intro"
+      }
+    ]
+  },
+  {
+    "id": "eve",
+    "nameKey": "npc.eve",
+    "regionId": "lake_camp",
+    "model": "procedural:villager_eve",
+    "scale": 1,
+    "hiddenNodes": [],
+    "position": [
+      3897,
+      4
+    ],
+    "facingYaw": 1.4,
+    "interactRadius": 2.3,
+    "talk": [
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_001",
+          "is": "active"
+        },
+        "dialogue": "eve_reflection"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_001",
+          "is": "completed"
+        },
+        "dialogue": "eve_after_reflection"
+      },
+      {
+        "dialogue": "eve_intro"
       }
     ]
   }

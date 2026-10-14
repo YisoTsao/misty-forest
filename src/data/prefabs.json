@@ -4559,5 +4559,65 @@
     "model": "procedural:lantern_boat",
     "collider": "none",
     "persists": false
+  },
+  {
+    "id": "reflection_camp",
+    "model": "procedural:odd_reflection",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.oddReflection",
+    "verbKey": "interact.investigate",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:odd_reflection_seen",
+      "quest": "quest_lake_001",
+      "anim": "interact",
+      "message": {
+        "titleKey": "object.oddReflection",
+        "bodyKey": "reflection.camp.body"
+      }
+    },
+    "persists": true,
+    "castShadow": false
+  },
+  {
+    "id": "reflection_isle",
+    "model": "procedural:odd_reflection",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.oddReflection",
+    "verbKey": "interact.investigate",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:odd_reflection_seen",
+      "quest": "quest_lake_001",
+      "anim": "interact",
+      "message": {
+        "titleKey": "object.oddReflection",
+        "bodyKey": "reflection.isle.body"
+      }
+    },
+    "persists": true,
+    "castShadow": false
+  },
+  {
+    "id": "reflection_ruins",
+    "model": "procedural:odd_reflection",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.oddReflection",
+    "verbKey": "interact.investigate",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:odd_reflection_seen",
+      "quest": "quest_lake_001",
+      "anim": "interact",
+      "message": {
+        "titleKey": "object.oddReflection",
+        "bodyKey": "reflection.ruins.body"
+      }
+    },
+    "persists": true,
+    "castShadow": false
   }
 ]

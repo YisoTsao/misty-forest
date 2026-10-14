@@ -351,6 +351,12 @@ const icons: Record<string, ReactNode> = {
       <path d="M33 10 Q30 16 26 18 M22 30 Q18 32 16 36" stroke="#3f4a5c" strokeWidth="2.4" strokeLinecap="round" fill="none" />
     </>
   ),
+  tide_record: (
+    <>
+      <rect x="10" y="7" width="28" height="34" rx="3" fill="#f6eedb" stroke="#8a6a44" strokeWidth="2" />
+      <path d="M15 18 Q19 14 24 18 T33 18 M15 25 Q19 21 24 25 T33 25 M15 32 Q19 28 24 32 T33 32" stroke="#3f7fc0" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+    </>
+  ),
   mirror_shell: (
     <>
       <path d="M8 30 Q10 12 24 10 Q38 12 40 30 Q24 38 8 30 Z" fill="#4f9fa0" stroke="#2f6a6a" strokeWidth="2" />
