@@ -888,5 +888,35 @@
         "textKey": "dlg.elder.lighthouse.after"
       }
     }
+  },
+  {
+    "id": "elder_puff_after",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.puff",
+        "next": "care"
+      },
+      "care": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.puff2"
+      }
+    }
+  },
+  {
+    "id": "puff_buddy",
+    "start": "hello",
+    "nodes": {
+      "hello": {
+        "speakerKey": "npc.puff",
+        "textKey": "dlg.puff.hello",
+        "next": "nuzzle"
+      },
+      "nuzzle": {
+        "speakerKey": "npc.puff",
+        "textKey": "dlg.puff.nuzzle"
+      }
+    }
   }
 ]

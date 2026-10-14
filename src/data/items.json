@@ -13,6 +13,7 @@
   { "id": "lantern_shard", "nameKey": "item.lantern_shard.name", "descKey": "item.lantern_shard.desc", "icon": "lantern_shard", "category": "quest", "maxStack": 3 },
   { "id": "dawn_resonance", "nameKey": "item.dawn_resonance.name", "descKey": "item.dawn_resonance.desc", "icon": "dawn_resonance", "category": "quest", "maxStack": 1 },
   { "id": "dawn_charm", "nameKey": "item.dawn_charm.name", "descKey": "item.dawn_charm.desc", "icon": "dawn_charm", "category": "special", "maxStack": 1 },
+  { "id": "puff_horn", "nameKey": "item.puff_horn.name", "descKey": "item.puff_horn.desc", "icon": "puff_horn", "category": "special", "maxStack": 20 },
   { "id": "seed_resonance_bud", "nameKey": "item.seed_resonance_bud.name", "descKey": "item.seed_resonance_bud.desc", "icon": "resonance_bud", "category": "quest", "maxStack": 1 },
   { "id": "moss_shawl_cloth", "nameKey": "item.moss_shawl_cloth.name", "descKey": "item.moss_shawl_cloth.desc", "icon": "moss_cloth", "category": "special", "maxStack": 20 },
   { "id": "moss_cap", "nameKey": "item.moss_cap.name", "descKey": "item.moss_cap.desc", "icon": "moss_cap", "category": "special", "maxStack": 20 },

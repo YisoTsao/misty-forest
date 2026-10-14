@@ -40,7 +40,8 @@ export function installEventFeedback(): void {
         const nameKey = objectNameKey(e.placementId);
         if (nameKey) ui.pushToast({ textKey: 'toast.objectReleased', vars: { name: t(nameKey) } });
       } else if (e.type === 'ObjectTurned') {
-        ui.pushToast({ textKey: 'toast.wheelTurned' });
+        // 星光鏡（任務 7E）的提示由頭目戰處理
+        if (objectNameKey(e.placementId) === 'object.waterWheel') ui.pushToast({ textKey: 'toast.wheelTurned' });
       } else if (e.type === 'ItemsRemoved') {
         for (const stack of e.items) ui.pushToast({ textKey: 'toast.itemsGiven', vars: { item: itemName(stack.itemId), count: stack.count } });
       } else if (e.type === 'QuestAccepted' || e.type === 'QuestCompleted') {

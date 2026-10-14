@@ -2,7 +2,7 @@
 // 開戰 / 結束 / 傷害都是權威指令；這裡只做「玩家在哪裡、有沒有被打到」的本機判定。
 import { create } from 'zustand';
 import { filledTroughs } from '@/game-core/authority/rules';
-import { bossStrikeHits, stepBossAi, type BossState, type BossStrike } from '@/game-core/combat/bossAi';
+import { bossStrikeHits, stepBossAi, stunBoss, type BossState, type BossStrike } from '@/game-core/combat/bossAi';
 import { bossRequirementsMet, type BossDef, type BossMoveId, type EnemyDef } from '@/game-core/combat/combat';
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { terrainHeight } from '@/game-core/world/terrain';
@@ -18,6 +18,11 @@ import { vfx } from '../vfx/vfxQueue';
 import { combatRuntime, enemyRuntime, type EnemyVisual } from './combatRuntime';
 
 const bosses = [...combat.enemies.values()].filter((e): e is EnemyDef & { boss: BossDef } => e.boss !== undefined);
+
+/** 頭目各自的文字（資料的 textKey 前綴，例如 boss.intro、puffKing.intro） */
+function bossText(def: { boss: BossDef } | undefined, name: string): string {
+  return `${def?.boss.textKey ?? 'boss'}.${name}`;
+}
 
 /** HUD 顯示的頭目戰狀態（只在數值改變時更新） */
 export type BossHud = { enemyId: string; bossId: string; hp: number; maxHp: number; filled: number; total: number; phase: 1 | 2; state: BossState };
@@ -64,7 +69,7 @@ export function stepBossArenas(dt: number): void {
     if (fighting) {
       if (!inArena(def.boss, x, z, LEAVE_MARGIN)) {
         authority.send({ type: 'EndBossFight', boss: def.id });
-        useUiStore.getState().pushToast({ textKey: 'boss.left' });
+        useUiStore.getState().pushToast({ textKey: bossText(def, 'left') });
       }
       continue;
     }
@@ -93,7 +98,7 @@ export function updateBossAi(id: string, v: EnemyVisual, def: EnemyDef & { boss:
   });
   if (bossDebugState.force && boss.state === bossDebugState.force) bossDebugState.force = null;
   patchHud({ phase: boss.phase, state: boss.state });
-  if (out.phaseChanged) useUiStore.getState().pushToast({ textKey: 'boss.phase2' });
+  if (out.phaseChanged) useUiStore.getState().pushToast({ textKey: bossText(def, 'phase2') });
   if (out.strike) {
     strikeEffects(out.strike);
     if (alive && combatRuntime.invulnerable <= 0 && bossStrikeHits(out.strike, player)) authority.send({ type: 'EnemyStrike', enemyId: id, move: out.strike.move });
@@ -108,6 +113,17 @@ function strikeEffects(strike: BossStrike): void {
     if (useSettingsStore.getState().cameraShake) cameraRuntime.shake = Math.max(cameraRuntime.shake, amount);
   };
   switch (strike.move) {
+    case 'orbs':
+      for (const p of strike.points) {
+        const y = terrainHeight(p.x, p.z);
+        vfx({ type: 'burst', preset: 'purify', x: p.x, y: y + 0.4, z: p.z, color: SPORE_COLOR, scale: 0.9 });
+      }
+      shake(0.08);
+      break;
+    case 'charge':
+      vfx({ type: 'burst', preset: 'meteorHit', x: strike.x, y: terrainHeight(strike.x, strike.z) + 0.8, z: strike.z, color: SPORE_COLOR, scale: 1 });
+      shake(0.25);
+      break;
     case 'spikes':
       for (const p of strike.points) {
         const y = terrainHeight(p.x, p.z);
@@ -168,8 +184,8 @@ export function installBossRuntime(): void {
           if (!def) break;
           useBossStore.setState({ hud: hudFor(e.enemyId, def) });
           // 戰前芽芽（Bible §6.5）；還沒有夥伴時改用提示
-          if (state.companion.unlocked) companionSay('boss.intro');
-          else ui.pushToast({ textKey: 'boss.intro' });
+          if (state.companion.unlocked) companionSay(bossText(def, 'intro'));
+          else ui.pushToast({ textKey: bossText(def, 'intro') });
           break;
         }
         case 'EnemyDamaged': {
@@ -195,17 +211,52 @@ export function installBossRuntime(): void {
           break;
         }
         case 'BossDefeated':
-          ui.pushToast({ textKey: 'boss.defeated' });
+          ui.pushToast({ textKey: bossText(bosses.find((b) => b.id === e.boss), 'defeated') });
           useBossStore.setState({ hud: null });
           break;
-        case 'EnemyDespawned':
-          if (useBossStore.getState().hud?.enemyId !== e.enemyId) break;
+        case 'EnemyDespawned': {
+          const hud = useBossStore.getState().hud;
+          if (hud?.enemyId !== e.enemyId) break;
           useBossStore.setState({ hud: null });
-          if (playerDefeated) ui.pushToast({ textKey: 'boss.retry' });
+          if (playerDefeated) ui.pushToast({ textKey: bossText(bosses.find((b) => b.id === hud.bossId), 'retry') });
+          break;
+        }
+        case 'ObjectTurned':
+          mirrorTurned(e.placementId);
           break;
       }
     }
   });
+}
+
+/**
+ * 轉動星光鏡（任務 7E，Bible §5.5 弱點）：頭目蓄力時把燈塔的光引過去，頭目暈眩；不是蓄力時只提示時機。
+ */
+function mirrorTurned(placementId: string): void {
+  const def = bosses.find((b) => b.boss.stun?.mirrors.includes(placementId));
+  const hud = useBossStore.getState().hud;
+  if (!def || hud?.bossId !== def.id) return;
+  const v = enemyRuntime.get(hud.enemyId);
+  if (!v?.boss) return;
+  const ui = useUiStore.getState();
+  if (!stunBoss(v.boss, def.boss)) {
+    ui.pushToast({ textKey: bossText(def, 'mirrorEarly') });
+    return;
+  }
+  patchHud({ state: v.boss.state });
+  ui.pushToast({ textKey: bossText(def, 'stunned') });
+  // 光從鏡子照到頭目身上：沿線幾個金色光點、頭目身上一圈光
+  const mirror = worldIndex.placement(placementId);
+  const y = terrainHeight(v.ai.x, v.ai.z);
+  if (mirror) {
+    const [mx, my, mz] = mirror.position;
+    for (let i = 1; i <= 5; i++) {
+      const t = i / 6;
+      vfx({ type: 'burst', preset: 'purify', x: mx + (v.ai.x - mx) * t, y: my + 2 + (y + 1.5 - my - 2) * t, z: mz + (v.ai.z - mz) * t, color: [1, 0.86, 0.5], scale: 0.6 });
+    }
+  }
+  vfx({ type: 'flash', x: v.ai.x, y: y + 2, z: v.ai.z, color: [1, 0.86, 0.5], intensity: 6, duration: 1, distance: 16 });
+  vfx({ type: 'shockwave', x: v.ai.x, y: y + 0.2, z: v.ai.z, radius: 5, duration: 0.8, color: [1, 0.86, 0.5] });
 }
 
 /**

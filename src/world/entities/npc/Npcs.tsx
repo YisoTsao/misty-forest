@@ -13,6 +13,7 @@ import { currentScreen } from '@/game/state/gameStore';
 import { assetUrl } from '@/game/worldData';
 import { AssetBoundary } from '../../AssetBoundary';
 import { MossThumpBuddy } from '../enemy/MossThump';
+import { PuffBuddy } from '../enemy/PuffKing';
 import { prepareModel } from '../player/CharacterModel';
 
 /** 與玩家相同的膠囊尺寸（同一套骨架模型） */
@@ -49,6 +50,7 @@ function NpcBody({ def }: { def: NpcDef }) {
 /** 程式造型的 NPC（目前只有苔咚）：固定站位，對話時轉向玩家 */
 const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => boolean) => ReactNode }> = {
   moss_thump: { radius: 0.55, render: (talking) => <MossThumpBuddy talking={talking} /> },
+  puff: { radius: 0.45, render: (talking) => <PuffBuddy talking={talking} /> },
 };
 
 function ProceduralNpcActor({ def }: { def: NpcDef }) {

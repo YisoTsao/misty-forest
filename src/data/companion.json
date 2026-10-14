@@ -188,6 +188,26 @@
     },
     {
       "when": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "questStatus",
+            "quest": "quest_dawn_003",
+            "is": "completed"
+          },
+          {
+            "type": "not",
+            "condition": {
+              "type": "bossDefeated",
+              "boss": "boss_dawn_mist_puff"
+            }
+          }
+        ]
+      },
+      "textKey": "companion.hint.puffKing"
+    },
+    {
+      "when": {
         "type": "not",
         "condition": {
           "type": "tutorialDone"

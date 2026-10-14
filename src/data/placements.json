@@ -10855,26 +10855,6 @@
     ]
   },
   {
-    "id": "highland_tree_009",
-    "prefabId": "k_tree_cone_dark",
-    "regionId": "highland",
-    "position": [
-      -5.03,
-      10,
-      -130.18
-    ],
-    "rotation": [
-      0,
-      1.04,
-      0
-    ],
-    "scale": [
-      4.71,
-      4.66,
-      4.71
-    ]
-  },
-  {
     "id": "highland_tree_010",
     "prefabId": "k_tree_tall_dark",
     "regionId": "meadow",
@@ -11052,26 +11032,6 @@
       6.09,
       6.39,
       6.09
-    ]
-  },
-  {
-    "id": "highland_tree_019",
-    "prefabId": "k_pine_tall_a",
-    "regionId": "highland",
-    "position": [
-      -12.54,
-      9.85,
-      -128.68
-    ],
-    "rotation": [
-      0,
-      1.41,
-      0
-    ],
-    "scale": [
-      5.64,
-      5.8,
-      5.64
     ]
   },
   {
@@ -11272,26 +11232,6 @@
       6.96,
       6.85,
       6.96
-    ]
-  },
-  {
-    "id": "highland_tree_030",
-    "prefabId": "k_pine_tall_b",
-    "regionId": "highland",
-    "position": [
-      6.02,
-      9.95,
-      -128.33
-    ],
-    "rotation": [
-      0,
-      4.21,
-      0
-    ],
-    "scale": [
-      4.87,
-      5.21,
-      4.87
     ]
   },
   {
@@ -11555,26 +11495,6 @@
     ]
   },
   {
-    "id": "highland_tree_044",
-    "prefabId": "k_pine_round_a",
-    "regionId": "highland",
-    "position": [
-      2.26,
-      9.92,
-      -122.32
-    ],
-    "rotation": [
-      0,
-      2.48,
-      0
-    ],
-    "scale": [
-      5.93,
-      5.37,
-      5.93
-    ]
-  },
-  {
     "id": "highland_tree_045",
     "prefabId": "k_tree_tall_dark",
     "regionId": "highland",
@@ -11692,26 +11612,6 @@
       6.1,
       6.5,
       6.1
-    ]
-  },
-  {
-    "id": "highland_tree_051",
-    "prefabId": "k_pine_tall_a",
-    "regionId": "highland",
-    "position": [
-      -8.01,
-      9.95,
-      -111.96
-    ],
-    "rotation": [
-      0,
-      4.24,
-      0
-    ],
-    "scale": [
-      5.1,
-      5.51,
-      5.1
     ]
   },
   {
@@ -11852,26 +11752,6 @@
       4.7,
       4.62,
       4.7
-    ]
-  },
-  {
-    "id": "highland_tree_059",
-    "prefabId": "k_tree_tall_dark",
-    "regionId": "highland",
-    "position": [
-      -16.21,
-      9.89,
-      -114.35
-    ],
-    "rotation": [
-      0,
-      5.94,
-      0
-    ],
-    "scale": [
-      6.59,
-      6.84,
-      6.59
     ]
   },
   {
@@ -12092,26 +11972,6 @@
       6.89,
       6.98,
       6.89
-    ]
-  },
-  {
-    "id": "highland_tree_071",
-    "prefabId": "k_pine_tall_a",
-    "regionId": "highland",
-    "position": [
-      -15.61,
-      9.87,
-      -119.02
-    ],
-    "rotation": [
-      0,
-      4.51,
-      0
-    ],
-    "scale": [
-      6.86,
-      6.27,
-      6.86
     ]
   },
   {
@@ -12515,26 +12375,6 @@
     ]
   },
   {
-    "id": "highland_tree_092",
-    "prefabId": "k_tree_cone",
-    "regionId": "highland",
-    "position": [
-      -3.79,
-      9.93,
-      -115.31
-    ],
-    "rotation": [
-      0,
-      2.53,
-      0
-    ],
-    "scale": [
-      6.05,
-      6.9,
-      6.05
-    ]
-  },
-  {
     "id": "highland_tree_093",
     "prefabId": "k_pine_round_a",
     "regionId": "highland",
@@ -12832,26 +12672,6 @@
       5.46,
       5.63,
       5.46
-    ]
-  },
-  {
-    "id": "highland_tree_108",
-    "prefabId": "k_tree_cone_dark",
-    "regionId": "highland",
-    "position": [
-      -4.98,
-      10.44,
-      -104.15
-    ],
-    "rotation": [
-      0,
-      2.43,
-      0
-    ],
-    "scale": [
-      6.79,
-      7.76,
-      6.79
     ]
   },
   {
@@ -13652,46 +13472,6 @@
       6.03,
       5.66,
       6.03
-    ]
-  },
-  {
-    "id": "highland_tree_149",
-    "prefabId": "k_tree_tall_dark",
-    "regionId": "highland",
-    "position": [
-      -13.19,
-      9.93,
-      -110.81
-    ],
-    "rotation": [
-      0,
-      2.87,
-      0
-    ],
-    "scale": [
-      4.81,
-      5.26,
-      4.81
-    ]
-  },
-  {
-    "id": "highland_tree_150",
-    "prefabId": "k_pine_round_c",
-    "regionId": "highland",
-    "position": [
-      -3.66,
-      9.87,
-      -124.33
-    ],
-    "rotation": [
-      0,
-      4.3,
-      0
-    ],
-    "scale": [
-      5.22,
-      4.85,
-      5.22
     ]
   },
   {
@@ -35875,26 +35655,6 @@
     ]
   },
   {
-    "id": "wildflower_108",
-    "prefabId": "k_flower_red",
-    "regionId": "highland",
-    "position": [
-      -6.92,
-      9.92,
-      -116.5
-    ],
-    "rotation": [
-      0,
-      0.49,
-      0
-    ],
-    "scale": [
-      5.69,
-      5.28,
-      5.69
-    ]
-  },
-  {
     "id": "wildflower_109",
     "prefabId": "k_flower_purple",
     "regionId": "meadow",
@@ -37295,26 +37055,6 @@
     ]
   },
   {
-    "id": "boulder_019",
-    "prefabId": "k_stone_tall_b",
-    "regionId": "highland",
-    "position": [
-      9.84,
-      10.01,
-      -117.36
-    ],
-    "rotation": [
-      0,
-      1.05,
-      0
-    ],
-    "scale": [
-      4.97,
-      5.03,
-      4.97
-    ]
-  },
-  {
     "id": "boulder_020",
     "prefabId": "k_rock_large_b",
     "regionId": "meadow",
@@ -38712,26 +38452,6 @@
       4.42,
       4.82,
       4.42
-    ]
-  },
-  {
-    "id": "stone_node_030",
-    "prefabId": "k_rock_tall_e",
-    "regionId": "highland",
-    "position": [
-      1.04,
-      10.22,
-      -104.6
-    ],
-    "rotation": [
-      0,
-      4.84,
-      0
-    ],
-    "scale": [
-      4.41,
-      4.72,
-      4.41
     ]
   },
   {
@@ -52966,6 +52686,26 @@
     "rotation": [
       0,
       4.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "highland_star_mirror",
+    "prefabId": "star_mirror",
+    "regionId": "highland",
+    "position": [
+      -18,
+      9.88,
+      -120
+    ],
+    "rotation": [
+      0,
+      -1.93,
       0
     ],
     "scale": [

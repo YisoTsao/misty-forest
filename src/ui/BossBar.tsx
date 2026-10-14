@@ -11,7 +11,9 @@ export function BossBar() {
   const hud = useBossStore((s) => s.hud);
   const playing = useGameStore((s) => s.screen === 'playing');
   if (!hud || !playing) return null;
-  const name = t(combat.enemies.get(hud.bossId)?.nameKey ?? hud.bossId);
+  const def = combat.enemies.get(hud.bossId);
+  const name = t(def?.nameKey ?? hud.bossId);
+  const textKey = def?.boss?.textKey ?? 'boss';
   const ratio = Math.max(0, hud.hp / hud.maxHp);
   const misty = hud.filled < hud.total;
   return (
@@ -35,7 +37,7 @@ export function BossBar() {
             style={{ width: `${ratio * 100}%` }}
           />
         </div>
-        {misty && <p className="mt-1.5 text-sm font-bold tracking-wide text-sky-100">{t('boss.hint')}</p>}
+        {(misty || hud.total === 0) && <p className="mt-1.5 text-sm font-bold tracking-wide text-sky-100">{t(`${textKey}.hint`)}</p>}
       </div>
     </div>
   );

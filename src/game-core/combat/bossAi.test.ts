@@ -44,7 +44,7 @@ describe('苔咚的 AI', () => {
     const player = { x: boss.home[0] - 4, z: boss.home[1] };
     stepBossAi(ai, b, boss, input(player, { force: 'spikes' }));
     expect(b.state).toBe('spikes');
-    expect(b.markers).toHaveLength(boss.moves.spikes.count);
+    expect(b.markers).toHaveLength(boss.moves.spikes!.count);
     expect(Math.hypot(b.markers[0]!.x - player.x, b.markers[0]!.z - player.z)).toBeLessThan(0.01);
     const strikes = runUntilLeaves(ai, b, 'spikes', player);
     expect(strikes).toHaveLength(1);
@@ -55,7 +55,7 @@ describe('苔咚的 AI', () => {
     const other = strike.points[1]!;
     const gap = Math.atan2(other.z - player.z, other.x - player.x) + Math.PI / 2;
     expect(bossStrikeHits(strike, { x: player.x + Math.cos(gap) * 2.5, z: player.z + Math.sin(gap) * 2.5 })).toBe(false);
-    expect(b.cooldown).toBeCloseTo(boss.moves.spikes.cooldown, 5);
+    expect(b.cooldown).toBeCloseTo(boss.moves.spikes!.cooldown, 5);
   });
 
   it('第二階段：血量低於一半時根刺變多、冷卻變短，且不會回到第一階段', () => {
@@ -66,9 +66,9 @@ describe('苔咚的 AI', () => {
     const out = stepBossAi(ai, b, boss, input(player, { hpRatio: 0.4, force: 'spikes' }));
     expect(out.phaseChanged).toBe(true);
     expect(b.phase).toBe(2);
-    expect(b.markers).toHaveLength(boss.moves.spikes.count2);
+    expect(b.markers).toHaveLength(boss.moves.spikes!.count2);
     runUntilLeaves(ai, b, 'spikes', player, { hpRatio: 0.9 });
-    expect(b.cooldown).toBeCloseTo(boss.moves.spikes.cooldown * boss.phase2Cooldown, 5);
+    expect(b.cooldown).toBeCloseTo(boss.moves.spikes!.cooldown * boss.phase2Cooldown, 5);
     expect(b.phase).toBe(2);
   });
 
@@ -88,7 +88,7 @@ describe('苔咚的 AI', () => {
     expect(strikes[0]).toMatchObject({ move: 'slam', x: target.x, z: target.z });
     expect(ai.x).toBeCloseTo(target.x, 5);
     expect(bossStrikeHits(strikes[0]!, player)).toBe(true);
-    expect(bossStrikeHits(strikes[0]!, { x: player.x + boss.moves.slam.radius + 1, z: player.z })).toBe(false);
+    expect(bossStrikeHits(strikes[0]!, { x: player.x + boss.moves.slam!.radius + 1, z: player.z })).toBe(false);
     expect(b.state).toBe('recover');
     expect(bossStance(b)).toBe('recover');
     runUntilLeaves(ai, b, 'recover', player);
@@ -109,14 +109,14 @@ describe('苔咚的 AI', () => {
     expect(bossStrikeHits(s, player)).toBe(true);
     expect(bossStrikeHits(s, { x: ai.x, z: ai.z - 5 })).toBe(false);
     expect(bossStrikeHits(s, { x: ai.x + 5, z: ai.z })).toBe(false);
-    expect(bossStrikeHits(s, { x: ai.x, z: ai.z + boss.moves.spores.range + 1 })).toBe(false);
+    expect(bossStrikeHits(s, { x: ai.x, z: ai.z + boss.moves.spores!.range + 1 })).toBe(false);
   });
 
   it('連續被打會縮入菌傘（減傷姿態），時間到就出來反擊', () => {
     const { ai, b } = setup();
     b.state = 'chase';
     b.cooldown = 5;
-    for (let i = 0; i < boss.guard.afterHits; i++) onBossHit(b);
+    for (let i = 0; i < boss.guard!.afterHits; i++) onBossHit(b);
     const player = { x: ai.x - 3, z: ai.z };
     stepBossAi(ai, b, boss, input(player));
     expect(b.state).toBe('guard');

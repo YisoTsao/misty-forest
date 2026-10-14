@@ -39,6 +39,13 @@
       },
       {
         "when": {
+          "type": "bossDefeated",
+          "boss": "boss_dawn_mist_puff"
+        },
+        "dialogue": "elder_puff_after"
+      },
+      {
+        "when": {
           "type": "questStatus",
           "quest": "quest_dawn_003",
           "is": "completed"
@@ -437,6 +444,30 @@
       },
       {
         "dialogue": "moss_thump_restored"
+      }
+    ]
+  },
+  {
+    "id": "puff",
+    "nameKey": "npc.puff",
+    "regionId": "meadow",
+    "model": "procedural:puff",
+    "scale": 0.32,
+    "hiddenNodes": [],
+    "visible": {
+      "type": "bossDefeated",
+      "boss": "boss_dawn_mist_puff"
+    },
+    "voice": "bubble",
+    "position": [
+      16,
+      -48
+    ],
+    "facingYaw": -2.2,
+    "interactRadius": 2.2,
+    "talk": [
+      {
+        "dialogue": "puff_buddy"
       }
     ]
   }

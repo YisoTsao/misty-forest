@@ -80,7 +80,7 @@ describe('苔咚的資料', () => {
     expect(regionAt(data.regions, cx, cz)).toBe('moss_crown');
     expect(Math.hypot(boss.home[0] - cx, boss.home[1] - cz)).toBeLessThan(boss.arena.trigger);
     // 入口在戰場外、重試點在入口外
-    const gateDist = Math.hypot(boss.gate.center[0] - cx, boss.gate.center[1] - cz);
+    const gateDist = Math.hypot(boss.gate!.center[0] - cx, boss.gate!.center[1] - cz);
     expect(gateDist).toBeGreaterThan(boss.arena.trigger);
     expect(Math.hypot(boss.retryAt[0] - cx, boss.retryAt[1] - cz)).toBeGreaterThan(gateDist);
     for (const id of boss.troughs) {
@@ -139,7 +139,7 @@ describe('苔咚頭目戰', () => {
       return e?.type === 'EnemyDamaged' ? e.amount : 0;
     };
     const base = amount();
-    expect(amount('guard')).toBe(Math.round(base * boss.guard.scale));
+    expect(amount('guard')).toBe(Math.round(base * boss.guard!.scale));
     expect(amount('recover')).toBe(Math.round(base * boss.recoverScale));
   });
 
@@ -147,9 +147,9 @@ describe('苔咚頭目戰', () => {
     const { state, enemyId } = fighting();
     for (const move of ['spikes', 'slam', 'spores'] as const) {
       const r = ok(state, { type: 'EnemyStrike', enemyId, move });
-      expect(r.state.player.hp).toBe(100 - boss.moves[move].damage);
+      expect(r.state.player.hp).toBe(100 - boss.moves[move]!.damage);
       const slowed = r.events.find((e) => e.type === 'PlayerSlowed');
-      if (move === 'spores') expect(slowed).toMatchObject({ sec: boss.moves.spores.slowSec, scale: boss.moves.spores.slowScale, cause: 'spores' });
+      if (move === 'spores') expect(slowed).toMatchObject({ sec: boss.moves.spores!.slowSec, scale: boss.moves.spores!.slowScale, cause: 'spores' });
       else expect(slowed).toBeUndefined();
     }
     expect(rejection(state, { type: 'EnemyStrike', enemyId })).toBe('invalid-command');

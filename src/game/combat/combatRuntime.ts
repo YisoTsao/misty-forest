@@ -116,9 +116,9 @@ function spawnPosition(spawnerId: string): { x: number; z: number } {
 function addEnemy(id: string, kind: string, spawner: string): void {
   const boss = combat.enemies.get(kind)?.boss;
   if (boss) {
-    // 頭目：從菌樹下面向戰場入口現身
+    // 頭目：面向戰場入口現身（沒有入口時面向重試點，也就是玩家走來的方向）
     const [x, z] = boss.home;
-    const [gx, gz] = boss.gate.center;
+    const [gx, gz] = boss.gate?.center ?? boss.retryAt;
     enemyRuntime.set(id, { ai: createEnemyAi(x, z, Math.atan2(gx - x, gz - z)), kind, spawner, fadeIn: 0, flash: 0, vanishing: null, sinceUpdate: 0, boss: createBossAi() });
     return;
   }

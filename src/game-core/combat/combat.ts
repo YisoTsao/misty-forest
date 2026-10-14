@@ -15,38 +15,54 @@ const point = z.tuple([z.number(), z.number()]);
  * - guard 縮入菌傘：連續被打 afterHits 下後縮起來 sec 秒，受到的傷害 × scale
  * shield：迷霧護盾，依已注水的水槽數（0..troughs）決定受到的傷害倍率；水槽沒有全部注水前打不倒（血量最少留 1）
  */
-export const bossDefSchema = z.object({
-  /** 戰場：中心、半徑（頭目不會離開）、玩家走進 trigger 半徑內開戰 */
-  arena: z.object({ center: point, radius: z.number().positive(), trigger: z.number().positive() }),
-  /** 開戰時出現的位置 */
-  home: point,
-  /** 戰場中不能走進去的圓（巨大蘑菇樹的樹幹） */
-  avoid: z.object({ center: point, radius: z.number().positive() }).optional(),
-  /** 開戰的條件：questActive 任務進行中（任務 8D-2）／ questCompleted 任務已完成 */
-  requires: z.object({ questActive: z.string().min(1).optional(), questCompleted: z.string().min(1).optional() }).optional(),
-  /** 戰場入口：開戰後樹根封住（中心、寬度、面向），倒下後在 retryAt 重新站起來 */
-  gate: z.object({ center: point, width: z.number().positive(), yaw: z.number() }),
-  retryAt: point,
-  /** 戰場邊緣的水槽（placement id）：戰鬥中才能注水 */
-  troughs: z.array(z.string().min(1)).min(1),
-  shield: z.array(z.number().positive().max(1)).min(2),
-  introSec: z.number().nonnegative(),
-  moveSpeed: z.number().positive(),
-  /** 第二階段：血量比例低於這個值 */
-  phase2Below: z.number().gt(0).lt(1),
-  /** 第二階段的招式冷卻倍率 */
-  phase2Cooldown: z.number().positive().max(1),
-  recoverScale: z.number().min(1),
-  guard: z.object({ afterHits: z.number().int().positive(), sec: z.number().positive(), scale: z.number().min(0).max(1) }),
-  moves: z.object({
-    spikes: z.object({ windup: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), count: z.number().int().positive(), count2: z.number().int().positive(), spread: z.number().positive(), cooldown: z.number().positive() }),
-    slam: z.object({ windup: z.number().positive(), air: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), recoverSec: z.number().positive(), minRange: z.number().nonnegative(), cooldown: z.number().positive() }),
-    spores: z.object({ windup: z.number().positive(), damage: z.number().positive(), range: z.number().positive(), arcDeg: z.number().positive().max(360), slowSec: z.number().positive(), slowScale: z.number().positive().max(1), cooldown: z.number().positive() }),
-  }),
-});
+export const bossDefSchema = z
+  .object({
+    /** 戰場：中心、半徑（頭目不會離開）、玩家走進 trigger 半徑內開戰 */
+    arena: z.object({ center: point, radius: z.number().positive(), trigger: z.number().positive() }),
+    /** 開戰時出現的位置 */
+    home: point,
+    /** 戰場中不能走進去的圓（巨大蘑菇樹的樹幹） */
+    avoid: z.object({ center: point, radius: z.number().positive() }).optional(),
+    /** 開戰的條件：questActive 任務進行中（任務 8D-2）／ questCompleted 任務已完成 */
+    requires: z.object({ questActive: z.string().min(1).optional(), questCompleted: z.string().min(1).optional() }).optional(),
+    /** 戰場入口：開戰後樹根封住（中心、寬度、面向）；省略時是開闊的戰場（任務 7E 高地） */
+    gate: z.object({ center: point, width: z.number().positive(), yaw: z.number() }).optional(),
+    /** 倒下後重新站起來的位置（戰場外） */
+    retryAt: point,
+    /** 戰場邊緣的水槽（placement id）：戰鬥中才能注水；省略時沒有迷霧護盾 */
+    troughs: z.array(z.string().min(1)).default([]),
+    shield: z.array(z.number().positive().max(1)).default([1]),
+    /**
+     * 暈眩（任務 7E 霧團噗啾王，Bible §5.5 弱點）：蓄力時轉動 mirrors 裡的星光鏡把燈塔的光引過來，頭目暈眩 sec 秒（破綻）。
+     */
+    stun: z.object({ mirrors: z.array(z.string().min(1)).min(1), sec: z.number().positive() }).optional(),
+    introSec: z.number().nonnegative(),
+    moveSpeed: z.number().positive(),
+    /** 身體半徑（避開樹幹、留在戰場內、追擊時保持的距離） */
+    bodyRadius: z.number().positive().default(1.6),
+    /** 第二階段：血量比例低於這個值 */
+    phase2Below: z.number().gt(0).lt(1),
+    /** 第二階段的招式冷卻倍率 */
+    phase2Cooldown: z.number().positive().max(1),
+    recoverScale: z.number().min(1),
+    /** 連續被打 afterHits 下後縮起來防禦；省略時不會防禦 */
+    guard: z.object({ afterHits: z.number().int().positive(), sec: z.number().positive(), scale: z.number().min(0).max(1) }).optional(),
+    /** 文字（提示、戰前台詞）的 i18n 前綴，例如 boss → boss.intro、boss.hint */
+    textKey: z.string().min(1).default('boss'),
+    moves: z.object({
+      spikes: z.object({ windup: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), count: z.number().int().positive(), count2: z.number().int().positive(), spread: z.number().positive(), cooldown: z.number().positive() }).optional(),
+      slam: z.object({ windup: z.number().positive(), air: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), recoverSec: z.number().positive(), minRange: z.number().nonnegative(), cooldown: z.number().positive() }).optional(),
+      spores: z.object({ windup: z.number().positive(), damage: z.number().positive(), range: z.number().positive(), arcDeg: z.number().positive().max(360), slowSec: z.number().positive(), slowScale: z.number().positive().max(1), cooldown: z.number().positive() }).optional(),
+      /** 衝撞：windup 秒蓄力（前 70% 會轉向），沿直線衝 distance 公尺；衝刺途中碰到玩家（radius）就受傷 */
+      charge: z.object({ windup: z.number().positive(), speed: z.number().positive(), distance: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), minRange: z.number().nonnegative(), cooldown: z.number().positive() }).optional(),
+      /** 彈出小霧球：windup 秒後在身邊一圈（ring 公尺）與玩家腳下落下 count 顆霧球（第二階段 count2 顆），標記半徑內受傷 */
+      orbs: z.object({ windup: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), count: z.number().int().positive(), count2: z.number().int().positive(), ring: z.number().positive(), cooldown: z.number().positive() }).optional(),
+    }),
+  })
+  .refine((b) => Object.values(b.moves).some((m) => m !== undefined), { message: '頭目至少要有一招', path: ['moves'] });
 export type BossDef = z.infer<typeof bossDefSchema>;
 export type BossMoveId = keyof BossDef['moves'];
-export const bossMoveIds = ['spikes', 'slam', 'spores'] as const satisfies readonly BossMoveId[];
+export const bossMoveIds = ['spikes', 'slam', 'spores', 'charge', 'orbs'] as const satisfies readonly BossMoveId[];
 
 export const enemyDefSchema = z.object({
   id: z.string().min(1),
@@ -186,7 +202,7 @@ export const PLAYER_STATS = {
 export type EnemyStance = 'guard' | 'recover';
 
 export function stanceDamageScale(def: EnemyDef, stance: EnemyStance | undefined): number {
-  if (stance && def.boss) return stance === 'guard' ? def.boss.guard.scale : def.boss.recoverScale;
+  if (stance && def.boss) return stance === 'guard' ? (def.boss.guard?.scale ?? 1) : def.boss.recoverScale;
   if (!stance || def.behavior?.kind !== 'shell') return 1;
   return stance === 'guard' ? def.behavior.guardScale : def.behavior.recoverScale;
 }

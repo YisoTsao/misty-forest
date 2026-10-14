@@ -111,10 +111,32 @@ function lighthouseLamp(lit: boolean): ForestModel {
   return { solid: merge(solid, '燈籠室'), glow: merge(glow, '燈塔的光') };
 }
 
+/** 星光鏡（任務 7E，Bible §5.5「星光互動物」）：木架上的圓形金框鏡子，鏡面（+Z）朝向燈塔；轉動時把燈塔的光反射到戰場裡 */
+function starMirror(): ForestModel {
+  const wood = c('#7a5233');
+  const solid = [
+    cylinder(0.5, 0.6, 0.2, [0, 0, 0], c('#7d7a72'), 8),
+    cylinder(0.08, 0.1, 1.6, [0, 0.2, 0], wood, 6),
+    cylinder(0.05, 0.05, 1.3, [0, 1.75, 0], wood, 5, [0, 0, Math.PI / 2]),
+  ];
+  const frame = new THREE.TorusGeometry(0.62, 0.07, 6, 24);
+  frame.translate(0, 1.75, 0.02);
+  solid.push(paint(frame, c('#c9993f')));
+  const glass = new THREE.CircleGeometry(0.58, 24);
+  glass.translate(0, 1.75, 0.04);
+  const back = new THREE.CircleGeometry(0.58, 24);
+  back.rotateY(Math.PI);
+  back.translate(0, 1.75, 0);
+  solid.push(paint(back, c('#5b4a36')));
+  const glow = [paint(glass, glowColor('#fff4d6', 1.25)), sphere(0.06, [0, 2.45, 0.02], glowColor(GOLD, 2.2), [1, 1, 1], 0)];
+  return { solid: merge(solid, '星光鏡'), glow: merge(glow, '星光鏡的鏡面') };
+}
+
 export const dawnBuilders: Record<string, () => ForestModel> = {
   lantern_shard: lanternShard,
   mist_core: () => mistCore(false),
   mist_core_clear: () => mistCore(true),
   lighthouse_lamp: () => lighthouseLamp(false),
   lighthouse_lamp_lit: () => lighthouseLamp(true),
+  star_mirror: starMirror,
 };

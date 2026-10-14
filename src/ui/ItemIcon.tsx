@@ -170,6 +170,13 @@ const icons: Record<string, ReactNode> = {
       <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </>
   ),
+  puff_horn: (
+    <>
+      <path d="M14 40 Q12 22 24 8 Q36 22 34 40 Q24 44 14 40 Z" fill="#cdb8ee" stroke="#7a62a8" strokeWidth="2" />
+      <path d="M19 34 Q18 24 24 15" stroke="#f2e9ff" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <circle cx="29" cy="30" r="1.8" fill="#ffd77a" />
+    </>
+  ),
   lantern_shard: (
     <>
       <path d="M12 38 Q10 22 22 9 L34 14 Q26 26 28 40 Z" fill="#ffe7a3" stroke="#a07a32" strokeWidth="2" strokeLinejoin="round" />

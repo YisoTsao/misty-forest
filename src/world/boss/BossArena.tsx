@@ -25,10 +25,10 @@ export function BossArenas() {
   useFrame((_, dt) => {
     if (currentScreen() !== 'paused') stepBossArenas(Math.min(dt, 1 / 20));
   });
-  return bosses.map((b) => <ArenaGate key={b.id} bossId={b.id} boss={b.boss} />);
+  return bosses.map((b) => (b.boss.gate ? <ArenaGate key={b.id} bossId={b.id} gate={b.boss.gate} /> : null));
 }
 
-function ArenaGate({ bossId, boss }: { bossId: string; boss: BossDef }) {
+function ArenaGate({ bossId, gate }: { bossId: string; gate: NonNullable<BossDef['gate']> }) {
   const closed = useBossStore((s) => s.hud?.bossId === bossId);
   const parts = useMemo(() => buildProceduralModel('procedural:root_wall'), []);
   useEffect(
@@ -41,7 +41,7 @@ function ArenaGate({ bossId, boss }: { bossId: string; boss: BossDef }) {
   );
   const group = useRef<THREE.Group>(null);
   const rise = useRef(0);
-  const [x, z] = boss.gate.center;
+  const [x, z] = gate.center;
   const y = terrainHeight(x, z);
   useFrame((_, dt) => {
     const g = group.current;
@@ -51,17 +51,17 @@ function ArenaGate({ bossId, boss }: { bossId: string; boss: BossDef }) {
     g.visible = rise.current > 0.001;
     g.position.y = y - 0.3 - SUNK * (1 - rise.current) + Math.sin(rise.current * Math.PI) * 0.05;
   });
-  const sx = boss.gate.width / WALL_WIDTH;
+  const sx = gate.width / WALL_WIDTH;
   return (
     <>
-      <group ref={group} position={[x, y - SUNK, z]} rotation={[0, boss.gate.yaw, 0]} scale={[sx, 1.3, 1.3]} visible={false} name={`boss-gate:${bossId}`}>
+      <group ref={group} position={[x, y - SUNK, z]} rotation={[0, gate.yaw, 0]} scale={[sx, 1.3, 1.3]} visible={false} name={`boss-gate:${bossId}`}>
         {parts.map((p) => (
           <mesh key={p.key} geometry={p.geometry} material={p.material} castShadow receiveShadow />
         ))}
       </group>
       {closed && (
-        <RigidBody type="fixed" colliders={false} position={[x, y, z]} rotation={[0, boss.gate.yaw, 0]}>
-          <CuboidCollider args={[boss.gate.width / 2, WALL_HEIGHT, 0.8]} position={[0, WALL_HEIGHT / 2, 0]} />
+        <RigidBody type="fixed" colliders={false} position={[x, y, z]} rotation={[0, gate.yaw, 0]}>
+          <CuboidCollider args={[gate.width / 2, WALL_HEIGHT, 0.8]} position={[0, WALL_HEIGHT / 2, 0]} />
         </RigidBody>
       )}
     </>

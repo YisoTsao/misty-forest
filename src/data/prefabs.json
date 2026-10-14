@@ -3505,5 +3505,17 @@
       "ordered": true
     },
     "persists": true
+  },
+  {
+    "id": "star_mirror",
+    "model": "procedural:star_mirror",
+    "collider": "static",
+    "collision": { "shape": "cylinder", "radius": 0.45, "height": 2.4 },
+    "interaction": "turn",
+    "nameKey": "object.starMirror",
+    "verbKey": "interact.aimMirror",
+    "interactRadius": 2.4,
+    "turn": { "positions": 2 },
+    "persists": false
   }
 ]

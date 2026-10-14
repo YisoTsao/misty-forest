@@ -506,7 +506,8 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId }];
   if (spit && behavior?.kind === 'spit' && hp > 0) events.push({ type: 'PlayerSlowed', sec: behavior.slowSec, scale: behavior.slowScale });
   // 睡眠孢子：昏昏欲睡，一段時間內走得很慢
-  if (move === 'spores' && def.boss && hp > 0) events.push({ type: 'PlayerSlowed', sec: def.boss.moves.spores.slowSec, scale: def.boss.moves.spores.slowScale, cause: 'spores' });
+  const spores = def.boss?.moves.spores;
+  if (move === 'spores' && spores && hp > 0) events.push({ type: 'PlayerSlowed', sec: spores.slowSec, scale: spores.slowScale, cause: 'spores' });
   if (hp <= 0) {
     events.push({ type: 'PlayerDefeated' });
     // 失敗後重試（Bible §27.4）：頭目回去、血量回滿，已注水的水槽保留

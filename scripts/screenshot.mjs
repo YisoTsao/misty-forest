@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --puffking：霧團噗啾王（任務 7E）：開場、衝撞 / 霧球 / 膨脹震地的預兆、星光鏡讓牠暈眩、倒下縮小、村外的小噗啾
 //   --lighthouse：燈塔的最後一盞光（任務 7D）：燈罩碎片、迷霧核心（淨化前後）、熄滅 / 點亮的燈塔（白天、夜晚的光柱）、點亮瞬間的金光
 //   --guardian：苔冠下的守衛（任務 8D-2）：林間水道的樹根、沉睡 / 甦醒（白天、夜晚）的根源石、戰後的苔咚、芽之共鳴的光、回報後退開的樹根
 //   --boss：苔咚頭目戰：開場鑽出地面、HUD、根刺 / 震地 / 睡眠孢子的預兆與出招、縮入菌傘、震地後的破綻、入口的樹根、注滿的水槽與迷霧退去、倒下縮小（任務 8D）
@@ -58,6 +59,7 @@ const withWaterway = flags.has('--waterway');
 const withBoss = flags.has('--boss');
 const withGuardian = flags.has('--guardian');
 const withLighthouse = flags.has('--lighthouse');
+const withPuffKing = flags.has('--puffking');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1085,6 +1087,81 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withPuffKing) {
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const look = (cam) => d((c) => window.__mistwoodDebug.camera(c), cam);
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(16);
+      for (const q of ['wood_for_bridge', 'repair_bridge', 'clear_forest']) g.setQuestCompleted(q);
+      g.send({ type: 'AcceptQuest', quest: 'quest_dawn_003' });
+      g.send({ type: 'DebugGiveItems', items: [{ itemId: 'lantern_shard', count: 3 }] });
+      for (const from of ['move', 'interact', 'harvest', 'inventory']) g.send({ type: 'AdvanceTutorial', from });
+      g.setQuestCompleted('quest_dawn_003');
+      g.setPeaceful(true);
+      g.setCameraMode('follow');
+      g.teleport(-4, -110);
+      g.face(-4, -122);
+    });
+    await look({ yaw: 0, pitch: 0.25, distance: 9 });
+    await page.waitForTimeout(1300);
+    await shot('puffking_intro');
+    await page.waitForTimeout(1600);
+    await shot('puffking_hud');
+    const force = async (move, wait) => {
+      await d((m) => {
+        const g = window.__mistwoodDebug;
+        g.send({ type: 'Rest' });
+        g.setPeaceful(false);
+        g.forceBossMove(m);
+      }, move);
+      await page.waitForFunction((m) => window.__mistwoodDebug.boss()?.state === m, move, { timeout: 8000 });
+      await page.waitForTimeout(wait);
+    };
+    await look({ yaw: 0.5, pitch: 0.4, distance: 12 });
+    await force('charge', 500);
+    await shot('puffking_charge');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
+    await page.waitForTimeout(2500);
+    await force('orbs', 450);
+    await shot('puffking_orbs');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
+    await page.waitForTimeout(2500);
+    await force('slam', 550);
+    await shot('puffking_slam');
+    // 蓄力時轉動星光鏡：暈眩
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.send({ type: 'TurnObject', placementId: 'highland_star_mirror' });
+      g.setPeaceful(true);
+    });
+    await page.waitForTimeout(700);
+    await shot('puffking_stunned');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      const b = g.boss();
+      for (let i = 0; i < 80 && g.boss(); i++) {
+        g.setMp(100);
+        g.hitEnemy(b.enemyId, 'spell_starlight_burst');
+      }
+    });
+    await page.waitForTimeout(1100);
+    await shot('puffking_defeated');
+    await page.waitForTimeout(2000);
+    const puff = JSON.parse(readFileSync('src/data/npcs.json', 'utf8')).find((n) => n.id === 'puff');
+    await d(([x, z, yaw]) => {
+      const g = window.__mistwoodDebug;
+      g.teleport(x + Math.sin(yaw) * 2.4 + 1, z + Math.cos(yaw) * 2.4);
+      g.face(x, z);
+      g.camera({ yaw: yaw + 0.6, pitch: 0.2, distance: 4 });
+    }, [puff.position[0], puff.position[1], puff.facingYaw]);
+    await page.waitForTimeout(1500);
+    await shot('puffking_buddy');
+    await d(() => window.__mistwoodDebug.setClock(10));
   }
 
   if (withGuardian) {

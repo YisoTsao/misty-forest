@@ -212,9 +212,17 @@ const PUFFS = 9;
 
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
+/** 苔咚的三招與縮入菌傘（資料一定有；其他頭目用自己的元件） */
+function mossMoves(boss: BossDef) {
+  const { spikes, slam, spores } = boss.moves;
+  if (!spikes || !slam || !spores || !boss.guard) throw new Error('苔咚的資料缺少根刺、震地、孢子或縮入菌傘');
+  return { spikes, slam, spores, guard: boss.guard };
+}
+
 export function MossThump({ id, def }: { id: string; def: BossEnemy }) {
   const { shape, markers, materials } = getShared();
-  const sporeGeometry = useMemo(() => sector(def.boss.moves.spores.arcDeg), [def.boss.moves.spores.arcDeg]);
+  const m = mossMoves(def.boss);
+  const sporeGeometry = useMemo(() => sector(m.spores.arcDeg), [m.spores.arcDeg]);
   useEffect(() => () => sporeGeometry.dispose(), [sporeGeometry]);
   const group = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
@@ -260,7 +268,7 @@ export function MossThump({ id, def }: { id: string; def: BossEnemy }) {
     const time = local.time;
     const st = b.state;
     const timer = b.timer;
-    const moves = def.boss.moves;
+    const moves = m;
 
     // 根刺：前搖結束的那一幀在標記位置冒出來
     if (local.prevState === 'spikes' && st !== 'spikes') {
@@ -343,7 +351,7 @@ export function MossThump({ id, def }: { id: string; def: BossEnemy }) {
       }
       case 'guard': {
         // 縮進菌傘：身體縮小、菌傘壓下來蓋住
-        const k = Math.min(1, timer / 0.3) * Math.min(1, (def.boss.guard.sec - timer) / 0.3);
+        const k = Math.min(1, timer / 0.3) * Math.min(1, (m.guard.sec - timer) / 0.3);
         capY = -1.35 * k;
         sy = 1 - 0.35 * k;
         capScale = 1 + 0.08 * k;
@@ -508,7 +516,7 @@ export function MossThump({ id, def }: { id: string; def: BossEnemy }) {
       </group>
       {/* 預兆與根刺在世界座標 */}
       <group ref={spikeMarks}>
-        {Array.from({ length: Math.max(def.boss.moves.spikes.count, def.boss.moves.spikes.count2) }, (_, i) => (
+        {Array.from({ length: Math.max(m.spikes.count, m.spikes.count2) }, (_, i) => (
           <group key={i} visible={false}>
             <mesh geometry={markers.ring} material={materials.markRing} renderOrder={2} />
             <mesh geometry={markers.disc} material={materials.markFill} renderOrder={2} />
