@@ -6,7 +6,7 @@ import { applyEvents, handleCommand, initialGameState, type GameCommand, type Ga
 import { evaluateCondition } from '../dialogue/conditions';
 import { countItem, createInventory } from '../inventory/inventory';
 import { testContext } from '../testing/fixtures';
-import { isQuestReady, objectiveProgress, parseQuests, questStatus } from './quest';
+import { isQuestReady, isQuestTracked, objectiveProgress, parseQuests, questStatus, trackedSideCount } from './quest';
 
 const ctx = testContext();
 const q = (id: string) => ctx.quests.get(id)!;
@@ -136,5 +136,50 @@ describe('RepairObject 與修復目標', () => {
 
   it('不是可修復的物件不能修', () => {
     expect(reason(accept(), { type: 'RepairObject', placementId: 't1' })).toBe('wrong-interaction');
+  });
+});
+
+describe('任務日誌的追蹤（任務 7F）', () => {
+  const apply = (s: GameState, cmd: GameCommand) => {
+    const events = handleCommand(s, cmd, ctx);
+    return { state: applyEvents(s, events, ctx), events };
+  };
+
+  it('接取的支線預設追蹤；取消後再追蹤；沒有接的任務不能追蹤', () => {
+    let s = apply(initialGameState(), { type: 'AcceptQuest', quest: 'mend' }).state;
+    const mend = ctx.quests.get('mend')!;
+    expect(isQuestTracked(s.quests.mend, mend)).toBe(true);
+    const r = apply(s, { type: 'TrackQuest', quest: 'mend', tracked: false });
+    expect(r.events).toEqual([{ type: 'QuestTracked', quest: 'mend', tracked: false }]);
+    s = r.state;
+    expect(s.quests.mend).toEqual({ status: 'active', untracked: true });
+    expect(isQuestTracked(s.quests.mend, mend)).toBe(false);
+    // 重複送出沒有事件
+    expect(apply(s, { type: 'TrackQuest', quest: 'mend', tracked: false }).events).toEqual([]);
+    s = apply(s, { type: 'TrackQuest', quest: 'mend', tracked: true }).state;
+    expect(s.quests.mend).toEqual({ status: 'active' });
+    expect(apply(s, { type: 'TrackQuest', quest: 'gather', tracked: true }).events[0]).toMatchObject({ type: 'CommandRejected', reason: 'quest-unavailable' });
+  });
+
+  it('最多追蹤三個；已經滿了時新接的任務先不追蹤', () => {
+    let s = initialGameState();
+    for (const q of ['gather', 'mend', 'hunt']) s = apply(s, { type: 'AcceptQuest', quest: q }).state;
+    expect(trackedSideCount(s.quests, ctx.quests)).toBe(3);
+    s = { ...s, quests: { ...s.quests, clear: { status: 'active', untracked: true } } };
+    expect(apply(s, { type: 'TrackQuest', quest: 'clear', tracked: true }).events[0]).toMatchObject({ type: 'CommandRejected', reason: 'track-limit' });
+    // 已經追蹤三個時接新任務：附帶一個不追蹤的事件（gather 改成完成讓 clear 可以接，另外兩個仍在追蹤，再取消一個 → 不滿）
+    const done = { ...s, quests: { mend: s.quests.mend!, hunt: s.quests.hunt!, gather: { status: 'completed' as const } } };
+    expect(apply(done, { type: 'AcceptQuest', quest: 'clear' }).events).toEqual([{ type: 'QuestAccepted', quest: 'clear' }]);
+  });
+
+  it('已經追蹤三個時，新接的支線先不追蹤', () => {
+    const extra = { ...ctx.quests.get('mend')!, id: 'extra' };
+    const ctx2 = { ...ctx, quests: new Map([...ctx.quests, ['extra', extra]]) };
+    let s = initialGameState();
+    for (const q of ['gather', 'mend', 'hunt']) s = applyEvents(s, handleCommand(s, { type: 'AcceptQuest', quest: q }, ctx2), ctx2);
+    expect(handleCommand(s, { type: 'AcceptQuest', quest: 'extra' }, ctx2)).toEqual([
+      { type: 'QuestAccepted', quest: 'extra' },
+      { type: 'QuestTracked', quest: 'extra', tracked: false },
+    ]);
   });
 });

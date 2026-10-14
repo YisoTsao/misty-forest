@@ -27,6 +27,8 @@ export const actionIds = [
   'cycleWeapon',
   /** 世界地圖（任務 7B） */
   'map',
+  /** 任務日誌（任務 7F） */
+  'journal',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];

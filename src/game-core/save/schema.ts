@@ -41,7 +41,8 @@ export const saveDataSchema = z.object({
   }),
   tutorial: z.enum(tutorialSteps),
   mist: mistStagesSchema,
-  quests: z.record(z.string(), z.object({ status: z.enum(['active', 'completed']), progress: z.array(z.number().int().nonnegative()).optional() })),
+  // untracked（任務 7F 任務日誌取消追蹤）是選填欄位，舊存檔沒有也能讀，不升版本
+  quests: z.record(z.string(), z.object({ status: z.enum(['active', 'completed']), progress: z.array(z.number().int().nonnegative()).optional(), untracked: z.literal(true).optional() })),
   combat: z.object({
     hp: finite.nonnegative(),
     /** 星光值（v9，GAME_DESIGN 5.4） */

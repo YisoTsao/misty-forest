@@ -68,6 +68,9 @@
   "map": [
     "KeyM"
   ],
+  "journal": [
+    "KeyJ"
+  ],
   "pause": [
     "Escape"
   ]

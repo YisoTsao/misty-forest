@@ -19,6 +19,7 @@ import { InteractPrompt } from '@/ui/InteractPrompt';
 import { InventoryPanel } from '@/ui/InventoryPanel';
 import { Minimap } from '@/ui/map/Minimap';
 import { WorldMap } from '@/ui/map/WorldMap';
+import { QuestJournal } from '@/ui/QuestJournal';
 import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
@@ -82,6 +83,7 @@ export function App() {
       <TitleScreen />
       <PauseMenu />
       <WorldMap />
+      <QuestJournal />
       <SettingsPanel />
       <ErrorOverlay />
     </div>

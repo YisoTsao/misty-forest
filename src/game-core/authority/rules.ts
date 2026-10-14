@@ -8,7 +8,7 @@ import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
-import { earlierObjectivesDone, questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
+import { earlierObjectivesDone, isQuestTracked, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { MistStage } from '../world/mist';
 import { secondsUntilHour } from '../world/timeOfDay';
@@ -78,6 +78,8 @@ export type GameCommand =
   /** 完成教學的某一步（from 必須是目前的步驟，重複送出不會跳過步驟） */
   | { type: 'AdvanceTutorial'; from: TutorialStep }
   | { type: 'AcceptQuest'; quest: string }
+  /** 任務日誌：追蹤 / 取消追蹤進行中的任務（主線一定追蹤；其他最多 MAX_TRACKED_SIDE 個，任務 7F） */
+  | { type: 'TrackQuest'; quest: string; tracked: boolean }
   /** 修復物件（木橋）：消耗材料 */
   | { type: 'RepairObject'; placementId: string }
   /** 啟動開關式機關（任務 8C：點亮路燈、移開樹根、打開閘門） */
@@ -153,6 +155,7 @@ export type RejectReason =
   | 'not-in-fight'
   | 'boss-not-defeated'
   | 'out-of-order'
+  | 'track-limit'
   | 'invalid-command';
 
 export type GameEvent =
@@ -164,6 +167,7 @@ export type GameEvent =
   | { type: 'TutorialAdvanced'; step: TutorialStep }
   | { type: 'MistStageChanged'; region: RegionId; stage: MistStage }
   | { type: 'QuestAccepted'; quest: string }
+  | { type: 'QuestTracked'; quest: string; tracked: boolean }
   | { type: 'QuestCompleted'; quest: string }
   | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' }
   | { type: 'ObjectRepaired'; placementId: string }
@@ -298,6 +302,15 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     }
     case 'AcceptQuest':
       return acceptQuest(state, cmd.quest, ctx);
+    case 'TrackQuest': {
+      const def = ctx.quests.get(cmd.quest);
+      const record = state.quests[cmd.quest];
+      if (!def) return reject('TrackQuest', 'unknown-quest');
+      if (record?.status !== 'active' || def.category === 'main') return reject('TrackQuest', 'quest-unavailable');
+      if (isQuestTracked(record, def) === cmd.tracked) return [];
+      if (cmd.tracked && trackedSideCount(state.quests, ctx.quests) >= MAX_TRACKED_SIDE) return reject('TrackQuest', 'track-limit');
+      return [{ type: 'QuestTracked', quest: cmd.quest, tracked: cmd.tracked }];
+    }
     case 'TurnInQuest':
       return turnInQuest(state, cmd.quest, ctx);
     case 'DebugGiveItems':
@@ -578,7 +591,10 @@ function acceptQuest(state: GameState, questId: string, ctx: RulesContext): Game
   const def = ctx.quests.get(questId);
   if (!def) return reject('AcceptQuest', 'unknown-quest');
   if (questStatus(state, def) !== 'available') return reject('AcceptQuest', 'quest-unavailable');
-  return [{ type: 'QuestAccepted', quest: questId }];
+  const events: GameEvent[] = [{ type: 'QuestAccepted', quest: questId }];
+  // 已經追蹤滿了：新接的支線先不追蹤（可在任務日誌切換）
+  if (def.category !== 'main' && trackedSideCount(state.quests, ctx.quests) >= MAX_TRACKED_SIDE) events.push({ type: 'QuestTracked', quest: questId, tracked: false });
+  return events;
 }
 
 function turnInQuest(state: GameState, questId: string, ctx: RulesContext): GameEvent[] {
@@ -695,6 +711,15 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'QuestCompleted':
         quests = { ...quests, [e.quest]: { status: 'completed' } };
         break;
+      case 'QuestTracked': {
+        const record = quests[e.quest];
+        if (!record) break;
+        const next: QuestRecord = { ...record };
+        if (e.tracked) delete next.untracked;
+        else next.untracked = true;
+        quests = { ...quests, [e.quest]: next };
+        break;
+      }
       case 'QuestProgressed': {
         const record = quests[e.quest];
         if (!record) break;

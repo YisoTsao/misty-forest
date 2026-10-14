@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --journal：任務日誌（任務 7F）：進行中 / 可接取 / 已完成三個分頁
 //   --puffking：霧團噗啾王（任務 7E）：開場、衝撞 / 霧球 / 膨脹震地的預兆、星光鏡讓牠暈眩、倒下縮小、村外的小噗啾
 //   --lighthouse：燈塔的最後一盞光（任務 7D）：燈罩碎片、迷霧核心（淨化前後）、熄滅 / 點亮的燈塔（白天、夜晚的光柱）、點亮瞬間的金光
 //   --guardian：苔冠下的守衛（任務 8D-2）：林間水道的樹根、沉睡 / 甦醒（白天、夜晚）的根源石、戰後的苔咚、芽之共鳴的光、回報後退開的樹根
@@ -60,6 +61,7 @@ const withBoss = flags.has('--boss');
 const withGuardian = flags.has('--guardian');
 const withLighthouse = flags.has('--lighthouse');
 const withPuffKing = flags.has('--puffking');
+const withJournal = flags.has('--journal');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1087,6 +1089,24 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withJournal) {
+    await page.evaluate(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      for (const q of ['wood_for_bridge', 'repair_bridge']) g.setQuestCompleted(q);
+      g.send({ type: 'AcceptQuest', quest: 'clear_forest' });
+      g.send({ type: 'AcceptQuest', quest: 'quest_forest_001' });
+    });
+    await page.keyboard.press('KeyJ');
+    await page.getByTestId('quest-journal').waitFor({ timeout: 3000 });
+    await page.waitForTimeout(400);
+    await shot('journal_active');
+    await page.getByTestId('journal-tab-completed').click();
+    await page.waitForTimeout(300);
+    await shot('journal_completed');
+    await page.keyboard.press('Escape');
   }
 
   if (withPuffKing) {

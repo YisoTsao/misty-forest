@@ -28,9 +28,16 @@ export const objectiveSchema = z.discriminatedUnion('type', [
 ]);
 export type Objective = z.infer<typeof objectiveSchema>;
 
+/** 任務日誌的分類（Bible §31.2）：主線、支線、角色故事、收集、世界事件 */
+export const questCategories = ['main', 'side', 'story', 'collect', 'event'] as const;
+export type QuestCategory = (typeof questCategories)[number];
+/** 主線以外的任務最多同時追蹤幾個（Bible §31.3：避免 HUD 擠滿任務） */
+export const MAX_TRACKED_SIDE = 3;
+
 export const questDefSchema = z.object({
   id: z.string().min(1),
   nameKey: z.string().min(1),
+  category: z.enum(questCategories).default('side'),
   /** 任務說明（追蹤列與任務日誌） */
   descKey: z.string().min(1),
   /** 交付任務與回報的 NPC */
@@ -50,7 +57,8 @@ export type QuestDef = z.infer<typeof questDefSchema>;
 export type QuestCatalog = ReadonlyMap<string, QuestDef>;
 
 /** 權威狀態中的任務紀錄（沒有紀錄 = 尚未接取）；progress 為擊敗目標等需要累計的進度 */
-export type QuestRecord = { status: 'active' | 'completed'; progress?: number[] };
+/** untracked：玩家在任務日誌取消追蹤（主線一定追蹤，任務 7F） */
+export type QuestRecord = { status: 'active' | 'completed'; progress?: number[]; untracked?: true };
 export type QuestStatus = 'locked' | 'available' | 'active' | 'completed';
 
 export function parseQuests(
@@ -135,4 +143,17 @@ export function earlierObjectivesDone(state: QuestState, def: QuestDef, placemen
   return objectiveProgress(state, def)
     .slice(0, index)
     .every((p) => p.current >= p.target);
+}
+
+/** 是否顯示在畫面上的任務追蹤列（主線一定顯示；其他任務沒有取消追蹤就顯示） */
+export function isQuestTracked(record: QuestRecord | undefined, def: QuestDef): boolean {
+  return record?.status === 'active' && (def.category === 'main' || record.untracked !== true);
+}
+
+/** 目前追蹤中的非主線任務數 */
+export function trackedSideCount(quests: Readonly<Record<string, QuestRecord>>, catalog: QuestCatalog): number {
+  return Object.entries(quests).filter(([id, r]) => {
+    const def = catalog.get(id);
+    return def !== undefined && def.category !== 'main' && isQuestTracked(r, def);
+  }).length;
 }

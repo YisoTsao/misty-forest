@@ -72,6 +72,7 @@ export const testQuests: QuestDef[] = [
   {
     id: 'gather',
     nameKey: 'q.gather',
+    category: 'side',
     descKey: 'q.gather.desc',
     giver: 'npc_a',
     requires: [],
@@ -81,6 +82,7 @@ export const testQuests: QuestDef[] = [
   {
     id: 'clear',
     nameKey: 'q.clear',
+    category: 'side',
     descKey: 'q.clear.desc',
     giver: 'npc_a',
     requires: ['gather'],
@@ -90,6 +92,7 @@ export const testQuests: QuestDef[] = [
   {
     id: 'mend',
     nameKey: 'q.mend',
+    category: 'side',
     descKey: 'q.mend.desc',
     giver: 'npc_a',
     requires: [],
@@ -99,6 +102,7 @@ export const testQuests: QuestDef[] = [
   {
     id: 'hunt',
     nameKey: 'q.hunt',
+    category: 'side',
     descKey: 'q.hunt.desc',
     giver: 'npc_a',
     requires: [],

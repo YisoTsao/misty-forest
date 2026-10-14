@@ -2,6 +2,7 @@
   {
     "id": "wood_for_bridge",
     "nameKey": "quest.wood.name",
+    "category": "main",
     "descKey": "quest.wood.desc",
     "giver": "balu",
     "requires": [],
@@ -25,6 +26,7 @@
   {
     "id": "repair_bridge",
     "nameKey": "quest.bridge.name",
+    "category": "main",
     "descKey": "quest.bridge.desc",
     "giver": "balu",
     "requires": [
@@ -59,6 +61,7 @@
   {
     "id": "clear_forest",
     "nameKey": "quest.forest.name",
+    "category": "main",
     "descKey": "quest.forest.desc",
     "giver": "leo",
     "requires": [
@@ -97,6 +100,7 @@
   {
     "id": "quest_dawn_003",
     "nameKey": "quest.dawn3.name",
+    "category": "main",
     "descKey": "quest.dawn3.desc",
     "giver": "elder",
     "requires": [
@@ -148,6 +152,7 @@
   {
     "id": "quest_forest_001",
     "nameKey": "quest.forest1.name",
+    "category": "main",
     "descKey": "quest.forest1.desc",
     "giver": "linna",
     "requires": [
@@ -198,6 +203,7 @@
   {
     "id": "quest_forest_002",
     "nameKey": "quest.forest2.name",
+    "category": "main",
     "descKey": "quest.forest2.desc",
     "giver": "kiki",
     "requires": [
@@ -259,6 +265,7 @@
   {
     "id": "quest_forest_003",
     "nameKey": "quest.forest3.name",
+    "category": "main",
     "descKey": "quest.forest3.desc",
     "giver": "kiki",
     "requires": [

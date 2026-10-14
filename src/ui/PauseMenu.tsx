@@ -8,6 +8,7 @@ import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { setWorldMapOpen } from './map/WorldMap';
+import { setJournalOpen } from './QuestJournal';
 
 /** Esc 造成的「滑鼠鎖定解除」與 keydown 可能同時到達，這段時間內不重複切換 */
 const TOGGLE_GUARD_MS = 300;
@@ -89,6 +90,9 @@ export function PauseMenu() {
           className="rounded-full bg-white/15 py-2 hover:bg-white/25"
         >
           {t('pause.map')}
+        </button>
+        <button type="button" data-testid="pause-journal" onClick={() => setJournalOpen(true)} className="rounded-full bg-white/15 py-2 hover:bg-white/25">
+          {t('pause.journal')}
         </button>
         <button
           type="button"

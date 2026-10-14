@@ -20,6 +20,8 @@ type UiState = {
   inventoryOpen: boolean;
   /** 世界地圖（任務 7B） */
   mapOpen: boolean;
+  /** 任務日誌（任務 7F） */
+  journalOpen: boolean;
   /** 設定畫面（從主選單或暫停選單開啟） */
   settingsOpen: boolean;
   /** 建造模式（規格 6.7）：null 表示不在建造模式；menu 為建造選單是否開啟 */
@@ -35,6 +37,7 @@ type UiState = {
   dismissToast: (id: number) => void;
   setInventoryOpen: (open: boolean) => void;
   setMapOpen: (open: boolean) => void;
+  setJournalOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setCurrentRegion: (region: RegionId) => void;
   setDialogue: (dialogue: UiState['dialogue']) => void;
@@ -47,6 +50,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   toasts: [],
   inventoryOpen: false,
   mapOpen: false,
+  journalOpen: false,
   settingsOpen: false,
   currentRegion: DEFAULT_REGION,
   dialogue: null,
@@ -61,6 +65,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setMapOpen: (mapOpen) => set({ mapOpen }),
+  setJournalOpen: (journalOpen) => set({ journalOpen }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
   setDialogue: (dialogue) => set({ dialogue }),
   setBuild: (build) => set({ build }),
@@ -71,6 +76,6 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  const { message, inventoryOpen, mapOpen, settingsOpen, dialogue, build } = useUiStore.getState();
-  return message !== null || inventoryOpen || mapOpen || settingsOpen || dialogue !== null || build?.menu === true;
+  const { message, inventoryOpen, mapOpen, journalOpen, settingsOpen, dialogue, build } = useUiStore.getState();
+  return message !== null || inventoryOpen || mapOpen || journalOpen || settingsOpen || dialogue !== null || build?.menu === true;
 }

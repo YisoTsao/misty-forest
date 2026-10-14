@@ -87,6 +87,7 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     build: actionKey(bindings, 'build'),
     rotate: actionKey(bindings, 'rotate'),
     map: actionKey(bindings, 'map'),
+    journal: actionKey(bindings, 'journal'),
     pause: useInputDeviceStore.getState().device === 'gamepad' ? 'Menu' : t('key.escape'),
   };
 }

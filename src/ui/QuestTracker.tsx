@@ -1,5 +1,5 @@
 import { countItem } from '@/game-core/inventory/inventory';
-import { isQuestReady, objectiveProgress, questStatus, type Objective } from '@/game-core/quest/quest';
+import { isQuestReady, isQuestTracked, objectiveProgress, type Objective } from '@/game-core/quest/quest';
 import type { GameState } from '@/game-core/authority/rules';
 import { npcs, quests, worldIndex } from '@/game/authority';
 import { t } from '@/game/i18n';
@@ -15,7 +15,8 @@ export function QuestTracker() {
   const state = useGameStateStore((s) => s.state);
   const playing = useGameStore((s) => s.screen === 'playing');
   if (!playing) return null;
-  const active = [...quests.values()].filter((q) => questStatus(state, q) === 'active');
+  // 任務日誌取消追蹤的不顯示（主線一定顯示，任務 7F）
+  const active = [...quests.values()].filter((q) => isQuestTracked(state.quests[q.id], q));
   if (active.length === 0) return null;
 
   return (
@@ -55,7 +56,7 @@ function ItemCount({ itemId, current, target }: { itemId: string; current: numbe
   );
 }
 
-function ObjectiveRow({ objective: o, progress, state }: { objective: Objective; progress: { current: number; target: number }; state: GameState }) {
+export function ObjectiveRow({ objective: o, progress, state }: { objective: Objective; progress: { current: number; target: number }; state: GameState }) {
   switch (o.type) {
     case 'collect':
       return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
