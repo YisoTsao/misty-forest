@@ -5,7 +5,7 @@ import type { SpawnerDef } from '../combat/combat';
 import type { ObjectRuntime, Placement } from '../world/types';
 import type { Inventory } from '../inventory/inventory';
 
-export const landmarkIcons = ['village', 'tavern', 'lighthouse', 'windmill', 'bridge', 'mill', 'ruins', 'peak', 'camp', 'home', 'spawn', 'forest', 'smith'] as const;
+export const landmarkIcons = ['village', 'tavern', 'lighthouse', 'windmill', 'bridge', 'mill', 'ruins', 'peak', 'camp', 'home', 'spawn', 'forest', 'smith', 'gate', 'moon', 'stones', 'mushroom', 'maze', 'water'] as const;
 export type LandmarkIcon = (typeof landmarkIcons)[number];
 
 export const landmarkSchema = z.object({

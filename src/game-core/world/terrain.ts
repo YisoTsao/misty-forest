@@ -1,9 +1,14 @@
-// 地形高度函式。純函式、無 import，可同時供渲染、物理、資料產生腳本與日後伺服器使用。
+// 地形高度函式。純函式，可同時供渲染、物理、資料產生腳本與日後伺服器使用。
+// 只 import 同樣沒有 import 的地形檔（以 .ts 副檔名，資料產生腳本與端對端測試以 Node 直接執行）。
+//
+// 所有地圖在同一個物理世界（決策 T-117）：terrainHeight / distanceToPath 依世界座標分派到各地圖。
 //
 // 晨曦谷地（Bible §5.2，任務 7A）：約 320 × 320 m。座標慣例：-Z 為北、+X 為東。
 // 中央是原本的垂直切片（出生點、晨曦村、晨露湖、霧林邊緣，座標不變），外圍加入：
 // 北方的晨風高地（懸崖＋主路緩坡）、東側的碎光溪（兩處淺灘＋一座木橋）、西坊農田、
 // 西南的望星丘、東南的古樹遺跡，以及外圍的起伏丘陵。
+
+import { GLOWMOSS_ORIGIN, glowmossHeight, glowmossPathDistance, isInGlowmoss } from './glowmossTerrain.ts';
 
 export const TERRAIN_SIZE = 320;
 /** 任務 7A 之前的地圖半寬（產生腳本保留舊散佈範圍，讓既有物件的 id 與位置不變） */
@@ -161,8 +166,14 @@ export function distanceToMainRoad(x: number, z: number): number {
   return Math.abs(x - pathCenterX(z));
 }
 
-/** 距離最近道路（主路或支線）中心的水平距離。 */
+/** 距離最近道路中心的水平距離（世界座標，依所在地圖分派）。 */
 export function distanceToPath(x: number, z: number): number {
+  if (isInGlowmoss(x, z)) return glowmossPathDistance(x - GLOWMOSS_ORIGIN.x, z - GLOWMOSS_ORIGIN.z);
+  return dawnvalePathDistance(x, z);
+}
+
+/** 晨曦谷地：距離最近道路（主路或支線）中心的水平距離。 */
+function dawnvalePathDistance(x: number, z: number): number {
   let d = distanceToMainRoad(x, z);
   for (const road of BRANCH_ROADS) {
     if (d < 0.5) break;
@@ -193,13 +204,19 @@ export function highlandWeight(x: number, z: number): number {
   return smoothstep(c + width / 2, c - width / 2, z) * east;
 }
 
+/** 地面高度（世界座標，依所在地圖分派）。 */
+export function terrainHeight(x: number, z: number): number {
+  if (isInGlowmoss(x, z)) return glowmossHeight(x - GLOWMOSS_ORIGIN.x, z - GLOWMOSS_ORIGIN.z);
+  return dawnvaleHeight(x, z);
+}
+
 /**
- * 柔和起伏的草原高度。
+ * 晨曦谷地：柔和起伏的草原高度。
  * - 出生點周圍壓平，方便教學；村莊周圍壓平，房屋不會懸空或陷入坡面。
  * - 小路略為下凹。
  * - 外圍有較大的丘陵起伏；地圖最外緣抬升，作為自然邊界（迷霧牆外）。
  */
-export function terrainHeight(x: number, z: number): number {
+export function dawnvaleHeight(x: number, z: number): number {
   const rolling =
     Math.sin(x * 0.06) * Math.cos(z * 0.05) * 1.6 +
     Math.sin(x * 0.13 + 2.1) * Math.sin(z * 0.11 + 0.7) * 0.7 +
@@ -210,7 +227,7 @@ export function terrainHeight(x: number, z: number): number {
   const villageDist = Math.hypot(x - VILLAGE_CENTER.x, z - VILLAGE_CENTER.z);
   const villageFlatten = smoothstep(VILLAGE_RADIUS, VILLAGE_RADIUS + 10, villageDist);
 
-  const roadDist = distanceToPath(x, z);
+  const roadDist = dawnvalePathDistance(x, z);
   const pathDip = 1 - smoothstep(PATH_HALF_WIDTH * 0.6, PATH_HALF_WIDTH * 2.2, roadDist);
 
   // 外圍（舊地圖範圍以外）較大的起伏

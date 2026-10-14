@@ -1,5 +1,6 @@
 // 地圖邊界的本機暫態（GAME_DESIGN 5.1）：靠近邊界的提示狀態與除錯資訊。不存檔。
-import { BOUNDARY_WARN_DISTANCE, boundaryDistance } from '@/game-core/world/bounds';
+import { BOUNDARY_WARN_DISTANCE } from '@/game-core/world/bounds';
+import { worldBoundaryDistance } from '@/game-core/world/maps';
 import { companionSay } from '../companion/companionRuntime';
 import { useGameStateStore } from '../state/gameStateStore';
 import { useUiStore } from '../state/uiStore';
@@ -22,7 +23,7 @@ export const boundaryRuntime = {
 
 /** 每 0.25 秒呼叫：進入提示範圍時顯示一次提示（芽芽已同行時由芽芽說）。 */
 export function updateBoundaryWarning(x: number, z: number, nowSec: number): void {
-  const distance = boundaryDistance(x, z);
+  const distance = worldBoundaryDistance(x, z);
   boundaryRuntime.distance = distance;
   const near = distance < BOUNDARY_WARN_DISTANCE;
   if (near && !boundaryRuntime.near && nowSec - boundaryRuntime.lastWarnAt >= WARN_COOLDOWN) {

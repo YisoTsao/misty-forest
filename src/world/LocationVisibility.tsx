@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef, type ReactNode } from 'react';
 import type * as THREE from 'three';
 import { OVERWORLD } from '@/game-core/world/interiors';
+import type { MapId } from '@/game-core/world/maps';
 import { interiors } from '@/game/authority';
 import { useLocationStore } from '@/game/location';
 
@@ -12,6 +13,15 @@ import { useLocationStore } from '@/game/location';
 export function OutdoorOnly({ children }: { children: ReactNode }) {
   const outdoor = useLocationStore((s) => s.location === OVERWORLD);
   return <group visible={outdoor}>{children}</group>;
+}
+
+/**
+ * 只在某張地圖顯示的東西（任務 8A：地形、草、湖面、遠景）：所有地圖在同一個物理世界，
+ * 不在這張地圖時整組隱藏（不卸載，碰撞仍在；回來時不必重建）。室內時也隱藏。
+ */
+export function MapOnly({ map, children }: { map: MapId; children: ReactNode }) {
+  const shown = useLocationStore((s) => s.location === OVERWORLD && s.map === map);
+  return <group visible={shown}>{children}</group>;
 }
 
 /** 室內的暖光（壁爐），隨火光輕微閃爍 */

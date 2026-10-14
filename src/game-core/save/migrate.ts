@@ -2,7 +2,7 @@
 import { PLAYER_STATS } from '../combat/combat';
 import { DEFAULT_WEAPON } from '../combat/weapons';
 import { MAX_MP } from '../combat/spells';
-import { createExplored, encodeExplored } from '../map/explore';
+import { createExplored, decodeExplored, encodeExplored } from '../map/explore';
 import { initialMistStages } from '../world/regions';
 import { SAVE_VERSION } from './schema';
 
@@ -37,6 +37,16 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   9: (data) => ({ ...data, mist: { ...initialMistStages, ...(data.mist as Record<string, unknown>) } }),
   // v10 → v11：加入世界地圖的探索紀錄（任務 7B）；舊存檔從空白開始，讀檔後玩家附近立刻標為已探索
   10: (data) => ({ ...data, map: { explored: encodeExplored(createExplored()) } }),
+  // v11 → v12：加入螢苔祕林（任務 8A）的區域迷霧（補上新遊戲的初始值）；探索紀錄在後面接上新地圖的空白格子
+  11: (data) => {
+    const map = data.map as { explored?: unknown } | undefined;
+    const old = typeof map?.explored === 'string' ? decodeExplored(map.explored) : null;
+    return {
+      ...data,
+      mist: { ...initialMistStages, ...(data.mist as Record<string, unknown>) },
+      map: { ...map, explored: encodeExplored(old ?? createExplored()) },
+    };
+  },
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

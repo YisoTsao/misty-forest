@@ -6,7 +6,7 @@ import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
 import { parseMistLevel, type MistStage } from '@/game-core/world/mist';
 import { objectiveProgress, questStatus } from '@/game-core/quest/quest';
 import { regionAt } from '@/game-core/world/regions';
-import { boundaryDistance } from '@/game-core/world/bounds';
+import { mapIdAt, worldBoundaryDistance, type MapId } from '@/game-core/world/maps';
 import { timePhase, type CelestialPosition, type TimePhase } from '@/game-core/world/timeOfDay';
 import type { WeaponId } from '@/game-core/combat/weapons';
 import type { RegionId } from '@/game-core/world/types';
@@ -23,7 +23,7 @@ import { companionRuntime } from './companion/companionRuntime';
 import { ambientRuntime } from './ambient/ambientRuntime';
 import { useInputDeviceStore } from './input/device';
 import { input } from './input/inputManager';
-import { useLocationStore } from './location';
+import { currentMap, mapGateTo, travelToMap, useLocationStore } from './location';
 import { npcRuntime } from './npc/npcRuntime';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
@@ -83,7 +83,12 @@ export type MistwoodDebugApi = {
   /** 各區域的迷霧階段 */
   mistStages: () => Record<RegionId, MistStage>;
   /** 世界地圖（任務 7B）：已探索比例、某處是否已探索、整張地圖標為已探索、開關地圖、目前的任務標記 */
-  mapExplored: () => number;
+  /** 某張地圖已探索的比例（省略時為所在地圖） */
+  mapExplored: (map?: MapId) => number;
+  /** 所在地圖（依玩家位置）與畫面顯示中的地圖 */
+  currentMap: () => { at: MapId; shown: MapId };
+  /** 走過地圖出入口（不檢查通過條件），抵達對面出入口前方 */
+  travelToMap: (map: MapId) => void;
   isExplored: (x: number, z: number) => boolean;
   revealMap: () => void;
   setMapOpen: (open: boolean) => void;
@@ -149,6 +154,8 @@ export type MistwoodDebugApi = {
   npcState: (id: string) => { x: number; z: number; yaw: number; walking: boolean; talking: boolean } | null;
   /** 任務狀態（locked / available / active / completed） */
   questState: (id: string) => string;
+  /** 直接把任務設為已完成（不給獎勵；測試地圖出入口的條件用） */
+  setQuestCompleted: (id: string) => void;
   /** 任務第一個目標的進度 */
   questProgress: (id: string) => number;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
@@ -262,7 +269,13 @@ export function installDebugApi(): void {
     },
     setMistStage: (region, stage) => authority.send({ type: 'DebugSetMistStage', region, stage }),
     mistStages: () => ({ ...authority.getState().mist }),
-    mapExplored: () => exploredRatio(authority.getState().explored),
+    mapExplored: (map) => exploredRatio(authority.getState().explored, map ?? mapIdAt(playerRuntime.position.x, playerRuntime.position.z)),
+    currentMap: () => ({ at: mapIdAt(playerRuntime.position.x, playerRuntime.position.z), shown: currentMap() }),
+    travelToMap: (map) => {
+      const enter = mapGateTo(map);
+      if (!enter?.arriveAt) throw new Error(`沒有通往 ${map} 的出入口`);
+      travelToMap(map, enter.arriveAt, enter.arriveDistance ?? 4);
+    },
     isExplored: (x, z) => isExploredAt(authority.getState().explored, x, z),
     revealMap: () => authority.send({ type: 'DebugRevealMap' }),
     setMapOpen: (open) => setWorldMapOpen(open),
@@ -312,7 +325,7 @@ export function installDebugApi(): void {
       updateTimeRuntime(authority.getState().time);
     },
     boundary: () => ({
-      distance: boundaryDistance(playerRuntime.position.x, playerRuntime.position.z),
+      distance: worldBoundaryDistance(playerRuntime.position.x, playerRuntime.position.z),
       near: boundaryRuntime.near,
       warnings: boundaryRuntime.warnings,
       colliders: boundaryRuntime.colliders,
@@ -373,6 +386,11 @@ export function installDebugApi(): void {
       const def = quests.get(id);
       if (!def) throw new Error(`未知的任務：${id}`);
       return objectiveProgress(authority.getState(), def)[0]?.current ?? 0;
+    },
+    setQuestCompleted: (id) => {
+      if (!quests.has(id)) throw new Error(`未知的任務：${id}`);
+      const state = authority.getState();
+      authority.replaceState({ ...state, quests: { ...state.quests, [id]: { status: 'completed' } } });
     },
     questState: (id) => {
       const def = quests.get(id);

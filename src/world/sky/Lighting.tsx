@@ -5,13 +5,13 @@ import { approachMist } from '@/game-core/world/mist';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen } from '@/game/state/gameStore';
-import { currentInterior } from '@/game/location';
+import { currentInterior, currentMap } from '@/game/location';
 import { mistTargetAt } from '@/game/world/mistTarget';
 import { timeRuntime } from '@/game/world/timeRuntime';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { createMistLook, mistLook, uMist } from '@/render/mist';
 import { fogRange, palette } from '@/render/palette';
-import { updateTimeLook } from '@/render/timeLook';
+import { tintTimeLookForMap, updateTimeLook } from '@/render/timeLook';
 
 /** 迷霧變化速度：約 1 秒完成大部分轉換，避免突兀跳變 */
 const MIST_RATE = 3;
@@ -63,6 +63,7 @@ export function Lighting() {
     const indoors = currentInterior() !== null;
     timeRuntime.lookHour = indoors ? INTERIOR_HOUR : timeRuntime.hour;
     updateTimeLook(timeRuntime.lookHour);
+    if (!indoors) tintTimeLookForMap(currentMap());
     mistLook(uMist.value, look);
     if (fog.current) {
       fog.current.color.copy(look.fogColor);

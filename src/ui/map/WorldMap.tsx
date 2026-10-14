@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { exploredRatio } from '@/game-core/map/explore';
+import { MAPS } from '@/game-core/world/maps';
 import { TERRAIN_SIZE } from '@/game-core/world/terrain';
+import { currentMap } from '@/game/location';
 import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { input } from '@/game/input/inputManager';
@@ -78,7 +80,10 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
   const bindings = useBindings();
   // 視窗：預設顯示整張地圖、以地圖中心為中心；滾輪縮放、拖曳平移
   const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState(() => ({ x: 0, z: 0 }));
+  // 世界地圖顯示所在的地圖（開啟期間不會換地圖：開啟時角色不能移動）
+  const [map] = useState(() => currentMap());
+  const origin = MAPS[map].origin;
+  const [center, setCenter] = useState(() => ({ x: origin.x, z: origin.z }));
   const drag = useRef<{ x: number; y: number; cx: number; cz: number } | null>(null);
   const [size, setSize] = useState(600);
 
@@ -109,10 +114,10 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = '#d6d6e2';
       ctx.fillRect(0, 0, size, size);
-      drawLayer(ctx, getMapBase(data), view);
-      drawLayer(ctx, fogFor(state.explored), view);
-      drawRegionLabels(ctx, view, state.explored);
-      drawLandmarks(ctx, view, state.explored, true);
+      drawLayer(ctx, getMapBase(data, map), view, map);
+      drawLayer(ctx, fogFor(state.explored, map), view, map);
+      drawRegionLabels(ctx, view, state.explored, map);
+      drawLandmarks(ctx, view, state.explored, true, map);
       drawChests(ctx, view, state);
       drawNpcs(ctx, view, zoom >= 1.6);
       drawQuestMarkers(ctx, view, currentQuestMarkers(state));
@@ -131,7 +136,7 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [size, zoom, center]);
+  }, [size, zoom, center, map]);
 
   const close = () => {
     setWorldMapOpen(false);
@@ -139,9 +144,9 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
   };
   const clampCenter = (x: number, z: number, z0 = zoom) => {
     const half = TERRAIN_SIZE / 2 - TERRAIN_SIZE / 2 / z0;
-    return { x: Math.max(-half, Math.min(half, x)), z: Math.max(-half, Math.min(half, z)) };
+    return { x: Math.max(origin.x - half, Math.min(origin.x + half, x)), z: Math.max(origin.z - half, Math.min(origin.z + half, z)) };
   };
-  const pct = Math.round(exploredRatio(explored) * 100);
+  const pct = Math.round(exploredRatio(explored, map) * 100);
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/45" onClick={close}>
@@ -181,6 +186,9 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
           <h2 id="map-title" className="text-xl font-bold">
             {t('map.title')}
           </h2>
+          <p className="-mt-2 text-sm font-bold text-amber-900" data-testid="world-map-name">
+            {t(MAPS[map].nameKey)}
+          </p>
           <p className="text-sm font-bold text-amber-800" data-testid="world-map-explored">
             {t('map.explored', { pct })}
           </p>

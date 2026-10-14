@@ -3,7 +3,9 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { mulberry32 } from '@/game-core/util/random';
+import { MAPS } from '@/game-core/world/maps';
 import { TERRAIN_SIZE } from '@/game-core/world/terrain';
+import { useLocationStore } from '@/game/location';
 import { assetUrl } from '@/game/worldData';
 import { createMistLook, mistLook, uMist } from '@/render/mist';
 import { palette } from '@/render/palette';
@@ -329,8 +331,10 @@ export function Backdrop() {
     });
   });
 
+  // 遠景跟著所在的地圖（所有地圖在同一個世界的不同位置，任務 8A）
+  const origin = MAPS[useLocationStore((s) => s.map)].origin;
   return (
-    <group>
+    <group position={[origin.x, 0, origin.z]}>
       <MountainRange layer={RANGE_LAYERS[0]!} haze={farHaze} />
       <MountainRange layer={RANGE_LAYERS[1]!} haze={nearHaze} />
       <GroundSkirt haze={nearHaze} />

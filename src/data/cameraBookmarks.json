@@ -11,5 +11,13 @@
   {"id": "ruins", "position": [36, 14, 86], "target": [60, 4, 104]},
   {"id": "stargaze", "position": [-58, 16, 66], "target": [-88, 14, 92]},
   {"id": "south", "position": [-2, 10, 98], "target": [16, 1, 120]},
-  {"id": "valley", "position": [0, 230, 215], "target": [0, 0, -10]}
+  {"id": "valley", "position": [0, 230, 215], "target": [0, 0, -10]},
+  {"id": "glowmoss_entry", "position": [1870, 6, 12], "target": [1892, 2.5, 1]},
+  {"id": "glowmoss_glade", "position": [1950, 8, -4], "target": [1968, 4, -24]},
+  {"id": "glowmoss_ring", "position": [2000, 7, 30], "target": [2016, 1.5, 44]},
+  {"id": "glowmoss_crown", "position": [2066, 9, 40], "target": [2100, 6, 46]},
+  {"id": "glowmoss_maze", "position": [2040, 22, -36], "target": [2074, 0, -72]},
+  {"id": "glowmoss_channel", "position": [2016, 6, -78], "target": [2029, 0, -100]},
+  {"id": "glowmoss_overview", "position": [1990, 55, 105], "target": [2000, 0, 20]},
+  {"id": "dawn_gate", "position": [118, 6, 14], "target": [136, 2.5, 6.5]}
 ]

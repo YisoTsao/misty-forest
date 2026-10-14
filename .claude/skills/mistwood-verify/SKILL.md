@@ -37,6 +37,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），24 個全跑
 | 手把 | `gamepad` | `--gamepad` |
 | 設定、按鍵重新配置 | `settings` | `--menu` |
 | 小地圖、世界地圖 | `map` | `--map` |
+| 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |
 | 存檔（`game/save`） | `save` | 不拍 |
 | `src/render/**`（shader、後處理、植被、迷霧外觀） | 所屬功能的 suite（上表）；純視覺不跑 | 受影響書籤（`--mist` 只在迷霧相關時加） |
 | `src/app`、`src/ui`、React effect / 生命週期 | `dev`（StrictMode）＋所屬畫面的 suite | 有改畫面才用 `--menu` |

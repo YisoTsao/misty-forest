@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import landmarksData from '@/data/landmarks.json';
 import { initialGameState } from '../authority/rules';
-import { boundaryDistance } from '../world/bounds';
+import { worldBoundaryDistance } from '../world/maps';
 import { testContext } from '../testing/fixtures';
 import { clampToRadius, parseLandmarks, questMarkers } from './markers';
 
@@ -17,7 +17,7 @@ describe('地標資料', () => {
   it('專案的地標合法、id 不重複，且都在可玩範圍內', () => {
     const list = parseLandmarks(landmarksData);
     expect(list.length).toBeGreaterThan(10);
-    for (const l of list) expect(boundaryDistance(l.position[0], l.position[1]), l.id).toBeGreaterThan(0);
+    for (const l of list) expect(worldBoundaryDistance(l.position[0], l.position[1]), l.id).toBeGreaterThan(0);
   });
 
   it('id 重複或圖示未知時拒絕', () => {

@@ -8,7 +8,7 @@ import { loadWithFallback } from './load';
 import { MemoryStorage } from './memoryStorage';
 import { migrateSave, SaveFormatError, type Migration } from './migrate';
 import { SAVE_VERSION, type SaveData } from './schema';
-import { createExplored, exploredRatio, withCells } from '../map/explore';
+import { createExplored, encodeExplored, exploredRatio, isCellExplored, MAP_CELLS, withCells } from '../map/explore';
 
 const ctx = testContext();
 const player = { position: { x: 1.5, y: 0.9, z: -3 }, facingYaw: 0.7 };
@@ -284,6 +284,35 @@ describe('版本遷移', () => {
     expect(exploredRatio(loaded.state.explored)).toBe(0);
     expect(loaded.warnings).toEqual([]);
     expect(loaded.state.player).toMatchObject({ hp: 80, weapon: 'knife' });
+  });
+
+  it('實際的 v11 存檔：補上螢苔祕林的區域迷霧，晨曦谷地的探索紀錄保留、螢苔祕林從空白開始', () => {
+    const old = new Uint8Array(MAP_CELLS / 8);
+    old[0] = 0b101; // 晨曦谷地第 0、2 格
+    const dawnMist = Object.fromEntries(Object.entries(initialGameState().mist).filter(([id]) => !['moss_trail', 'moss_glade', 'root_maze', 'moss_crown'].includes(id)));
+    const v11 = {
+      version: 11,
+      savedAt: '2026-10-14T09:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 42, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: { ...dawnMist, forest: 'clear' },
+      quests: {},
+      combat: { hp: 80, enemies: [], spawners: {}, mp: 50 },
+      companion: { unlocked: true },
+      build: { buildings: [], nextBuildingId: 1 },
+      loadout: { weapon: 'knife' },
+      map: { explored: encodeExplored(old) },
+    };
+    const loaded = fromSaveData(v11, ctx);
+    expect(loaded.warnings).toEqual([]);
+    expect(loaded.state.mist.forest).toBe('clear');
+    expect(loaded.state.mist.moss_glade).toBe(initialGameState().mist.moss_glade);
+    expect(loaded.state.mist.root_maze).toBe('dense');
+    expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
+    expect(isCellExplored(loaded.state.explored, 2)).toBe(true);
+    expect(exploredRatio(loaded.state.explored, 'glowmoss')).toBe(0);
   });
 
   it('探索紀錄寫入存檔並讀回；格式不符時重新開始並回報', () => {

@@ -2,7 +2,7 @@
 // 這裡依時間推進每顆流星：從天空斜落 → 撞擊時以範圍判定命中、送出攻擊指令、播放撞擊特效。
 import type { SpellDef } from '@/game-core/combat/spells';
 import { isInBlast, meteorPlan } from '@/game-core/combat/spells';
-import { clampInsideBounds } from '@/game-core/world/bounds';
+import { clampInsideMap } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
 import { authority } from '@/game/authority';
@@ -22,7 +22,7 @@ export function meteorCenter(spell: SpellDef, player: { x: number; z: number; fa
   const distance = spell.meteor?.distance ?? 6;
   const x = player.x + Math.sin(player.facingYaw) * distance;
   const z = player.z + Math.cos(player.facingYaw) * distance;
-  return clampInsideBounds(x, z, 2);
+  return clampInsideMap(x, z, 2);
 }
 
 /** 發動：依計畫排入每顆流星（第一顆在 0 秒開始落下） */

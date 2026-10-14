@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { patchMist } from './mist';
-import { GRASS_UNIFORMS_GLSL, grassUniforms, TERRAIN_COLOR_GLSL } from './terrainMaterial';
+import type { MapId } from '@/game-core/world/maps';
+import { GRASS_UNIFORMS_GLSL, grassUniformsFor, TERRAIN_COLOR_GLSL } from './terrainMaterial';
 import { toonGradient } from './toon';
 
 /**
@@ -58,10 +59,10 @@ const COMMON_VERTEX = /* glsl */ `
 
 type VegetationKind = 'grass' | 'flower';
 
-function createVegetationMaterial(kind: VegetationKind, height: number): THREE.MeshToonMaterial {
+function createVegetationMaterial(kind: VegetationKind, height: number, map: MapId): THREE.MeshToonMaterial {
   const material = new THREE.MeshToonMaterial({ gradientMap: toonGradient(), side: THREE.DoubleSide });
   material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, vegetationUniforms, grassUniforms, { uVegHeight: { value: height } });
+    Object.assign(shader.uniforms, vegetationUniforms, grassUniformsFor(map), { uVegHeight: { value: height } });
     const isGrass = kind === 'grass';
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -188,14 +189,16 @@ function upNormals(count: number): number[] {
 
 /** 花色（白、黃、粉、淡紫、天藍），與規格 4.1 的明亮飽和色調一致 */
 export const flowerColors = ['#ffffff', '#ffe066', '#ff9ec7', '#c9a2ff', '#8fd3ff'] as const;
+/** 螢苔祕林的林下小花：薄荷、淡藍、淡紫、白（冷色，與暖色的晨曦草原區隔） */
+export const forestFlowerColors = ['#c8f5e2', '#bfe3ff', '#d7c8ff', '#f4f8ff'] as const;
 
 export const GRASS_HEIGHT = 0.32;
 export const FLOWER_HEIGHT = 0.3;
 
-export function createGrassMaterial(): THREE.MeshToonMaterial {
-  return createVegetationMaterial('grass', GRASS_HEIGHT);
+export function createGrassMaterial(map: MapId = 'dawnvale'): THREE.MeshToonMaterial {
+  return createVegetationMaterial('grass', GRASS_HEIGHT, map);
 }
 
-export function createFlowerMaterial(): THREE.MeshToonMaterial {
-  return createVegetationMaterial('flower', FLOWER_HEIGHT);
+export function createFlowerMaterial(map: MapId = 'dawnvale'): THREE.MeshToonMaterial {
+  return createVegetationMaterial('flower', FLOWER_HEIGHT, map);
 }

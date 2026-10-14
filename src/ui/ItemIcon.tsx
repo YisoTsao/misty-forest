@@ -35,6 +35,31 @@ const icons: Record<string, ReactNode> = {
       <circle cx="24" cy="7" r="3" fill="#f4fff0" stroke="#7fb27a" strokeWidth="1.2" />
     </>
   ),
+  glow_moss: (
+    <>
+      <path d="M7 36 Q9 26 17 25 Q20 18 28 20 Q36 18 40 27 Q44 34 38 38 Q24 42 7 36 Z" fill="#3f8a63" stroke="#245a40" strokeWidth="2" />
+      <path d="M12 33 Q18 29 22 31 M25 27 Q30 24 35 28" stroke="#8de6be" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      {[
+        [15, 29],
+        [23, 24],
+        [31, 23],
+        [36, 31],
+        [20, 34],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="2.2" fill="#c8ffe6" stroke="#5fc79a" strokeWidth="1" />
+      ))}
+    </>
+  ),
+  moondew: (
+    <>
+      <path d="M24 44 Q24 30 22 18" stroke="#3f7f5a" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      <path d="M23 34 Q14 30 12 22 Q20 23 23 31" fill="#6fb886" stroke="#2f6a48" strokeWidth="1.5" />
+      <path d="M24 30 Q33 27 36 19 Q28 19 24 27" fill="#86c99a" stroke="#2f6a48" strokeWidth="1.5" />
+      <path d="M22 18 Q14 12 18 5 Q22 9 26 6 Q30 13 22 18 Z" fill="#dff1ff" stroke="#7aa6d6" strokeWidth="1.5" />
+      <circle cx="22" cy="12" r="2.4" fill="#ffffff" stroke="#9cc3ee" strokeWidth="1" />
+      <circle cx="31" cy="11" r="1.6" fill="#e9f6ff" />
+    </>
+  ),
   campfire: (
     <>
       <path d="M24 10 Q31 20 28 28 Q34 24 33 18 Q40 27 34 35 L14 35 Q8 26 16 18 Q16 25 21 27 Q17 18 24 10 Z" fill="#ff9a2e" stroke="#c45a10" strokeWidth="1.5" />

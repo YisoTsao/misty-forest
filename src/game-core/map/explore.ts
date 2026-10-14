@@ -1,11 +1,21 @@
 // 世界地圖的探索紀錄（Bible §31.3：尚未探索區域以低細節霧罩顯示，不用全黑遮住）。
 // 地圖切成 8 m 的格子，以位元組紀錄是否走過；玩家附近 REVEAL_RADIUS 內的格子視為已探索。
 // 權威狀態的一部分（存檔 v11 `map.explored`）；純函式，不修改輸入。
+// 每張地圖各佔一段連續的格子（依 mapIds 的順序；任務 8A 加入螢苔祕林時接在晨曦谷地之後，舊紀錄的索引不變）。
+import { MAPS, mapAt, mapIds, type MapId } from '../world/maps';
 import { TERRAIN_SIZE } from '../world/terrain';
 
 export const EXPLORE_CELL = 8;
+/** 每張地圖每邊的格子數（所有地圖的地形大小相同） */
 export const EXPLORE_GRID = Math.ceil(TERRAIN_SIZE / EXPLORE_CELL);
-export const EXPLORE_CELLS = EXPLORE_GRID * EXPLORE_GRID;
+/** 每張地圖的格子數 */
+export const MAP_CELLS = EXPLORE_GRID * EXPLORE_GRID;
+export const EXPLORE_CELLS = MAP_CELLS * mapIds.length;
+
+/** 這張地圖的第一個格子索引 */
+export function mapCellOffset(id: MapId): number {
+  return mapIds.indexOf(id) * MAP_CELLS;
+}
 /** 玩家周圍這個半徑內的格子算是看過了 */
 export const REVEAL_RADIUS = 26;
 
@@ -18,17 +28,20 @@ export function createExplored(): Explored {
 
 /** 世界座標 → 格子索引；地圖外回傳 null */
 export function cellIndexAt(x: number, z: number): number | null {
-  const i = Math.floor((x + TERRAIN_SIZE / 2) / EXPLORE_CELL);
-  const j = Math.floor((z + TERRAIN_SIZE / 2) / EXPLORE_CELL);
+  const map = mapAt(x, z);
+  const i = Math.floor((x - map.origin.x + TERRAIN_SIZE / 2) / EXPLORE_CELL);
+  const j = Math.floor((z - map.origin.z + TERRAIN_SIZE / 2) / EXPLORE_CELL);
   if (i < 0 || j < 0 || i >= EXPLORE_GRID || j >= EXPLORE_GRID) return null;
-  return j * EXPLORE_GRID + i;
+  return mapCellOffset(map.id) + j * EXPLORE_GRID + i;
 }
 
 /** 格子中心的世界座標 */
 export function cellCenter(index: number): { x: number; z: number } {
-  const i = index % EXPLORE_GRID;
-  const j = Math.floor(index / EXPLORE_GRID);
-  return { x: (i + 0.5) * EXPLORE_CELL - TERRAIN_SIZE / 2, z: (j + 0.5) * EXPLORE_CELL - TERRAIN_SIZE / 2 };
+  const map = MAPS[mapIds[Math.floor(index / MAP_CELLS)] ?? 'dawnvale'];
+  const local = index % MAP_CELLS;
+  const i = local % EXPLORE_GRID;
+  const j = Math.floor(local / EXPLORE_GRID);
+  return { x: map.origin.x + (i + 0.5) * EXPLORE_CELL - TERRAIN_SIZE / 2, z: map.origin.z + (j + 0.5) * EXPLORE_CELL - TERRAIN_SIZE / 2 };
 }
 
 export function isCellExplored(bits: Explored, index: number): boolean {
@@ -46,11 +59,12 @@ export function cellsToReveal(bits: Explored, x: number, z: number, radius = REV
   const r = Math.ceil(radius / EXPLORE_CELL) + 1;
   const center = cellIndexAt(x, z);
   if (center === null) return out;
-  const ci = center % EXPLORE_GRID;
-  const cj = Math.floor(center / EXPLORE_GRID);
+  const offset = center - (center % MAP_CELLS);
+  const ci = (center % MAP_CELLS) % EXPLORE_GRID;
+  const cj = Math.floor((center % MAP_CELLS) / EXPLORE_GRID);
   for (let j = Math.max(0, cj - r); j <= Math.min(EXPLORE_GRID - 1, cj + r); j++) {
     for (let i = Math.max(0, ci - r); i <= Math.min(EXPLORE_GRID - 1, ci + r); i++) {
-      const index = j * EXPLORE_GRID + i;
+      const index = offset + j * EXPLORE_GRID + i;
       if (isCellExplored(bits, index)) continue;
       const c = cellCenter(index);
       if (Math.hypot(c.x - x, c.z - z) <= radius) out.push(index);
@@ -66,11 +80,12 @@ export function withCells(bits: Explored, cells: readonly number[]): Explored {
   return next;
 }
 
-/** 已探索的比例（0–1） */
-export function exploredRatio(bits: Explored): number {
+/** 某張地圖已探索的比例（0–1） */
+export function exploredRatio(bits: Explored, map: MapId = 'dawnvale'): number {
+  const offset = mapCellOffset(map);
   let n = 0;
-  for (let c = 0; c < EXPLORE_CELLS; c++) if (isCellExplored(bits, c)) n++;
-  return n / EXPLORE_CELLS;
+  for (let c = 0; c < MAP_CELLS; c++) if (isCellExplored(bits, offset + c)) n++;
+  return n / MAP_CELLS;
 }
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -88,7 +103,10 @@ export function encodeExplored(bits: Explored): string {
   return out;
 }
 
-/** 讀回探索紀錄；長度不符（例如地圖大小改變）或格式錯誤時回傳 null，由呼叫端決定如何處理 */
+/**
+ * 讀回探索紀錄；格式錯誤或長度不符（例如地圖大小改變）時回傳 null，由呼叫端決定如何處理。
+ * 地圖變多之前的紀錄（較短、剛好是整數張地圖）在後面補上空白。
+ */
 export function decodeExplored(text: string): Explored | null {
   const clean = text.replace(/=+$/, '');
   const bytes: number[] = [];
@@ -105,6 +123,9 @@ export function decodeExplored(text: string): Explored | null {
     }
   }
   const expected = Math.ceil(EXPLORE_CELLS / 8);
-  if (bytes.length !== expected) return null;
-  return Uint8Array.from(bytes);
+  const perMap = MAP_CELLS / 8;
+  if (bytes.length > expected || bytes.length === 0 || bytes.length % perMap !== 0) return null;
+  const out = new Uint8Array(expected);
+  out.set(bytes);
+  return out;
 }

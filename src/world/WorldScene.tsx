@@ -33,7 +33,8 @@ import { InputBinder } from './InputBinder';
 import { ChimneySmoke } from './ambient/ChimneySmoke';
 import { Fireflies } from './ambient/Fireflies';
 import { Flocks } from './ambient/Flock';
-import { InteriorLights, OutdoorOnly } from './LocationVisibility';
+import { InteriorLights, MapOnly, OutdoorOnly } from './LocationVisibility';
+import { MapTracker } from './MapTracker';
 import { InteractionSystem } from './interaction/InteractionSystem';
 import { EnvironmentColliders } from './physics/EnvironmentColliders';
 import { Lighting } from './sky/Lighting';
@@ -63,11 +64,15 @@ export function WorldScene({ data }: { data: WorldData }) {
       <Suspense fallback={null}>
         {/* timeStep="vary"：每幀一步，與 useFrame 中的角色控制器同步 */}
         <Physics timeStep="vary" gravity={[0, -22, 0]}>
-          <OutdoorOnly>
-            <Terrain />
-          </OutdoorOnly>
+          <MapOnly map="dawnvale">
+            <Terrain map="dawnvale" />
+          </MapOnly>
+          <MapOnly map="glowmoss">
+            <Terrain map="glowmoss" />
+          </MapOnly>
           <EnvironmentColliders index={index} />
-          <BoundaryColliders />
+          <BoundaryColliders map="dawnvale" />
+          <BoundaryColliders map="glowmoss" />
           <Player def={playerDef} colliderRef={playerCollider} />
           <OutdoorOnly>
             <Flocks />
@@ -80,12 +85,19 @@ export function WorldScene({ data }: { data: WorldData }) {
         <AssetBoundary name="world-placements">
           <WorldPlacements data={data} />
         </AssetBoundary>
-        <OutdoorOnly>
-          <GrassField index={index} />
+        <MapOnly map="dawnvale">
+          <GrassField index={index} map="dawnvale" />
           <Water />
-          <MistWall />
-          <Fireflies />
+          <MistWall map="dawnvale" />
+          <Fireflies kind="fireflies" />
           <ChimneySmoke data={data} />
+        </MapOnly>
+        <MapOnly map="glowmoss">
+          <GrassField index={index} map="glowmoss" />
+          <MistWall map="glowmoss" />
+          <Fireflies kind="spores" />
+        </MapOnly>
+        <OutdoorOnly>
           <AssetBoundary name="backdrop">
             <Backdrop />
           </AssetBoundary>
@@ -93,6 +105,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <InteractionSystem index={index} />
         <GameClock />
         <TutorialSystem />
+        <MapTracker />
         <RegionTracker />
         <MapExplorer />
         <BoundaryWatcher />

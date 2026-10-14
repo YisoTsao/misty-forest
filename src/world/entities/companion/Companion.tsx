@@ -103,7 +103,8 @@ function CompanionStar() {
     const cos = Math.cos(yaw);
     const sin = Math.sin(yaw);
     target.set(position.x + OFFSET.x * cos + OFFSET.z * sin, position.y + OFFSET.y - 0.8, position.z - OFFSET.x * sin + OFFSET.z * cos);
-    if (!rt.placed) {
+    // 第一次出現，或玩家被傳送到遠處（地圖切換、讀檔）：直接放到玩家身邊，不從遠方飛過來
+    if (!rt.placed || Math.hypot(target.x - rt.x, target.z - rt.z) > 40) {
       rt.x = target.x;
       rt.y = target.y;
       rt.z = target.z;

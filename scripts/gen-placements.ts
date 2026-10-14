@@ -16,6 +16,7 @@ import {
 } from '../src/game-core/world/terrain.ts';
 import { mulberry32 } from '../src/game-core/util/random.ts';
 import { addDawnvaleExpansion } from './gen-dawnvale.ts';
+import { addGlowmoss } from './gen-glowmoss.ts';
 
 const rand = mulberry32(20261012);
 // 任務 7A 之前的地圖範圍：舊散佈沿用同一範圍與同一組亂數，既有物件的 id 與位置不變
@@ -312,6 +313,9 @@ for (const [id, prefabId, regionId, x, z, yaw, scale] of ambient) {
 // 任務 7A：晨曦谷地擴大到 320 m（新支線、溪流、高地、農田、遺跡、望星丘、邊界樹）。
 // 舊物件中落在新道路或溪裡的會被移除，其餘不變；新內容以獨立種子附加在後。
 addDawnvaleExpansion(placements, taken);
+
+// 任務 8A：螢苔祕林（地圖二，世界座標 x = 2000 附近）與晨曦谷地這一側的林道入口。
+addGlowmoss(placements);
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');
 console.log(`wrote ${placements.length} placements`);

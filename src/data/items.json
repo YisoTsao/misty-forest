@@ -3,6 +3,8 @@
   { "id": "stone", "nameKey": "item.stone.name", "descKey": "item.stone.desc", "icon": "stone", "category": "material", "maxStack": 99 },
   { "id": "flower", "nameKey": "item.flower.name", "descKey": "item.flower.desc", "icon": "flower", "category": "material", "maxStack": 99 },
   { "id": "herb", "nameKey": "item.herb.name", "descKey": "item.herb.desc", "icon": "herb", "category": "material", "maxStack": 99 },
+  { "id": "glow_moss", "nameKey": "item.glow_moss.name", "descKey": "item.glow_moss.desc", "icon": "glow_moss", "category": "material", "maxStack": 99 },
+  { "id": "moondew_herb", "nameKey": "item.moondew_herb.name", "descKey": "item.moondew_herb.desc", "icon": "moondew", "category": "material", "maxStack": 99 },
   { "id": "mist_gel", "nameKey": "item.mist_gel.name", "descKey": "item.mist_gel.desc", "icon": "gel", "category": "material", "maxStack": 99 },
   { "id": "starlight_shard", "nameKey": "item.starlight_shard.name", "descKey": "item.starlight_shard.desc", "icon": "starlight", "category": "special", "maxStack": 20 }
 ]

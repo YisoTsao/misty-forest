@@ -1,9 +1,11 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { TERRAIN_SIZE, WATER_LEVEL } from '@/game-core/world/terrain';
+import type { MapId } from '@/game-core/world/maps';
+import { WATER_LEVEL } from '@/game-core/world/terrain';
 import { getTerrainGrid, sampleGrid } from '@/game-core/world/terrainGrid';
 import { flowerPatchMask, scatterChunk, type VegetationInstance } from '@/game-core/world/vegetation';
+import { currentMap } from '@/game/location';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import type { WorldIndex } from '@/game/world/worldIndex';
 import {
@@ -12,6 +14,7 @@ import {
   createGrassMaterial,
   createGrassTuftGeometry,
   flowerColors,
+  forestFlowerColors,
   vegetationUniforms,
 } from '@/render/vegetation';
 
@@ -57,43 +60,48 @@ function buildInstanced(
  * 視錐外的區塊由 three 剔除，超過可見距離的區塊直接隱藏；區塊內的草花在 shader 中依距離縮入地面。
  * 密度與距離依畫質（規格 4.4）。
  */
-export function GrassField({ index }: { index: WorldIndex }) {
+export function GrassField({ index, map = 'dawnvale' }: { index: WorldIndex; map?: MapId }) {
   const preset = useQualityPreset();
   const grassGeometry = useMemo(() => createGrassTuftGeometry(), []);
   const flowerGeometry = useMemo(() => createFlowerGeometry(), []);
-  const grassMaterial = useMemo(() => createGrassMaterial(), []);
-  const flowerMaterial = useMemo(() => createFlowerMaterial(), []);
+  const grassMaterial = useMemo(() => createGrassMaterial(map), [map]);
+  const flowerMaterial = useMemo(() => createFlowerMaterial(map), [map]);
+  const grid = getTerrainGrid(map);
   const group = useRef<THREE.Group>(null);
   const since = useRef(Infinity);
 
   // 區塊只先算位置；網格在攝影機靠近時才建立（buildChunk）
   const chunks = useMemo<Chunk[]>(() => {
     const list: Chunk[] = [];
-    const half = TERRAIN_SIZE / 2 - EDGE_MARGIN;
-    for (let x0 = -half; x0 < half; x0 += CHUNK) {
-      for (let z0 = -half; z0 < half; z0 += CHUNK) {
-        const size = Math.min(CHUNK, half - x0, half - z0);
+    const half = grid.extent / 2 - EDGE_MARGIN;
+    for (let lx = -half; lx < half; lx += CHUNK) {
+      for (let lz = -half; lz < half; lz += CHUNK) {
+        const size = Math.min(CHUNK, half - lx, half - lz);
+        const x0 = grid.originX + lx;
+        const z0 = grid.originZ + lz;
         list.push({ x0, z0, size, center: new THREE.Vector3(x0 + size / 2, 0, z0 + size / 2), meshes: null });
       }
     }
     return list;
-  }, []);
+  }, [grid]);
 
   const buildChunk = useMemo(() => {
-    const grid = getTerrainGrid();
     const heightAt = (x: number, z: number) => sampleGrid(grid, grid.height, x, z);
     const pathDistAt = (x: number, z: number) => sampleGrid(grid, grid.pathDist, x, z);
     // 湖裡、溪裡與水邊不長草
     const accept = (x: number, z: number) => heightAt(x, z) >= WATER_LEVEL + 0.25 && !index.isOccupied(x, z);
-    const palette = flowerColors.map((c) => new THREE.Color(c));
+    const colors: readonly string[] = map === 'glowmoss' ? forestFlowerColors : flowerColors;
+    const palette = colors.map((c) => new THREE.Color(c));
+    // 林下比草原暗：花少一些
+    const flowerDensity = preset.flowerDensity * (map === 'glowmoss' ? 0.35 : 1);
     return (c: Chunk): THREE.InstancedMesh[] => {
       const grass = scatterChunk(c.x0, c.z0, c.size, { density: preset.grassDensity, seed: 1, accept, scale: [0.8, 1.35], heightAt, pathDistAt });
       const flowers = scatterChunk(c.x0, c.z0, c.size, {
-        density: preset.flowerDensity,
+        density: flowerDensity,
         seed: 2,
         accept,
         mask: flowerPatchMask,
-        variants: flowerColors.length,
+        variants: colors.length,
         scale: [1.3, 1.9],
         heightAt,
         pathDistAt,
@@ -110,7 +118,7 @@ export function GrassField({ index }: { index: WorldIndex }) {
       }
       return meshes;
     };
-  }, [index, preset.grassDensity, preset.flowerDensity, grassGeometry, flowerGeometry, grassMaterial, flowerMaterial]);
+  }, [index, grid, map, preset.grassDensity, preset.flowerDensity, grassGeometry, flowerGeometry, grassMaterial, flowerMaterial]);
 
   useEffect(() => {
     const g = group.current;
@@ -140,9 +148,12 @@ export function GrassField({ index }: { index: WorldIndex }) {
   );
 
   useFrame(({ camera }, dt) => {
-    vegetationUniforms.uTime.value += dt;
-    vegetationUniforms.uFadeEnd.value = preset.vegetationDistance;
-    vegetationUniforms.uFadeStart.value = preset.vegetationDistance * 0.45;
+    // 風與淡出的 uniform 所有地圖共用：只由所在地圖的草地更新（否則每幀會加兩次時間）
+    if (currentMap() === map) {
+      vegetationUniforms.uTime.value += dt;
+      vegetationUniforms.uFadeEnd.value = preset.vegetationDistance;
+      vegetationUniforms.uFadeStart.value = preset.vegetationDistance * 0.45;
+    }
 
     since.current += dt;
     if (since.current < VISIBILITY_INTERVAL) return;

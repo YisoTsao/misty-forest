@@ -6,6 +6,7 @@ import type { CharacterDef } from '@/game-core/character/characterDef';
 import { initialLocomotionState, stepLocomotion } from '@/game-core/character/locomotion';
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
+import { mapAt } from '@/game-core/world/maps';
 import { SPAWN_POINT, terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
@@ -135,7 +136,10 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       Object.assign(next, { x: teleport.x, y: feet + footOffset + 0.05, z: teleport.z });
     } else if (fellOut) {
       // 掉出地圖或落水：回到離掉落處最近、曾經站穩過的安全點（規格 6.1）
-      const to = nearestSafePoint(playerRuntime.safePoints, next, spawn);
+      // 沒有安全點時回到所在地圖的重生點（新遊戲為出生點）
+      const map = mapAt(next.x, next.z);
+      const fallback = map.id === 'dawnvale' ? spawn : { x: map.respawn.x, y: terrainHeight(map.respawn.x, map.respawn.z) + footOffset + 0.05, z: map.respawn.z };
+      const to = nearestSafePoint(playerRuntime.safePoints, next, fallback);
       Object.assign(next, { x: to.x, y: to.y + 0.05, z: to.z });
       playerRuntime.respawnCount++;
     }

@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { CHANNEL_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
+import type { MapId } from '@/game-core/world/maps';
 import { PATH_HALF_WIDTH, WATER_LEVEL } from '@/game-core/world/terrain';
 import { patchMist } from './mist';
 import { palette } from './palette';
@@ -42,12 +44,55 @@ export const GRASS_UNIFORMS_GLSL = /* glsl */ `
   uniform vec3 uGrassSun;
 `;
 
-/** 草地色票 uniform（各材質共用同一組物件） */
-export const grassUniforms = {
-  uGrassLight: { value: new THREE.Color(palette.grassLight) },
-  uGrassDark: { value: new THREE.Color(palette.grassDark) },
-  uGrassSun: { value: new THREE.Color(palette.grassSun) },
+/** 各地圖的地面色票（任務 8A：螢苔祕林是深林綠的苔地、深色林土與乾涸的渠道泥面） */
+type GroundPalette = {
+  grassLight: string;
+  grassDark: string;
+  grassSun: string;
+  dirt: string;
+  dirtDark: string;
+  rock: string;
+  /** 水邊（晨曦谷地為沙岸；螢苔祕林為乾涸渠道的泥面） */
+  sand: string;
+  lakeBed: string;
+  waterLevel: number;
+  pathHalf: number;
 };
+
+const GROUND: Readonly<Record<MapId, GroundPalette>> = {
+  dawnvale: { ...palette, waterLevel: WATER_LEVEL, pathHalf: PATH_HALF_WIDTH },
+  glowmoss: {
+    grassLight: '#4f9a63',
+    grassDark: '#2c654a',
+    grassSun: '#78c79a',
+    dirt: '#7d6048',
+    dirtDark: '#5e4635',
+    rock: '#7f8784',
+    sand: '#9c8667',
+    lakeBed: '#6c5a47',
+    // 泥面只在渠道裡（渠底 −1.1）；林地本身的低處高度約 0，不能被畫成泥地
+    waterLevel: CHANNEL_WATER_LEVEL - 0.55,
+    pathHalf: TRAIL_HALF_WIDTH,
+  },
+};
+
+type GrassUniforms = { uGrassLight: { value: THREE.Color }; uGrassDark: { value: THREE.Color }; uGrassSun: { value: THREE.Color } };
+const grassUniformSets = new Map<MapId, GrassUniforms>();
+
+/** 草地色票 uniform（同一張地圖的地形與草叢共用同一組物件） */
+export function grassUniformsFor(map: MapId): GrassUniforms {
+  let set = grassUniformSets.get(map);
+  if (!set) {
+    const g = GROUND[map];
+    set = {
+      uGrassLight: { value: new THREE.Color(g.grassLight) },
+      uGrassDark: { value: new THREE.Color(g.grassDark) },
+      uGrassSun: { value: new THREE.Color(g.grassSun) },
+    };
+    grassUniformSets.set(map, set);
+  }
+  return set;
+}
 
 const SPLAT = /* glsl */ `
   {
@@ -87,17 +132,18 @@ const SPLAT = /* glsl */ `
   }
 `;
 
-export function createTerrainMaterial(): THREE.MeshToonMaterial {
+export function createTerrainMaterial(map: MapId = 'dawnvale'): THREE.MeshToonMaterial {
   const material = new THREE.MeshToonMaterial({ gradientMap: toonGradient() });
+  const g = GROUND[map];
   const uniforms = {
-    ...grassUniforms,
-    uDirt: { value: new THREE.Color(palette.dirt) },
-    uDirtDark: { value: new THREE.Color(palette.dirtDark) },
-    uRock: { value: new THREE.Color(palette.rock) },
-    uPathHalf: { value: PATH_HALF_WIDTH },
-    uWaterLevel: { value: WATER_LEVEL },
-    uSand: { value: new THREE.Color(palette.sand) },
-    uLakeBed: { value: new THREE.Color(palette.lakeBed) },
+    ...grassUniformsFor(map),
+    uDirt: { value: new THREE.Color(g.dirt) },
+    uDirtDark: { value: new THREE.Color(g.dirtDark) },
+    uRock: { value: new THREE.Color(g.rock) },
+    uPathHalf: { value: g.pathHalf },
+    uWaterLevel: { value: g.waterLevel },
+    uSand: { value: new THREE.Color(g.sand) },
+    uLakeBed: { value: new THREE.Color(g.lakeBed) },
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);

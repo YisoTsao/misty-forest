@@ -3,6 +3,7 @@ import { useRapier, type RapierCollider } from '@react-three/rapier';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { boundaryOutline } from '@/game-core/world/bounds';
+import { MAPS, type MapId } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { currentInterior } from '@/game/location';
 import { playerRuntime } from '@/game/player/localRuntime';
@@ -21,10 +22,15 @@ const WALL_HALF_THICKNESS = 1;
 /** 碰撞牆往地面上下延伸的範圍 */
 const WALL_HALF_HEIGHT = 20;
 
-export function BoundaryColliders() {
+/** 碰撞體數量（所有地圖合計，除錯與測試用） */
+const colliderCounts = new Map<MapId, number>();
+
+/** 一張地圖可玩區外緣的碰撞牆（所有地圖的牆都在同一個物理世界） */
+export function BoundaryColliders({ map = 'dawnvale' }: { map?: MapId }) {
   const { world, rapier } = useRapier();
   useEffect(() => {
-    const points = boundaryOutline(6, 6, WALL_HALF_THICKNESS);
+    const { origin, bounds } = MAPS[map];
+    const points = boundaryOutline(6, 6, WALL_HALF_THICKNESS, bounds).map((p) => ({ x: p.x + origin.x, z: p.z + origin.z }));
     const colliders: RapierCollider[] = [];
     for (let i = 0; i < points.length; i++) {
       const a = points[i]!;
@@ -43,16 +49,18 @@ export function BoundaryColliders() {
       cameraIgnoredColliders.add(collider.handle);
       colliders.push(collider);
     }
-    boundaryRuntime.colliders = colliders.length;
+    colliderCounts.set(map, colliders.length);
+    boundaryRuntime.colliders = [...colliderCounts.values()].reduce((a, b) => a + b, 0);
     return () => {
       for (const c of colliders) {
         cameraIgnoredColliders.delete(c.handle);
         // Physics 可能已先卸載，此時 world 已釋放
         if (world.getCollider(c.handle)) world.removeCollider(c, false);
       }
-      boundaryRuntime.colliders = 0;
+      colliderCounts.delete(map);
+      boundaryRuntime.colliders = [...colliderCounts.values()].reduce((a, b) => a + b, 0);
     };
-  }, [world, rapier]);
+  }, [world, rapier, map]);
   return null;
 }
 
@@ -79,8 +87,9 @@ const MIST_HEIGHT = 30;
 /** 往地面下延伸，避免起伏地形在牆腳露出縫隙 */
 const MIST_DEPTH = 3;
 
-function createMistWallGeometry(): THREE.BufferGeometry {
-  const points = boundaryOutline(3, 8, 0.5);
+function createMistWallGeometry(map: MapId): THREE.BufferGeometry {
+  const { origin, bounds } = MAPS[map];
+  const points = boundaryOutline(3, 8, 0.5, bounds).map((p) => ({ x: p.x + origin.x, z: p.z + origin.z }));
   const n = points.length + 1; // 首尾各一列頂點，u 才能連續
   const positions = new Float32Array(n * 2 * 3);
   const uvs = new Float32Array(n * 2 * 2);
@@ -159,9 +168,9 @@ void main() {
 }
 `;
 
-export function MistWall() {
+export function MistWall({ map = 'dawnvale' }: { map?: MapId }) {
   const scene = useThree((s) => s.scene);
-  const geometry = useMemo(() => createMistWallGeometry(), []);
+  const geometry = useMemo(() => createMistWallGeometry(map), [map]);
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -195,5 +204,5 @@ export function MistWall() {
     u.uPlayer!.value.set(playerRuntime.position.x, playerRuntime.position.z);
   });
 
-  return <mesh name="boundary-mist-wall" geometry={geometry} material={material} renderOrder={2} />;
+  return <mesh name={`boundary-mist-wall-${map}`} geometry={geometry} material={material} renderOrder={2} />;
 }

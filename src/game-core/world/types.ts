@@ -5,7 +5,23 @@ export type Vec3 = [number, number, number];
 
 const vec3 = z.tuple([z.number(), z.number(), z.number()]);
 
-export const regionIds = ['meadow', 'village', 'forest', 'lake', 'home', 'overlook', 'ruins', 'highland', 'farmland', 'river'] as const;
+export const regionIds = [
+  'meadow',
+  'village',
+  'forest',
+  'lake',
+  'home',
+  'overlook',
+  'ruins',
+  'highland',
+  'farmland',
+  'river',
+  // 螢苔祕林（任務 8A，Bible §6.2）
+  'moss_trail',
+  'moss_glade',
+  'root_maze',
+  'moss_crown',
+] as const;
 export type RegionId = (typeof regionIds)[number];
 
 /**
@@ -90,8 +106,20 @@ export const prefabSchema = z
       .optional(),
     /** 互動點相對物件原點的位移（模型單位，會乘上縮放並旋轉）：例如木橋在橋頭互動 */
     interactOffset: vec3.optional(),
-    /** 出入口（規格 5.2：門與入口、可進入建築）：前往的室內 id，或 overworld 回到戶外 */
-    enter: z.object({ to: z.string().min(1) }).optional(),
+    /**
+     * 出入口（規格 5.2：門與入口、可進入建築）：前往的室內 id、overworld 回到戶外，或地圖 id（任務 8A 地圖切換）。
+     * 地圖出入口：抵達時站在 arriveAt（對面的出入口 placement）前方 arriveDistance 公尺、背對它；
+     * requires 未達成時不能通過，顯示 lockedKey 的訊息（Bible §3.2：封鎖以自然方式表現並說明原因）。
+     */
+    enter: z
+      .object({
+        to: z.string().min(1),
+        arriveAt: z.string().min(1).optional(),
+        arriveDistance: z.number().positive().optional(),
+        requires: z.object({ questCompleted: z.string().min(1) }).optional(),
+        lockedKey: z.string().min(1).optional(),
+      })
+      .optional(),
     /** 互動提示的動詞（i18n key），預設依 interaction（例如出口顯示「離開」） */
     verbKey: z.string().min(1).optional(),
     /** 可閱讀的告示牌 / 路標（interaction 為 read）：顯示的標題與內文（i18n key） */

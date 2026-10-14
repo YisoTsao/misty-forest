@@ -3,7 +3,8 @@ import type { Explored } from '@/game-core/map/explore';
 import { authority } from '@/game/authority';
 import { debugEnabled } from '@/game/debugApi';
 import { t } from '@/game/i18n';
-import { currentInterior } from '@/game/location';
+import type { MapId } from '@/game-core/world/maps';
+import { currentInterior, currentMap } from '@/game/location';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { useUiStore } from '@/game/state/uiStore';
@@ -16,10 +17,10 @@ const SIZE = 176;
 const RANGE_M = 44;
 const FRAME_MS = 1000 / 20;
 
-let fogCache: { explored: Explored; canvas: HTMLCanvasElement } | null = null;
-/** 探索霧罩：探索紀錄換了才重畫（世界地圖與小地圖共用） */
-export function fogFor(explored: Explored): HTMLCanvasElement {
-  if (fogCache?.explored !== explored) fogCache = { explored, canvas: paintFog(explored, fogCache?.canvas) };
+let fogCache: { explored: Explored; map: MapId; canvas: HTMLCanvasElement } | null = null;
+/** 探索霧罩：探索紀錄或地圖換了才重畫（世界地圖與小地圖共用） */
+export function fogFor(explored: Explored, map: MapId): HTMLCanvasElement {
+  if (fogCache?.explored !== explored || fogCache.map !== map) fogCache = { explored, map, canvas: paintFog(explored, map, fogCache?.canvas) };
   return fogCache.canvas;
 }
 
@@ -68,9 +69,10 @@ export function Minimap() {
       ctx.clip();
       ctx.fillStyle = '#d6d6e2';
       ctx.fillRect(0, 0, SIZE, SIZE);
-      drawLayer(ctx, getMapBase(data), view);
-      drawLayer(ctx, fogFor(state.explored), view);
-      drawLandmarks(ctx, view, state.explored, false);
+      const map = currentMap();
+      drawLayer(ctx, getMapBase(data, map), view, map);
+      drawLayer(ctx, fogFor(state.explored, map), view, map);
+      drawLandmarks(ctx, view, state.explored, false, map);
       drawChests(ctx, view, state);
       drawNpcs(ctx, view, false);
       drawEnemies(ctx, view, RANGE_M * 1.2, p);

@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import { assistFacing, isInMoveArea, startHeavy, startLight, weaponIds, type MoveDef, type WeaponId } from '@/game-core/combat/weapons';
+import { mapAt } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { currentScreen } from '@/game/state/gameStore';
 import { useSettingsStore } from '@/game/state/settingsStore';
@@ -14,7 +15,6 @@ import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 /** 倒下後多久重新站起來（秒） */
 export const RESPAWN_DELAY = 3;
 /** 倒下後回到的地點：晨曦村南邊路口（安全、離森林有段距離） */
-const RESPAWN_POINT = { x: -8, z: -18 } as const;
 /** 敵人身體半徑（命中判定用） */
 const ENEMY_RADIUS = 0.5;
 /** 先行輸入：動作結束前這段時間內按下的攻擊會排隊，動作一結束就出招（連段不會因為按早一點而斷掉） */
@@ -73,13 +73,15 @@ export function PlayerCombat() {
       return;
     }
 
-    // 倒下：一段時間後重新站起來，回到村子路口
+    // 倒下：一段時間後重新站起來，回到重生點
     if (state.player.defeated) {
       pending.length = 0;
       combatRuntime.defeatedFor += dt;
       if (combatRuntime.defeatedFor >= RESPAWN_DELAY) {
         authority.send({ type: 'RespawnPlayer' });
-        playerRuntime.teleportRequest = { ...RESPAWN_POINT };
+        // 回到所在地圖的重生點（晨曦谷地為村子路口、螢苔祕林為林緣小徑入口）
+        const { respawn } = mapAt(playerRuntime.position.x, playerRuntime.position.z);
+        playerRuntime.teleportRequest = { x: respawn.x, z: respawn.z };
       }
       return;
     }

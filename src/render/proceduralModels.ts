@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '@/game-core/util/random';
 import { BRIDGE, WATER_LEVEL } from '@/game-core/world/terrain';
+import { forestBuilders } from './forestModels';
 import { patchMist } from './mist';
 import { toonGradient } from './toon';
 
@@ -476,24 +477,14 @@ const builders: Record<string, Builder> = {
 
 export const PROCEDURAL_PREFIX = 'procedural:';
 
-/** 建立程式模型的部件。回傳的 geometry 與 material 由呼叫端負責釋放。 */
-export function buildProceduralModel(model: string): ModelPart[] {
-  const id = model.slice(PROCEDURAL_PREFIX.length);
-  const builder = builders[id];
-  if (!builder) throw new Error(`未知的程式模型：${model}`);
-  if (builder.kind === 'solid') {
-    // 實心物件（木橋）：一般 toon 材質，使用幾何本身的法線
-    const material = patchMist(new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true }));
-    material.name = `procedural_${id}`;
-    const built = builder.build();
-    if (Array.isArray(built)) {
-      // 部件共用同一個材質（釋放時重複呼叫 dispose 沒有副作用）
-      return built.map((b) => ({ key: `${id}:${b.name}`, name: b.name, geometry: b.geometry, material, local: new THREE.Matrix4().makeTranslation(...(b.at ?? [0, 0, 0])) }));
-    }
-    return [{ key: id, geometry: built, material, local: new THREE.Matrix4() }];
-  }
-  const geometry = builder.build();
-  if (Array.isArray(geometry)) throw new Error(`植物程式模型只能有一個部件：${model}`);
+function solidMaterial(id: string): THREE.MeshToonMaterial {
+  // 實心物件（木橋）：一般 toon 材質，使用幾何本身的法線
+  const material = patchMist(new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true }));
+  material.name = `procedural_${id}`;
+  return material;
+}
+
+function plantMaterial(id: string): THREE.MeshToonMaterial {
   const material = new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true, side: THREE.DoubleSide });
   // 雙面材質在背面會把法線翻成朝下而變暗（花瓣發灰）；與植被相同，一律使用朝上的頂點法線
   material.onBeforeCompile = (shader) => {
@@ -504,6 +495,46 @@ export function buildProceduralModel(model: string): ModelPart[] {
   };
   material.customProgramCacheKey = () => 'procedural-plant';
   material.name = `procedural_${id}`;
-  patchMist(material);
-  return [{ key: id, geometry, material, local: new THREE.Matrix4() }];
+  return patchMist(material);
+}
+
+/** 自發光部件（螢苔、發光花）：不受光照，頂點色為 HDR 值（> 1）讓 Bloom 產生光暈；仍受霧影響 */
+function glowMaterial(id: string): THREE.MeshBasicMaterial {
+  const material = new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false });
+  material.name = `procedural_${id}_glow`;
+  return material;
+}
+
+/** 建立程式模型的部件。回傳的 geometry 與 material 由呼叫端負責釋放。 */
+export function buildProceduralModel(model: string): ModelPart[] {
+  const id = model.slice(PROCEDURAL_PREFIX.length);
+  const forest = forestBuilders[id];
+  if (forest) {
+    // 螢苔祕林的模型：每種材質一個部件
+    const built = forest();
+    const parts: ModelPart[] = [];
+    if (built.solid) parts.push({ key: `${id}:solid`, geometry: built.solid, material: solidMaterial(id), local: new THREE.Matrix4() });
+    if (built.plant) parts.push({ key: `${id}:plant`, geometry: built.plant, material: plantMaterial(id), local: new THREE.Matrix4() });
+    if (built.glow) parts.push({ key: `${id}:glow`, name: 'glow', geometry: built.glow, material: glowMaterial(id), local: new THREE.Matrix4() });
+    return parts;
+  }
+  const builder = builders[id];
+  if (!builder) throw new Error(`未知的程式模型：${model}`);
+  if (builder.kind === 'solid') {
+    const material = solidMaterial(id);
+    const built = builder.build();
+    if (Array.isArray(built)) {
+      // 部件共用同一個材質（釋放時重複呼叫 dispose 沒有副作用）
+      return built.map((b) => ({ key: `${id}:${b.name}`, name: b.name, geometry: b.geometry, material, local: new THREE.Matrix4().makeTranslation(...(b.at ?? [0, 0, 0])) }));
+    }
+    return [{ key: id, geometry: built, material, local: new THREE.Matrix4() }];
+  }
+  const geometry = builder.build();
+  if (Array.isArray(geometry)) throw new Error(`植物程式模型只能有一個部件：${model}`);
+  return [{ key: id, geometry, material: plantMaterial(id), local: new THREE.Matrix4() }];
+}
+
+/** 所有程式模型的 id（測試用） */
+export function proceduralModelIds(): string[] {
+  return [...Object.keys(builders), ...Object.keys(forestBuilders)];
 }

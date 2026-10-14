@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { MapId } from '@/game-core/world/maps';
 import { palette, fogRange } from './palette';
 
 /**
@@ -214,4 +215,29 @@ export const currentTimeLook = timeLook(8, createTimeLook());
 
 export function updateTimeLook(hour: number): TimeLook {
   return timeLook(hour, currentTimeLook);
+}
+
+const FOREST = {
+  fog: new THREE.Color('#6f9a8a'),
+  hemiSky: new THREE.Color('#a8d8c2'),
+  hemiGround: new THREE.Color('#2f5a44'),
+  light: new THREE.Color('#e8f4dc'),
+  horizon: new THREE.Color('#9fcab8'),
+};
+
+/**
+ * 地圖的光線色調（任務 8A）：螢苔祕林在樹冠下，霧偏青綠、可見距離較短，陽光被樹葉濾過而較弱。
+ * 在 updateTimeLook 之後就地修改目前的時段外觀（每幀重算，不會累積）。
+ */
+export function tintTimeLookForMap(map: MapId, look: TimeLook = currentTimeLook): TimeLook {
+  if (map !== 'glowmoss') return look;
+  look.fog.lerp(FOREST.fog, 0.35);
+  look.horizon.lerp(FOREST.horizon, 0.3);
+  look.hemiSky.lerp(FOREST.hemiSky, 0.3);
+  look.hemiGround.lerp(FOREST.hemiGround, 0.5);
+  look.light.lerp(FOREST.light, 0.3);
+  look.lightIntensity *= 0.78;
+  look.fogNear *= 0.7;
+  look.fogFar *= 0.72;
+  return look;
 }

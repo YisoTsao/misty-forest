@@ -13,5 +13,12 @@
   {"id": "ruins", "nameKey": "landmark.ruins", "icon": "ruins", "position": [60, 104]},
   {"id": "stargaze", "nameKey": "landmark.stargaze", "icon": "peak", "position": [-88, 92]},
   {"id": "south_camp", "nameKey": "landmark.southCamp", "icon": "camp", "position": [16, 120]},
-  {"id": "highland_camp", "nameKey": "landmark.highlandCamp", "icon": "camp", "position": [24, -128]}
+  {"id": "highland_camp", "nameKey": "landmark.highlandCamp", "icon": "camp", "position": [24, -128]},
+  {"id": "dawn_glowmoss_gate", "nameKey": "landmark.glowmossGate", "icon": "gate", "position": [136, 6.5]},
+  {"id": "glowmoss_entry", "nameKey": "landmark.glowmossEntry", "icon": "gate", "position": [1860, 4]},
+  {"id": "crescent_tree", "nameKey": "landmark.crescentTree", "icon": "moon", "position": [1966, -24]},
+  {"id": "stone_ring", "nameKey": "landmark.stoneRing", "icon": "stones", "position": [2016, 44]},
+  {"id": "dry_channel", "nameKey": "landmark.dryChannel", "icon": "water", "position": [2029.4, -100]},
+  {"id": "root_maze", "nameKey": "landmark.rootMaze", "icon": "maze", "position": [2076, -74]},
+  {"id": "moss_crown", "nameKey": "landmark.mossCrown", "icon": "mushroom", "position": [2100, 46]}
 ]

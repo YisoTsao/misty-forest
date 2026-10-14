@@ -1,5 +1,6 @@
 // 掉落重置用的安全點（規格 6.1：掉出地圖 → 重置至最近安全點，不得卡死）。
 // 玩家站穩在地圖內時沿途記錄位置；掉落時回到離掉落處最近的一個。
+import { mapAt } from './maps';
 
 export type SafePoint = { x: number; y: number; z: number };
 
@@ -11,7 +12,7 @@ export type SafePointTrail = {
 };
 
 export type SafePointOptions = {
-  /** 可遊玩範圍的半寬（以原點為中心的正方形） */
+  /** 可遊玩範圍的半寬（以所在地圖的原點為中心的正方形） */
   halfExtent: number;
   /** 離可遊玩範圍邊緣至少這麼遠才算安全 */
   edgeMargin: number;
@@ -35,8 +36,9 @@ export function createSafePointTrail(initial: SafePoint): SafePointTrail {
 }
 
 export function isInsidePlayArea(x: number, z: number, opts: SafePointOptions): boolean {
+  const { origin } = mapAt(x, z);
   const limit = opts.halfExtent - opts.edgeMargin;
-  return Math.abs(x) <= limit && Math.abs(z) <= limit;
+  return Math.abs(x - origin.x) <= limit && Math.abs(z - origin.z) <= limit;
 }
 
 /** 每幀呼叫：玩家持續站穩且位置合格時記錄一個安全點。直接修改 trail。 */

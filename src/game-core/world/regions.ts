@@ -2,10 +2,11 @@
 // 權威狀態只存每區三段（濃 / 淡 / 清），畫面上的 mistLevel 由玩家所在位置在區域之間平滑混合。
 import { z } from 'zod';
 import { mistLevelOf, mistStages, type MistStage } from './mist';
+import { mapAt } from './maps';
 import { polylineDistance } from './terrain';
 import { regionIds, type RegionId } from './types';
 
-/** 沒有落在任何區域範圍內時所屬的區域（開闊的草原） */
+/** 晨曦谷地沒有落在任何區域範圍內時所屬的區域（開闊的草原）；其他地圖見 MapDef.defaultRegion */
 export const DEFAULT_REGION: RegionId = 'meadow';
 
 export const regionDefSchema = z.object({
@@ -45,6 +46,11 @@ export const initialMistStages: MistStages = {
   highland: 'light',
   farmland: 'clear',
   river: 'light',
+  // 螢苔祕林：入口的小徑淡霧，林地深處、根鬚迷宮與苔冠空地濃霧（第二章要逐步恢復）
+  moss_trail: 'light',
+  moss_glade: 'light',
+  root_maze: 'dense',
+  moss_crown: 'dense',
 };
 
 export function parseRegions(raw: unknown): RegionDef[] {
@@ -70,9 +76,9 @@ function weightAt(region: RegionDef, x: number, z: number): number {
   return 1 - smoothstep(radius - blend / 2, radius + blend / 2, d);
 }
 
-/** (x, z) 所屬的區域（權重最大者；都不在範圍內則為預設區域） */
+/** (x, z) 所屬的區域（權重最大者；都不在範圍內則為所在地圖的預設區域） */
 export function regionAt(regions: readonly RegionDef[], x: number, z: number): RegionId {
-  let best: RegionId = DEFAULT_REGION;
+  let best: RegionId = mapAt(x, z).defaultRegion;
   let bestWeight = 0.5;
   let bestRadius = Infinity;
   for (const r of regions) {
@@ -90,10 +96,11 @@ export function regionAt(regions: readonly RegionDef[], x: number, z: number): R
 
 /** (x, z) 的迷霧程度（0–1）：各區域依權重混合，邊界平滑過渡 */
 export function mistLevelAt(regions: readonly RegionDef[], stages: MistStages, x: number, z: number): number {
+  const fallback = mapAt(x, z).defaultRegion;
   let total = 0;
   let sum = 0;
   for (const r of regions) {
-    if (r.id === DEFAULT_REGION) continue;
+    if (r.id === fallback) continue;
     const w = weightAt(r, x, z);
     if (w <= 0) continue;
     total += w;
@@ -101,5 +108,5 @@ export function mistLevelAt(regions: readonly RegionDef[], stages: MistStages, x
   }
   // 區域重疊時權重總和可能超過 1，正規化；不足 1 的部分由預設區域補上
   if (total > 1) return sum / total;
-  return sum + (1 - total) * mistLevelOf(stages[DEFAULT_REGION]);
+  return sum + (1 - total) * mistLevelOf(stages[fallback]);
 }

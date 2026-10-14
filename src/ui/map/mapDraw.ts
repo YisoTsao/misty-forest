@@ -1,7 +1,8 @@
 // 世界地圖與小地圖共用的繪製（任務 7B）：底圖、探索霧罩、地標、任務標記、NPC、寶箱、玩家箭頭。
 // 只讀狀態（權威狀態、本機暫態），不修改任何東西；每次呼叫畫一整幀。
 import type { GameState } from '@/game-core/authority/rules';
-import { EXPLORE_CELL, EXPLORE_GRID, isCellExplored, isExploredAt, type Explored } from '@/game-core/map/explore';
+import { EXPLORE_CELL, EXPLORE_GRID, isCellExplored, isExploredAt, mapCellOffset, type Explored } from '@/game-core/map/explore';
+import { isOnMapTerrain, mapAt, mapIdAt, MAPS, type MapId } from '@/game-core/world/maps';
 import { questMarkers, type LandmarkIcon, type QuestMarker } from '@/game-core/map/markers';
 import { TERRAIN_SIZE } from '@/game-core/world/terrain';
 import { combat, landmarks, npcs, quests, regions, worldIndex } from '@/game/authority';
@@ -19,7 +20,8 @@ export function worldToScreen(view: MapView, x: number, z: number): { sx: number
 }
 
 /** 未探索區域的霧罩：已探索的格子挖空，邊緣模糊（低細節霧罩，不是全黑，Bible §31.3） */
-export function paintFog(explored: Explored, canvas: HTMLCanvasElement = document.createElement('canvas')): HTMLCanvasElement {
+export function paintFog(explored: Explored, map: MapId = 'dawnvale', canvas: HTMLCanvasElement = document.createElement('canvas')): HTMLCanvasElement {
+  const offset = mapCellOffset(map);
   canvas.width = MAP_SIZE_PX;
   canvas.height = MAP_SIZE_PX;
   const ctx = canvas.getContext('2d');
@@ -43,7 +45,7 @@ export function paintFog(explored: Explored, canvas: HTMLCanvasElement = documen
   const cell = EXPLORE_CELL * MAP_PX_PER_M;
   for (let j = 0; j < EXPLORE_GRID; j++) {
     for (let i = 0; i < EXPLORE_GRID; i++) {
-      if (!isCellExplored(explored, j * EXPLORE_GRID + i)) continue;
+      if (!isCellExplored(explored, offset + j * EXPLORE_GRID + i)) continue;
       ctx.fillRect(i * cell - 3, j * cell - 3, cell + 6, cell + 6);
     }
   }
@@ -53,9 +55,10 @@ export function paintFog(explored: Explored, canvas: HTMLCanvasElement = documen
 }
 
 /** 把底圖（或霧罩）依視窗畫到畫面上 */
-export function drawLayer(ctx: CanvasRenderingContext2D, layer: CanvasImageSource, view: MapView): void {
+export function drawLayer(ctx: CanvasRenderingContext2D, layer: CanvasImageSource, view: MapView, map: MapId = 'dawnvale'): void {
   const scale = view.pxPerM / MAP_PX_PER_M;
-  const { sx, sy } = worldToScreen(view, -TERRAIN_SIZE / 2, -TERRAIN_SIZE / 2);
+  const o = MAPS[map].origin;
+  const { sx, sy } = worldToScreen(view, o.x - TERRAIN_SIZE / 2, o.z - TERRAIN_SIZE / 2);
   ctx.imageSmoothingEnabled = true;
   ctx.drawImage(layer, sx, sy, MAP_SIZE_PX * scale, MAP_SIZE_PX * scale);
 }
@@ -74,6 +77,12 @@ const LANDMARK_EMOJI: Record<LandmarkIcon, string> = {
   spawn: '✨',
   forest: '🌲',
   smith: '🔨',
+  gate: '⛩️',
+  moon: '🌙',
+  stones: '🪨',
+  mushroom: '🍄',
+  maze: '🌿',
+  water: '💧',
 };
 
 function label(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size: number, color = '#3b2a17'): void {
@@ -94,10 +103,11 @@ function regionNames(): Set<string> {
 }
 
 /** 區域名稱（已探索的區域中心；範圍很小的家園不標，避免與湖重疊） */
-export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, explored: Explored): void {
+export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, explored: Explored, map: MapId = 'dawnvale'): void {
   for (const r of regions) {
     if (!r.area || r.area.radius < 10) continue;
     const [x, z] = r.area.center;
+    if (mapIdAt(x, z) !== map) continue;
     if (!isExploredAt(explored, x, z)) continue;
     const { sx, sy } = worldToScreen(view, x, z);
     label(ctx, t(r.nameKey), sx, sy - 18, Math.max(12, Math.min(18, view.pxPerM * 7)), '#5a3d1e');
@@ -105,9 +115,10 @@ export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, e
 }
 
 /** 地標圖示與名稱（已探索的地標） */
-export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, explored: Explored, withNames: boolean): void {
+export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, explored: Explored, withNames: boolean, map: MapId = 'dawnvale'): void {
   const size = Math.max(14, Math.min(24, view.pxPerM * 9));
   for (const l of landmarks) {
+    if (mapIdAt(l.position[0], l.position[1]) !== map) continue;
     if (!isExploredAt(explored, l.position[0], l.position[1])) continue;
     const { sx, sy } = worldToScreen(view, l.position[0], l.position[1]);
     ctx.fillStyle = 'rgba(255, 248, 225, 0.92)';
@@ -133,7 +144,7 @@ export function drawChests(ctx: CanvasRenderingContext2D, view: MapView, state: 
   for (const p of worldDataResult.data.placements) {
     if (worldDataResult.data.prefabs.get(p.prefabId)?.entity !== 'chest') continue;
     const [x, , z] = p.position;
-    if (Math.abs(x) > TERRAIN_SIZE / 2 || Math.abs(z) > TERRAIN_SIZE / 2) continue;
+    if (!isOnMapTerrain(mapAt(x, z), x, z)) continue; // 室內子場景
     if (state.objects.get(p.id)?.open || !isExploredAt(state.explored, x, z)) continue;
     const { sx, sy } = worldToScreen(view, x, z);
     ctx.fillStyle = '#c98a2c';

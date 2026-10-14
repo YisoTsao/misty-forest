@@ -11,6 +11,7 @@ import { parseNpcs, type NpcDef } from '../npc/npc';
 import { parseQuests, type QuestCatalog } from '../quest/quest';
 import { parseFlocks, type FlockDef } from '../ambient/sheep';
 import { parseInteriors, type InteriorDef } from './interiors';
+import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
 
@@ -124,9 +125,20 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`interiors 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
+  const placementsById = new Map(world.placements.map((p) => [p.id, p]));
   for (const prefab of world.prefabs.values()) {
-    const to = prefab.enter?.to;
-    if (to && to !== 'overworld' && !interiors.has(to)) throw new WorldDataError(`prefab ${prefab.id} 的出入口通往不存在的室內：${to}`);
+    const enter = prefab.enter;
+    if (!enter) continue;
+    if ((mapIds as readonly string[]).includes(enter.to)) {
+      // 地圖出入口：抵達點必須存在且在目的地圖內；條件中的任務必須存在
+      const arrive = enter.arriveAt === undefined ? undefined : placementsById.get(enter.arriveAt);
+      if (!arrive) throw new WorldDataError(`prefab ${prefab.id} 的地圖出入口缺少抵達點：${enter.arriveAt ?? '（未指定）'}`);
+      if (mapIdAt(arrive.position[0], arrive.position[2]) !== enter.to) throw new WorldDataError(`prefab ${prefab.id} 的抵達點不在地圖 ${enter.to} 內`);
+      const need = enter.requires?.questCompleted;
+      if (need !== undefined && !quests.has(need)) throw new WorldDataError(`prefab ${prefab.id} 的通過條件參照不存在的任務：${need}`);
+      continue;
+    }
+    if (enter.to !== 'overworld' && !interiors.has(enter.to)) throw new WorldDataError(`prefab ${prefab.id} 的出入口通往不存在的室內：${enter.to}`);
   }
   let flocks: FlockDef[];
   try {

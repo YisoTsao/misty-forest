@@ -1,15 +1,16 @@
 import { RigidBody, TrimeshCollider } from '@react-three/rapier';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { TERRAIN_SIZE } from '@/game-core/world/terrain';
+import type { MapId } from '@/game-core/world/maps';
 import { getTerrainGrid } from '@/game-core/world/terrainGrid';
 import { createTerrainMaterial } from '@/render/terrainMaterial';
 
-function buildTerrainGeometry(): THREE.BufferGeometry {
+/** 地形網格（局部座標，原點在地圖中心；mesh 再放到地圖原點） */
+function buildTerrainGeometry(map: MapId): THREE.BufferGeometry {
   // 頂點與共用的地形取樣格一一對應（1 m 一點），不必再呼叫 terrainHeight
-  const grid = getTerrainGrid();
+  const grid = getTerrainGrid(map);
   const segments = grid.size - 1;
-  const geo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, segments, segments);
+  const geo = new THREE.PlaneGeometry(grid.extent, grid.extent, segments, segments);
   geo.rotateX(-Math.PI / 2);
 
   const pos = geo.attributes.position as THREE.BufferAttribute;
@@ -19,7 +20,7 @@ function buildTerrainGeometry(): THREE.BufferGeometry {
   const pathDist = new Float32Array(pos.count);
   // 法線直接由取樣格的中央差分計算（與 computeVertexNormals 結果相近，但不必走過 20 萬個三角形）
   const normals = new Float32Array(pos.count * 3);
-  const half = TERRAIN_SIZE / 2;
+  const half = grid.extent / 2;
   const h = (i: number, j: number) => grid.height[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))]!;
   for (let v = 0; v < pos.count; v++) {
     const i = Math.round((p[v * 3]! + half) / grid.step);
@@ -40,18 +41,24 @@ function buildTerrainGeometry(): THREE.BufferGeometry {
   return geo;
 }
 
-/** 碰撞用的頂點與索引，與渲染網格完全一致。 */
-function trimeshArgs(geo: THREE.BufferGeometry): [Float32Array, Uint32Array] {
+/** 碰撞用的頂點與索引，與渲染網格完全一致（加上地圖原點，成為世界座標）。 */
+function trimeshArgs(geo: THREE.BufferGeometry, ox: number, oz: number): [Float32Array, Uint32Array] {
   const index = geo.index;
   if (!index) throw new Error('地形網格缺少索引');
-  return [new Float32Array(geo.attributes.position!.array), Uint32Array.from(index.array)];
+  const vertices = new Float32Array(geo.attributes.position!.array);
+  for (let i = 0; i < vertices.length; i += 3) {
+    vertices[i]! += ox;
+    vertices[i + 2]! += oz;
+  }
+  return [vertices, Uint32Array.from(index.array)];
 }
 
-/** 地形：渲染網格 + 固定剛體 trimesh 碰撞（須放在 <Physics> 內）。 */
-export function Terrain() {
-  const geometry = useMemo(() => buildTerrainGeometry(), []);
-  const material = useMemo(() => createTerrainMaterial(), []);
-  const colliderArgs = useMemo(() => trimeshArgs(geometry), [geometry]);
+/** 一張地圖的地形：渲染網格 + 固定剛體 trimesh 碰撞（須放在 <Physics> 內）。所有地圖的碰撞都在同一個物理世界。 */
+export function Terrain({ map = 'dawnvale' }: { map?: MapId }) {
+  const grid = getTerrainGrid(map);
+  const geometry = useMemo(() => buildTerrainGeometry(map), [map]);
+  const material = useMemo(() => createTerrainMaterial(map), [map]);
+  const colliderArgs = useMemo(() => trimeshArgs(geometry, grid.originX, grid.originZ), [geometry, grid]);
 
   useEffect(
     () => () => {
@@ -63,7 +70,7 @@ export function Terrain() {
 
   return (
     <>
-      <mesh geometry={geometry} material={material} receiveShadow />
+      <mesh name={`terrain-${map}`} geometry={geometry} material={material} position={[grid.originX, 0, grid.originZ]} receiveShadow />
       <RigidBody type="fixed" colliders={false}>
         <TrimeshCollider args={colliderArgs} friction={1} />
       </RigidBody>

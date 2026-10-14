@@ -8,7 +8,10 @@ import type { Prefab } from '@/game-core/world/types';
 import { authority, npcs, quests } from '@/game/authority';
 import { questStatus } from '@/game-core/quest/quest';
 import { startTalk } from '@/game/dialogueController';
-import { travel } from '@/game/location';
+import { travel, travelToMap } from '@/game/location';
+import { isGateOpen } from '@/game-core/world/gates';
+import { isMapId } from '@/game-core/world/maps';
+import { audio } from '@/game/audio/audioEngine';
 import { input } from '@/game/input/inputManager';
 import { npcRuntime } from '@/game/npc/npcRuntime';
 import { playerRuntime } from '@/game/player/localRuntime';
@@ -167,9 +170,21 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
       return;
     }
     // 出入口（規格 5.2：門與入口 → 場景切換）：本機轉場，不經過權威層
-    if (target.spec.prefab.enter) {
+    const enter = target.spec.prefab.enter;
+    if (enter) {
       ui.setInteractTarget(null);
-      travel(target.spec.prefab.enter.to);
+      if (isMapId(enter.to)) {
+        // 地圖出入口（任務 8A）：條件未達成時說明原因（Bible §3.2：不用看不出原因的封鎖）
+        if (!isGateOpen(enter, authority.getState().quests)) {
+          if (document.pointerLockElement) document.exitPointerLock();
+          ui.showMessage({ titleKey: target.spec.prefab.nameKey ?? 'object.gateGlowmoss', bodyKey: enter.lockedKey ?? 'gate.locked' });
+          audio.play('reject');
+          return;
+        }
+        travelToMap(enter.to, enter.arriveAt ?? '', enter.arriveDistance ?? 4);
+        return;
+      }
+      travel(enter.to);
       return;
     }
     // 告示牌 / 路標：顯示內容（本機，不改變世界狀態）
