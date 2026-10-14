@@ -351,6 +351,30 @@ const icons: Record<string, ReactNode> = {
       <path d="M33 10 Q30 16 26 18 M22 30 Q18 32 16 36" stroke="#3f4a5c" strokeWidth="2.4" strokeLinecap="round" fill="none" />
     </>
   ),
+  tide_resonance: (
+    <>
+      <circle cx="24" cy="24" r="17" fill="#d9f4ff" opacity="0.5" />
+      <circle cx="24" cy="24" r="11" fill="#77c9df" stroke="#2f7f9a" strokeWidth="2" />
+      <path d="M16 22 Q20 18 24 22 T32 22 M16 28 Q20 24 24 28 T32 28" stroke="#f4fbff" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <circle cx="19" cy="18" r="2.4" fill="#ffffff" />
+    </>
+  ),
+  reed_planter: (
+    <>
+      <path d="M14 32 L34 32 L31 43 L17 43 Z" fill="#b8834c" stroke="#6b4a2a" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M20 32 Q19 18 17 8 M24 32 Q24 16 25 6 M28 32 Q30 20 33 10" stroke="#4f8a66" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <ellipse cx="17.5" cy="11" rx="1.8" ry="4" fill="#7a5233" />
+      <ellipse cx="32.5" cy="13" rx="1.8" ry="4" fill="#7a5233" />
+    </>
+  ),
+  mirror_lamp: (
+    <>
+      <rect x="22.5" y="20" width="3" height="20" fill="#7a5a3e" />
+      <rect x="16" y="39" width="16" height="4" rx="2" fill="#8f9894" />
+      <circle cx="24" cy="15" r="9" fill="#d8f4f8" stroke="#c8b27a" strokeWidth="2.4" />
+      <circle cx="24" cy="15" r="3.2" fill="#ffffff" />
+    </>
+  ),
   tide_record: (
     <>
       <rect x="10" y="7" width="28" height="34" rx="3" fill="#f6eedb" stroke="#8a6a44" strokeWidth="2" />

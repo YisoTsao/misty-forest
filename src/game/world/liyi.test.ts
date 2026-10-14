@@ -5,6 +5,8 @@ import { applyEvents, handleCommand, initialGameState, type GameCommand, type Ga
 import { bossStance, createBossAi, stepBossAi, stunBoss } from '@/game-core/combat/bossAi';
 import { createEnemyAi } from '@/game-core/combat/enemyAi';
 import { pickDialogue } from '@/game-core/dialogue/dialogue';
+import { isBuildableUnlocked } from '@/game-core/build/build';
+import { countItem } from '@/game-core/inventory/inventory';
 import { mapIdAt } from '@/game-core/world/maps';
 import { regionAt } from '@/game-core/world/regions';
 import { worldDataResult } from '../worldData';
@@ -48,6 +50,8 @@ const rejection = (state: GameState, cmd: GameCommand) => {
 const opened = (): GameState => ({ ...initialGameState(), quests: { quest_forest_003: { status: 'completed' }, quest_lake_001: { status: 'completed' }, quest_lake_002: { status: 'completed' } } });
 const eve = data.npcs.find((n) => n.id === 'eve')!;
 const talk = (s: GameState) => pickDialogue(eve.talk, s, { quests: data.quests });
+const talkTo = (id: string, s: GameState) => pickDialogue(data.npcs.find((n) => n.id === id)!.talk, s, { quests: data.quests });
+const CORE = 'mirrorlake_temple_core';
 function fighting(): { state: GameState; enemyId: string } {
   const accepted = ok(opened(), { type: 'AcceptQuest', quest: Q }).state;
   const r = ok(accepted, { type: 'StartBossFight', boss: BOSS });
@@ -99,17 +103,33 @@ describe('璃漪', () => {
     expect(bossStance(b)).toBe('recover');
   });
 
-  it('擊敗（顯形時打）：完成任務目標，掉落星光碎屑與湖珠；回報伊芙後神殿的迷霧散去', () => {
+  it('擊敗（顯形時打）後喚醒神殿中央的潮之共鳴裝置（擊敗前不行）；回報伊芙後神殿的迷霧散去、湖泊家園裝飾配方解鎖', () => {
     const fight = fighting();
     const enemyId = fight.enemyId;
     let state = fight.state;
+    expect(rejection(state, { type: 'ActivateObject', placementId: CORE })).not.toBeNull();
     for (let i = 0; i < 200 && state.enemies.has(enemyId); i++) state = ok(state, { type: 'AttackEnemy', enemyId, attack: 'sword_slash_diag', stance: 'recover' }).state;
     expect(state.enemies.has(enemyId)).toBe(false);
     expect(state.defeatedBosses).toContain(BOSS);
+    expect(talkTo('liyi', state)).toBe('liyi_core');
+    expect(talk(state)).toBe('eve_guardian_progress');
+    expect(isBuildableUnlocked(data.buildables.get('mirror_lamp')!, state.quests)).toBe(false);
+    state = ok(state, { type: 'ActivateObject', placementId: CORE }).state;
+    expect(countItem(state.inventory, 'tide_resonance')).toBe(1);
+    expect(state.objects.get(CORE)?.active).toBe(true);
     expect(talk(state)).toBe('eve_guardian_turnin');
     state = ok(state, { type: 'TurnInQuest', quest: Q }).state;
     expect(state.quests[Q]?.status).toBe('completed');
     expect(state.mist.mirror_temple).toBe('clear');
     expect(talk(state)).toBe('eve_after_guardian');
+    expect(talkTo('liyi', state)).toBe('liyi_restored');
+    expect(isBuildableUnlocked(data.buildables.get('mirror_lamp')!, state.quests)).toBe(true);
+    expect(isBuildableUnlocked(data.buildables.get('reed_planter')!, state.quests)).toBe(true);
+  });
+
+  it('戰後的璃漪只在擊敗後出現在神殿', () => {
+    const liyi = data.npcs.find((n) => n.id === 'liyi')!;
+    expect(mapIdAt(liyi.position[0], liyi.position[1])).toBe('mirrorlake');
+    expect(liyi.visible).toEqual({ type: 'bossDefeated', boss: BOSS });
   });
 });

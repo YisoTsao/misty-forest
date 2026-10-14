@@ -200,18 +200,12 @@ function mirrorTemple(): ForestModel {
     solid.push(cylinder(0.45, 0.5, h, [Math.cos(a) * 8.6, 0.5, Math.sin(a) * 8.6], i % 3 ? STONE : c('#c7ccc6'), 9));
     if (h > 3.4) solid.push(box([1.2, 0.35, 1.2], [Math.cos(a) * 8.6, 0.5 + h + 0.15, Math.sin(a) * 8.6], STONE_DARK));
   }
-  // 中央：三層石座與沉睡的共鳴球（淡淡發光）
-  solid.push(cylinder(1.6, 1.8, 0.5, [0, 0.5, 0], STONE_DARK, 16), cylinder(1.1, 1.3, 0.6, [0, 1.0, 0], STONE, 16));
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2;
-    solid.push(box([0.25, 1.7, 0.25], [Math.cos(a) * 0.85, 1.6, Math.sin(a) * 0.85], c('#c8b27a'), [Math.sin(a) * 0.3, 0, -Math.cos(a) * 0.3]));
-  }
-  glow.push(sphere(0.55, [0, 2.6, 0], glowColor(LAKE_BLUE, 0.9), [1, 1, 1], 2));
+  // 中央的潮之共鳴裝置是另一個物件（任務 9E-2，temple_core）
   for (let i = 0; i < 8; i++) {
     const a = rand() * Math.PI * 2;
     solid.push(sphere(0.6, [Math.cos(a) * (9 + rand()), 0.35, Math.sin(a) * (9 + rand())], MOSS, [1.5, 0.35, 1.1]));
   }
-  return { solid: merge(solid, '水鏡神殿'), glow: merge(glow, '沉睡的共鳴') };
+  return glow.length ? { solid: merge(solid, '水鏡神殿'), glow: merge(glow, '神殿的光') } : { solid: merge(solid, '水鏡神殿') };
 }
 
 /** 湖畔燈船（Bible §7.2 地標）：一艘小木船，船頭掛著燈籠（之後伊芙的支線修好它）；原點在水面 */
@@ -373,7 +367,50 @@ function templeMirror(): ForestModel {
   return { solid: merge([base.solid!, head.solid!], '神殿水鏡'), glow: head.glow! };
 }
 
+/**
+ * 潮之共鳴裝置（任務 9E-2，Bible §7.7 `prop_lake_temple_core`）：神殿中央的三層石座，三支金色托架托著一顆共鳴球。
+ * awake 時共鳴球亮起湖藍色，周圍浮起三圈水環（擊敗璃漪後才喚得醒）。原點在石台頂面下 0.5 m（與神殿同一個地面）。
+ */
+function templeCore(awake: boolean): ForestModel {
+  const solid: THREE.BufferGeometry[] = [cylinder(1.6, 1.8, 0.5, [0, 0.5, 0], STONE_DARK, 16), cylinder(1.1, 1.3, 0.6, [0, 1.0, 0], STONE, 16)];
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2;
+    solid.push(box([0.25, 1.7, 0.25], [Math.cos(a) * 0.85, 1.6, Math.sin(a) * 0.85], c('#c8b27a'), [Math.sin(a) * 0.3, 0, -Math.cos(a) * 0.3]));
+  }
+  const glow: THREE.BufferGeometry[] = [sphere(0.55, [0, 2.6, 0], glowColor(LAKE_BLUE, awake ? 2.4 : 0.6), [1, 1, 1], 2)];
+  if (awake) {
+    for (const [r, y] of [
+      [0.95, 2.3],
+      [1.25, 2.6],
+      [0.95, 2.9],
+    ] as const) {
+      const ring = new THREE.TorusGeometry(r, 0.035, 4, 32);
+      ring.rotateX(Math.PI / 2);
+      ring.translate(0, y, 0);
+      glow.push(paint(ring, glowColor('#bff0ff', 1.8)));
+    }
+  }
+  return { solid: merge(solid, '潮之共鳴裝置'), glow: merge(glow, '共鳴球') };
+}
+
+/** 鏡殼燈（任務 9E-2 湖泊家園裝飾）：細木柱頂端一面用鏡殼片拼成的小圓鏡，鏡心一顆湖珠發著光 */
+function mirrorLamp(): ForestModel {
+  const solid: THREE.BufferGeometry[] = [cylinder(0.25, 0.3, 0.12, [0, 0, 0], STONE_DARK, 10), cylinder(0.05, 0.06, 1.3, [0, 0.12, 0], WOOD_DARK, 6)];
+  const frame = new THREE.TorusGeometry(0.28, 0.04, 5, 20);
+  frame.translate(0, 1.55, 0);
+  solid.push(paint(frame, c('#c8b27a')));
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    solid.push(sphere(0.07, [Math.cos(a) * 0.16, 1.55 + Math.sin(a) * 0.16, 0.02], c('#9fd0d8'), [1, 1, 0.3], 1));
+  }
+  const glow = [sphere(0.08, [0, 1.55, 0.03], glowColor('#f6f2ff', 2.2), [1, 1, 1], 1)];
+  return { solid: merge(solid, '鏡殼燈'), glow: merge(glow, '湖珠的光') };
+}
+
 export const lakeBuilders: Record<string, () => ForestModel> = {
+  temple_core: () => templeCore(false),
+  temple_core_awake: () => templeCore(true),
+  mirror_lamp: mirrorLamp,
   temple_mirror: templeMirror,
   mirror_pillar_base: mirrorPillarBase,
   mirror_head: mirrorHead,

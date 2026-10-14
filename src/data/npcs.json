@@ -970,5 +970,36 @@
         "dialogue": "eve_intro"
       }
     ]
+  },
+  {
+    "id": "liyi",
+    "nameKey": "npc.liyi",
+    "regionId": "mirror_temple",
+    "model": "procedural:liyi_calm",
+    "scale": 1,
+    "hiddenNodes": [],
+    "visible": {
+      "type": "bossDefeated",
+      "boss": "boss_liyi_echo_koi"
+    },
+    "position": [
+      4046,
+      27
+    ],
+    "facingYaw": 3.1416,
+    "interactRadius": 3.2,
+    "talk": [
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_003",
+          "is": "active"
+        },
+        "dialogue": "liyi_core"
+      },
+      {
+        "dialogue": "liyi_restored"
+      }
+    ]
   }
 ]

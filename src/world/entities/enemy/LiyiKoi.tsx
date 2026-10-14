@@ -59,7 +59,7 @@ function build() {
   const seg = colored(new THREE.IcosahedronGeometry(1, 2), PEARL);
   const patch = colored(new THREE.IcosahedronGeometry(1, 1).scale(0.7, 0.35, 0.8).translate(0, 0.72, 0), LAKE);
   // 頭：吻部、眼睛、長鬚
-  const head = new THREE.IcosahedronGeometry(1, 2);
+  const head = colored(new THREE.IcosahedronGeometry(1, 2), PEARL);
   head.scale(0.95, 0.85, 1.25);
   const eye = new THREE.SphereGeometry(0.16, 10, 8);
   const whisker = new THREE.CylinderGeometry(0.03, 0.01, 1.6, 5);
@@ -411,5 +411,48 @@ export function LiyiKoiWarmup() {
       <mesh geometry={geo.column} material={mat.water} />
       <mesh geometry={geo.star} material={mat.star} />
     </>
+  );
+}
+
+let calmMaterials: { body: THREE.Material; fin: THREE.Material; glow: THREE.Material; eye: THREE.Material } | null = null;
+
+/** 戰後的璃漪自己的材質（頭目的共用材質在倒下時會被調成透明） */
+function getCalmMaterials() {
+  calmMaterials ??= {
+    body: patchMist(new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true, emissive: '#1f3f4a' })),
+    fin: new THREE.MeshBasicMaterial({ color: new THREE.Color('#cfefff'), transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false }),
+    glow: new THREE.MeshBasicMaterial({ color: GLOW.clone().multiplyScalar(1.6), toneMapped: false }),
+    eye: new THREE.MeshBasicMaterial({ color: '#1f2a3a' }),
+  };
+  return calmMaterials;
+}
+
+/**
+ * 戰後的璃漪（任務 9E-2，Bible §7.5：不再重播古代的失落）：縮小一些、安靜地在神殿石台上方繞小圈游動。NPC 系統的程式造型。
+ * 說話時抬起頭、身上的星光紋亮一點。
+ */
+export function LiyiBuddy({ talking }: { talking: () => boolean }) {
+  const mat = getCalmMaterials();
+  const segs = useRef<(THREE.Group | null)[]>([]);
+  const root = useRef<THREE.Group>(null);
+  const local = useMemo(() => ({ time: 0 }), []);
+  useFrame((_, rawDt) => {
+    if (currentScreen() === 'paused') return;
+    const dt = Math.min(rawDt, 1 / 20);
+    local.time += dt;
+    const t = local.time;
+    const lift = talking() ? 0.35 : 0;
+    if (root.current) root.current.position.y = HOVER * 0.7 + Math.sin(t * 1.1) * 0.2 + lift;
+    segs.current.forEach((s, i) => {
+      if (!s) return;
+      const wave = Math.sin(t * 2 - i * 0.7) * (0.2 + (i / SEGMENTS) * 0.6);
+      s.position.set(wave, (i === 0 ? lift * 0.6 : 0) + Math.sin(i * 0.5 + t) * 0.08, -i * SEG_GAP);
+      s.rotation.y = Math.cos(t * 2 - i * 0.7) * 0.3;
+    });
+  });
+  return (
+    <group ref={root} scale={0.6}>
+      <KoiBody segRefs={segs} material={mat.body} finMaterial={mat.fin} glowMaterial={mat.glow} eyeMaterial={mat.eye} />
+    </group>
   );
 }

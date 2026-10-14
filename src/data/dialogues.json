@@ -1918,5 +1918,35 @@
         "textKey": "dlg.eve.afterGuardian"
       }
     }
+  },
+  {
+    "id": "liyi_core",
+    "start": "echo",
+    "nodes": {
+      "echo": {
+        "speakerKey": "npc.liyi",
+        "textKey": "dlg.liyi.echo",
+        "next": "core"
+      },
+      "core": {
+        "speakerKey": "npc.liyi",
+        "textKey": "dlg.liyi.core"
+      }
+    }
+  },
+  {
+    "id": "liyi_restored",
+    "start": "echo",
+    "nodes": {
+      "echo": {
+        "speakerKey": "npc.liyi",
+        "textKey": "dlg.liyi.echo",
+        "next": "now"
+      },
+      "now": {
+        "speakerKey": "npc.liyi",
+        "textKey": "dlg.liyi.now"
+      }
+    }
   }
 ]

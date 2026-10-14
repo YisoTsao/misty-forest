@@ -38,5 +38,6 @@
   {"id": "mob_bubble_wisp_small_drop", "drops": [{"itemId": "water_essence", "min": 1, "max": 1, "chance": 0.15}]},
   {"id": "mob_mist_heron_drop", "drops": [{"itemId": "mist_feather", "min": 1, "max": 1, "chance": 0.6}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.15}]},
   {"id": "mob_mirror_crab_drop", "drops": [{"itemId": "mirror_shell", "min": 1, "max": 1, "chance": 0.65}, {"itemId": "lake_pearl", "min": 1, "max": 1, "chance": 0.2}]},
-  {"id": "boss_liyi_drop", "drops": [{"itemId": "starlight_shard", "min": 3, "max": 3}, {"itemId": "lake_pearl", "min": 2, "max": 2}]}
+  {"id": "boss_liyi_drop", "drops": [{"itemId": "starlight_shard", "min": 3, "max": 3}, {"itemId": "lake_pearl", "min": 2, "max": 2}]},
+  {"id": "temple_core_resonance", "drops": [{"itemId": "tide_resonance", "min": 1, "max": 1}]}
 ]

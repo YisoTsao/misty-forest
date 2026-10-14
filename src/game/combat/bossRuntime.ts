@@ -278,12 +278,14 @@ function resonanceRestored(placementId: string, companionUnlocked: boolean): boo
   if (!placement || !prefab?.activate?.afterBoss) return false;
   const [x, , z] = placement.position;
   const y = terrainHeight(x, z);
-  const mint = [0.55, 0.95, 0.75] as const;
-  vfx({ type: 'flash', x, y: y + 1.6, z, color: mint, intensity: 6, duration: 1.4, distance: 22 });
-  vfx({ type: 'shockwave', x, y: y + 0.15, z, radius: 16, duration: 1.6, color: mint });
-  vfx({ type: 'burst', preset: 'purify', x, y: y + 1.4, z, color: mint, scale: 2.4 });
-  useUiStore.getState().pushToast({ textKey: 'toast.resonance' });
-  if (companionUnlocked) companionSay('companion.resonance');
+  // 各頭目之後的共鳴（苔咚：芽之共鳴、薄荷綠；璃漪：潮之共鳴、湖藍，任務 9E-2）
+  const textKey = bosses.find((b) => b.id === prefab.activate?.afterBoss)?.boss.textKey ?? 'boss';
+  const color = textKey === 'liyi' ? ([0.6, 0.88, 1] as const) : ([0.55, 0.95, 0.75] as const);
+  vfx({ type: 'flash', x, y: y + 1.6, z, color, intensity: 6, duration: 1.4, distance: 22 });
+  vfx({ type: 'shockwave', x, y: y + 0.15, z, radius: 16, duration: 1.6, color });
+  vfx({ type: 'burst', preset: 'purify', x, y: y + 1.4, z, color, scale: 2.4 });
+  useUiStore.getState().pushToast({ textKey: textKey === 'boss' ? 'toast.resonance' : `${textKey}.resonance` });
+  if (companionUnlocked) companionSay(textKey === 'boss' ? 'companion.resonance' : `${textKey}.resonanceCompanion`);
   return true;
 }
 

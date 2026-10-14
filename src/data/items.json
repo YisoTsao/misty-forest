@@ -37,5 +37,6 @@
   { "id": "mist_feather", "nameKey": "item.mist_feather.name", "descKey": "item.mist_feather.desc", "icon": "feather", "category": "material", "maxStack": 99 },
   { "id": "mirror_shell", "nameKey": "item.mirror_shell.name", "descKey": "item.mirror_shell.desc", "icon": "mirror_shell", "category": "material", "maxStack": 99 },
   { "id": "mirror_symbol_record", "nameKey": "item.mirror_symbol_record.name", "descKey": "item.mirror_symbol_record.desc", "icon": "tide_record", "category": "special", "maxStack": 1 },
-  { "id": "water_charm", "nameKey": "item.water_charm.name", "descKey": "item.water_charm.desc", "icon": "water_charm", "category": "special", "maxStack": 1 }
+  { "id": "water_charm", "nameKey": "item.water_charm.name", "descKey": "item.water_charm.desc", "icon": "water_charm", "category": "special", "maxStack": 1 },
+  { "id": "tide_resonance", "nameKey": "item.tide_resonance.name", "descKey": "item.tide_resonance.desc", "icon": "tide_resonance", "category": "quest", "maxStack": 1 }
 ]

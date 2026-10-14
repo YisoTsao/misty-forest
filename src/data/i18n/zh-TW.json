@@ -976,5 +976,17 @@
   "dlg.eve.report": "湖面……安靜了。你見到璃漪了？",
   "dlg.eve.opt.done": "璃漪停下來了，湖面映出的是現在",
   "dlg.eve.now": "我剛才在碼頭看了好久——湖裡映著你、映著燈船、映著我。不是以前的營地，是現在的。",
-  "dlg.eve.afterGuardian": "我想，也許可以開始修那艘燈船了。等它修好，我想划到湖中央看看。"
+  "dlg.eve.afterGuardian": "我想，也許可以開始修那艘燈船了。等它修好，我想划到湖中央看看。",
+  "npc.liyi": "璃漪",
+  "object.templeCore": "潮之共鳴裝置",
+  "quest.lake3.core": "喚醒神殿中央的潮之共鳴裝置",
+  "item.tide_resonance.name": "潮之共鳴",
+  "item.tide_resonance.desc": "水鏡神殿交給你的第二道共鳴。握著它時，能聽見湖水往遠方流去的聲音。",
+  "build.reed_planter": "蘆葦盆栽",
+  "build.mirror_lamp": "鏡殼燈",
+  "dlg.liyi.echo": "……回聲不是命令。它只是在提醒你，曾經有聲音來過。",
+  "dlg.liyi.core": "神殿中央的裝置，等了很久。把手放上去吧——讓湖記得的東西，交給現在的人。",
+  "dlg.liyi.now": "你看水面。映著的是你，是修船的孩子，是剛通到山裡的水道。……我好久沒有看見「現在」了。",
+  "liyi.resonance": "共鳴球亮了起來——取得了潮之共鳴！",
+  "liyi.resonanceCompanion": "湖水在唱歌耶！它好像在說：謝謝你讓我們看見現在。"
 }

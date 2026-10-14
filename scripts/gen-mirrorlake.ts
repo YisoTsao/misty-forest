@@ -339,6 +339,8 @@ export function addMirrorlake(placements: Out[]): void {
     ['mirrorlake_sluice', 'lake_sluice', LAKE_SLUICE.x, LAKE_SLUICE.z, Math.atan2(MIRROR_PILLARS[2]![0] - LAKE_SLUICE.x, MIRROR_PILLARS[2]![1] - LAKE_SLUICE.z), WATER - 1.2],
     // 任務 9E：神殿兩側的水鏡（頭目戰場外圈，鏡面朝神殿中央）
     ...TEMPLE_MIRRORS.map(([id, x, z]) => [id, 'temple_mirror', x, z, Math.atan2(MIRROR_TEMPLE.x - x, MIRROR_TEMPLE.z - z), null] as [string, string, number, number, number, null]),
+    // 任務 9E-2：神殿中央的潮之共鳴裝置（與神殿同一個地面，朝向入口的西邊）
+    ['mirrorlake_temple_core', 'temple_core', MIRROR_TEMPLE.x, MIRROR_TEMPLE.z, -Math.PI / 2, height(MIRROR_TEMPLE.x, MIRROR_TEMPLE.z) - 0.35],
   ];
   for (let i = kept.length - 1; i >= 0; i--) {
     const o = kept[i]!;

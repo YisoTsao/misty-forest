@@ -593,6 +593,13 @@
         "type": "boss",
         "boss": "boss_liyi_echo_koi",
         "descKey": "quest.lake3.guardian"
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "mirrorlake_temple_core"
+        ],
+        "descKey": "quest.lake3.core"
       }
     ],
     "rewards": {

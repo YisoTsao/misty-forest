@@ -19,8 +19,8 @@ export const buildableSchema = z.object({
   category: z.enum(['structure', 'furniture', 'decoration']),
   /** 選單顯示用的圖示（物品圖示 id） */
   icon: z.string().min(1),
-  /** 接過這個任務（進行中或完成）才出現在建造選單（任務 7K：桃樂教的花圃） */
-  unlock: z.object({ quest: z.string().min(1) }).optional(),
+  /** 接過這個任務（進行中或完成）才出現在建造選單（任務 7K：桃樂教的花圃）；completed 時要完成任務才出現（任務 9E-2 湖泊家園裝飾配方） */
+  unlock: z.object({ quest: z.string().min(1), completed: z.boolean().optional() }).optional(),
   /**
    * 會長大的建造物（任務 7K 花圃）：放置後依遊戲時間換成下一階段的 prefab（Bible §22.1：簡化的階段式成長，不依賴真實世界時間）。
    * stages 為各階段的 prefab，seconds 為進入第 2、3…階段所需的遊戲秒數。
@@ -55,9 +55,11 @@ export function growthStage(def: BuildableDef, building: Building, time: number)
   return def.growth.seconds.filter((s) => age >= s).length;
 }
 
-/** 建造選單是否顯示（unlock 的任務已接取或完成） */
+/** 建造選單是否顯示（unlock 的任務已接取或完成；completed 時要完成） */
 export function isBuildableUnlocked(def: BuildableDef, quests: Readonly<Record<string, { status: string }>>): boolean {
-  return !def.unlock || quests[def.unlock.quest] !== undefined;
+  if (!def.unlock) return true;
+  const record = quests[def.unlock.quest];
+  return def.unlock.completed ? record?.status === 'completed' : record !== undefined;
 }
 
 /** 可以建造的範圍：湖心小島「旅人小屋」的平坦頂面 */

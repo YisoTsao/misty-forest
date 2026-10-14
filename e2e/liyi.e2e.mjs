@@ -14,7 +14,32 @@ const mirror = placements.find((p) => p.id === boss.stun.mirrors[0]);
 const [CX, CZ] = boss.arena.center;
 const Q = 'quest_lake_003';
 
-await runE2e('liyi e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, teleport }) => {
+const npcs = JSON.parse(readFileSync('src/data/npcs.json', 'utf8'));
+const core = placements.find((p) => p.id === 'mirrorlake_temple_core');
+
+await runE2e('liyi e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, teleport, itemCount, objectState }) => {
+  const box = page.locator('[data-testid="dialogue"]');
+  const dialogue = () => debug(() => window.__mistwoodDebug.dialogue());
+  const talkTo = async (id) => {
+    const n = npcs.find((x) => x.id === id);
+    // 站在 NPC 面前、互動範圍以內（璃漪身體大，站遠一點）
+    const r = n.interactRadius * 0.75;
+    await teleport(n.position[0] + Math.sin(n.facingYaw) * r, n.position[1] + Math.cos(n.facingYaw) * r, 900);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), n.position);
+    await page.waitForFunction((t) => window.__mistwoodDebug.interactTarget() === t, `npc:${id}`, { timeout: 3000 }).catch(async (err) => {
+      throw new Error(`找不到 ${id}：互動目標 ${await debug(() => window.__mistwoodDebug.interactTarget())}，NPC ${JSON.stringify(await debug((nid) => window.__mistwoodDebug.npcState(nid), id))}（${err.message}）`);
+    });
+    await page.keyboard.press('KeyE');
+    await box.waitFor({ timeout: 2000 });
+  };
+  const closeDialogue = async () => {
+    for (let i = 0; i < 8 && (await box.count()) > 0; i++) {
+      await page.keyboard.press('Space');
+      await page.waitForTimeout(200);
+    }
+    if ((await box.count()) > 0) await page.keyboard.press('Escape');
+    await box.waitFor({ state: 'detached', timeout: 2000 });
+  };
   const g = (fn, arg) => debug(fn, arg);
   const bossState = () => g(() => window.__mistwoodDebug.boss());
   const send = (cmd) => g((c) => window.__mistwoodDebug.send(c), cmd);
@@ -111,5 +136,42 @@ await runE2e('liyi e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, 
     assert.equal(await g((q) => window.__mistwoodDebug.questProgress(q), Q), 1);
     await teleport(CX - 4, CZ + 2, 1500);
     assert.equal(await bossState(), null, '擊敗後不該再開戰');
+  });
+
+  await check('戰後的璃漪出現在神殿，說出 Bible 的戰後台詞，請你喚醒中央的裝置', async () => {
+    await talkTo('liyi');
+    assert.equal((await dialogue()).dialogueId, 'liyi_core');
+    assert.match(await box.innerText(), /回聲不是命令/);
+    await closeDialogue();
+  });
+
+  await check('喚醒潮之共鳴裝置：取得潮之共鳴，裝置亮起', async () => {
+    const yaw = core.rotation[1];
+    await teleport(core.position[0] + Math.sin(yaw) * 2.6, core.position[2] + Math.cos(yaw) * 2.6, 900);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [core.position[0], core.position[2]]);
+    await page.waitForFunction((t) => window.__mistwoodDebug.interactTarget() === t, core.id, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(1200);
+    assert.equal(await itemCount('tide_resonance'), 1);
+    assert.equal((await objectState(core.id))?.active, true);
+  });
+
+  await check('回報伊芙：湖面映出現在；湖泊家園裝飾配方出現在建造選單', async () => {
+    await talkTo('eve');
+    assert.equal((await dialogue()).dialogueId, 'eve_guardian_turnin');
+    await page.locator('[data-testid="dialogue-option"]', { hasText: '現在' }).click();
+    await closeDialogue();
+    assert.equal(await debug((q) => window.__mistwoodDebug.questState(q), Q), 'completed');
+    await talkTo('liyi');
+    assert.equal((await dialogue()).dialogueId, 'liyi_restored');
+    await closeDialogue();
+    // 回到晨曦谷地的家園小島，建造選單（B）出現鏡殼燈與蘆葦盆栽
+    await teleport(35.5, 8, 1500);
+    await page.keyboard.press('KeyB');
+    await page.locator('[data-testid="build-menu"]').waitFor({ timeout: 2000 });
+    assert.equal(await page.locator('[data-testid="build-option-mirror_lamp"]').count(), 1);
+    assert.equal(await page.locator('[data-testid="build-option-reed_planter"]').count(), 1);
+    await page.keyboard.press('Escape');
+    await page.locator('[data-testid="build-menu"]').waitFor({ state: 'detached', timeout: 2000 });
   });
 });

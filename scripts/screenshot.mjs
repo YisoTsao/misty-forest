@@ -1380,6 +1380,21 @@ try {
     await force('slam', 1000);
     await shot('liyi_leap');
     await d(() => window.__mistwoodDebug.setPeaceful(true));
+    // 戰後：真身顯形時擊敗、喚醒潮之共鳴裝置、戰後的璃漪
+    for (let i = 0; i < 120; i++) {
+      const b = await d(() => window.__mistwoodDebug.boss());
+      if (!b) break;
+      await d((id) => window.__mistwoodDebug.send({ type: 'AttackEnemy', enemyId: id, attack: 'sword_slash_diag', stance: 'recover' }), b.enemyId);
+    }
+    await page.waitForTimeout(3500);
+    await d(() => window.__mistwoodDebug.send({ type: 'ActivateObject', placementId: 'mirrorlake_temple_core' }));
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.setCameraMode('free');
+      g.viewAt([4034, 4.5, 21], [4046, 2.6, 22]);
+    });
+    await page.waitForTimeout(2500);
+    await shot('liyi_after');
   }
 
   if (withPuffKing) {

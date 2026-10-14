@@ -4419,11 +4419,6 @@
       },
       {
         "shape": "cylinder",
-        "radius": 1.8,
-        "height": 3
-      },
-      {
-        "shape": "cylinder",
         "radius": 0.5,
         "height": 5,
         "offset": [
@@ -4715,6 +4710,45 @@
     "turn": {
       "positions": 2
     },
+    "persists": false
+  },
+  {
+    "id": "temple_core",
+    "model": "procedural:temple_core",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 1.8,
+      "height": 3
+    },
+    "interaction": "activate",
+    "nameKey": "object.templeCore",
+    "verbKey": "interact.awaken",
+    "interactRadius": 3.2,
+    "activate": {
+      "model": "procedural:temple_core_awake",
+      "collision": {
+        "shape": "cylinder",
+        "radius": 1.8,
+        "height": 3
+      },
+      "quest": "quest_lake_003",
+      "afterBoss": "boss_liyi_echo_koi",
+      "lootTableId": "temple_core_resonance",
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
+    "id": "build_reed_planter",
+    "model": "procedural:lake_reeds",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "build_mirror_lamp",
+    "model": "procedural:mirror_lamp",
+    "collider": "none",
     "persists": false
   }
 ]
