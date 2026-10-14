@@ -15,6 +15,7 @@ import { AssetBoundary } from '../../AssetBoundary';
 import { MossThumpBuddy } from '../enemy/MossThump';
 import { PuffBuddy } from '../enemy/PuffKing';
 import { prepareModel } from '../player/CharacterModel';
+import { AnimalVillager } from './AnimalVillager';
 import { HornBunny } from './HornBunny';
 import { OwlScholar } from './OwlScholar';
 
@@ -55,6 +56,13 @@ const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => 
   puff: { radius: 0.45, render: (talking) => <PuffBuddy talking={talking} /> },
   horn_bunny: { radius: 0.2, render: (talking) => <HornBunny talking={talking} /> },
   owl_scholar: { radius: 0.4, render: (talking) => <OwlScholar talking={talking} /> },
+  // 動物居民（任務 7P）
+  villager_mira: { radius: 0.32, render: (talking) => <AnimalVillager kind="mira" talking={talking} /> },
+  villager_bomu: { radius: 0.4, render: (talking) => <AnimalVillager kind="bomu" talking={talking} /> },
+  villager_linna: { radius: 0.34, render: (talking) => <AnimalVillager kind="linna" talking={talking} /> },
+  villager_kiki: { radius: 0.3, render: (talking) => <AnimalVillager kind="kiki" talking={talking} /> },
+  villager_niko: { radius: 0.26, render: (talking) => <AnimalVillager kind="niko" talking={talking} /> },
+  villager_tao: { radius: 0.3, render: (talking) => <AnimalVillager kind="tao" talking={talking} /> },
 };
 
 function ProceduralNpcActor({ def }: { def: NpcDef }) {

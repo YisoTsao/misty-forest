@@ -1266,8 +1266,8 @@ try {
     });
     await d(([x, z]) => {
       const g = window.__mistwoodDebug;
-      g.teleport(x - 2, z - 2.5);
-      g.viewAt([x - 3.2, 2.2, z - 3.6], [x, 0.9, z]);
+      g.teleport(x + 2.5, z - 1.5);
+      g.viewAt([x - 2, 1.3, z - 1.8], [x, 0.45, z]);
     }, niko);
     await page.waitForTimeout(1500);
     await shot('letters_niko');

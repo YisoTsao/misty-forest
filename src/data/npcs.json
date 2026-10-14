@@ -3,18 +3,9 @@
     "id": "elder",
     "nameKey": "npc.elder",
     "regionId": "village",
-    "model": "models/characters/kaykit-adventurers/Mage.glb",
-    "scale": 0.72,
-    "hiddenNodes": [
-      "1H_Wand",
-      "Spellbook",
-      "Spellbook_open"
-    ],
-    "clips": {
-      "idle": "2H_Melee_Idle",
-      "walk": "Walking_A",
-      "talk": "Spellcast_Raise"
-    },
+    "model": "procedural:villager_mira",
+    "scale": 1,
+    "hiddenNodes": [],
     "position": [
       -14.0,
       -27.6
@@ -142,19 +133,9 @@
     "id": "balu",
     "nameKey": "npc.balu",
     "regionId": "village",
-    "model": "models/characters/kaykit-adventurers/Barbarian.glb",
-    "scale": 0.74,
-    "hiddenNodes": [
-      "1H_Axe_Offhand",
-      "Barbarian_Round_Shield",
-      "2H_Axe",
-      "Mug"
-    ],
-    "clips": {
-      "idle": "Idle",
-      "walk": "Walking_A",
-      "talk": "Cheer"
-    },
+    "model": "procedural:villager_bomu",
+    "scale": 1,
+    "hiddenNodes": [],
     "position": [
       -17.2,
       -45.6
@@ -388,20 +369,9 @@
     "id": "linna",
     "nameKey": "npc.linna",
     "regionId": "moss_trail",
-    "model": "models/characters/kaykit-adventurers/Mage.glb",
-    "scale": 0.7,
-    "hiddenNodes": [
-      "1H_Wand",
-      "2H_Staff",
-      "Spellbook",
-      "Spellbook_open",
-      "Mage_Hat"
-    ],
-    "clips": {
-      "idle": "Idle",
-      "walk": "Walking_A",
-      "talk": "Interact"
-    },
+    "model": "procedural:villager_linna",
+    "scale": 1,
+    "hiddenNodes": [],
     "position": [
       1892,
       -5
@@ -514,21 +484,9 @@
     "id": "kiki",
     "nameKey": "npc.kiki",
     "regionId": "moss_glade",
-    "model": "models/characters/kaykit-adventurers/Rogue.glb",
-    "scale": 0.62,
-    "hiddenNodes": [
-      "1H_Crossbow",
-      "2H_Crossbow",
-      "Knife",
-      "Knife_Offhand",
-      "Throwable",
-      "Rogue_Cape"
-    ],
-    "clips": {
-      "idle": "Idle",
-      "walk": "Walking_A",
-      "talk": "Cheer"
-    },
+    "model": "procedural:villager_kiki",
+    "scale": 1,
+    "hiddenNodes": [],
     "position": [
       2016,
       -14
@@ -670,21 +628,9 @@
     "id": "niko",
     "nameKey": "npc.niko",
     "regionId": "village",
-    "model": "models/characters/kaykit-adventurers/Rogue.glb",
-    "scale": 0.56,
-    "hiddenNodes": [
-      "1H_Crossbow",
-      "2H_Crossbow",
-      "Knife",
-      "Knife_Offhand",
-      "Throwable",
-      "Rogue_Cape"
-    ],
-    "clips": {
-      "idle": "Idle",
-      "walk": "Walking_A",
-      "talk": "Cheer"
-    },
+    "model": "procedural:villager_niko",
+    "scale": 1,
+    "hiddenNodes": [],
     "visible": {
       "type": "questStatus",
       "quest": "repair_bridge",
@@ -771,20 +717,9 @@
     "id": "tao",
     "nameKey": "npc.tao",
     "regionId": "lake",
-    "model": "models/characters/kaykit-adventurers/Mage.glb",
-    "scale": 0.6,
-    "hiddenNodes": [
-      "1H_Wand",
-      "2H_Staff",
-      "Spellbook",
-      "Spellbook_open",
-      "Mage_Hat"
-    ],
-    "clips": {
-      "idle": "Idle",
-      "walk": "Walking_A",
-      "talk": "Interact"
-    },
+    "model": "procedural:villager_tao",
+    "scale": 1,
+    "hiddenNodes": [],
     "visible": {
       "type": "questStatus",
       "quest": "repair_bridge",
