@@ -581,6 +581,11 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
     DRY_CLOTH.forEach(([x, z], i) => quest(`village_dry_cloth_${String(i + 1).padStart(2, '0')}`, 'dry_cloth', x, z, { yaw: i * 1.3, r: 0.8 }));
     // 任務 7K 花園：西坊農田田邊的鬆土（可重生）
     SOIL_MOUNDS.forEach(([x, z], i) => quest(`farm_soil_mound_${String(i + 1).padStart(2, '0')}`, 'soil_mound', x, z, { yaw: i * 2.4, r: 0.9 }));
+    // 任務 7L 河邊的腳印：溪西岸的腳印、兩叢野果、樹根下的小窩與旁邊的草叢
+    quest('river_footprints_01', 'river_footprints', 96, 24, { yaw: 0.3, r: 1.5 });
+    BERRY_BUSHES.forEach(([x, z], i) => quest(`river_berry_bush_${String(i + 1).padStart(2, '0')}`, 'berry_bush', x, z, { yaw: i * 1.7, r: 1.2 }));
+    quest('river_nest_01', 'river_nest', 89.2, 55.6, { yaw: -1.2, r: 1.2 });
+    quest('river_bunny_hide_01', 'bunny_hide', 87.6, 57.8, { yaw: 0.4, r: 1 });
     const scatterId = /^(?!edge_tree_)[a-z_]+_\d{3}$/;
     const before = out.length;
     const kept = out.filter((o) => !scatterId.test(o.id) || !clear.some((c) => Math.hypot(c.x - o.position[0], c.z - o.position[2]) < c.r + 0.6));
@@ -597,6 +602,12 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
 /** 任務 7D：燈塔頂（燈籠室的原點）離地高度、迷霧核心、三片燈罩碎片（登山客營地、廢屋、燈塔後面） */
 const LIGHTHOUSE_TOP = 15.3;
 const MIST_CORE = { x: LIGHTHOUSE.x + 8.5, z: LIGHTHOUSE.z + 7.5 } as const;
+/** 任務 7L：河邊的野果叢 */
+const BERRY_BUSHES: readonly [number, number][] = [
+  [90, 50.5],
+  [87.5, 61],
+  [92.5, 45.5],
+];
 /** 任務 7K：田邊的鬆土 */
 const SOIL_MOUNDS: readonly [number, number][] = [
   [-92, -22],

@@ -8,7 +8,7 @@ import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
-import { earlierObjectivesDone, isQuestTracked, talkObjectiveIndex, talksDone, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
+import { type QuestDef, earlierObjectivesDone, isQuestTracked, talkObjectiveIndex, talksDone, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { MistStage } from '../world/mist';
 import { secondsUntilHour } from '../world/timeOfDay';
@@ -169,6 +169,7 @@ export type RejectReason =
   | 'boss-not-defeated'
   | 'out-of-order'
   | 'track-limit'
+  | 'too-soon'
   | 'not-enough-coins'
   | 'not-usable'
   | 'recipe-locked'
@@ -249,6 +250,29 @@ export type RulesContext = {
 export const RESPAWN_CLEARANCE = 2.5;
 
 export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesContext): GameEvent[] {
+  return withAutoComplete(state, handleCommandInner(state, cmd, ctx), ctx);
+}
+
+/**
+ * 沒有發起人的探索任務（任務 7L）：這個指令讓目標全部達成時，接著自動完成（領取獎勵）。
+ * 只在有進行中的這類任務時才計算（大部分指令不受影響）。
+ */
+function withAutoComplete(state: GameState, events: GameEvent[], ctx: RulesContext): GameEvent[] {
+  if (events.length === 0 || events.some((e) => e.type === 'CommandRejected')) return events;
+  const candidates = [...ctx.quests.values()].filter((q) => q.giver === undefined && (state.quests[q.id]?.status === 'active' || events.some((e) => e.type === 'QuestAccepted' && e.quest === q.id)));
+  if (candidates.length === 0) return events;
+  let next = applyEvents(state, events, ctx);
+  for (const q of candidates) {
+    if (!isQuestReady(next, q)) continue;
+    const done = turnInQuest(next, q.id, ctx);
+    if (done.some((e) => e.type === 'CommandRejected')) continue;
+    events = [...events, ...done];
+    next = applyEvents(next, done, ctx);
+  }
+  return events;
+}
+
+function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContext): GameEvent[] {
   switch (cmd.type) {
     case 'HarvestObject':
       return harvest(state, cmd.placementId, ctx);
@@ -460,7 +484,21 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
   if (spec.boss && bossEnemies(state, spec.boss).length === 0) return reject('ActivateObject', 'not-in-fight', placementId);
   // 森林根源石：守衛平靜下來之前碰不到（任務 8D-2）
   if (spec.afterBoss && !state.defeatedBosses.includes(spec.afterBoss)) return reject('ActivateObject', 'boss-not-defeated', placementId);
+  // 調查開始任務（任務 7L）：任務必須可以接
+  let started: QuestDef | undefined;
+  if (spec.startsQuest) {
+    started = ctx.quests.get(spec.startsQuest);
+    if (!started || questStatus(state, started) !== 'available') return reject('ActivateObject', 'quest-unavailable', placementId);
+  }
+  // 另一個物件啟動一段時間後才能啟動（放下野果、離開一陣子再回來）
+  if (spec.after) {
+    const at = state.objects.get(spec.after.placement)?.activatedAt;
+    if (at === undefined || state.time - at < spec.after.seconds) return reject('ActivateObject', 'too-soon', placementId);
+  }
+  if (spec.consume && !removeItems(state.inventory, spec.consume)) return reject('ActivateObject', 'missing-materials', placementId);
   const events: GameEvent[] = [{ type: 'ObjectActivated', placementId, source: 'player' }];
+  if (spec.consume) events.unshift({ type: 'ItemsRemoved', items: spec.consume.map((c) => ({ ...c })), reason: 'quest' });
+  if (started) events.push({ type: 'QuestAccepted', quest: started.id });
   if (spec.lootTableId) {
     // 背包放不下時不能啟動（物品不會遺失）
     const items = rollIntoInventory(state, spec.lootTableId, ctx);
@@ -799,7 +837,7 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
     const map = mutableObjects();
     const merged: ObjectRuntime = { ...(map.get(id) ?? { placementId: id }), ...change };
     // 回到預設狀態的物件從表中移除，存檔只記錄差異
-    if (!merged.open && !merged.harvested && !merged.repaired && !merged.active && !merged.turn && merged.respawnAt === undefined && merged.hp === undefined) map.delete(id);
+    if (!merged.open && !merged.harvested && !merged.repaired && !merged.active && !merged.turn && merged.respawnAt === undefined && merged.hp === undefined && merged.activatedAt === undefined) map.delete(id);
     else map.set(id, merged);
   };
 
@@ -821,7 +859,7 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         patch(e.placementId, { repaired: true });
         break;
       case 'ObjectActivated':
-        patch(e.placementId, { active: true });
+        patch(e.placementId, { active: true, activatedAt: time });
         break;
       case 'ObjectTurned':
         patch(e.placementId, { turn: e.turn || undefined });

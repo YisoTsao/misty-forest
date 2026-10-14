@@ -201,6 +201,69 @@ function soilMound(): ForestModel {
   return { solid: merge(solid, '鬆土') };
 }
 
+/** 河邊的腳印（任務 7L）：泥地上一串小小的四瓣腳印，旁邊一顆被咬過的蘋果 */
+function footprints(): ForestModel {
+  const mud = c('#5a4532');
+  const solid: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 6; i++) {
+    const x = (i % 2 ? 0.12 : -0.12) + i * 0.02;
+    const z = -0.9 + i * 0.36;
+    for (const [dx, dz, r] of [[0, 0, 0.06], [-0.06, 0.08, 0.03], [0.06, 0.08, 0.03], [0, 0.1, 0.03]] as const) {
+      const g = new THREE.CylinderGeometry(r, r, 0.012, 8);
+      g.translate(x + dx, 0.012, z + dz);
+      solid.push(paint(g, mud));
+    }
+  }
+  // 草叢比腳印高：被咬過的蘋果放在一塊平石頭上，旁邊幾顆淡淡的光點提示（與燈罩碎片相同的做法）
+  solid.push(sphere(0.22, [0.35, 0.06, 0.5], c('#8f8e86'), [1.3, 0.45, 1.1], 1));
+  solid.push(sphere(0.14, [0.35, 0.28, 0.5], c('#c8483a'), [1, 0.95, 1], 1));
+  // 咬掉的一口（淡黃色的果肉）
+  solid.push(sphere(0.075, [0.24, 0.31, 0.46], c('#f3e2a8'), [0.6, 1, 1], 0));
+  solid.push(cylinder(0.01, 0.01, 0.08, [0.35, 0.41, 0.5], c('#5a3d29'), 4));
+  const rand = mulberry32(95);
+  const glow: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 6; i++) glow.push(sphere(0.03, [(rand() - 0.5) * 0.8, 0.35 + rand() * 0.35, -0.6 + rand() * 1.4], glowColor(GOLD, 2), [1, 1, 1], 0));
+  return { solid: merge(solid, '腳印與蘋果'), glow: merge(glow, '腳印旁的光點') };
+}
+
+/** 野果叢（任務 7L）：圓圓的矮灌木，結滿紅色小果；摘完只剩葉子 */
+function berryBush(picked: boolean): ForestModel {
+  const rand = mulberry32(picked ? 91 : 90);
+  const solid = [sphere(0.5, [0, 0.42, 0], c('#3f7a3a'), [1.2, 0.85, 1.1], 1), sphere(0.36, [0.3, 0.36, 0.2], c('#4f8a42'), [1, 0.8, 1], 1), sphere(0.34, [-0.32, 0.34, -0.15], c('#467f3e'), [1, 0.8, 1], 1)];
+  if (!picked) for (let i = 0; i < 14; i++) {
+    const a = rand() * Math.PI * 2;
+    const y = 0.25 + rand() * 0.5;
+    solid.push(sphere(0.05, [Math.cos(a) * 0.55, y, Math.sin(a) * 0.5], c(i % 3 ? '#d23a4a' : '#8e2a6a'), [1, 1, 1], 0));
+  }
+  return { solid: merge(solid, '野果叢') };
+}
+
+/** 草叢裡的小窩（任務 7L）：樹根下用乾草圍成的窩；放了野果之後裡面多兩顆果子 */
+function riverNest(fed: boolean): ForestModel {
+  const rand = mulberry32(92);
+  const solid: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    const g = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 4);
+    g.rotateZ(Math.PI / 2);
+    g.rotateY(a + 0.5);
+    g.translate(Math.cos(a) * 0.32, 0.08 + (i % 3) * 0.04, Math.sin(a) * 0.32);
+    solid.push(paint(g, c(i % 2 ? '#c9a66b' : '#a8844f'), 0.1, rand));
+  }
+  solid.push(sphere(0.3, [0, 0.03, 0], c('#8a6a42'), [1.1, 0.2, 1.1], 1));
+  solid.push(cylinder(0.08, 0.12, 0.5, [-0.45, 0, -0.3], c('#6b4a35'), 6, [0.2, 0, 0.5]));
+  if (fed) for (const [x, z] of [[0.06, 0.02], [-0.08, -0.04]] as const) solid.push(sphere(0.06, [x, 0.12, z], c('#d23a4a'), [1, 1, 1], 0));
+  return { solid: merge(solid, '小窩') };
+}
+
+/** 草叢（任務 7L）：角兔幼崽躲著的高草叢 */
+function bunnyHide(): ForestModel {
+  const rand = mulberry32(93);
+  const plant: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 18; i++) plant.push(leaf(rand() * Math.PI * 2, 0.5 + rand() * 0.3, 0.06, 1.25, c('#4f8a3a'), c('#b6d873')).translate((rand() - 0.5) * 0.5, 0, (rand() - 0.5) * 0.5));
+  return { plant: merge(plant, '高草叢') };
+}
+
 export const dawnBuilders: Record<string, () => ForestModel> = {
   lantern_shard: lanternShard,
   mist_core: () => mistCore(false),
@@ -213,4 +276,10 @@ export const dawnBuilders: Record<string, () => ForestModel> = {
   garden_plot_1: () => gardenPlot(1),
   garden_plot_2: () => gardenPlot(2),
   soil_mound: soilMound,
+  footprints: footprints,
+  berry_bush: () => berryBush(false),
+  berry_bush_picked: () => berryBush(true),
+  river_nest: () => riverNest(false),
+  river_nest_fed: () => riverNest(true),
+  bunny_hide: bunnyHide,
 };

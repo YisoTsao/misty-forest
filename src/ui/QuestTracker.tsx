@@ -60,20 +60,32 @@ export function ObjectiveRow({ objective: o, progress, state }: { objective: Obj
   switch (o.type) {
     case 'collect':
       return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
-    case 'activate':
-    case 'defeat':
-    case 'boss':
-    case 'talk': {
+    case 'activate': {
+      // 啟動時要交出物品的機關（任務 7L 小窩要放野果）：還沒啟動時列出物品與持有數
       const done = progress.current >= progress.target;
+      const placement = o.placementIds.length === 1 ? worldIndex.placement(o.placementIds[0]!) : undefined;
+      const consume = (placement && worldIndex.prefab(placement.prefabId)?.activate?.consume) ?? [];
+      if (consume.length === 0) return <SimpleRow descKey={o.descKey} progress={progress} />;
       return (
-        <li className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>
-          <span>{t(o.descKey)}</span>
-          <span className="ml-auto font-mono" data-testid="quest-progress">
-            {progress.current} / {progress.target}
+        <li className="flex flex-col gap-0.5">
+          <span className={done ? 'text-emerald-300' : ''}>
+            {done ? '✓ ' : ''}
+            {t(o.descKey)}
           </span>
+          {!done && (
+            <ul className="ml-2 flex flex-col gap-0.5 text-xs">
+              {consume.map((m) => (
+                <ItemCount key={m.itemId} itemId={m.itemId} current={countItem(state.inventory, m.itemId)} target={m.count} />
+              ))}
+            </ul>
+          )}
         </li>
       );
     }
+    case 'defeat':
+    case 'boss':
+    case 'talk':
+      return <SimpleRow descKey={o.descKey} progress={progress} />;
     case 'build': {
       // 建造目標（任務 7K 花圃）：還沒蓋好時列出需要的材料與目前持有數
       const done = progress.current >= progress.target;
@@ -116,4 +128,16 @@ export function ObjectiveRow({ objective: o, progress, state }: { objective: Obj
       );
     }
   }
+}
+
+function SimpleRow({ descKey, progress }: { descKey: string; progress: { current: number; target: number } }) {
+  const done = progress.current >= progress.target;
+  return (
+    <li className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>
+      <span>{t(descKey)}</span>
+      <span className="ml-auto font-mono" data-testid="quest-progress">
+        {progress.current} / {progress.target}
+      </span>
+    </li>
+  );
 }

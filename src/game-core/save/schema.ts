@@ -21,6 +21,8 @@ export const saveObjectDeltaSchema = z.object({
   /** 任務 8C：開關式機關已啟動、水輪的位置 */
   active: z.boolean().optional(),
   turn: z.number().int().nonnegative().optional(),
+  /** 任務 7L：啟動時的遊戲時間（選填，舊存檔沒有也能讀） */
+  activatedAt: finite.optional(),
 });
 
 export const saveDataSchema = z.object({

@@ -1492,5 +1492,15 @@
         "textKey": "dlg.tao.after"
       }
     }
+  },
+  {
+    "id": "horn_bunny_idle",
+    "start": "look",
+    "nodes": {
+      "look": {
+        "speakerKey": "npc.horn_bunny",
+        "textKey": "dlg.hornBunny.look"
+      }
+    }
   }
 ]

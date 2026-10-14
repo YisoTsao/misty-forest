@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --footprints：河邊的腳印（任務 7L）：腳印、野果叢、小窩、角兔幼崽
 //   --garden：花園第一顆種子（任務 7K）：桃樂、田邊的鬆土、花圃三個成長階段
 //   --shop：米菈的雜貨補給（任務 7H）：購買、出售分頁；琳娜的草藥桌（任務 7J）
 //   --letters：郵袋裡的三封信（任務 7G）：郵差尼可、村子裡的乾布籃
@@ -68,6 +69,7 @@ const withJournal = flags.has('--journal');
 const withLetters = flags.has('--letters');
 const withShop = flags.has('--shop');
 const withGarden = flags.has('--garden');
+const withFootprints = flags.has('--footprints');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1095,6 +1097,40 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withFootprints) {
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(10);
+      g.setQuestCompleted('quest_dawn_003');
+    });
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.teleport(99.5, 21);
+      g.viewAt([93, 2.4, 26.5], [96, 0, 24]);
+    });
+    await page.waitForTimeout(1500);
+    await shot('footprints_trail');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.teleport(91.5, 53.5);
+      g.viewAt([86.4, 2.2, 54], [89, 0, 56.5]);
+    });
+    await page.waitForTimeout(1300);
+    await shot('footprints_nest');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.setQuestCompleted('quest_dawn_006');
+      g.teleport(91, 59.5);
+      g.viewAt([90.6, 0.9, 59.3], [89.2, 0.3, 57.6]);
+    });
+    await page.waitForTimeout(1500);
+    await shot('footprints_bunny');
+    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
   }
 
   if (withGarden) {

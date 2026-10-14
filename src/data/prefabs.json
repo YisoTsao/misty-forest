@@ -3542,5 +3542,48 @@
   },
   { "id": "build_garden_plot_0", "model": "procedural:garden_plot_0", "collider": "none", "persists": false },
   { "id": "build_garden_plot_1", "model": "procedural:garden_plot_1", "collider": "none", "persists": false },
-  { "id": "build_garden_plot_2", "model": "procedural:garden_plot_2", "collider": "none", "persists": false }
+  { "id": "build_garden_plot_2", "model": "procedural:garden_plot_2", "collider": "none", "persists": false },
+  {
+    "id": "river_footprints",
+    "model": "procedural:footprints",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.footprints",
+    "verbKey": "interact.investigate",
+    "interactRadius": 2.2,
+    "activate": { "model": "procedural:footprints", "startsQuest": "quest_dawn_006", "anim": "interact" },
+    "persists": true
+  },
+  {
+    "id": "berry_bush",
+    "model": "procedural:berry_bush",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.berryBush",
+    "interactRadius": 1.9,
+    "harvest": { "lootTableId": "wild_berry_pick", "respawnSec": 180, "harvestedModel": "procedural:berry_bush_picked", "anim": "interact" },
+    "persists": true
+  },
+  {
+    "id": "river_nest",
+    "model": "procedural:river_nest",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.riverNest",
+    "verbKey": "interact.leaveBerries",
+    "interactRadius": 2,
+    "activate": { "model": "procedural:river_nest_fed", "quest": "quest_dawn_006", "ordered": true, "consume": [{ "itemId": "wild_berry", "count": 2 }], "anim": "interact" },
+    "persists": true
+  },
+  {
+    "id": "bunny_hide",
+    "model": "procedural:bunny_hide",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.bunnyHide",
+    "verbKey": "interact.observe",
+    "interactRadius": 2.2,
+    "activate": { "model": "procedural:bunny_hide", "quest": "quest_dawn_006", "ordered": true, "after": { "placement": "river_nest_01", "seconds": 90 }, "anim": "interact" },
+    "persists": true
+  }
 ]

@@ -22515,26 +22515,6 @@
     ]
   },
   {
-    "id": "east_tree_041",
-    "prefabId": "k_oak",
-    "regionId": "river",
-    "position": [
-      86.54,
-      1.15,
-      57.1
-    ],
-    "rotation": [
-      0,
-      5.33,
-      0
-    ],
-    "scale": [
-      6.9,
-      6.23,
-      6.9
-    ]
-  },
-  {
     "id": "east_tree_042",
     "prefabId": "tree_tall",
     "regionId": "meadow",
@@ -31495,26 +31475,6 @@
     ]
   },
   {
-    "id": "grass_clump_120",
-    "prefabId": "k_grass_large",
-    "regionId": "river",
-    "position": [
-      90.77,
-      -0.19,
-      50.82
-    ],
-    "rotation": [
-      0,
-      2.46,
-      0
-    ],
-    "scale": [
-      5.82,
-      5.39,
-      5.82
-    ]
-  },
-  {
     "id": "grass_clump_121",
     "prefabId": "k_grass_large",
     "regionId": "meadow",
@@ -33092,26 +33052,6 @@
       5.81,
       6.1,
       5.81
-    ]
-  },
-  {
-    "id": "grass_clump_200",
-    "prefabId": "k_grass_leafs",
-    "regionId": "river",
-    "position": [
-      88.88,
-      0.62,
-      53.84
-    ],
-    "rotation": [
-      0,
-      2.15,
-      0
-    ],
-    "scale": [
-      5.52,
-      5.98,
-      5.52
     ]
   },
   {
@@ -40795,26 +40735,6 @@
     ]
   },
   {
-    "id": "riverbank_reed_014",
-    "prefabId": "k_grass_large",
-    "regionId": "river",
-    "position": [
-      95.34,
-      -0.43,
-      22.72
-    ],
-    "rotation": [
-      0,
-      2.9,
-      0
-    ],
-    "scale": [
-      4.31,
-      4.64,
-      4.31
-    ]
-  },
-  {
     "id": "riverbank_reed_015",
     "prefabId": "k_grass_leafs",
     "regionId": "river",
@@ -41112,26 +41032,6 @@
       5.25,
       5.95,
       5.25
-    ]
-  },
-  {
-    "id": "riverbank_reed_030",
-    "prefabId": "k_grass_large",
-    "regionId": "river",
-    "position": [
-      91.36,
-      -0.45,
-      49.6
-    ],
-    "rotation": [
-      0,
-      0.59,
-      0
-    ],
-    "scale": [
-      4.9,
-      5.21,
-      4.9
     ]
   },
   {
@@ -41552,26 +41452,6 @@
       5,
       5.66,
       5
-    ]
-  },
-  {
-    "id": "riverbank_reed_052",
-    "prefabId": "k_bush_small",
-    "regionId": "river",
-    "position": [
-      89.53,
-      0.41,
-      51.9
-    ],
-    "rotation": [
-      0,
-      1.73,
-      0
-    ],
-    "scale": [
-      4.58,
-      4.97,
-      4.58
     ]
   },
   {
@@ -52806,6 +52686,126 @@
     "rotation": [
       0,
       4.8,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "river_footprints_01",
+    "prefabId": "river_footprints",
+    "regionId": "river",
+    "position": [
+      96,
+      -0.58,
+      24
+    ],
+    "rotation": [
+      0,
+      0.3,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "river_berry_bush_01",
+    "prefabId": "berry_bush",
+    "regionId": "river",
+    "position": [
+      90,
+      0.26,
+      50.5
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "river_berry_bush_02",
+    "prefabId": "berry_bush",
+    "regionId": "river",
+    "position": [
+      87.5,
+      0.62,
+      61
+    ],
+    "rotation": [
+      0,
+      1.7,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "river_berry_bush_03",
+    "prefabId": "berry_bush",
+    "regionId": "river",
+    "position": [
+      92.5,
+      -0.68,
+      45.5
+    ],
+    "rotation": [
+      0,
+      3.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "river_nest_01",
+    "prefabId": "river_nest",
+    "regionId": "river",
+    "position": [
+      89.2,
+      0.29,
+      55.6
+    ],
+    "rotation": [
+      0,
+      -1.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "river_bunny_hide_01",
+    "prefabId": "bunny_hide",
+    "regionId": "river",
+    "position": [
+      87.6,
+      0.92,
+      57.8
+    ],
+    "rotation": [
+      0,
+      0.4,
       0
     ],
     "scale": [

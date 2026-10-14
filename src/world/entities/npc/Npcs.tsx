@@ -15,6 +15,7 @@ import { AssetBoundary } from '../../AssetBoundary';
 import { MossThumpBuddy } from '../enemy/MossThump';
 import { PuffBuddy } from '../enemy/PuffKing';
 import { prepareModel } from '../player/CharacterModel';
+import { HornBunny } from './HornBunny';
 
 /** 與玩家相同的膠囊尺寸（同一套骨架模型） */
 const CAPSULE = { radius: 0.32, halfHeight: 0.46 };
@@ -51,6 +52,7 @@ function NpcBody({ def }: { def: NpcDef }) {
 const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => boolean) => ReactNode }> = {
   moss_thump: { radius: 0.55, render: (talking) => <MossThumpBuddy talking={talking} /> },
   puff: { radius: 0.45, render: (talking) => <PuffBuddy talking={talking} /> },
+  horn_bunny: { radius: 0.2, render: (talking) => <HornBunny talking={talking} /> },
 };
 
 function ProceduralNpcActor({ def }: { def: NpcDef }) {

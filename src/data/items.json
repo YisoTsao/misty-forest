@@ -15,6 +15,8 @@
   { "id": "dawn_charm", "nameKey": "item.dawn_charm.name", "descKey": "item.dawn_charm.desc", "icon": "dawn_charm", "category": "special", "maxStack": 1 },
   { "id": "loose_soil", "nameKey": "item.loose_soil.name", "descKey": "item.loose_soil.desc", "icon": "soil", "category": "material", "maxStack": 99 },
   { "id": "wildflower_seed", "nameKey": "item.wildflower_seed.name", "descKey": "item.wildflower_seed.desc", "icon": "seed", "category": "material", "maxStack": 99 },
+  { "id": "wild_berry", "nameKey": "item.wild_berry.name", "descKey": "item.wild_berry.desc", "icon": "berry", "category": "material", "maxStack": 99 },
+  { "id": "soft_footprint_charm", "nameKey": "item.soft_footprint_charm.name", "descKey": "item.soft_footprint_charm.desc", "icon": "footprint_charm", "category": "special", "maxStack": 1 },
   { "id": "letter_elder", "nameKey": "item.letter_elder.name", "descKey": "item.letter_elder.desc", "icon": "letter", "category": "quest", "maxStack": 1 },
   { "id": "letter_balu", "nameKey": "item.letter_balu.name", "descKey": "item.letter_balu.desc", "icon": "letter", "category": "quest", "maxStack": 1 },
   { "id": "letter_linna", "nameKey": "item.letter_linna.name", "descKey": "item.letter_linna.desc", "icon": "letter", "category": "quest", "maxStack": 1 },

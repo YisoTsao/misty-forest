@@ -832,5 +832,30 @@
         "dialogue": "tao_after"
       }
     ]
+  },
+  {
+    "id": "horn_bunny",
+    "nameKey": "npc.horn_bunny",
+    "regionId": "river",
+    "model": "procedural:horn_bunny",
+    "scale": 1,
+    "hiddenNodes": [],
+    "visible": {
+      "type": "questStatus",
+      "quest": "quest_dawn_006",
+      "is": "completed"
+    },
+    "voice": "bubble",
+    "position": [
+      89.2,
+      57.6
+    ],
+    "facingYaw": -1.2,
+    "interactRadius": 1.8,
+    "talk": [
+      {
+        "dialogue": "horn_bunny_idle"
+      }
+    ]
   }
 ]

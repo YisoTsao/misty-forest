@@ -170,6 +170,26 @@ const icons: Record<string, ReactNode> = {
       <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </>
   ),
+  berry: (
+    <>
+      <path d="M24 10 Q28 6 33 8 Q30 13 24 12 Z" fill="#4f8a3a" />
+      <circle cx="18" cy="26" r="8" fill="#d23a4a" stroke="#8e2a3a" strokeWidth="1.6" />
+      <circle cx="30" cy="27" r="8" fill="#c8304a" stroke="#8e2a3a" strokeWidth="1.6" />
+      <circle cx="24" cy="35" r="7" fill="#8e2a6a" stroke="#5e1a4a" strokeWidth="1.6" />
+      <path d="M24 12 V20 M18 18 L22 20 M30 19 L26 20" stroke="#4f6a2a" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="15.5" cy="23.5" r="1.8" fill="#ffd0d6" />
+    </>
+  ),
+  footprint_charm: (
+    <>
+      <path d="M24 5 V12" stroke="#b39a74" strokeWidth="2" />
+      <circle cx="24" cy="29" r="14" fill="#f6e8cf" stroke="#b39a74" strokeWidth="2" />
+      <ellipse cx="24" cy="32" rx="5" ry="6" fill="#c98f6b" />
+      <circle cx="18" cy="24" r="2.6" fill="#c98f6b" />
+      <circle cx="24" cy="22" r="2.6" fill="#c98f6b" />
+      <circle cx="30" cy="24" r="2.6" fill="#c98f6b" />
+    </>
+  ),
   letter: (
     <>
       <rect x="7" y="13" width="34" height="23" rx="2.5" fill="#f6eedb" stroke="#8a6a3a" strokeWidth="2" />

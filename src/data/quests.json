@@ -412,5 +412,38 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_dawn_006",
+    "nameKey": "quest.dawn6.name",
+    "category": "side",
+    "descKey": "quest.dawn6.desc",
+    "requires": [
+      "quest_dawn_003"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "river_nest_01"
+        ],
+        "descKey": "quest.dawn6.nest"
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "river_bunny_hide_01"
+        ],
+        "descKey": "quest.dawn6.watch"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "soft_footprint_charm",
+          "count": 1
+        }
+      ]
+    }
   }
 ]

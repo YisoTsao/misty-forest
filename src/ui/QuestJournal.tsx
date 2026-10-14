@@ -76,6 +76,8 @@ function JournalWindow({ interactive }: { interactive: boolean }) {
     const out: Record<Tab, QuestDef[]> = { active: [], available: [], completed: [] };
     for (const q of quests.values()) {
       const tab = statusTab(questStatus(state, q));
+      // 沒有發起人的探索任務（任務 7L）在發現之前不顯示（Bible §31.2：不直接顯示尚未發現的內容）
+      if (tab === 'available' && !q.giver) continue;
       if (tab) out[tab].push(q);
     }
     // 主線排前面，其次依分類

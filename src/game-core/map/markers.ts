@@ -68,7 +68,7 @@ export function questMarkers(
   const out: QuestMarker[] = [];
   for (const q of quests.values()) {
     const status = questStatus(state, q);
-    const giver = ctx.npcPosition(q.giver);
+    const giver = q.giver ? ctx.npcPosition(q.giver) : null;
     if (status === 'available') {
       if (giver) out.push({ questId: q.id, kind: 'available', ...giver });
       continue;

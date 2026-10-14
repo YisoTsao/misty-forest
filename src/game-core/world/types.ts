@@ -126,6 +126,12 @@ export const prefabSchema = z
         afterBoss: z.string().min(1).optional(),
         /** 依序：任務中排在這個物件之前的目標都完成了才能啟動（任務 7D：先趕走迷霧噗啾才能淨化迷霧核心） */
         ordered: z.boolean().optional(),
+        /** 啟動時開始這個任務（任務 7L：調查腳印；任務必須是可接取的狀態） */
+        startsQuest: z.string().min(1).optional(),
+        /** 啟動時交出的物品（任務 7L：把野果放在巢穴旁） */
+        consume: z.array(z.object({ itemId: z.string().min(1), count: z.number().int().positive() })).min(1).optional(),
+        /** 另一個物件啟動 seconds 秒（遊戲時間）後才能啟動（任務 7L：離開一陣子再回來觀察） */
+        after: z.object({ placement: z.string().min(1), seconds: z.number().positive() }).optional(),
         anim: z.enum(['attack', 'interact']).optional(),
       })
       .optional(),
@@ -232,6 +238,8 @@ export type ObjectRuntime = {
   active?: boolean;
   /** 可轉動機關目前的位置（任務 8C；省略為 0） */
   turn?: number;
+  /** 啟動時的遊戲時間（任務 7L：放下野果之後要等一段時間） */
+  activatedAt?: number;
 };
 
 /** 4. SaveState：只記錄與預設不同的差異。 */

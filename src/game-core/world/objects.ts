@@ -22,6 +22,7 @@ export function canInteract(prefab: Prefab, runtime: ObjectRuntime | undefined, 
   if (prefab.interaction === 'open') return runtime?.open !== true;
   if (prefab.interaction === 'harvest') return runtime?.harvested !== true && (!prefab.harvest?.quest || isQuestActive(prefab.harvest.quest));
   if (prefab.interaction === 'repair') return runtime?.repaired !== true && (!prefab.repair?.quest || isQuestActive(prefab.repair.quest));
+  // 開始任務的物件（腳印）在任務可接取時由規則判斷，這裡先讓它可以互動
   if (prefab.interaction === 'activate') return runtime?.active !== true && (!prefab.activate?.quest || isQuestActive(prefab.activate.quest));
   return true;
 }

@@ -240,7 +240,7 @@ describe('quest_forest_002 把水還給森林', () => {
     const saved = JSON.parse(JSON.stringify(toSaveData(s, { position: { x: 2000, y: 0, z: 0 }, facingYaw: 0 }, new Date(0))));
     const loaded = fromSaveData(saved, { world: index, items: data.items, combat: data.combat, buildables: data.buildables });
     expect(loaded.warnings).toEqual([]);
-    expect(loaded.state.objects.get('glowmoss_channel_roots')).toEqual({ placementId: 'glowmoss_channel_roots', active: true });
+    expect(loaded.state.objects.get('glowmoss_channel_roots')).toEqual({ placementId: 'glowmoss_channel_roots', active: true, activatedAt: s.time });
     expect(loaded.state.objects.get(waterway.wheel)?.turn).toBe(2);
   });
 

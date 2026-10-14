@@ -34,7 +34,7 @@ describe('questMarkers', () => {
     const available = markers.filter((m) => m.kind === 'available');
     expect(available.length).toBeGreaterThan(0);
     for (const m of available) {
-      const giver = ctx.quests.get(m.questId)!.giver;
+      const giver = ctx.quests.get(m.questId)!.giver!;
       expect({ x: m.x, z: m.z }).toEqual(npcAt[giver]);
     }
   });

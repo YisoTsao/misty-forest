@@ -47,8 +47,8 @@ export const questDefSchema = z.object({
   category: z.enum(questCategories).default('side'),
   /** 任務說明（追蹤列與任務日誌） */
   descKey: z.string().min(1),
-  /** 交付任務與回報的 NPC */
-  giver: z.string().min(1),
+  /** 交付任務與回報的 NPC；省略時是調查物件自動開始、目標全部達成時自動完成的探索任務（任務 7L） */
+  giver: z.string().min(1).optional(),
   /** 前置任務：全部完成後才可接取 */
   requires: z.array(z.string().min(1)),
   objectives: z.array(objectiveSchema).min(1),
@@ -78,7 +78,7 @@ export function parseQuests(
   const map = new Map<string, QuestDef>();
   for (const q of list) {
     if (map.has(q.id)) throw new Error(`任務 id 重複：${q.id}`);
-    if (!refs.npcs.has(q.giver)) throw new Error(`任務 ${q.id} 的 NPC 不存在：${q.giver}`);
+    if (q.giver !== undefined && !refs.npcs.has(q.giver)) throw new Error(`任務 ${q.id} 的 NPC 不存在：${q.giver}`);
     const items = [
       ...q.objectives.flatMap((o) => (o.type === 'collect' ? [o.itemId] : [])),
       ...(q.rewards.items ?? []).map((i) => i.itemId),

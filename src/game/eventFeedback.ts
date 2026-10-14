@@ -14,6 +14,7 @@ const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejec
   'hp-full': 'toast.hpFull',
   'not-usable': 'toast.notUsable',
   'recipe-locked': 'toast.recipeLocked',
+  'too-soon': 'toast.tooSoon',
   'not-for-sale': 'toast.notForSale',
 };
 
