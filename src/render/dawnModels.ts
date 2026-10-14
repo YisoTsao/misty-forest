@@ -264,6 +264,130 @@ function bunnyHide(): ForestModel {
   return { plant: merge(plant, '高草叢') };
 }
 
+/** 燈塔地窖（任務 7M）的大小：寬（X）、深（Z）、高；出口的樓梯在 +Z 那一側 */
+export const CELLAR_ROOM = { width: 8, depth: 7, height: 3 } as const;
+
+/** 燈塔地窖：石砌的圓頂小房間、潮濕的石板地、牆上兩盞燈、+Z 側往上的石階（原點在地板中央） */
+function cellarRoom(): ForestModel {
+  const { width: W, depth: D, height: H } = CELLAR_ROOM;
+  const rand = mulberry32(100);
+  const stone = c('#7d7a72');
+  const solid: THREE.BufferGeometry[] = [];
+  const box = (size: [number, number, number], at: [number, number, number], color: THREE.Color, jitter = 0.08) => {
+    const g = new THREE.BoxGeometry(...size);
+    g.translate(...at);
+    solid.push(paint(g, color, jitter, rand));
+  };
+  // 石板地
+  for (let x = -W / 2 + 0.5; x < W / 2; x += 1) for (let z = -D / 2 + 0.5; z < D / 2; z += 1) box([0.96, 0.12, 0.96], [x, -0.06, z], c('#6b6862'), 0.12);
+  // 牆：一塊一塊的石磚（+Z 留出樓梯口）
+  for (let y = 0.25; y < H; y += 0.5) {
+    for (let x = -W / 2 + 0.5; x < W / 2; x += 1) {
+      box([0.98, 0.48, 0.3], [x + (y % 1 ? 0.25 : 0) * 0, y, -D / 2 - 0.15], stone);
+      if (Math.abs(x) > 1.2) box([0.98, 0.48, 0.3], [x, y, D / 2 + 0.15], stone);
+    }
+    for (let z = -D / 2 + 0.5; z < D / 2; z += 1) {
+      box([0.3, 0.48, 0.98], [-W / 2 - 0.15, y, z], stone);
+      box([0.3, 0.48, 0.98], [W / 2 + 0.15, y, z], stone);
+    }
+  }
+  // 石磚後面的實心牆（磚縫不會透出背景）
+  const backing = c('#4f4c47');
+  box([W + 0.8, H + 0.4, 0.2], [0, H / 2, -D / 2 - 0.4], backing, 0);
+  box([0.2, H + 0.4, D + 0.8], [-W / 2 - 0.4, H / 2, 0], backing, 0);
+  box([0.2, H + 0.4, D + 0.8], [W / 2 + 0.4, H / 2, 0], backing, 0);
+  for (const sx of [-1, 1]) box([W / 2 - 1.2, H + 0.4, 0.2], [sx * (W / 4 + 0.6), H / 2, D / 2 + 0.4], backing, 0);
+  // 天花板與兩根拱樑
+  box([W + 0.6, 0.25, D + 0.6], [0, H + 0.12, 0], c('#5f5c56'), 0.04);
+  for (const z of [-1.5, 1.5]) box([W, 0.3, 0.4], [0, H - 0.15, z], c('#55524c'), 0.04);
+  // 往上的石階（+Z 樓梯口外）
+  for (let i = 0; i < 6; i++) box([2.2, 0.25, 0.5], [0, 0.12 + i * 0.25, D / 2 + 0.3 + i * 0.5], c('#85827a'), 0.06);
+  // 牆上的燈座
+  const glow: THREE.BufferGeometry[] = [];
+  for (const [x, z] of [[-W / 2 + 0.2, -1.5], [W / 2 - 0.2, 1.5]] as const) {
+    box([0.2, 0.15, 0.2], [x, 1.8, z], c('#3f3a36'), 0);
+    glow.push(sphere(0.12, [x, 2, z], glowColor('#ffb05a', 2.2), [1, 1.4, 1], 1));
+  }
+  // 牆角的苔蘚與水漬
+  const plant: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 10; i++) plant.push(leaf(rand() * Math.PI * 2, 0.25, 0.08, 0.3, c('#4f6a4a'), c('#7f9a6a'), 0.01).translate((rand() - 0.5) * (W - 1), 0, -D / 2 + 0.3 + rand() * 0.5));
+  return { solid: merge(solid, '燈塔地窖'), plant: merge(plant, '地窖的苔'), glow: merge(glow, '地窖的燈') };
+}
+
+/** 燈塔旁地上的地窖門：石框圍著兩片木板門，鐵把手 */
+function cellarHatch(): ForestModel {
+  const solid = [
+    cylinder(0.85, 0.95, 0.12, [0, 0, 0], c('#7d7a72'), 8),
+  ];
+  for (const x of [-0.3, 0.3]) {
+    const g = new THREE.BoxGeometry(0.56, 0.06, 1.2);
+    g.translate(x, 0.14, 0);
+    solid.push(paint(g, c('#7a5233')));
+  }
+  solid.push(cylinder(0.03, 0.03, 0.2, [0.1, 0.18, 0], c('#3f3a36'), 5, [0, 0, Math.PI / 2]));
+  return { solid: merge(solid, '地窖門') };
+}
+
+/** 符號石片（任務 7M）：手掌大的圓石片，刻著晨（太陽）、芽（嫩芽）、潮（波浪）其中一個符號，刻紋微微發光 */
+function symbolStone(kind: 'dawn' | 'sprout' | 'tide'): ForestModel {
+  const disc = new THREE.CylinderGeometry(0.28, 0.3, 0.08, 14);
+  disc.translate(0, 0.05, 0);
+  const solid = [paint(disc, c('#8f8b80'))];
+  const color = kind === 'dawn' ? '#ffd77a' : kind === 'sprout' ? '#8de6be' : '#8fd0ff';
+  const glow: THREE.BufferGeometry[] = [];
+  const mark = (g: THREE.BufferGeometry) => glow.push(paint(g, glowColor(color, 1.8)));
+  if (kind === 'dawn') {
+    const sun = new THREE.CylinderGeometry(0.07, 0.07, 0.02, 10);
+    sun.translate(0, 0.1, 0);
+    mark(sun);
+    for (let i = 0; i < 8; i++) {
+      const r = new THREE.BoxGeometry(0.025, 0.02, 0.07);
+      r.translate(0, 0.1, 0.13);
+      r.rotateY((i / 8) * Math.PI * 2);
+      mark(r);
+    }
+  } else if (kind === 'sprout') {
+    const stem = new THREE.BoxGeometry(0.025, 0.02, 0.16);
+    stem.translate(0, 0.1, 0.02);
+    mark(stem);
+    for (const sx of [-1, 1]) {
+      const l = new THREE.SphereGeometry(0.06, 8, 6);
+      l.scale(1.3, 0.25, 0.6);
+      l.translate(sx * 0.07, 0.1, -0.06);
+      mark(l);
+    }
+  } else {
+    for (const z of [-0.07, 0.07]) {
+      for (let i = 0; i < 4; i++) {
+        const w = new THREE.BoxGeometry(0.07, 0.02, 0.025);
+        w.rotateY((i % 2 ? 1 : -1) * 0.5);
+        w.translate(-0.15 + i * 0.1, 0.1, z + (i % 2 ? 0.02 : -0.02));
+        mark(w);
+      }
+    }
+  }
+  return { solid: merge(solid, '符號石片'), glow: merge(glow, '石片的刻紋') };
+}
+
+/** 石環（任務 7M）：圓形石座上五個凹槽（晨、芽、潮、風、霜）；放回石片後晨、芽、潮三個亮起，風與霜仍空著 */
+function stoneRing(filled: boolean): ForestModel {
+  const solid = [cylinder(1.2, 1.3, 0.35, [0, 0, 0], c('#7d7a72'), 20), cylinder(0.3, 0.35, 0.5, [0, 0.35, 0], c('#6b6862'), 10)];
+  const glow: THREE.BufferGeometry[] = [];
+  const colors = ['#ffd77a', '#8de6be', '#8fd0ff'];
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(a) * 0.85;
+    const z = Math.sin(a) * 0.85;
+    solid.push(cylinder(0.24, 0.24, 0.06, [x, 0.33, z], c('#4f4c47'), 12));
+    if (filled && i < 3) {
+      solid.push(cylinder(0.22, 0.22, 0.06, [x, 0.37, z], c('#8f8b80'), 12));
+      glow.push(sphere(0.07, [x, 0.46, z], glowColor(colors[i]!, 2.2), [1, 0.5, 1], 1));
+    }
+  }
+  if (filled) glow.push(sphere(0.12, [0, 0.92, 0], glowColor('#fff2c0', 1.8), [1, 1, 1], 1));
+  return { solid: merge(solid, '石環'), ...(glow.length ? { glow: merge(glow, '石環的光') } : {}) };
+}
+
 export const dawnBuilders: Record<string, () => ForestModel> = {
   lantern_shard: lanternShard,
   mist_core: () => mistCore(false),
@@ -282,4 +406,11 @@ export const dawnBuilders: Record<string, () => ForestModel> = {
   river_nest: () => riverNest(false),
   river_nest_fed: () => riverNest(true),
   bunny_hide: bunnyHide,
+  cellar_room: cellarRoom,
+  cellar_hatch: cellarHatch,
+  symbol_stone_dawn: () => symbolStone('dawn'),
+  symbol_stone_sprout: () => symbolStone('sprout'),
+  symbol_stone_tide: () => symbolStone('tide'),
+  stone_ring: () => stoneRing(false),
+  stone_ring_filled: () => stoneRing(true),
 };

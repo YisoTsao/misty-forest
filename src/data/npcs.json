@@ -857,5 +857,55 @@
         "dialogue": "horn_bunny_idle"
       }
     ]
+  },
+  {
+    "id": "orin",
+    "nameKey": "npc.orin",
+    "regionId": "ruins",
+    "model": "procedural:owl_scholar",
+    "scale": 1,
+    "hiddenNodes": [],
+    "position": [
+      52,
+      104
+    ],
+    "facingYaw": -1.5708,
+    "interactRadius": 2.2,
+    "talk": [
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_dawn_007"
+        },
+        "dialogue": "orin_shadow_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_007",
+          "is": "active"
+        },
+        "dialogue": "orin_shadow_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_007",
+          "is": "completed"
+        },
+        "dialogue": "orin_after"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_007",
+          "is": "available"
+        },
+        "dialogue": "orin_shadow_offer"
+      },
+      {
+        "dialogue": "orin_intro"
+      }
+    ]
   }
 ]

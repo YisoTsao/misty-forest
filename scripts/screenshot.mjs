@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --cellar：燈塔下的影子（任務 7M）：奧林、地窖門、地窖內的石片與石環（放回前後）
 //   --footprints：河邊的腳印（任務 7L）：腳印、野果叢、小窩、角兔幼崽
 //   --garden：花園第一顆種子（任務 7K）：桃樂、田邊的鬆土、花圃三個成長階段
 //   --shop：米菈的雜貨補給（任務 7H）：購買、出售分頁；琳娜的草藥桌（任務 7J）
@@ -70,6 +71,7 @@ const withLetters = flags.has('--letters');
 const withShop = flags.has('--shop');
 const withGarden = flags.has('--garden');
 const withFootprints = flags.has('--footprints');
+const withCellar = flags.has('--cellar');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1097,6 +1099,56 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withCellar) {
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const orin = JSON.parse(readFileSync('src/data/npcs.json', 'utf8')).find((n) => n.id === 'orin').position;
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(16);
+      g.setQuestCompleted('quest_dawn_003');
+      g.send({ type: 'AcceptQuest', quest: 'quest_dawn_007' });
+    });
+    await d(([x, z]) => {
+      const g = window.__mistwoodDebug;
+      g.teleport(x - 2.2, z - 1.8);
+      g.viewAt([x - 3.6, 1.9, z + 0.8], [x, 0.9, z]);
+    }, orin);
+    await page.waitForTimeout(1500);
+    await shot('cellar_orin');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.setClock(22);
+      g.teleport(-42, -122.5);
+      g.viewAt([-41, 13, -120.5], [-38.6, 10, -124.2]);
+    });
+    await page.waitForTimeout(1800);
+    await shot('cellar_hatch_night');
+    // 從地窖門走進去（室內子場景要經過轉場，才會關掉戶外的霧與天空）
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.setCameraMode('follow');
+      g.teleport(-40.2, -124.2);
+      g.face(-38.6, -124.2);
+    });
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'highland_cellar_hatch', null, { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForFunction(() => window.__mistwoodDebug.location() === 'lighthouse_cellar', null, { timeout: 5000 });
+    await page.waitForTimeout(1200);
+    await d(() => window.__mistwoodDebug.camera({ yaw: 0, pitch: 0.75, distance: 3 }));
+    await page.waitForTimeout(600);
+    await shot('cellar_inside');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      for (const id of ['cellar_symbol_dawn', 'cellar_symbol_sprout', 'cellar_symbol_tide']) g.send({ type: 'HarvestObject', placementId: id });
+      g.send({ type: 'ActivateObject', placementId: 'cellar_stone_ring' });
+    });
+    await page.waitForTimeout(1200);
+    await shot('cellar_ring_filled');
+    await page.keyboard.press('Escape');
   }
 
   if (withFootprints) {

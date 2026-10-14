@@ -583,6 +583,8 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
     SOIL_MOUNDS.forEach(([x, z], i) => quest(`farm_soil_mound_${String(i + 1).padStart(2, '0')}`, 'soil_mound', x, z, { yaw: i * 2.4, r: 0.9 }));
     // 任務 7L 河邊的腳印：溪西岸的腳印、兩叢野果、樹根下的小窩與旁邊的草叢
     quest('river_footprints_01', 'river_footprints', 96, 24, { yaw: 0.3, r: 1.5 });
+    // 任務 7M 燈塔下的影子：燈塔西側地上的地窖門（出口朝西）
+    quest('highland_cellar_hatch', 'cellar_hatch', L.x - 4.6, L.z + 1.8, { yaw: -Math.PI / 2, r: 1.5 });
     BERRY_BUSHES.forEach(([x, z], i) => quest(`river_berry_bush_${String(i + 1).padStart(2, '0')}`, 'berry_bush', x, z, { yaw: i * 1.7, r: 1.2 }));
     quest('river_nest_01', 'river_nest', 89.2, 55.6, { yaw: -1.2, r: 1.2 });
     quest('river_bunny_hide_01', 'bunny_hide', 87.6, 57.8, { yaw: 0.4, r: 1 });

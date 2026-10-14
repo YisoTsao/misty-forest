@@ -6235,6 +6235,126 @@
     ]
   },
   {
+    "id": "cellar_room",
+    "prefabId": "cellar_room",
+    "regionId": "highland",
+    "position": [
+      1100,
+      0,
+      1000
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "cellar_exit",
+    "prefabId": "cellar_exit",
+    "regionId": "highland",
+    "position": [
+      1100,
+      0,
+      1003.1
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "cellar_stone_ring",
+    "prefabId": "stone_ring",
+    "regionId": "highland",
+    "position": [
+      1100,
+      0,
+      998.8
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "cellar_symbol_dawn",
+    "prefabId": "symbol_stone_dawn",
+    "regionId": "highland",
+    "position": [
+      1097,
+      0,
+      997.3
+    ],
+    "rotation": [
+      0,
+      0.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "cellar_symbol_sprout",
+    "prefabId": "symbol_stone_sprout",
+    "regionId": "highland",
+    "position": [
+      1103.1,
+      0,
+      997.8
+    ],
+    "rotation": [
+      0,
+      1.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "cellar_symbol_tide",
+    "prefabId": "symbol_stone_tide",
+    "regionId": "highland",
+    "position": [
+      1102.8,
+      0,
+      1002.3
+    ],
+    "rotation": [
+      0,
+      2.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "village_clothesline_01",
     "prefabId": "clothesline",
     "regionId": "village",
@@ -52706,6 +52826,26 @@
     "rotation": [
       0,
       0.3,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "highland_cellar_hatch",
+    "prefabId": "cellar_hatch",
+    "regionId": "highland",
+    "position": [
+      -38.6,
+      11.47,
+      -124.2
+    ],
+    "rotation": [
+      0,
+      -1.57,
       0
     ],
     "scale": [

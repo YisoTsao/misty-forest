@@ -1502,5 +1502,122 @@
         "textKey": "dlg.hornBunny.look"
       }
     }
+  },
+  {
+    "id": "orin_intro",
+    "start": "pages",
+    "nodes": {
+      "pages": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.pages",
+        "next": "later"
+      },
+      "later": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.later"
+      }
+    }
+  },
+  {
+    "id": "orin_shadow_offer",
+    "start": "light",
+    "nodes": {
+      "light": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.light",
+        "next": "cellar"
+      },
+      "cellar": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.cellar",
+        "options": [
+          {
+            "textKey": "dlg.orin.opt.go",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_dawn_007"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.orin.opt.why",
+            "next": "why"
+          },
+          {
+            "textKey": "dlg.orin.opt.bye"
+          }
+        ]
+      },
+      "why": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.why",
+        "next": "cellar"
+      },
+      "accept": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.accept"
+      }
+    }
+  },
+  {
+    "id": "orin_shadow_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.remind"
+      }
+    }
+  },
+  {
+    "id": "orin_shadow_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.ask",
+        "options": [
+          {
+            "textKey": "dlg.orin.opt.done",
+            "next": "read",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_dawn_007"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.orin.opt.later"
+          }
+        ]
+      },
+      "read": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.read",
+        "next": "meaning"
+      },
+      "meaning": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.meaning",
+        "next": "night"
+      },
+      "night": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.night"
+      }
+    }
+  },
+  {
+    "id": "orin_after",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.orin",
+        "textKey": "dlg.orin.after"
+      }
+    }
   }
 ]

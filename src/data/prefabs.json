@@ -3585,5 +3585,85 @@
     "interactRadius": 2.2,
     "activate": { "model": "procedural:bunny_hide", "quest": "quest_dawn_006", "ordered": true, "after": { "placement": "river_nest_01", "seconds": 90 }, "anim": "interact" },
     "persists": true
+  },
+  {
+    "id": "cellar_hatch",
+    "model": "procedural:cellar_hatch",
+    "collider": "none",
+    "interaction": "enter",
+    "nameKey": "object.cellarHatch",
+    "verbKey": "interact.goDown",
+    "interactRadius": 1.8,
+    "enter": { "to": "lighthouse_cellar", "requires": { "questActive": "quest_dawn_007", "night": true }, "lockedKey": "cellar.locked" },
+    "persists": false
+  },
+  {
+    "id": "cellar_room",
+    "model": "procedural:cellar_room",
+    "collider": "static",
+    "collision": [{"shape": "box", "size": [8, 0.3, 7], "offset": [0, -0.3, 0]}, {"shape": "box", "size": [8, 3, 0.3], "offset": [0, 0, -3.65]}, {"shape": "box", "size": [0.3, 3, 7], "offset": [-4.15, 0, 0]}, {"shape": "box", "size": [0.3, 3, 7], "offset": [4.15, 0, 0]}, {"shape": "box", "size": [8, 3, 0.3], "offset": [0, 0, 3.65]}, {"shape": "box", "size": [8, 0.3, 7], "offset": [0, 3, 0]}],
+    "persists": false
+  },
+  {
+    "id": "cellar_exit",
+    "model": "procedural:door_mat",
+    "collider": "none",
+    "interaction": "enter",
+    "nameKey": "object.cellarExit",
+    "verbKey": "interact.goUp",
+    "interactRadius": 1.7,
+    "enter": { "to": "overworld" },
+    "persists": false
+  },
+  {
+    "id": "stone_ring",
+    "model": "procedural:stone_ring",
+    "collider": "static",
+    "collision": { "shape": "cylinder", "radius": 1.2, "height": 0.9 },
+    "interaction": "activate",
+    "nameKey": "object.stoneRing",
+    "verbKey": "interact.placeStones",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:stone_ring_filled",
+      "collision": { "shape": "cylinder", "radius": 1.2, "height": 0.9 },
+      "quest": "quest_dawn_007",
+      "consume": [{ "itemId": "symbol_stone_dawn", "count": 1 }, { "itemId": "symbol_stone_sprout", "count": 1 }, { "itemId": "symbol_stone_tide", "count": 1 }],
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
+    "id": "symbol_stone_dawn",
+    "model": "procedural:symbol_stone_dawn",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.symbolStone",
+    "verbKey": "interact.pickUp",
+    "interactRadius": 1.6,
+    "harvest": { "lootTableId": "symbol_stone_dawn_pick", "anim": "interact", "quest": "quest_dawn_007" },
+    "persists": true
+  },
+  {
+    "id": "symbol_stone_sprout",
+    "model": "procedural:symbol_stone_sprout",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.symbolStone",
+    "verbKey": "interact.pickUp",
+    "interactRadius": 1.6,
+    "harvest": { "lootTableId": "symbol_stone_sprout_pick", "anim": "interact", "quest": "quest_dawn_007" },
+    "persists": true
+  },
+  {
+    "id": "symbol_stone_tide",
+    "model": "procedural:symbol_stone_tide",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.symbolStone",
+    "verbKey": "interact.pickUp",
+    "interactRadius": 1.6,
+    "harvest": { "lootTableId": "symbol_stone_tide_pick", "anim": "interact", "quest": "quest_dawn_007" },
+    "persists": true
   }
 ]

@@ -291,6 +291,28 @@ for (const [id, prefabId, lx, lz, yaw, scale, y = 0] of interior) {
   });
 }
 
+// 燈塔地窖（任務 7M，Bible §22.1 quest_dawn_007）：第二個室內子場景，原點遠離酒館
+const CELLAR = { x: 1100, z: 1000 };
+const cellar: [string, string, number, number, number][] = [
+  // id, prefab, 局部 x, 局部 z, yaw
+  ['cellar_room', 'cellar_room', 0, 0, 0],
+  ['cellar_exit', 'cellar_exit', 0, 3.1, 0],
+  ['cellar_stone_ring', 'stone_ring', 0, -1.2, 0],
+  ['cellar_symbol_dawn', 'symbol_stone_dawn', -3, -2.7, 0.4],
+  ['cellar_symbol_sprout', 'symbol_stone_sprout', 3.1, -2.2, 1.2],
+  ['cellar_symbol_tide', 'symbol_stone_tide', 2.8, 2.3, 2.2],
+];
+for (const [id, prefabId, lx, lz, yaw] of cellar) {
+  placements.push({
+    id,
+    prefabId,
+    regionId: 'highland',
+    position: [round(CELLAR.x + lx), 0, round(CELLAR.z + lz)],
+    rotation: [0, Math.round(yaw * 1000) / 1000, 0],
+    scale: [1, 1, 1],
+  });
+}
+
 // 環境生命感（任務 5D）：曬衣繩、路標、告示板。羊群與炊煙不是 placement（data/ambient.json、prefab 的 smoke）。
 const ambient: [string, string, string, number, number, number, number][] = [
   // id, prefab, region, x, z, yaw, scale

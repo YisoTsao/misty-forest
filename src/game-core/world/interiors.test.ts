@@ -46,7 +46,7 @@ describe('interiorAt', () => {
   it('室內子場景遠離開放世界所有物件（不與開放世界混用）', () => {
     const world = parseWorldData(prefabs, placements);
     const map = parseInteriors(interiorsData, new Set(world.placements.map((p) => p.id)));
-    const roomIds = new Set(placements.filter((p) => p.id.startsWith('tavern_')).map((p) => p.id));
+    const roomIds = new Set(placements.filter((p) => p.id.startsWith('tavern_') || p.id.startsWith('cellar_')).map((p) => p.id));
     for (const p of world.placements) {
       const inside = interiorAt(map, p.position[0], p.position[2]) !== null;
       expect(inside, p.id).toBe(roomIds.has(p.id));

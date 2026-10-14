@@ -246,6 +246,21 @@
     },
     {
       "when": {
+        "type": "questReady",
+        "quest": "quest_dawn_007"
+      },
+      "textKey": "companion.hint.dawn7Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_dawn_007",
+        "is": "active"
+      },
+      "textKey": "companion.hint.dawn7"
+    },
+    {
+      "when": {
         "type": "not",
         "condition": {
           "type": "tutorialDone"

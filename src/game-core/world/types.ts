@@ -149,7 +149,8 @@ export const prefabSchema = z
         to: z.string().min(1),
         arriveAt: z.string().min(1).optional(),
         arriveDistance: z.number().positive().optional(),
-        requires: z.object({ questCompleted: z.string().min(1) }).optional(),
+        /** 通過條件：questCompleted 任務完成；questActive 任務進行中；night 只有夜裡（任務 7M 燈塔地窖） */
+        requires: z.object({ questCompleted: z.string().min(1).optional(), questActive: z.string().min(1).optional(), night: z.boolean().optional() }).optional(),
         lockedKey: z.string().min(1).optional(),
       })
       .optional(),

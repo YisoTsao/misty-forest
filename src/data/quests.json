@@ -445,5 +445,36 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_dawn_007",
+    "nameKey": "quest.dawn7.name",
+    "category": "story",
+    "descKey": "quest.dawn7.desc",
+    "giver": "orin",
+    "requires": [
+      "quest_dawn_003"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "cellar_stone_ring"
+        ],
+        "descKey": "quest.dawn7.ring"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "lore_tablet_resonance_01",
+          "count": 1
+        },
+        {
+          "itemId": "seed_coin",
+          "count": 40
+        }
+      ]
+    }
   }
 ]

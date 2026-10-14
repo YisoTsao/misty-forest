@@ -170,6 +170,33 @@ const icons: Record<string, ReactNode> = {
       <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </>
   ),
+  symbol_dawn: (
+    <>
+      <circle cx="24" cy="24" r="16" fill="#9a968b" stroke="#5e5a52" strokeWidth="2.4" />
+      <circle cx="24" cy="24" r="5" fill="#ffd77a" />
+      <path d="M24 12 V16 M24 32 V36 M12 24 H16 M32 24 H36 M15.5 15.5 L18.4 18.4 M29.6 29.6 L32.5 32.5 M32.5 15.5 L29.6 18.4 M18.4 29.6 L15.5 32.5" stroke="#ffd77a" strokeWidth="2.2" strokeLinecap="round" />
+    </>
+  ),
+  symbol_sprout: (
+    <>
+      <circle cx="24" cy="24" r="16" fill="#9a968b" stroke="#5e5a52" strokeWidth="2.4" />
+      <path d="M24 33 V22" stroke="#8de6be" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M24 24 Q16 23 16 16 Q23 17 24 24 Z M24 22 Q31 20 32 14 Q25 14 24 22 Z" fill="#8de6be" />
+    </>
+  ),
+  symbol_tide: (
+    <>
+      <circle cx="24" cy="24" r="16" fill="#9a968b" stroke="#5e5a52" strokeWidth="2.4" />
+      <path d="M13 21 Q16 18 19 21 T25 21 T31 21 T35 21 M13 28 Q16 25 19 28 T25 28 T31 28 T35 28" stroke="#8fd0ff" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+    </>
+  ),
+  lore_tablet: (
+    <>
+      <path d="M12 8 H36 Q38 8 38 10 V40 Q38 42 36 42 H12 Q10 42 10 40 V10 Q10 8 12 8 Z" fill="#a8a294" stroke="#5e5a52" strokeWidth="2" />
+      <circle cx="24" cy="17" r="4" fill="#fff2c0" />
+      <path d="M15 26 H33 M15 31 H33 M15 36 H27" stroke="#6b665c" strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
   berry: (
     <>
       <path d="M24 10 Q28 6 33 8 Q30 13 24 12 Z" fill="#4f8a3a" />

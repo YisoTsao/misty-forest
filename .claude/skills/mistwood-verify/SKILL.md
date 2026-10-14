@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），38 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），39 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -37,6 +37,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），38 個全跑
 | 音效與音樂 | `audio` | 不拍 |
 | 手把 | `gamepad` | `--gamepad` |
 | 設定、按鍵重新配置 | `settings` | `--menu` |
+| 燈塔地窖（`quest_dawn_007`、奧林、出入口 `requires` 的 `questActive` / `night`、第二個室內子場景、石環） | `cellar`（改到室內或出入口時加 `tavern`、`lighthouse`、`glowmoss`） | `--cellar`（室內要從地窖門走進去，直接傳送不會關掉戶外的霧） |
 | 河邊的腳印（`quest_dawn_006`、沒有發起人的任務與自動完成、`activate` 的 `startsQuest` / `consume` / `after`、角兔幼崽） | `footprints`（改到機關規則時加 `forestquest`、`lighthouse`） | `--footprints` |
 | 花園（`quest_dawn_005`、桃樂、`build` 目標、建造物 `unlock` / `growth`、花圃、鬆土） | `garden`（改到建造時加 `build`） | `--garden` |
 | 製作（`craft.ts`、`crafting.json`、`Craft`、`CraftPanel`、對話效果 `openCraft`） | `craft`（改到琳娜的對話時加 `forestquest`、`letters`） | `--shop`（含草藥桌） |

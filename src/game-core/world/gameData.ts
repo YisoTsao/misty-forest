@@ -150,13 +150,14 @@ export function parseGameData(raw: {
     }
     const enter = prefab.enter;
     if (!enter) continue;
+    for (const need of [enter.requires?.questCompleted, enter.requires?.questActive]) {
+      if (need !== undefined && !quests.has(need)) throw new WorldDataError(`prefab ${prefab.id} 的通過條件參照不存在的任務：${need}`);
+    }
     if ((mapIds as readonly string[]).includes(enter.to)) {
       // 地圖出入口：抵達點必須存在且在目的地圖內；條件中的任務必須存在
       const arrive = enter.arriveAt === undefined ? undefined : placementsById.get(enter.arriveAt);
       if (!arrive) throw new WorldDataError(`prefab ${prefab.id} 的地圖出入口缺少抵達點：${enter.arriveAt ?? '（未指定）'}`);
       if (mapIdAt(arrive.position[0], arrive.position[2]) !== enter.to) throw new WorldDataError(`prefab ${prefab.id} 的抵達點不在地圖 ${enter.to} 內`);
-      const need = enter.requires?.questCompleted;
-      if (need !== undefined && !quests.has(need)) throw new WorldDataError(`prefab ${prefab.id} 的通過條件參照不存在的任務：${need}`);
       continue;
     }
     if (enter.to !== 'overworld' && !interiors.has(enter.to)) throw new WorldDataError(`prefab ${prefab.id} 的出入口通往不存在的室內：${enter.to}`);
