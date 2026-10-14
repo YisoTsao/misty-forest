@@ -184,7 +184,13 @@ try {
     await page.locator('[data-testid="title-start"]').click();
     await page.locator('[data-testid="title-confirm-new-yes"]').click();
     await title.waitFor({ state: 'detached', timeout: 3000 });
-    await page.waitForTimeout(400);
+    // 新遊戲的位置在下一幀才寫入（整組連跑、機器忙時可能超過 400 ms），等到位置穩定再比
+    await page
+      .waitForFunction(([x, z]) => {
+        const p = window.__mistwoodDebug.playerState();
+        return Math.hypot(p.x - x, p.z - z) < 0.3;
+      }, [spawn.player.x, spawn.player.z], { timeout: 3000 })
+      .catch(() => {});
     const s = (await snapshot()).player;
     assert.ok(Math.hypot(s.x - spawn.player.x, s.z - spawn.player.z) < 0.3, `沒有回到出生點：(${s.x.toFixed(2)}, ${s.z.toFixed(2)})`);
   });

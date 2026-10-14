@@ -20,6 +20,9 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 完整 e2e（2026-10-15，任務 7J 之後）
+- `pnpm e2e` 36 個 suite 連跑：35 個全過；`dev` 1 項失敗（「新遊戲」後立刻讀位置得到 (0, 0)：固定等 400 ms，整組連跑、機器忙時不夠）。單獨重跑 2 次都通過；改為等到位置回到出生點再比對，重跑通過。
+
 ### 任務 7J：製作——琳娜的草藥桌（2026-10-15，Bible §26.1–26.2）
 - 製作系統（T-152）：工作台與配方資料、指令 `Craft`、工作台畫面 `ui/CraftPanel.tsx`（配方、材料持有 / 需要、還缺多少、製作按鈕），和琳娜對話選「借用草藥桌」開啟、Esc 關閉。配方：小瓶草藥水、月露藥膏（琳娜的任務完成後）。除錯 API `openCraft(id)`；截圖 `craft_herbtable.png`（`--shop` 一起拍）。
 - 測試：Vitest 715 項（新增 `craft.test.ts` 5 項）。端對端新增 `e2e/craft.e2e.mjs` 4 項；forestquest、letters、npc、dev 重跑全過；未跑完整 e2e。
