@@ -33,6 +33,38 @@ function topOf(scene: THREE.Object3D, key: string): number {
   return top;
 }
 
+/** 複製模型並換成這隻怪物自己的 toon 材質（閃白、透明度各自獨立）；ModelEnemy 與 shader 預熱共用 */
+export function buildEnemyModel(scene: THREE.Object3D, colors: Record<string, string> = {}) {
+  const root = cloneSkinned(scene);
+  const materials: THREE.MeshToonMaterial[] = [];
+  root.traverse((obj) => {
+    if (!(obj instanceof THREE.Mesh)) return;
+    const source = Array.isArray(obj.material) ? obj.material[0] : obj.material;
+    if (!source) return;
+    const toon = toToonMaterial(source);
+    // 依材質換色（綠色史萊姆 → 淡紫的霧凝史萊姆）；素材的眼白偏灰，一律換成白色
+    const hex = colors[source.name] ?? (source.name === 'Eye_White' ? '#ffffff' : undefined);
+    if (hex) toon.color.set(hex);
+    toon.transparent = true;
+    toon.emissive = new THREE.Color(0, 0, 0);
+    obj.material = toon;
+    materials.push(toon);
+    obj.castShadow = true;
+    obj.frustumCulled = false;
+  });
+  return { root, materials };
+}
+
+/**
+ * shader 預熱用（ShaderWarmup）：一份不動的模型，載入後畫一次就卸載。
+ * 材質刻意不 dispose：three 的 program 有參考計數，沒有材質在用時就會刪掉，預熱編好的 program 會在第一次遇到怪物前就沒了
+ */
+export function ModelEnemyWarmup({ def }: { def: ModelDef }) {
+  const gltf = useGLTF(assetUrl(def.model.path));
+  const { root } = useMemo(() => buildEnemyModel(gltf.scene, def.model.colors), [gltf.scene, def.model.colors]);
+  return <primitive object={root} />;
+}
+
 /**
  * 以 3D 模型呈現的怪物（任務 7C；Quaternius Ultimate Monsters，CC0）：骨架動畫依 AI 狀態切換
  * （待機 / 移動 / 攻擊 / 受擊 / 倒下），被擊中閃白、生成時淡入、倒下後播放倒地動畫再淡出。
@@ -41,27 +73,7 @@ function topOf(scene: THREE.Object3D, key: string): number {
 export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
   const gltf = useGLTF(assetUrl(def.model.path));
   const scale = def.model.height / topOf(gltf.scene, def.model.path);
-  const { root, materials } = useMemo(() => {
-    const root = cloneSkinned(gltf.scene);
-    const materials: THREE.MeshToonMaterial[] = [];
-    const colors = def.model.colors ?? {};
-    root.traverse((obj) => {
-      if (!(obj instanceof THREE.Mesh)) return;
-      const source = Array.isArray(obj.material) ? obj.material[0] : obj.material;
-      if (!source) return;
-      const toon = toToonMaterial(source);
-      // 依材質換色（綠色史萊姆 → 淡紫的霧凝史萊姆）；素材的眼白偏灰，一律換成白色
-      const hex = colors[source.name] ?? (source.name === 'Eye_White' ? '#ffffff' : undefined);
-      if (hex) toon.color.set(hex);
-      toon.transparent = true;
-      toon.emissive = new THREE.Color(0, 0, 0);
-      obj.material = toon;
-      materials.push(toon);
-      obj.castShadow = true;
-      obj.frustumCulled = false;
-    });
-    return { root, materials };
-  }, [gltf.scene, def.model.colors]);
+  const { root, materials } = useMemo(() => buildEnemyModel(gltf.scene, def.model.colors), [gltf.scene, def.model.colors]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
 
   const mixer = useMemo(() => new THREE.AnimationMixer(root), [root]);

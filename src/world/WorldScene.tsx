@@ -17,6 +17,7 @@ import { MapExplorer } from './MapExplorer';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
+import { ShaderWarmup } from './debug/ShaderWarmup';
 import { BoundaryColliders, BoundaryWatcher, MistWall } from './boundary/WorldBoundary';
 import { BuildController } from './build/BuildController';
 import { BuiltObjects } from './build/BuiltObjects';
@@ -120,6 +121,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <VfxSystem />
         <Companion />
         <BuildController />
+        <ShaderWarmup />
         <SceneReadyProbe />
       </Suspense>
       {cameraMode === 'follow' && onTitle && <TitleCameraRig />}

@@ -38,17 +38,21 @@ export function paintFog(explored: Explored, map: MapId = 'dawnvale', canvas: HT
     ctx.arc(u * MAP_SIZE_PX, v * MAP_SIZE_PX, 14 + ((i * 7) % 22), 0, Math.PI * 2);
     ctx.fill();
   }
-  // 挖空已探索的格子（模糊邊緣）
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.filter = 'blur(10px)';
-  ctx.fillStyle = '#000';
+  // 挖空已探索的格子（模糊邊緣）。所有格子合成一條路徑只填一次：帶 filter 的每次繪製都是一次 GPU 模糊，
+  // 逐格 fillRect 會讓重畫的成本隨探索格數增加（跑遠後每進一格卡 100 ms 以上）
+  const holes = new Path2D();
   const cell = EXPLORE_CELL * MAP_PX_PER_M;
   for (let j = 0; j < EXPLORE_GRID; j++) {
     for (let i = 0; i < EXPLORE_GRID; i++) {
       if (!isCellExplored(explored, offset + j * EXPLORE_GRID + i)) continue;
-      ctx.fillRect(i * cell - 3, j * cell - 3, cell + 6, cell + 6);
+      holes.rect(i * cell - 3, j * cell - 3, cell + 6, cell + 6);
     }
   }
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.filter = 'blur(10px)';
+  ctx.fillStyle = '#000';
+  // 相鄰格子的矩形互相重疊，nonzero 會把聯集整個填滿
+  ctx.fill(holes);
   ctx.filter = 'none';
   ctx.globalCompositeOperation = 'source-over';
   return canvas;

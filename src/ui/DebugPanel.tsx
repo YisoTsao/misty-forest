@@ -30,17 +30,22 @@ export function DebugPanel() {
       >
         {t('debug.followCamera')}
       </button>
-      <span className="mt-1 px-1 opacity-70">{t('debug.bookmarks')}</span>
-      {cameraBookmarks.map((b) => (
-        <button
-          key={b.id}
-          type="button"
-          onClick={() => requestBookmark(b.id)}
-          className={`rounded px-2 py-1 text-left hover:bg-white/20 ${current === b.id ? 'bg-white/25' : ''}`}
-        >
-          {t(`bookmark.${b.id}`)}
-        </button>
-      ))}
+      {/* 書籤有二十幾個，預設收合，展開時才會蓋到小地圖 */}
+      <details className="mt-1">
+        <summary className="cursor-pointer px-1 opacity-70">{t('debug.bookmarks')}</summary>
+        <div className="flex max-h-[50vh] flex-col gap-1 overflow-y-auto">
+          {cameraBookmarks.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => requestBookmark(b.id)}
+              className={`rounded px-2 py-1 text-left hover:bg-white/20 ${current === b.id ? 'bg-white/25' : ''}`}
+            >
+              {t(`bookmark.${b.id}`)}
+            </button>
+          ))}
+        </div>
+      </details>
       {/* 規格 4.5：畫面迷霧可直接覆寫（美術驗收）；平常依所在區域的迷霧階段 */}
       <label htmlFor="debug-mist" className="mt-2 flex justify-between px-1 opacity-70">
         <span>{t('debug.mist')}</span>

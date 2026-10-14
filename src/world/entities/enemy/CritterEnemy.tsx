@@ -314,3 +314,15 @@ export function CritterEnemy({ id, def }: { id: string; def: EnemyDef & { proced
     </>
   );
 }
+
+/** shader 預熱用（ShaderWarmup）：身體（投影）與翅膀兩種材質各畫一次，載入後就卸載；材質不 dispose（原因見 ModelEnemyWarmup） */
+export function CritterEnemyWarmup({ kind }: { kind: Kind }) {
+  const shape = shapeFor(kind);
+  const materials = useMemo(() => ({ body: makeMaterial(), wing: makeMaterial(kind === 'fog_moth') }), [kind]);
+  return (
+    <>
+      <mesh geometry={shape.body} material={materials.body} castShadow />
+      <mesh geometry={shape.limb} material={materials.wing} />
+    </>
+  );
+}

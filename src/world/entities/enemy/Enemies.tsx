@@ -1,7 +1,7 @@
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { BallCollider, RigidBody, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { combat } from '@/game/authority';
 import { enemyRuntime, enemyY, removeEnemyVisual, useEnemyListStore } from '@/game/combat/combatRuntime';
@@ -10,8 +10,8 @@ import { assetUrl } from '@/game/worldData';
 import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 import { createWispMaterial, wispEyeMaterial } from '@/render/mistWisp';
 import { updateEnemyAi } from './enemyUpdate';
-import { ModelEnemy } from './ModelEnemy';
-import { CritterEnemy } from './CritterEnemy';
+import { ModelEnemy, ModelEnemyWarmup } from './ModelEnemy';
+import { CritterEnemy, CritterEnemyWarmup } from './CritterEnemy';
 import { clearSpits, stepSpits } from '@/game/combat/enemySpits';
 import { isControllable } from '@/game-core/flow/gameFlow';
 
@@ -55,6 +55,7 @@ export function Enemies() {
   });
   return (
     <>
+      <EnemyShaderWarmup geometry={shared} />
       {ids.map((id) => {
         const def = combat.enemies.get(enemyRuntime.get(id)?.kind ?? '');
         if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
@@ -62,6 +63,35 @@ export function Enemies() {
         return <MistWisp key={id} id={id} geometry={shared} />;
       })}
     </>
+  );
+}
+
+/** 預熱幾幀後卸載（ShaderWarmup 在第一幀就畫過了，多留幾幀保險） */
+const WARMUP_FRAMES = 10;
+
+/**
+ * 每種怪物各放一份隱藏的模型，讓 ShaderWarmup 在載入時一起編譯它們的 shader（含陰影）。
+ * 怪物是靠近生成點才生成的，沒有預熱時第一次遇到每一種都會卡 40–260 ms。
+ */
+function EnemyShaderWarmup({ geometry }: { geometry: { body: THREE.BufferGeometry; eye: THREE.BufferGeometry } }) {
+  const [done, setDone] = useState(false);
+  const frames = useRef(0);
+  // 不 dispose：留著材質，預熱編好的 program 才不會在卸載時被刪掉（見 ModelEnemyWarmup）
+  const wisp = useMemo(() => createWispMaterial(0).material, []);
+  useFrame(() => {
+    if (!done && ++frames.current > WARMUP_FRAMES) setDone(true);
+  });
+  if (done) return null;
+  return (
+    <group visible={false} name="enemy-shader-warmup">
+      {[...combat.enemies.values()].map((def) => {
+        if (def.model) return <ModelEnemyWarmup key={def.id} def={{ ...def, model: def.model }} />;
+        if (def.procedural) return <CritterEnemyWarmup key={def.id} kind={def.procedural} />;
+        return null;
+      })}
+      <mesh geometry={geometry.body} material={wisp} castShadow />
+      <mesh geometry={geometry.eye} material={wispEyeMaterial()} />
+    </group>
   );
 }
 

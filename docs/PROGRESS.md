@@ -20,6 +20,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 移動掉幀修正、除錯面板書籤名稱、上線計劃（2026-10-14）
+- 使用者回報移動時 FPS 從 80–90 瞬間掉到 40–60。量測（前景 Electron，跑 16 秒、CPU profile、記錄新編譯的 program 與觸發的物件）：長幀 117–266 ms 全部是 shader 第一次編譯（`getProgramInfoLog`）：遠處區塊、陰影深度材質、靠近才生成的怪物（風絮團、飛蛾、迷霧芽怪等）。修正：載入時預熱（T-129，`ShaderWarmup`、`EnemyShaderWarmup`）。修正後連跑 3 次：移動中最長幀約 25 ms、移動中沒有新編譯的 program，平均 8.3 ms。主選單後第一次按鍵建立 AudioContext 的一次性長幀不在此列（正常遊玩發生在主選單）。
+- 第二輪（使用者要求以跑步與跳躍測試）：沿路點衝刺加跳躍繞晨曦谷地一圈約 2 分鐘，移動中 > 25 ms 的幀 104 次、越跑越長（33 → 142 ms）。原因是小地圖 / 世界地圖的霧罩每進一格探索格就整張重畫，且每個已探索格各做一次模糊（T-130）；另外預熱用的怪物材質卸載時 dispose，把預熱好的 program 一起刪掉了（T-129 補充）。修正後同一路線只剩 1 次（42 ms）、平均 8.3 ms；原地跳、只跑不跳都沒有長幀（`PERF.md`）。
+- 除錯面板（只在開發版或 `?debug`）：補上 18 個攝影機書籤的顯示名稱（原本顯示 `bookmark.xxx`），新增 `src/data/i18n/i18n.test.ts` 檢查每個書籤都有名稱；書籤清單改為預設收合，不再蓋住小地圖與技能列。
+- 新增 `docs/LAUNCH_PLAN.md`：網頁版（Vercel）、Supabase（帳號、雲端存檔）、多人（先 Supabase Realtime，再 Cloudflare Durable Objects 跑 game-core 權威層）、桌面發行與費用；待使用者決定多人玩法與是否商業化（§11）。
+- 驗證：`pnpm check`（Vitest 631 項）、`pnpm build` 通過；e2e monsters 5、forestmobs 5、combat 9、world 11、region 8、dev 全過；第二輪後 map 9、monsters 5、forestmobs 5 重跑全過，截圖 `phase8/map_world_*.png`（霧罩挖空與模糊邊緣正常）；截圖 `docs/screenshots/phase8/follow.png`、`meadow.png`（已檢視：沒有被預熱打開後殘留的物件、除錯面板收合）。效能：以自寫量測腳本（不在 repo）量測移動中的幀時間，未跑 `perf.mjs`；未跑完整 `pnpm e2e`。
+
 ### 任務 8C：琳娜 / 奇奇與水道謎題（2026-10-14，Bible §4.5、§4.6、§6.4）
 - 規格來源：拆分與排程在本檔與 `GAME_DESIGN.md` §2.2，內容依 Bible §6.4（決策 T-123）。
 - 琳娜（林緣小徑）`quest_forest_001`「不會發光的路」：螢苔 × 5、月露草 × 3、點亮林緣小徑的三盞路燈 → 月露藥膏 × 2、星光碎屑、林緣小徑的霧散去。奇奇（渠道邊的路牌旁）`quest_forest_002`「把水還給森林」：移開堵住上游的樹根（得到根纖維 × 2）→ 打開兩座古水渠閘門 → 修補崩塌的渠段（石頭 × 4、根纖維 × 2）→ 水流到分水木輪，轉動木輪把水沿三道木槽引到三塊苔蘚 → 小瓶草藥水 × 2、星光碎屑 × 2、螢苔林地的霧散去、苔冠空地入口的樹根退開。兩人各有接取前、進行中、回報、完成後的對話（含 Bible 台詞），芽芽的 H 提示也加上兩個任務。

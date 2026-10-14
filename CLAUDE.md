@@ -12,3 +12,7 @@
 - 收尾、push 前跑一次完整 `pnpm e2e`（會先 build），並在 PROGRESS.md 記錄結果
 - 截圖只拍受影響的書籤：`node scripts/screenshot.mjs <階段> <書籤...> [--flag]`，不重拍整組
 - 效能量測（perf.mjs）只在階段驗收或改到渲染負載時跑
+
+## 語言與回應規範
+- 必須始終使用「繁體中文（Traditional Chinese / zh-TW）」進行溝通與回應。
+- 註解、Commit Message 與文件更新若無特別指定，一律使用繁體中文。
