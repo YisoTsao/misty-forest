@@ -4,6 +4,7 @@ import { mulberry32 } from '@/game-core/util/random';
 import { BRIDGE, WATER_LEVEL } from '@/game-core/world/terrain';
 import { dawnBuilders } from './dawnModels';
 import { forestBuilders } from './forestModels';
+import { lakeBuilders } from './lakeModels';
 import { patchMist } from './mist';
 import { toonGradient } from './toon';
 
@@ -509,7 +510,7 @@ function glowMaterial(id: string): THREE.MeshBasicMaterial {
 /** 建立程式模型的部件。回傳的 geometry 與 material 由呼叫端負責釋放。 */
 export function buildProceduralModel(model: string): ModelPart[] {
   const id = model.slice(PROCEDURAL_PREFIX.length);
-  const forest = forestBuilders[id] ?? dawnBuilders[id];
+  const forest = forestBuilders[id] ?? dawnBuilders[id] ?? lakeBuilders[id];
   if (forest) {
     // 螢苔祕林與燈塔任務的模型：每種材質一個部件
     const built = forest();
@@ -537,5 +538,5 @@ export function buildProceduralModel(model: string): ModelPart[] {
 
 /** 所有程式模型的 id（測試用） */
 export function proceduralModelIds(): string[] {
-  return [...Object.keys(builders), ...Object.keys(forestBuilders), ...Object.keys(dawnBuilders)];
+  return [...Object.keys(builders), ...Object.keys(forestBuilders), ...Object.keys(dawnBuilders), ...Object.keys(lakeBuilders)];
 }

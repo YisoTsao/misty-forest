@@ -1,7 +1,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { TERRAIN_SIZE, WATER_LEVEL } from '@/game-core/world/terrain';
+import { MAPS, type MapId } from '@/game-core/world/maps';
+import { WATER_LEVEL } from '@/game-core/world/terrain';
 import { getTerrainGrid, sampleGrid } from '@/game-core/world/terrainGrid';
 import { createWaterDepthTexture, createWaterMaterial, waterUniforms } from '@/render/water';
 
@@ -12,17 +13,18 @@ const CELL = 4;
  * 水面網格：掃描地形，任一角（或中心）低於水面 + 0.3 m 的格子才放一塊水面。
  * 湖、溪、淺灘自動涵蓋；岸上的部分被地形擋住或由 shader 依水深捨棄。
  */
-export function buildWaterGeometry(): THREE.BufferGeometry {
-  const half = TERRAIN_SIZE / 2;
-  const n = Math.round(TERRAIN_SIZE / CELL);
+export function buildWaterGeometry(map: MapId = 'dawnvale'): THREE.BufferGeometry {
+  const { origin, size } = MAPS[map];
+  const half = size / 2;
+  const n = Math.round(size / CELL);
   const positions: number[] = [];
   const indices: number[] = [];
-  const grid = getTerrainGrid();
+  const grid = getTerrainGrid(map);
   const wet = (x: number, z: number) => sampleGrid(grid, grid.height, x, z) < WATER_LEVEL + 0.3;
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
-      const x0 = -half + i * CELL;
-      const z0 = -half + j * CELL;
+      const x0 = origin.x - half + i * CELL;
+      const z0 = origin.z - half + j * CELL;
       const x1 = x0 + CELL;
       const z1 = z0 + CELL;
       if (!(wet(x0, z0) || wet(x1, z0) || wet(x0, z1) || wet(x1, z1) || wet(x0 + CELL / 2, z0 + CELL / 2))) continue;
@@ -42,11 +44,11 @@ export function buildWaterGeometry(): THREE.BufferGeometry {
   return geo;
 }
 
-/** 湖與溪的水面，不參與物理（落水由 Player 判定）。 */
-export function Water() {
-  const geometry = useMemo(() => buildWaterGeometry(), []);
-  const depthTexture = useMemo(() => createWaterDepthTexture(), []);
-  const material = useMemo(() => createWaterMaterial(depthTexture), [depthTexture]);
+/** 湖與溪的水面，不參與物理（落水由 Player 判定）。每張地圖各一片（任務 9A 起澄鏡湖也有）。 */
+export function Water({ map = 'dawnvale' }: { map?: MapId }) {
+  const geometry = useMemo(() => buildWaterGeometry(map), [map]);
+  const depthTexture = useMemo(() => createWaterDepthTexture(map), [map]);
+  const material = useMemo(() => createWaterMaterial(depthTexture, map), [depthTexture, map]);
   useEffect(
     () => () => {
       geometry.dispose();
@@ -56,7 +58,8 @@ export function Water() {
     [geometry, material, depthTexture],
   );
   useFrame((_, dt) => {
+    // 所有水面共用時間；只在目前的地圖推進（同一時間只會掛一片）
     waterUniforms.uTime.value += Math.min(dt, 0.1);
   });
-  return <mesh geometry={geometry} material={material} position={[0, WATER_LEVEL, 0]} renderOrder={1} name="water" />;
+  return <mesh geometry={geometry} material={material} position={[0, WATER_LEVEL, 0]} renderOrder={1} name={map === 'dawnvale' ? 'water' : `water-${map}`} />;
 }

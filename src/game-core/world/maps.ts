@@ -2,10 +2,11 @@
 // 地形、邊界、區域、探索紀錄都依世界座標判斷所在地圖。玩家位置本來就存檔，讀檔後自然回到原本的地圖。
 import { boundaryDistance, clampInsideBounds, type PlayBounds } from './bounds';
 import { GLOWMOSS_ARRIVAL, GLOWMOSS_ORIGIN, GLOWMOSS_SIZE, isInGlowmoss } from './glowmossTerrain.ts';
+import { isInMirrorlake, MIRRORLAKE_ARRIVAL, MIRRORLAKE_ORIGIN, MIRRORLAKE_SIZE } from './mirrorlakeTerrain.ts';
 import { SPAWN_POINT, TERRAIN_SIZE } from './terrain';
 import type { RegionId } from './types';
 
-export const mapIds = ['dawnvale', 'glowmoss'] as const;
+export const mapIds = ['dawnvale', 'glowmoss', 'mirrorlake'] as const;
 export type MapId = (typeof mapIds)[number];
 
 export type MapDef = {
@@ -45,6 +46,16 @@ export const MAPS: Readonly<Record<MapId, MapDef>> = {
     defaultRegion: 'moss_glade',
     respawn: { x: GLOWMOSS_ORIGIN.x + GLOWMOSS_ARRIVAL.x + 4, z: GLOWMOSS_ORIGIN.z + GLOWMOSS_ARRIVAL.z },
   },
+  // 澄鏡湖（任務 9A，Bible §7）
+  mirrorlake: {
+    id: 'mirrorlake',
+    nameKey: 'map.mirrorlake',
+    origin: { ...MIRRORLAKE_ORIGIN },
+    size: MIRRORLAKE_SIZE,
+    bounds: PLAY_BOUNDS_148,
+    defaultRegion: 'lake_shore',
+    respawn: { x: MIRRORLAKE_ORIGIN.x + MIRRORLAKE_ARRIVAL.x, z: MIRRORLAKE_ORIGIN.z + MIRRORLAKE_ARRIVAL.z + 4 },
+  },
 };
 
 export function isMapId(id: string): id is MapId {
@@ -56,7 +67,9 @@ export const NEW_GAME_SPAWN = { x: SPAWN_POINT.x, z: SPAWN_POINT.z } as const;
 
 /** 世界座標所在的地圖（室內子場景屬於晨曦谷地：酒館在晨曦村） */
 export function mapIdAt(x: number, z: number): MapId {
-  return isInGlowmoss(x, z) ? 'glowmoss' : 'dawnvale';
+  if (isInGlowmoss(x, z)) return 'glowmoss';
+  if (isInMirrorlake(x, z)) return 'mirrorlake';
+  return 'dawnvale';
 }
 
 export function mapAt(x: number, z: number): MapDef {

@@ -233,11 +233,26 @@ const FOREST = {
   horizon: new THREE.Color('#9fcab8'),
 };
 
+const LAKE = {
+  fog: new THREE.Color('#d9f1f4'),
+  hemiSky: new THREE.Color('#cdeef4'),
+  horizon: new THREE.Color('#d9f1f4'),
+};
+
+/** 澄鏡湖（任務 9A，Bible §7.3）：開闊的湖面，薄霧偏白藍（#D9F1F4），天光較亮、看得遠 */
+function tintLake(look: TimeLook): TimeLook {
+  look.fog.lerp(LAKE.fog, 0.3);
+  look.horizon.lerp(LAKE.horizon, 0.3);
+  look.hemiSky.lerp(LAKE.hemiSky, 0.25);
+  return look;
+}
+
 /**
  * 地圖的光線色調（任務 8A）：螢苔祕林在樹冠下，霧偏青綠、可見距離較短，陽光被樹葉濾過而較弱。
  * 在 updateTimeLook 之後就地修改目前的時段外觀（每幀重算，不會累積）。
  */
 export function tintTimeLookForMap(map: MapId, look: TimeLook = currentTimeLook): TimeLook {
+  if (map === 'mirrorlake') return tintLake(look);
   if (map !== 'glowmoss') return look;
   look.fog.lerp(FOREST.fog, 0.35);
   look.horizon.lerp(FOREST.horizon, 0.3);

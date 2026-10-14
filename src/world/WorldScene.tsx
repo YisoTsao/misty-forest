@@ -75,9 +75,13 @@ export function WorldScene({ data }: { data: WorldData }) {
           <MapOnly map="glowmoss">
             <Terrain map="glowmoss" />
           </MapOnly>
+          <MapOnly map="mirrorlake">
+            <Terrain map="mirrorlake" />
+          </MapOnly>
           <EnvironmentColliders index={index} />
           <BoundaryColliders map="dawnvale" />
           <BoundaryColliders map="glowmoss" />
+          <BoundaryColliders map="mirrorlake" />
           <Player def={playerDef} colliderRef={playerCollider} />
           <OutdoorOnly>
             <Flocks />
@@ -107,6 +111,11 @@ export function WorldScene({ data }: { data: WorldData }) {
           </AssetBoundary>
           <MistWall map="glowmoss" />
           <Fireflies kind="spores" />
+        </MapOnly>
+        <MapOnly map="mirrorlake">
+          <GrassField index={index} map="mirrorlake" />
+          <Water map="mirrorlake" />
+          <MistWall map="mirrorlake" />
         </MapOnly>
         <OutdoorOnly>
           <AssetBoundary name="backdrop">

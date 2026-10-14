@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { TERRAIN_SIZE, WATER_LEVEL } from '@/game-core/world/terrain';
+import { MAPS, type MapId } from '@/game-core/world/maps';
+import { WATER_LEVEL } from '@/game-core/world/terrain';
 import { getTerrainGrid, sampleGrid } from '@/game-core/world/terrainGrid';
 import { patchMist } from './mist';
 import { palette } from './palette';
@@ -13,13 +14,14 @@ const DEPTH_MAX = 4;
  * 水深貼圖：由 terrainHeight 取樣「水面到地面的深度」，水面 shader 以此決定深淺色與岸邊泡沫。
  * 湖、溪、淺灘都適用，不需要為每個水域另外寫參數。8 bit 就夠（解析度約 1.6 cm）。
  */
-export function createWaterDepthTexture(): THREE.DataTexture {
+export function createWaterDepthTexture(map: MapId = 'dawnvale'): THREE.DataTexture {
   const data = new Uint8Array(DEPTH_RES * DEPTH_RES);
-  const grid = getTerrainGrid();
+  const grid = getTerrainGrid(map);
+  const { origin, size } = MAPS[map];
   for (let j = 0; j < DEPTH_RES; j++) {
-    const z = ((j + 0.5) / DEPTH_RES - 0.5) * TERRAIN_SIZE;
+    const z = origin.z + ((j + 0.5) / DEPTH_RES - 0.5) * size;
     for (let i = 0; i < DEPTH_RES; i++) {
-      const x = ((i + 0.5) / DEPTH_RES - 0.5) * TERRAIN_SIZE;
+      const x = origin.x + ((i + 0.5) / DEPTH_RES - 0.5) * size;
       const depth = WATER_LEVEL - sampleGrid(grid, grid.height, x, z);
       data[j * DEPTH_RES + i] = Math.round(Math.min(1, Math.max(0, depth / DEPTH_MAX)) * 255);
     }
@@ -41,7 +43,15 @@ export function createWaterDepthTexture(): THREE.DataTexture {
  */
 export const waterUniforms = { uTime: { value: 0 } };
 
-export function createWaterMaterial(depthTexture: THREE.Texture): THREE.MeshToonMaterial {
+/** 各地圖的水色（任務 9A：澄鏡湖用 Bible §7.3 的湖水藍，比溪水清透） */
+const WATER_COLORS: Readonly<Record<MapId, { deep: string; shallow: string }>> = {
+  dawnvale: { deep: palette.waterDeep, shallow: palette.waterShallow },
+  glowmoss: { deep: palette.waterDeep, shallow: palette.waterShallow },
+  mirrorlake: { deep: '#3f93b8', shallow: '#77c9df' },
+};
+
+export function createWaterMaterial(depthTexture: THREE.Texture, map: MapId = 'dawnvale'): THREE.MeshToonMaterial {
+  const { origin, size } = MAPS[map];
   const material = new THREE.MeshToonMaterial({
     gradientMap: toonGradient(),
     color: '#ffffff',
@@ -51,11 +61,12 @@ export function createWaterMaterial(depthTexture: THREE.Texture): THREE.MeshToon
   });
   const uniforms = {
     ...waterUniforms,
-    uDeep: { value: new THREE.Color(palette.waterDeep) },
-    uShallow: { value: new THREE.Color(palette.waterShallow) },
+    uDeep: { value: new THREE.Color(WATER_COLORS[map].deep) },
+    uShallow: { value: new THREE.Color(WATER_COLORS[map].shallow) },
     uFoam: { value: new THREE.Color(palette.waterFoam) },
     uDepthTex: { value: depthTexture },
-    uDepthScale: { value: new THREE.Vector2(1 / TERRAIN_SIZE, DEPTH_MAX) },
+    uDepthScale: { value: new THREE.Vector2(1 / size, DEPTH_MAX) },
+    uDepthOrigin: { value: new THREE.Vector2(origin.x, origin.z) },
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -72,6 +83,7 @@ export function createWaterMaterial(depthTexture: THREE.Texture): THREE.MeshToon
         uniform vec3 uFoam;
         uniform sampler2D uDepthTex;
         uniform vec2 uDepthScale;
+        uniform vec2 uDepthOrigin;
         varying vec2 vWaterXZ;
         float wHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float wNoise(vec2 p) {
@@ -84,7 +96,7 @@ export function createWaterMaterial(depthTexture: THREE.Texture): THREE.MeshToon
         `#include <color_fragment>
         {
           // 水深（公尺）：岸邊為 0；toShore 換算成與舊版相近的「離岸距離」，泡沫寬度不變
-          float waterDepth = texture2D(uDepthTex, vWaterXZ * uDepthScale.x + 0.5).r * uDepthScale.y;
+          float waterDepth = texture2D(uDepthTex, (vWaterXZ - uDepthOrigin) * uDepthScale.x + 0.5).r * uDepthScale.y;
           if (waterDepth <= 0.0) discard;
           float toShore = waterDepth * 2.2;
           float depth = smoothstep(0.0, 5.0, toShore);

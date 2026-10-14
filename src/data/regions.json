@@ -12,5 +12,10 @@
   {"id": "moss_trail", "nameKey": "region.moss_trail", "area": {"center": [1890, 2], "path": [[1850, 4], [1888, 0], [1916, 8], [1942, 2]], "radius": 20, "blend": 10}},
   {"id": "moss_glade", "nameKey": "region.moss_glade", "area": {"center": [1985, 15], "radius": 72, "blend": 16}},
   {"id": "root_maze", "nameKey": "region.root_maze", "area": {"center": [2076, -74], "radius": 40, "blend": 12}},
-  {"id": "moss_crown", "nameKey": "region.moss_crown", "area": {"center": [2100, 46], "radius": 34, "blend": 10}}
+  {"id": "moss_crown", "nameKey": "region.moss_crown", "area": {"center": [2100, 46], "radius": 34, "blend": 10}},
+  {"id": "lake_shore", "nameKey": "region.lake_shore", "area": {"center": [4006, 14], "radius": 118, "blend": 20}},
+  {"id": "lake_camp", "nameKey": "region.lake_camp", "area": {"center": [3888, 8], "radius": 24, "blend": 8}},
+  {"id": "reed_isle", "nameKey": "region.reed_isle", "area": {"center": [3998, -20], "radius": 16, "blend": 6}},
+  {"id": "mirror_ruins", "nameKey": "region.mirror_ruins", "area": {"center": [4018, 78], "radius": 20, "blend": 8}},
+  {"id": "mirror_temple", "nameKey": "region.mirror_temple", "area": {"center": [4046, 18], "radius": 22, "blend": 8}}
 ]

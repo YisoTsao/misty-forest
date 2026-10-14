@@ -17,6 +17,7 @@ import {
 import { mulberry32 } from '../src/game-core/util/random.ts';
 import { addDawnvaleExpansion } from './gen-dawnvale.ts';
 import { addGlowmoss } from './gen-glowmoss.ts';
+import { addMirrorlake } from './gen-mirrorlake.ts';
 
 const rand = mulberry32(20261012);
 // 任務 7A 之前的地圖範圍：舊散佈沿用同一範圍與同一組亂數，既有物件的 id 與位置不變
@@ -338,6 +339,9 @@ addDawnvaleExpansion(placements, taken);
 
 // 任務 8A：螢苔祕林（地圖二，世界座標 x = 2000 附近）與晨曦谷地這一側的林道入口。
 addGlowmoss(placements);
+
+// 任務 9A：澄鏡湖（地圖三，世界座標 x = 4000 附近）與螢苔祕林這一側的水道入口。
+addMirrorlake(placements);
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');
 console.log(`wrote ${placements.length} placements`);

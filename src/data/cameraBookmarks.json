@@ -22,5 +22,14 @@
   {"id": "glowmoss_crown_gate", "position": [2059, 4.2, 47], "target": [2071, 2.4, 46]},
   {"id": "glowmoss_lanterns", "position": [1936, 4.2, 12], "target": [1952, 1.4, 3]},
   {"id": "glowmoss_overview", "position": [1990, 55, 105], "target": [2000, 0, 20]},
-  {"id": "dawn_gate", "position": [118, 6, 14], "target": [136, 2.5, 6.5]}
+  {"id": "dawn_gate", "position": [118, 6, 14], "target": [136, 2.5, 6.5]},
+  {"id": "mirrorlake_entry", "position": [3944, 5, -118], "target": [3936, 2.5, -138]},
+  {"id": "mirrorlake_camp", "position": [3904, 6, 26], "target": [3886, 1.5, 6]},
+  {"id": "mirrorlake_dock", "position": [3938, 4, 42], "target": [3926, 0, 30]},
+  {"id": "mirrorlake_bridge", "position": [4014, 6, -58], "target": [3998, 0.5, -36]},
+  {"id": "mirrorlake_shallows", "position": [3940, 5, 0], "target": [3970, -0.5, 14]},
+  {"id": "mirrorlake_temple", "position": [4022, 8, 6], "target": [4046, 1.5, 18]},
+  {"id": "mirrorlake_ruins", "position": [4036, 6, 98], "target": [4018, 0, 74]},
+  {"id": "mirrorlake_bell", "position": [3944, 5, 30], "target": [3964, 3, 44]},
+  {"id": "mirrorlake_overview", "position": [3980, 70, 130], "target": [4000, 0, 0]}
 ]

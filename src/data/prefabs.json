@@ -3308,7 +3308,11 @@
     "collider": "static",
     "collision": {
       "shape": "box",
-      "size": [2.4, 0.7, 1.2]
+      "size": [
+        2.4,
+        0.7,
+        1.2
+      ]
     },
     "interaction": "activate",
     "nameKey": "object.crownTrough",
@@ -3318,7 +3322,11 @@
       "model": "procedural:crown_trough_full",
       "collision": {
         "shape": "box",
-        "size": [2.4, 0.7, 1.2]
+        "size": [
+          2.4,
+          0.7,
+          1.2
+        ]
       },
       "boss": "boss_moss_thump",
       "anim": "interact"
@@ -3436,14 +3444,22 @@
     "id": "root_stone",
     "model": "procedural:root_stone",
     "collider": "static",
-    "collision": { "shape": "cylinder", "radius": 1.25, "height": 2.2 },
+    "collision": {
+      "shape": "cylinder",
+      "radius": 1.25,
+      "height": 2.2
+    },
     "interaction": "activate",
     "nameKey": "object.rootStone",
     "verbKey": "interact.awaken",
     "interactRadius": 2.8,
     "activate": {
       "model": "procedural:root_stone_awake",
-      "collision": { "shape": "cylinder", "radius": 1.25, "height": 2.2 },
+      "collision": {
+        "shape": "cylinder",
+        "radius": 1.25,
+        "height": 2.2
+      },
       "quest": "quest_forest_003",
       "afterBoss": "boss_moss_thump",
       "lootTableId": "root_stone_resonance",
@@ -3455,11 +3471,21 @@
     "id": "lake_roots",
     "model": "procedural:root_wall",
     "collider": "static",
-    "collision": { "shape": "box", "size": [8.2, 2.8, 1.5] },
+    "collision": {
+      "shape": "box",
+      "size": [
+        8.2,
+        2.8,
+        1.5
+      ]
+    },
     "interaction": "read",
     "nameKey": "object.lakeRoots",
     "interactRadius": 3.5,
-    "read": { "titleKey": "object.lakeRoots", "bodyKey": "lakeRoots.body" },
+    "read": {
+      "titleKey": "object.lakeRoots",
+      "bodyKey": "lakeRoots.body"
+    },
     "activate": {},
     "persists": true
   },
@@ -3467,11 +3493,18 @@
     "id": "signpost_lake_channel",
     "model": "procedural:signpost",
     "collider": "static",
-    "collision": { "shape": "cylinder", "radius": 0.15, "height": 2.2 },
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
     "interaction": "read",
     "nameKey": "object.signpost",
     "interactRadius": 2.2,
-    "read": { "titleKey": "sign.lakeChannel.title", "bodyKey": "sign.lakeChannel.body" },
+    "read": {
+      "titleKey": "sign.lakeChannel.title",
+      "bodyKey": "sign.lakeChannel.body"
+    },
     "persists": false
   },
   {
@@ -3482,21 +3515,33 @@
     "nameKey": "object.lanternShard",
     "verbKey": "interact.pickUp",
     "interactRadius": 1.8,
-    "harvest": { "lootTableId": "lantern_shard_pick", "anim": "interact", "quest": "quest_dawn_003" },
+    "harvest": {
+      "lootTableId": "lantern_shard_pick",
+      "anim": "interact",
+      "quest": "quest_dawn_003"
+    },
     "persists": true
   },
   {
     "id": "mist_core",
     "model": "procedural:mist_core",
     "collider": "static",
-    "collision": { "shape": "cylinder", "radius": 0.9, "height": 2.2 },
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.9,
+      "height": 2.2
+    },
     "interaction": "activate",
     "nameKey": "object.mistCore",
     "verbKey": "interact.purify",
     "interactRadius": 2.6,
     "activate": {
       "model": "procedural:mist_core_clear",
-      "collision": { "shape": "cylinder", "radius": 0.5, "height": 1.2 },
+      "collision": {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 1.2
+      },
       "quest": "quest_dawn_003",
       "ordered": true,
       "anim": "interact"
@@ -3513,7 +3558,12 @@
     "interactRadius": 4.6,
     "repair": {
       "model": "procedural:lighthouse_lamp_lit",
-      "materials": [{ "itemId": "lantern_shard", "count": 3 }],
+      "materials": [
+        {
+          "itemId": "lantern_shard",
+          "count": 3
+        }
+      ],
       "quest": "quest_dawn_003",
       "ordered": true
     },
@@ -3523,12 +3573,18 @@
     "id": "star_mirror",
     "model": "procedural:star_mirror",
     "collider": "static",
-    "collision": { "shape": "cylinder", "radius": 0.45, "height": 2.4 },
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.45,
+      "height": 2.4
+    },
     "interaction": "turn",
     "nameKey": "object.starMirror",
     "verbKey": "interact.aimMirror",
     "interactRadius": 2.4,
-    "turn": { "positions": 2 },
+    "turn": {
+      "positions": 2
+    },
     "persists": false
   },
   {
@@ -3539,7 +3595,11 @@
     "nameKey": "object.dryCloth",
     "verbKey": "interact.pickUp",
     "interactRadius": 1.8,
-    "harvest": { "lootTableId": "dry_cloth_pick", "anim": "interact", "quest": "quest_dawn_004" },
+    "harvest": {
+      "lootTableId": "dry_cloth_pick",
+      "anim": "interact",
+      "quest": "quest_dawn_004"
+    },
     "persists": true
   },
   {
@@ -3550,12 +3610,31 @@
     "nameKey": "object.soilMound",
     "verbKey": "interact.dig",
     "interactRadius": 1.8,
-    "harvest": { "lootTableId": "loose_soil_dig", "respawnSec": 240, "anim": "interact" },
+    "harvest": {
+      "lootTableId": "loose_soil_dig",
+      "respawnSec": 240,
+      "anim": "interact"
+    },
     "persists": true
   },
-  { "id": "build_garden_plot_0", "model": "procedural:garden_plot_0", "collider": "none", "persists": false },
-  { "id": "build_garden_plot_1", "model": "procedural:garden_plot_1", "collider": "none", "persists": false },
-  { "id": "build_garden_plot_2", "model": "procedural:garden_plot_2", "collider": "none", "persists": false },
+  {
+    "id": "build_garden_plot_0",
+    "model": "procedural:garden_plot_0",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "build_garden_plot_1",
+    "model": "procedural:garden_plot_1",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "build_garden_plot_2",
+    "model": "procedural:garden_plot_2",
+    "collider": "none",
+    "persists": false
+  },
   {
     "id": "river_footprints",
     "model": "procedural:footprints",
@@ -3564,7 +3643,11 @@
     "nameKey": "object.footprints",
     "verbKey": "interact.investigate",
     "interactRadius": 2.2,
-    "activate": { "model": "procedural:footprints", "startsQuest": "quest_dawn_006", "anim": "interact" },
+    "activate": {
+      "model": "procedural:footprints",
+      "startsQuest": "quest_dawn_006",
+      "anim": "interact"
+    },
     "persists": true
   },
   {
@@ -3574,7 +3657,12 @@
     "interaction": "harvest",
     "nameKey": "object.berryBush",
     "interactRadius": 1.9,
-    "harvest": { "lootTableId": "wild_berry_pick", "respawnSec": 180, "harvestedModel": "procedural:berry_bush_picked", "anim": "interact" },
+    "harvest": {
+      "lootTableId": "wild_berry_pick",
+      "respawnSec": 180,
+      "harvestedModel": "procedural:berry_bush_picked",
+      "anim": "interact"
+    },
     "persists": true
   },
   {
@@ -3585,7 +3673,18 @@
     "nameKey": "object.riverNest",
     "verbKey": "interact.leaveBerries",
     "interactRadius": 2,
-    "activate": { "model": "procedural:river_nest_fed", "quest": "quest_dawn_006", "ordered": true, "consume": [{ "itemId": "wild_berry", "count": 2 }], "anim": "interact" },
+    "activate": {
+      "model": "procedural:river_nest_fed",
+      "quest": "quest_dawn_006",
+      "ordered": true,
+      "consume": [
+        {
+          "itemId": "wild_berry",
+          "count": 2
+        }
+      ],
+      "anim": "interact"
+    },
     "persists": true
   },
   {
@@ -3596,7 +3695,16 @@
     "nameKey": "object.bunnyHide",
     "verbKey": "interact.observe",
     "interactRadius": 2.2,
-    "activate": { "model": "procedural:bunny_hide", "quest": "quest_dawn_006", "ordered": true, "after": { "placement": "river_nest_01", "seconds": 90 }, "anim": "interact" },
+    "activate": {
+      "model": "procedural:bunny_hide",
+      "quest": "quest_dawn_006",
+      "ordered": true,
+      "after": {
+        "placement": "river_nest_01",
+        "seconds": 90
+      },
+      "anim": "interact"
+    },
     "persists": true
   },
   {
@@ -3607,14 +3715,100 @@
     "nameKey": "object.cellarHatch",
     "verbKey": "interact.goDown",
     "interactRadius": 1.8,
-    "enter": { "to": "lighthouse_cellar", "requires": { "questActive": "quest_dawn_007", "night": true }, "lockedKey": "cellar.locked" },
+    "enter": {
+      "to": "lighthouse_cellar",
+      "requires": {
+        "questActive": "quest_dawn_007",
+        "night": true
+      },
+      "lockedKey": "cellar.locked"
+    },
     "persists": false
   },
   {
     "id": "cellar_room",
     "model": "procedural:cellar_room",
     "collider": "static",
-    "collision": [{"shape": "box", "size": [8, 0.3, 7], "offset": [0, -0.3, 0]}, {"shape": "box", "size": [8, 3, 0.3], "offset": [0, 0, -3.65]}, {"shape": "box", "size": [0.3, 3, 7], "offset": [-4.15, 0, 0]}, {"shape": "box", "size": [0.3, 3, 7], "offset": [4.15, 0, 0]}, {"shape": "box", "size": [8, 3, 0.3], "offset": [0, 0, 3.65]}, {"shape": "box", "size": [8, 0.3, 7], "offset": [0, 3, 0]}],
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          8,
+          0.3,
+          7
+        ],
+        "offset": [
+          0,
+          -0.3,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          8,
+          3,
+          0.3
+        ],
+        "offset": [
+          0,
+          0,
+          -3.65
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.3,
+          3,
+          7
+        ],
+        "offset": [
+          -4.15,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.3,
+          3,
+          7
+        ],
+        "offset": [
+          4.15,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          8,
+          3,
+          0.3
+        ],
+        "offset": [
+          0,
+          0,
+          3.65
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          8,
+          0.3,
+          7
+        ],
+        "offset": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
     "persists": false
   },
   {
@@ -3625,23 +3819,46 @@
     "nameKey": "object.cellarExit",
     "verbKey": "interact.goUp",
     "interactRadius": 1.7,
-    "enter": { "to": "overworld" },
+    "enter": {
+      "to": "overworld"
+    },
     "persists": false
   },
   {
     "id": "stone_ring",
     "model": "procedural:stone_ring",
     "collider": "static",
-    "collision": { "shape": "cylinder", "radius": 1.2, "height": 0.9 },
+    "collision": {
+      "shape": "cylinder",
+      "radius": 1.2,
+      "height": 0.9
+    },
     "interaction": "activate",
     "nameKey": "object.stoneRing",
     "verbKey": "interact.placeStones",
     "interactRadius": 2.4,
     "activate": {
       "model": "procedural:stone_ring_filled",
-      "collision": { "shape": "cylinder", "radius": 1.2, "height": 0.9 },
+      "collision": {
+        "shape": "cylinder",
+        "radius": 1.2,
+        "height": 0.9
+      },
       "quest": "quest_dawn_007",
-      "consume": [{ "itemId": "symbol_stone_dawn", "count": 1 }, { "itemId": "symbol_stone_sprout", "count": 1 }, { "itemId": "symbol_stone_tide", "count": 1 }],
+      "consume": [
+        {
+          "itemId": "symbol_stone_dawn",
+          "count": 1
+        },
+        {
+          "itemId": "symbol_stone_sprout",
+          "count": 1
+        },
+        {
+          "itemId": "symbol_stone_tide",
+          "count": 1
+        }
+      ],
       "anim": "interact"
     },
     "persists": true
@@ -3654,7 +3871,11 @@
     "nameKey": "object.symbolStone",
     "verbKey": "interact.pickUp",
     "interactRadius": 1.6,
-    "harvest": { "lootTableId": "symbol_stone_dawn_pick", "anim": "interact", "quest": "quest_dawn_007" },
+    "harvest": {
+      "lootTableId": "symbol_stone_dawn_pick",
+      "anim": "interact",
+      "quest": "quest_dawn_007"
+    },
     "persists": true
   },
   {
@@ -3665,7 +3886,11 @@
     "nameKey": "object.symbolStone",
     "verbKey": "interact.pickUp",
     "interactRadius": 1.6,
-    "harvest": { "lootTableId": "symbol_stone_sprout_pick", "anim": "interact", "quest": "quest_dawn_007" },
+    "harvest": {
+      "lootTableId": "symbol_stone_sprout_pick",
+      "anim": "interact",
+      "quest": "quest_dawn_007"
+    },
     "persists": true
   },
   {
@@ -3676,7 +3901,663 @@
     "nameKey": "object.symbolStone",
     "verbKey": "interact.pickUp",
     "interactRadius": 1.6,
-    "harvest": { "lootTableId": "symbol_stone_tide_pick", "anim": "interact", "quest": "quest_dawn_007" },
+    "harvest": {
+      "lootTableId": "symbol_stone_tide_pick",
+      "anim": "interact",
+      "quest": "quest_dawn_007"
+    },
     "persists": true
+  },
+  {
+    "id": "gate_to_mirrorlake",
+    "model": "procedural:lake_gate",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.32,
+        "height": 4.1,
+        "offset": [
+          -2.2,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.32,
+        "height": 4.1,
+        "offset": [
+          2.2,
+          0,
+          0
+        ]
+      }
+    ],
+    "interaction": "enter",
+    "nameKey": "object.gateMirrorlake",
+    "verbKey": "interact.travel",
+    "interactRadius": 2.6,
+    "enter": {
+      "to": "mirrorlake",
+      "arriveAt": "mirrorlake_gate_glowmoss",
+      "arriveDistance": 4,
+      "requires": {
+        "questCompleted": "quest_forest_003"
+      },
+      "lockedKey": "gate.mirrorlake.locked"
+    },
+    "persists": false
+  },
+  {
+    "id": "gate_to_glowmoss_lake",
+    "model": "procedural:lake_gate",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.32,
+        "height": 4.1,
+        "offset": [
+          -2.2,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.32,
+        "height": 4.1,
+        "offset": [
+          2.2,
+          0,
+          0
+        ]
+      }
+    ],
+    "interaction": "enter",
+    "nameKey": "object.gateGlowmossLake",
+    "verbKey": "interact.travel",
+    "interactRadius": 2.6,
+    "enter": {
+      "to": "glowmoss",
+      "arriveAt": "glowmoss_gate_mirrorlake",
+      "arriveDistance": 4
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_mirrorlake",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.mirrorlakeEntry.title",
+      "bodyKey": "sign.mirrorlakeEntry.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_lake_camp",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.lakeCamp.title",
+      "bodyKey": "sign.lakeCamp.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_moon_bridge",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.moonBridge.title",
+      "bodyKey": "sign.moonBridge.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_mirror_ruins",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.mirrorRuins.title",
+      "bodyKey": "sign.mirrorRuins.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "lake_reeds",
+    "model": "procedural:lake_reeds",
+    "collider": "none",
+    "persists": false,
+    "cullDistance": 80,
+    "castShadow": false
+  },
+  {
+    "id": "moon_bridge",
+    "model": "procedural:moon_bridge",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          -0.114,
+          -9.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.134,
+          -8.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.372,
+          -7.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.596,
+          -6.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.799,
+          -5.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.977,
+          -4.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.124,
+          -3.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.238,
+          -2.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.316,
+          -1.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.355,
+          -0.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.355,
+          0.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.316,
+          1.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.238,
+          2.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          1.124,
+          3.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.977,
+          4.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.799,
+          5.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.596,
+          6.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.372,
+          7.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          0.134,
+          8.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          1.02
+        ],
+        "offset": [
+          0,
+          -0.114,
+          9.5
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.15,
+          2.6,
+          20
+        ],
+        "offset": [
+          -1.32,
+          0,
+          0
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.15,
+          2.6,
+          20
+        ],
+        "offset": [
+          1.32,
+          0,
+          0
+        ],
+        "cameraIgnore": true
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "wood_dock",
+    "model": "procedural:wood_dock",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        2.4,
+        0.2,
+        10
+      ],
+      "offset": [
+        0,
+        0.15,
+        5
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "fisher_hut",
+    "model": "procedural:fisher_hut",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        5,
+        4.2,
+        3.8
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "mirror_pillar",
+    "model": "procedural:mirror_pillar",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 1.4,
+        "height": 0.5,
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.45,
+        "height": 4.4
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "sunken_tower",
+    "model": "procedural:sunken_tower",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 1.6,
+      "height": 12
+    },
+    "persists": false
+  },
+  {
+    "id": "mirror_temple",
+    "model": "procedural:mirror_temple",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 9.7,
+        "height": 0.5,
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 1.8,
+        "height": 3
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          8.18,
+          0,
+          2.66
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          5.05,
+          0,
+          6.96
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          0.0,
+          0,
+          8.6
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          -5.05,
+          0,
+          6.96
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          -8.18,
+          0,
+          2.66
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          -8.18,
+          0,
+          -2.66
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          -5.05,
+          0,
+          -6.96
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          -0.0,
+          0,
+          -8.6
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          5.05,
+          0,
+          -6.96
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.5,
+        "height": 5,
+        "offset": [
+          8.18,
+          0,
+          -2.66
+        ],
+        "cameraIgnore": true
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "lantern_boat",
+    "model": "procedural:lantern_boat",
+    "collider": "none",
+    "persists": false
   }
 ]

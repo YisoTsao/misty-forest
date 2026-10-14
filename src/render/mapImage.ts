@@ -1,6 +1,7 @@
 // 世界地圖與小地圖的底圖（任務 7B，Bible §31.3）：由地形取樣格與世界物件畫出手繪風的俯視地圖。
 // 只在第一次開啟地圖或顯示小地圖時畫一次（約數十毫秒），之後重複使用同一張 canvas。
 import { CHANNEL_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
+import { MIRRORLAKE_TRAIL_HALF_WIDTH } from '@/game-core/world/mirrorlakeTerrain';
 import { isOnMapTerrain, MAPS, type MapId } from '@/game-core/world/maps';
 import { PATH_HALF_WIDTH, TERRAIN_SIZE, WATER_LEVEL } from '@/game-core/world/terrain';
 import { getTerrainGrid, sampleGrid } from '@/game-core/world/terrainGrid';
@@ -64,6 +65,21 @@ const STYLES: Readonly<Record<MapId, MapStyle>> = {
     water: null,
     shore: CHANNEL_WATER_LEVEL - 0.4,
     roadHalf: TRAIL_HALF_WIDTH,
+  },
+  // 澄鏡湖：大片湖水藍，沙岸與水草綠的草坡
+  mirrorlake: {
+    grassLow: hex('#9fcf9a'),
+    grassHigh: hex('#c4dfa8'),
+    rock: hex('#a9aca4'),
+    sand: hex('#efe0b0'),
+    shallow: hex('#9edcea'),
+    deep: hex('#4f9ec6'),
+    road: hex('#dcc08e'),
+    roadEdge: hex('#b39565'),
+    contour: hex('#5f8f72'),
+    water: WATER_LEVEL,
+    shore: WATER_LEVEL,
+    roadHalf: MIRRORLAKE_TRAIL_HALF_WIDTH,
   },
 };
 

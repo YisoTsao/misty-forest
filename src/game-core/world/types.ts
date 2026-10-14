@@ -21,6 +21,12 @@ export const regionIds = [
   'moss_glade',
   'root_maze',
   'moss_crown',
+  // 澄鏡湖（任務 9A，Bible §7.2）：湖岸（含淺水石徑）、湖畔營地、倒影蘆葦島、水鏡遺構、水鏡神殿
+  'lake_shore',
+  'lake_camp',
+  'reed_isle',
+  'mirror_ruins',
+  'mirror_temple',
 ] as const;
 export type RegionId = (typeof regionIds)[number];
 

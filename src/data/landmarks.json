@@ -21,5 +21,12 @@
   {"id": "dry_channel", "nameKey": "landmark.dryChannel", "icon": "water", "position": [2029.4, -100]},
   {"id": "root_maze", "nameKey": "landmark.rootMaze", "icon": "maze", "position": [2076, -74]},
   {"id": "moss_crown", "nameKey": "landmark.mossCrown", "icon": "mushroom", "position": [2100, 46]},
-  {"id": "lake_channel", "nameKey": "landmark.lakeChannel", "icon": "water", "position": [2007, 136], "requires": {"questCompleted": "quest_forest_003"}}
+  {"id": "lake_channel", "nameKey": "landmark.lakeChannel", "icon": "water", "position": [2007, 136], "requires": {"questCompleted": "quest_forest_003"}},
+  {"id": "mirrorlake_entry", "nameKey": "landmark.mirrorlakeEntry", "icon": "gate", "position": [3936, -138]},
+  {"id": "lake_camp", "nameKey": "landmark.lakeCamp", "icon": "camp", "position": [3888, 8]},
+  {"id": "moon_bridge", "nameKey": "landmark.moonBridge", "icon": "bridge", "position": [3998, -38]},
+  {"id": "reed_isle", "nameKey": "landmark.reedIsle", "icon": "forest", "position": [3998, -18]},
+  {"id": "sunken_bell", "nameKey": "landmark.sunkenBell", "icon": "ruins", "position": [3964, 44]},
+  {"id": "mirror_ruins", "nameKey": "landmark.mirrorRuins", "icon": "ruins", "position": [4018, 78]},
+  {"id": "mirror_temple", "nameKey": "landmark.mirrorTemple", "icon": "water", "position": [4046, 18]}
 ]

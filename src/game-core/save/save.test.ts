@@ -333,6 +333,23 @@ describe('版本遷移', () => {
     expect([...roundTrip(data).state.objects.values()]).toEqual([...state.objects.values()]);
   });
 
+  it('v14 存檔升到 v15：補上澄鏡湖的區域迷霧，兩張地圖的探索紀錄保留、澄鏡湖從空白開始（任務 9A）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const old = new Uint8Array((MAP_CELLS / 8) * 2);
+    old[0] = 0b1; // 晨曦谷地第 0 格
+    old[MAP_CELLS / 8] = 0b10; // 螢苔祕林第 1 格
+    const lakeRegions = ['lake_shore', 'lake_camp', 'reed_isle', 'mirror_ruins', 'mirror_temple'];
+    const mist = Object.fromEntries(Object.entries(current.mist).filter(([id]) => !lakeRegions.includes(id)));
+    const loaded = fromSaveData({ ...current, version: 14, mist: { ...mist, moss_crown: 'clear' }, map: { explored: encodeExplored(old) } }, ctx);
+    expect(loaded.warnings).toEqual([]);
+    expect(loaded.state.mist.moss_crown).toBe('clear');
+    expect(loaded.state.mist.mirror_temple).toBe('dense');
+    expect(loaded.state.mist.lake_shore).toBe('light');
+    expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
+    expect(isCellExplored(loaded.state.explored, MAP_CELLS + 1)).toBe(true);
+    expect(exploredRatio(loaded.state.explored, 'mirrorlake')).toBe(0);
+  });
+
   it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {
     const current = toSaveData(initialGameState(), player, new Date());
     const v13 = { ...current, version: 13, combat: { ...current.combat, defeatedBosses: undefined } };

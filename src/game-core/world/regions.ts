@@ -51,6 +51,12 @@ export const initialMistStages: MistStages = {
   moss_glade: 'light',
   root_maze: 'dense',
   moss_crown: 'dense',
+  // 澄鏡湖：營地與湖岸淡霧（湖面薄霧白），蘆葦島、遺構、神殿濃霧（第三章要逐步恢復）
+  lake_shore: 'light',
+  lake_camp: 'light',
+  reed_isle: 'dense',
+  mirror_ruins: 'dense',
+  mirror_temple: 'dense',
 };
 
 export function parseRegions(raw: unknown): RegionDef[] {

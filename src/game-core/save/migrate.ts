@@ -51,6 +51,16 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   12: (data) => data,
   // v13 → v14：加入已擊敗的頭目（任務 8D）；舊存檔還沒有頭目戰
   13: (data) => ({ ...data, combat: { ...(data.combat as Record<string, unknown>), defeatedBosses: [] } }),
+  // v14 → v15：加入澄鏡湖（任務 9A）的區域迷霧；探索紀錄在後面接上新地圖的空白格子（同 v11 → v12）
+  14: (data) => {
+    const map = data.map as { explored?: unknown } | undefined;
+    const old = typeof map?.explored === 'string' ? decodeExplored(map.explored) : null;
+    return {
+      ...data,
+      mist: { ...initialMistStages, ...(data.mist as Record<string, unknown>) },
+      map: { ...map, explored: encodeExplored(old ?? createExplored()) },
+    };
+  },
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */
