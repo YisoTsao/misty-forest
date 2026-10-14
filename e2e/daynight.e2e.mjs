@@ -148,6 +148,19 @@ await runE2e(
       await page.keyboard.press('Escape');
     });
 
+    await check('村屋窗燈（任務 7N）：白天不亮、夜晚亮起；村屋的材質都加上了窗燈', async () => {
+      // 前一項在酒館裡（室內固定是晚上的燈光），先回到戶外
+      await teleport(4, 30, 400);
+      await setClock(12);
+      await page.waitForTimeout(400);
+      assert.equal((await debug(() => window.__mistwoodDebug.windowGlow())).glow, 0);
+      await setClock(22);
+      await page.waitForTimeout(400);
+      const night = await debug(() => window.__mistwoodDebug.windowGlow());
+      assert.ok(night.glow > 0.9, JSON.stringify(night));
+      assert.ok(night.patched > 0 && night.compiled > 0, JSON.stringify(night));
+    });
+
     await check('存檔的遊玩秒數換算回同一個時刻（讀檔後時段一致）', async () => {
       await setClock(21.5);
       assert.equal(await debug(() => window.__mistwoodDebug.saveNow()), true);

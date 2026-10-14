@@ -5,7 +5,7 @@ import { worldIndex } from '@/game/authority';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { currentScreen } from '@/game/state/gameStore';
 import { LIGHTHOUSE_LAMP, lighthouseVisual } from '@/game/world/lighthouseRuntime';
-import { currentTimeLook } from '@/render/timeLook';
+import { currentTimeLook, nightAmount } from '@/render/timeLook';
 
 /** 光柱的長度與末端半徑（公尺）、旋轉速度（弧度 / 秒）、燈芯在燈籠室原點上方的高度 */
 const BEAM_LENGTH = 34;
@@ -90,7 +90,7 @@ function Beam() {
     }
     if (group.current) group.current.rotation.y = local.angle;
     // 白天淡淡的、夜晚明亮
-    material.uniforms.uOpacity!.value = (0.05 + 0.4 * currentTimeLook.glow) * local.appear;
+    material.uniforms.uOpacity!.value = (0.05 + 0.3 * nightAmount(currentTimeLook)) * local.appear;
   });
 
   const [x, y, z] = placement.position;

@@ -210,6 +210,14 @@ export function timeLook(hour: number, out: TimeLook): TimeLook {
   return out;
 }
 
+/**
+ * 夜晚的程度（0 白天 → 1 深夜）：以星星的可見度換算（glow 是黃昏的天空光暈，不是夜晚）。
+ * 給夜間才亮的東西用（任務 7N 村屋窗燈、燈塔光柱）。
+ */
+export function nightAmount(look: TimeLook): number {
+  return Math.min(1, Math.max(0, look.stars / 0.7));
+}
+
 /** 目前畫面使用的時段外觀：Lighting 每幀以 updateTimeLook 更新，mistLook 讀取。預設為白天。 */
 export const currentTimeLook = timeLook(8, createTimeLook());
 

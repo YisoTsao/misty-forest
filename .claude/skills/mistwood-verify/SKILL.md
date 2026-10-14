@@ -32,7 +32,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），39 個全跑
 | 怪物行為（盤旋、縮殼、吐泥，`enemyAi` 的 behavior）、程式造型怪物（`CritterEnemy`）、泥團 | `forestmobs`（改到共用 AI 時加 `combat`） | `--monsters --enemies=<id>` |
 | 建造（湖心島） | `build` | `--build` |
 | 酒館與室內子場景 | `tavern` | `--tavern` |
-| 日夜、天空、光照（`world/sky`、`GameClock`、`render/timeLook`） | `daynight` | `--daynight` |
+| 日夜、天空、光照（`world/sky`、`GameClock`、`render/timeLook`、村屋窗燈 `render/windowGlow`） | `daynight` | `--daynight` |
 | 環境生命（羊、炊煙、風車、告示板） | `ambient` | `--ambient` |
 | 音效與音樂 | `audio` | 不拍 |
 | 手把 | `gamepad` | `--gamepad` |

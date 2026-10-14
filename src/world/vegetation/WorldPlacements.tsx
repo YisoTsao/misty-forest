@@ -42,6 +42,7 @@ export function WorldPlacements({ data }: { data: WorldData }) {
             animate={prefab.animate}
             cullDistance={prefab.cullDistance}
             castShadow={prefab.castShadow}
+            nightWindows={prefab.nightWindows}
           />
         );
       })}

@@ -1,3 +1,4 @@
+import { windowGlowStats, windowGlowUniforms } from '@/render/windowGlow';
 import { growthStage } from '@/game-core/build/build';
 import { exploredRatio, isExploredAt } from '@/game-core/map/explore';
 import type { BossMoveId } from '@/game-core/combat/combat';
@@ -179,6 +180,8 @@ export type MistwoodDebugApi = {
   /** 直接打開商店 / 工作台（截圖用，任務 7H、7J） */
   openShop: (shop: string) => void;
   openCraft: (station: string) => void;
+  /** 村屋窗燈（任務 7N）：目前亮度、加上窗燈的材質數、已編譯的數量 */
+  windowGlow: () => { glow: number; patched: number; compiled: number };
   /** 建造物目前的成長階段（任務 7K 花圃；不會長大的為 0） */
   buildingStage: (id: string) => number | null;
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
@@ -430,6 +433,7 @@ export function installDebugApi(): void {
     lighthouseBeam: () => lighthouseVisual.beam,
     openShop: (shop) => useUiStore.getState().setShop(shop),
     openCraft: (station) => useUiStore.getState().setCraft(station),
+    windowGlow: () => ({ glow: windowGlowUniforms.uWindowGlow.value, ...windowGlowStats }),
     buildingStage: (id) => {
       const state = authority.getState();
       const b = state.buildings.find((x) => x.id === id);

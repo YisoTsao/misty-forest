@@ -9,6 +9,7 @@ import { buildProceduralModel, PROCEDURAL_PREFIX, type ModelPart } from '@/rende
 import { patchOcclusion } from '@/render/occlusion';
 import { recolorForPalette } from '@/render/palette';
 import { toToonMaterial } from '@/render/toon';
+import { patchWindowGlow } from '@/render/windowGlow';
 import { assetUrl } from '@/game/worldData';
 
 /**
@@ -169,6 +170,8 @@ type InstancedProps = {
   /** 超過這個距離的區塊不畫（省略時用 DEFAULT_CULL_DISTANCE） */
   cullDistance?: number;
   castShadow?: boolean;
+  /** 夜晚窗戶亮燈（任務 7N） */
+  nightWindows?: boolean;
 };
 
 /** 一般物件的最遠繪製距離：晴朗時的霧在 230 m 完全遮住，再遠畫了也看不到 */
@@ -187,9 +190,14 @@ export function InstancedPrefab(props: InstancedProps) {
 }
 
 function GltfInstanced(props: InstancedProps) {
+  const parts = useGltfParts(props.model, useMemo(() => props.animate?.map((a) => a.node) ?? NO_ANIMATION, [props.animate]));
+  // 村屋的窗戶：夜晚發光（材質是 useGltfParts 為這個元件建立的，加上 shader 修改不影響其他模型）
+  const nightWindows = props.nightWindows === true;
+  useMemo(() => {
+    if (nightWindows) for (const p of parts) patchWindowGlow(p.material);
+  }, [parts, nightWindows]);
   // Kenney Nature Kit 的大塊平面（樹冠、岩石）放大後接收陰影會出現條紋（shadow acne），只投影不接收
-  const animated = useMemo(() => props.animate?.map((a) => a.node) ?? NO_ANIMATION, [props.animate]);
-  return <InstancedParts {...props} parts={useGltfParts(props.model, animated)} receiveShadow={!props.model.includes('kenney-nature/')} />;
+  return <InstancedParts {...props} parts={parts} receiveShadow={!props.model.includes('kenney-nature/')} />;
 }
 
 function ProceduralInstanced(props: InstancedProps) {

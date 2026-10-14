@@ -310,6 +310,7 @@
   {
     "id": "house_small_blue",
     "model": "models/kaykit-hexagon/building_home_A_blue.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -334,6 +335,7 @@
   {
     "id": "house_small_yellow",
     "model": "models/kaykit-hexagon/building_home_A_yellow.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -358,6 +360,7 @@
   {
     "id": "house_tall_red",
     "model": "models/kaykit-hexagon/building_home_B_red.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -377,6 +380,7 @@
   {
     "id": "tavern",
     "model": "models/kaykit-hexagon/building_tavern_green.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -651,6 +655,7 @@
   {
     "id": "build_cottage",
     "model": "models/kaykit-hexagon/building_home_A_green.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2004,6 +2009,7 @@
   {
     "id": "house_small_red",
     "model": "models/kaykit-hexagon/building_home_A_red.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2028,6 +2034,7 @@
   {
     "id": "house_tall_yellow",
     "model": "models/kaykit-hexagon/building_home_B_yellow.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2047,6 +2054,7 @@
   {
     "id": "house_tall_blue",
     "model": "models/kaykit-hexagon/building_home_B_blue.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2066,6 +2074,7 @@
   {
     "id": "blacksmith",
     "model": "models/kaykit-hexagon/building_blacksmith_red.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2085,6 +2094,7 @@
   {
     "id": "lumbermill",
     "model": "models/kaykit-hexagon/building_lumbermill_yellow.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2104,6 +2114,7 @@
   {
     "id": "market",
     "model": "models/kaykit-hexagon/building_market_red.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
@@ -2118,6 +2129,7 @@
   {
     "id": "watermill",
     "model": "models/kaykit-hexagon/building_watermill_yellow.gltf",
+    "nightWindows": true,
     "collider": "static",
     "collision": {
       "shape": "box",
