@@ -65,6 +65,9 @@
   "cycleWeapon": [
     "KeyV"
   ],
+  "map": [
+    "KeyM"
+  ],
   "pause": [
     "Escape"
   ]

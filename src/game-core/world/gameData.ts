@@ -2,6 +2,7 @@ import { parseBuildables, type BuildableCatalog } from '../build/build';
 import { parseCombatData, type CombatData } from '../combat/combat';
 import { parseWeapons, type WeaponCatalog } from '../combat/weapons';
 import { parseSpells, type SpellCatalog } from '../combat/spells';
+import { parseLandmarks, type Landmark } from '../map/markers';
 import { parseCompanion, type CompanionDef } from '../companion/companion';
 import { conditionItemIds, conditionQuestIds } from '../dialogue/conditions';
 import { parseDialogues, type DialogueDef } from '../dialogue/dialogue';
@@ -30,6 +31,8 @@ export type GameData = WorldData & {
   weapons: WeaponCatalog;
   /** 魔法（GAME_DESIGN 5.4） */
   spells: SpellCatalog;
+  /** 世界地圖的地標（任務 7B） */
+  landmarks: readonly Landmark[];
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -50,6 +53,8 @@ export function parseGameData(raw: {
   ambient: unknown;
   weapons: unknown;
   spells: unknown;
+  /** 省略時沒有地標（測試用的最小資料） */
+  landmarks?: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -141,5 +146,11 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`spells 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells };
+  let landmarks: Landmark[];
+  try {
+    landmarks = parseLandmarks(raw.landmarks ?? []);
+  } catch (err) {
+    throw new WorldDataError(`landmarks 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks };
 }

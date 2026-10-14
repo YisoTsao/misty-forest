@@ -6,6 +6,7 @@ import { PLAYER_STATS, type CombatData } from '../combat/combat';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
+import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
 import { questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
@@ -40,6 +41,8 @@ export type GameState = {
   /** 已放置的建造物（規格 6.7）與下一個流水號 */
   readonly buildings: readonly Building[];
   readonly nextBuildingId: number;
+  /** 世界地圖的探索紀錄（Bible §31.3，存檔 v11）：只在 AreaExplored 事件時換新參照 */
+  readonly explored: Explored;
 };
 
 export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
@@ -59,6 +62,7 @@ export function initialGameState(): GameState {
     companion: { unlocked: false },
     buildings: [],
     nextBuildingId: 1,
+    explored: createExplored(),
   };
 }
 
@@ -93,6 +97,10 @@ export type GameCommand =
   | { type: 'PlaceBuilding'; buildable: string; x: number; z: number; yaw: number }
   /** 拆除建造物，退還材料 */
   | { type: 'RemoveBuilding'; buildingId: string }
+  /** 玩家走到 (x, z)：紀錄附近新看到的地圖格子（世界地圖的探索霧罩） */
+  | { type: 'ExploreArea'; x: number; z: number }
+  /** 除錯 / 截圖：整張地圖標為已探索（ctx.allowDebugCommands 為 true 時才接受） */
+  | { type: 'DebugRevealMap' }
   /** 回報任務：目標全部達成時交出物品、領取獎勵 */
   | { type: 'TurnInQuest'; quest: string }
   /** 除錯 / 美術驗收：直接設定區域的迷霧階段（ctx.allowDebugCommands 為 true 時才接受） */
@@ -159,6 +167,8 @@ export type GameEvent =
   | { type: 'CompanionUnlocked' }
   | { type: 'BuildingPlaced'; building: Building; cost: ItemStack[] }
   | { type: 'BuildingRemoved'; buildingId: string; refund: ItemStack[] }
+  /** 新探索的地圖格子（索引見 map/explore.ts） */
+  | { type: 'AreaExplored'; cells: number[] }
   | { type: 'CommandRejected'; command: GameCommand['type']; placementId?: string; reason: RejectReason };
 
 /** 規則需要的靜態資料與亂數來源（由呼叫端注入，規則本身不碰全域狀態） */
@@ -226,6 +236,14 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
     }
     case 'PlaceBuilding':
       return placeBuilding(state, cmd, ctx);
+    case 'ExploreArea': {
+      if (!Number.isFinite(cmd.x) || !Number.isFinite(cmd.z)) return reject('ExploreArea', 'invalid-command');
+      const cells = cellsToReveal(state.explored, cmd.x, cmd.z);
+      return cells.length > 0 ? [{ type: 'AreaExplored', cells }] : [];
+    }
+    case 'DebugRevealMap':
+      if (!ctx.allowDebugCommands) return reject('DebugRevealMap', 'not-allowed');
+      return [{ type: 'AreaExplored', cells: Array.from({ length: EXPLORE_CELLS }, (_, i) => i) }];
     case 'RemoveBuilding': {
       const building = state.buildings.find((b) => b.id === cmd.buildingId);
       const def = building && ctx.buildables.get(building.buildable);
@@ -483,7 +501,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId } = state;
+  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -595,11 +613,14 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         inventory = next;
         break;
       }
+      case 'AreaExplored':
+        explored = withCells(explored, e.cells);
+        break;
       case 'CommandRejected':
         break;
     }
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId };
+  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored };
 }

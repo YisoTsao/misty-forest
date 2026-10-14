@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { countItem, createInventory } from '../inventory/inventory';
 import { testContext } from '../testing/fixtures';
+import { exploredRatio, isExploredAt } from '../map/explore';
 import { canInteract } from '../world/objects';
 import { clockAt, secondsUntilHour } from '../world/timeOfDay';
 import { applyEvents, handleCommand, initialGameState, RESPAWN_CLEARANCE, type GameCommand, type GameState } from './rules';
@@ -155,6 +156,30 @@ describe('AdvanceTutorial', () => {
     expect(rejectReason(s, { type: 'AdvanceTutorial', from: 'harvest' })).toBe('tutorial-mismatch');
     const done = { ...s, tutorial: 'done' as const };
     expect(rejectReason(done, { type: 'AdvanceTutorial', from: 'done' })).toBe('tutorial-mismatch');
+  });
+});
+
+describe('ExploreArea / DebugRevealMap（世界地圖，任務 7B）', () => {
+  it('走到某處揭開附近的格子；同一處再送一次不產生事件', () => {
+    const { events, state } = run(initialGameState(), { type: 'ExploreArea', x: 0, z: 18 });
+    expect(events).toHaveLength(1);
+    expect(events[0]?.type).toBe('AreaExplored');
+    expect(isExploredAt(state.explored, 0, 18)).toBe(true);
+    expect(isExploredAt(state.explored, 100, 100)).toBe(false);
+    expect(handleCommand(state, { type: 'ExploreArea', x: 0, z: 18 }, ctx)).toEqual([]);
+    // 沒有新格子時探索紀錄的參照不變（selector 不必重算）
+    expect(applyEvents(state, [], ctx).explored).toBe(state.explored);
+  });
+
+  it('無效座標拒絕', () => {
+    expect(rejectReason(initialGameState(), { type: 'ExploreArea', x: Number.NaN, z: 0 })).toBe('invalid-command');
+  });
+
+  it('除錯指令揭開整張地圖；不允許時拒絕', () => {
+    expect(rejectReason(initialGameState(), { type: 'DebugRevealMap' })).toBe('not-allowed');
+    const debugCtx = { ...ctx, allowDebugCommands: true };
+    const events = handleCommand(initialGameState(), { type: 'DebugRevealMap' }, debugCtx);
+    expect(exploredRatio(applyEvents(initialGameState(), events, debugCtx).explored)).toBe(1);
   });
 });
 

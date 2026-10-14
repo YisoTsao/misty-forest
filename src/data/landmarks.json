@@ -1,0 +1,17 @@
+[
+  {"id": "spawn", "nameKey": "landmark.spawn", "icon": "spawn", "position": [0, 18]},
+  {"id": "village", "nameKey": "landmark.village", "icon": "village", "position": [-11, -34]},
+  {"id": "tavern", "nameKey": "landmark.tavern", "icon": "tavern", "position": [-2.5, -30]},
+  {"id": "workshop", "nameKey": "landmark.workshop", "icon": "smith", "position": [-33, -52]},
+  {"id": "lake_bridge", "nameKey": "landmark.lakeBridge", "icon": "bridge", "position": [25.5, 8]},
+  {"id": "home_island", "nameKey": "landmark.home", "icon": "home", "position": [37.5, 8]},
+  {"id": "forest_edge", "nameKey": "landmark.forest", "icon": "forest", "position": [62, -60]},
+  {"id": "lighthouse", "nameKey": "landmark.lighthouse", "icon": "lighthouse", "position": [-34, -126]},
+  {"id": "farm", "nameKey": "landmark.farm", "icon": "windmill", "position": [-106, -40]},
+  {"id": "river_bridge", "nameKey": "landmark.riverBridge", "icon": "bridge", "position": [100, -1]},
+  {"id": "watermill", "nameKey": "landmark.watermill", "icon": "mill", "position": [94.5, 30]},
+  {"id": "ruins", "nameKey": "landmark.ruins", "icon": "ruins", "position": [60, 104]},
+  {"id": "stargaze", "nameKey": "landmark.stargaze", "icon": "peak", "position": [-88, 92]},
+  {"id": "south_camp", "nameKey": "landmark.southCamp", "icon": "camp", "position": [16, 120]},
+  {"id": "highland_camp", "nameKey": "landmark.highlandCamp", "icon": "camp", "position": [24, -128]}
+]

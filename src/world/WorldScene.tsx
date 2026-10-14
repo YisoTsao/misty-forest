@@ -13,6 +13,7 @@ import { AudioSystem } from './AudioSystem';
 import { GameClock } from './GameClock';
 import { TutorialSystem } from './TutorialSystem';
 import { RegionTracker } from './RegionTracker';
+import { MapExplorer } from './MapExplorer';
 import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
@@ -93,6 +94,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <GameClock />
         <TutorialSystem />
         <RegionTracker />
+        <MapExplorer />
         <BoundaryWatcher />
         <PlayerCombat />
         <PlayerSpells />

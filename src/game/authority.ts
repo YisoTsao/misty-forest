@@ -10,6 +10,7 @@ import type { BuildableCatalog } from '@/game-core/build/build';
 import type { InteriorDef } from '@/game-core/world/interiors';
 import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
+import type { Landmark } from '@/game-core/map/markers';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
 import { worldDataResult } from './worldData';
@@ -34,6 +35,7 @@ const data = worldDataResult.ok
       flocks: [] as FlockDef[],
       weapons: { weapons: new Map(), moves: new Map() } as WeaponCatalog,
       spells: new Map() as SpellCatalog,
+      landmarks: [] as Landmark[],
     };
 
 /** NPC 與對話資料 */
@@ -50,6 +52,9 @@ export const spells: SpellCatalog = data.spells;
 export const interiors: ReadonlyMap<string, InteriorDef> = data.interiors;
 /** 羊群的牧草地（環境動畫） */
 export const flocks: readonly FlockDef[] = data.flocks;
+
+/** 世界地圖的地標（任務 7B） */
+export const landmarks: readonly Landmark[] = data.landmarks;
 
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;

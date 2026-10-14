@@ -6,6 +6,7 @@ import { PLAYER_STATS, type CombatData } from '../combat/combat';
 import { MAX_MP } from '../combat/spells';
 import { createInventory, type InventorySlot } from '../inventory/inventory';
 import type { ItemCatalog } from '../items/items';
+import { createExplored, decodeExplored, encodeExplored } from '../map/explore';
 import type { WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 import { SAVE_VERSION, saveDataSchema, type SaveData } from './schema';
@@ -46,6 +47,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     companion: { ...state.companion },
     build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
     loadout: { weapon: state.player.weapon },
+    map: { explored: encodeExplored(state.explored) },
   };
 }
 
@@ -92,6 +94,12 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
     enemies.set(e.id, { ...e });
   }
 
+  let explored = decodeExplored(data.map.explored);
+  if (!explored) {
+    warnings.push('世界地圖的探索紀錄格式不符（地圖大小可能改變），重新開始紀錄');
+    explored = createExplored();
+  }
+
   return {
     state: {
       time: data.world.time,
@@ -116,6 +124,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
         return false;
       }),
       nextBuildingId: data.build.nextBuildingId,
+      explored,
     },
     player: data.player,
     savedAt: data.savedAt,

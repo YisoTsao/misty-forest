@@ -8,6 +8,7 @@ import { loadWithFallback } from './load';
 import { MemoryStorage } from './memoryStorage';
 import { migrateSave, SaveFormatError, type Migration } from './migrate';
 import { SAVE_VERSION, type SaveData } from './schema';
+import { createExplored, exploredRatio, withCells } from '../map/explore';
 
 const ctx = testContext();
 const player = { position: { x: 1.5, y: 0.9, z: -3 }, facingYaw: 0.7 };
@@ -262,6 +263,36 @@ describe('版本遷移', () => {
     expect(loaded.mist.farmland).toBe(initialGameState().mist.farmland);
     expect(loaded.mist.river).toBe(initialGameState().mist.river);
     expect(loaded.player).toMatchObject({ hp: 80, weapon: 'knife', mp: 50 });
+  });
+
+  it('實際的 v10 存檔：遷移後探索紀錄是空白的，其餘內容不變', () => {
+    const v10 = {
+      version: 10,
+      savedAt: '2026-10-14T09:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 42, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: initialGameState().mist,
+      quests: {},
+      combat: { hp: 80, enemies: [], spawners: {}, mp: 50 },
+      companion: { unlocked: true },
+      build: { buildings: [], nextBuildingId: 1 },
+      loadout: { weapon: 'knife' },
+    };
+    const loaded = fromSaveData(v10, ctx);
+    expect(exploredRatio(loaded.state.explored)).toBe(0);
+    expect(loaded.warnings).toEqual([]);
+    expect(loaded.state.player).toMatchObject({ hp: 80, weapon: 'knife' });
+  });
+
+  it('探索紀錄寫入存檔並讀回；格式不符時重新開始並回報', () => {
+    const state = { ...initialGameState(), explored: withCells(createExplored(), [3, 99, 1200]) };
+    const data = toSaveData(state, player, new Date());
+    expect(roundTrip(data).state.explored).toEqual(state.explored);
+    const broken = fromSaveData({ ...data, map: { explored: 'AAAA' } }, ctx);
+    expect(exploredRatio(broken.state.explored)).toBe(0);
+    expect(broken.warnings.length).toBe(1);
   });
 
   it('建造物寫入存檔並讀回（類型、位置、旋轉）', () => {

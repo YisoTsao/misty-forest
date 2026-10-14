@@ -1,3 +1,6 @@
+import { exploredRatio, isExploredAt } from '@/game-core/map/explore';
+import { setWorldMapOpen } from '@/ui/map/WorldMap';
+import { currentQuestMarkers } from '@/ui/map/mapDraw';
 import { requiredClipKeys, type ClipKey } from '@/game-core/character/characterDef';
 import type { FlowAction, GameScreen } from '@/game-core/flow/gameFlow';
 import { parseMistLevel, type MistStage } from '@/game-core/world/mist';
@@ -77,6 +80,12 @@ export type MistwoodDebugApi = {
   setMistStage: (region: RegionId, stage: MistStage) => void;
   /** 各區域的迷霧階段 */
   mistStages: () => Record<RegionId, MistStage>;
+  /** 世界地圖（任務 7B）：已探索比例、某處是否已探索、整張地圖標為已探索、開關地圖、目前的任務標記 */
+  mapExplored: () => number;
+  isExplored: (x: number, z: number) => boolean;
+  revealMap: () => void;
+  setMapOpen: (open: boolean) => void;
+  questMarkers: () => { questId: string; kind: string; x: number; z: number }[];
   /** 玩家目前所在區域 */
   region: () => RegionId;
   /** 近戰（GAME_DESIGN 5.3）：裝備、手上顯示的武器、連段、重擊冷卻、目前的招式動畫 */
@@ -247,6 +256,11 @@ export function installDebugApi(): void {
     },
     setMistStage: (region, stage) => authority.send({ type: 'DebugSetMistStage', region, stage }),
     mistStages: () => ({ ...authority.getState().mist }),
+    mapExplored: () => exploredRatio(authority.getState().explored),
+    isExplored: (x, z) => isExploredAt(authority.getState().explored, x, z),
+    revealMap: () => authority.send({ type: 'DebugRevealMap' }),
+    setMapOpen: (open) => setWorldMapOpen(open),
+    questMarkers: () => currentQuestMarkers(authority.getState()).map(({ questId, kind, x, z }) => ({ questId, kind, x, z })),
     region: () => regionAt(regions, playerRuntime.position.x, playerRuntime.position.z),
     magic: () => ({
       mp: authority.getState().player.mp,

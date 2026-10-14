@@ -4,6 +4,7 @@
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
 //   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
 //   --daynight：日夜：三個書籤 × 06 / 12 / 18 / 21 / 00 時、夜晚迷霧、夜晚草原（螢火蟲、月亮）、日出與夕陽（任務 6B）
@@ -46,6 +47,7 @@ const withBounds = flags.has('--bounds');
 const withDaynight = flags.has('--daynight');
 const withMelee = flags.has('--melee');
 const withMagic = flags.has('--magic');
+const withMap = flags.has('--map');
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
@@ -207,6 +209,50 @@ try {
     await page.waitForTimeout(700);
     await shot('tavern_molly');
     await page.keyboard.press('Escape');
+  }
+
+  if (withMap) {
+    const go = async (name, x, z, fx, fz, wait = 1500) => {
+      await page.evaluate(
+        ([px, pz, tx, tz]) => {
+          const d = window.__mistwoodDebug;
+          d.setCameraMode('follow');
+          d.teleport(px, pz);
+          d.face(tx, tz);
+          d.camera({ yaw: Math.atan2(px - tx, pz - tz), pitch: 0.32, distance: 7 });
+        },
+        [x, z, fx, fz],
+      );
+      await page.waitForTimeout(wait);
+      if (name) await shot(name);
+    };
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+    });
+    // 走過幾個地方（村莊、湖、農田），世界地圖上只有這些地方揭開
+    await go(null, 0, 10, 0, 0, 900);
+    await go(null, 30, -12, 34, 8, 900);
+    await go('map_minimap_village', -8, -22, -11, -34);
+    await go('map_minimap_farm', -78, -24, -86, -28);
+    await page.evaluate(() => window.__mistwoodDebug.setMapOpen(true));
+    await page.waitForTimeout(800);
+    await shot('map_world_partial');
+    await page.evaluate(() => window.__mistwoodDebug.setMapOpen(false));
+    await page.evaluate(() => window.__mistwoodDebug.revealMap());
+    await page.evaluate(() => window.__mistwoodDebug.setMapOpen(true));
+    await page.waitForTimeout(800);
+    await shot('map_world_full');
+    const canvas = page.locator('[data-testid="world-map-canvas"]');
+    const box = await canvas.boundingBox();
+    if (box) {
+      await page.mouse.move(box.x + box.width * 0.35, box.y + box.height * 0.4);
+      for (let i = 0; i < 4; i++) await page.mouse.wheel(0, -120);
+      await page.waitForTimeout(500);
+      await shot('map_world_zoom');
+    }
+    await page.evaluate(() => window.__mistwoodDebug.setMapOpen(false));
   }
 
   if (withAmbient) {

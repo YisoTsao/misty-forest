@@ -16,6 +16,8 @@ import { ErrorOverlay } from '@/ui/ErrorOverlay';
 import { FatalScreen } from '@/ui/FatalScreen';
 import { InteractPrompt } from '@/ui/InteractPrompt';
 import { InventoryPanel } from '@/ui/InventoryPanel';
+import { Minimap } from '@/ui/map/Minimap';
+import { WorldMap } from '@/ui/map/WorldMap';
 import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { PauseMenu } from '@/ui/PauseMenu';
@@ -62,6 +64,7 @@ export function App() {
       <TutorialPanel />
       <RegionBanner />
       <QuestTracker />
+      <Minimap />
       <ControlHint />
       {debugEnabled && (
         <>
@@ -76,6 +79,7 @@ export function App() {
       <LocationFade />
       <TitleScreen />
       <PauseMenu />
+      <WorldMap />
       <SettingsPanel />
       <ErrorOverlay />
     </div>

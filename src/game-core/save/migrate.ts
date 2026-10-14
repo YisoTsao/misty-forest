@@ -2,6 +2,7 @@
 import { PLAYER_STATS } from '../combat/combat';
 import { DEFAULT_WEAPON } from '../combat/weapons';
 import { MAX_MP } from '../combat/spells';
+import { createExplored, encodeExplored } from '../map/explore';
 import { initialMistStages } from '../world/regions';
 import { SAVE_VERSION } from './schema';
 
@@ -34,6 +35,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   8: (data) => ({ ...data, combat: { ...(data.combat as Record<string, unknown>), mp: MAX_MP } }),
   // v9 → v10：地圖擴大（任務 7A）新增高地、農田、溪流區域；既有區域的迷霧保留，缺少的補上新遊戲的初始值
   9: (data) => ({ ...data, mist: { ...initialMistStages, ...(data.mist as Record<string, unknown>) } }),
+  // v10 → v11：加入世界地圖的探索紀錄（任務 7B）；舊存檔從空白開始，讀檔後玩家附近立刻標為已探索
+  10: (data) => ({ ...data, map: { explored: encodeExplored(createExplored()) } }),
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */
