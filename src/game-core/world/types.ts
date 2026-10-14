@@ -5,7 +5,7 @@ export type Vec3 = [number, number, number];
 
 const vec3 = z.tuple([z.number(), z.number(), z.number()]);
 
-export const regionIds = ['meadow', 'village', 'forest', 'lake', 'home', 'overlook', 'ruins'] as const;
+export const regionIds = ['meadow', 'village', 'forest', 'lake', 'home', 'overlook', 'ruins', 'highland', 'farmland', 'river'] as const;
 export type RegionId = (typeof regionIds)[number];
 
 /**

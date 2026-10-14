@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { _electron as electron } from 'playwright';
 import { appEnv, focusGame, tempSaveDir } from './lib.mjs';
-import { terrainHeight } from '../src/game-core/world/terrain.ts';
+import { cliffZ, terrainHeight } from '../src/game-core/world/terrain.ts';
 
 const app = await electron.launch({ args: ['.'], env: appEnv({ MISTWOOD_START_QUERY: 'debug=1&play=1', MISTWOOD_SAVE_DIR: tempSaveDir() }) });
 const results = [];
@@ -137,15 +137,18 @@ try {
   });
 
   await check('攝影機背後是陡坡時自動拉近，不鑽進地面', async () => {
-    // 地圖東緣是往外升高的丘陵；攝影機放在東側、低仰角、最遠距離，沒有避讓就會在地底
-    await page.evaluate(() => window.__mistwoodDebug.teleport(62, 0));
-    await camera({ yaw: Math.PI / 2, pitch: -0.1, distance: 12 });
+    // 北方高地的懸崖（任務 7A）：角色站在崖腳南側，攝影機放在北側（崖面裡）、低仰角、最遠距離，沒有避讓就會在地底
+    const px = -60;
+    const pz = cliffZ(px) + 7;
+    await page.evaluate(([x, z]) => window.__mistwoodDebug.teleport(x, z), [px, pz]);
+    await camera({ yaw: Math.PI, pitch: -0.1, distance: 12 });
     await wait(1500);
     const c = await camera();
     const p = await state();
-    const naiveX = p.x + 12 * Math.cos(-0.1);
+    const naiveX = p.x + 12 * Math.cos(-0.1) * Math.sin(Math.PI);
+    const naiveZ = p.z + 12 * Math.cos(-0.1) * Math.cos(Math.PI);
     const naiveY = p.y + 0.55 + 12 * Math.sin(-0.1);
-    assert.ok(naiveY < terrainHeight(naiveX, p.z), '測試前提不成立：未避讓的位置本來就在地面上');
+    assert.ok(naiveY < terrainHeight(naiveX, naiveZ), '測試前提不成立：未避讓的位置本來就在地面上');
     const clearance = c.y - terrainHeight(c.x, c.z);
     assert.ok(clearance > 0.05, `攝影機低於地面 ${clearance.toFixed(3)}`);
     const dist = Math.hypot(c.x - p.x, c.y - (p.y + 0.55), c.z - p.z);
@@ -154,31 +157,31 @@ try {
 
   await check('掉出地圖後回到最近的安全點（不是出生點），且站在地面上', async () => {
     await camera({ yaw: 0, pitch: 0.35, distance: 6 });
-    // 從東側沿 z = 0 走到東邊的邊界牆（任務 6A：走不出去），沿途記錄安全點；
+    // 從溪東岸的小路沿 z = 5 走到東邊的邊界牆（任務 6A：走不出去；任務 7A 地圖擴大到 ±148），沿途記錄安全點；
     // 再以除錯傳送到地圖邊緣之外模擬掉落，應回到東緣內側
-    await page.evaluate(() => window.__mistwoodDebug.teleport(60, 0));
+    await page.evaluate(() => window.__mistwoodDebug.teleport(126, 5));
     await wait(600);
     const before = await state();
     await page.keyboard.down('ShiftLeft');
     await page.keyboard.down('KeyD');
     // 跑到牆邊為止（機器忙碌、幀率低時跑得比較慢，不用固定秒數）
-    await page.waitForFunction(() => window.__mistwoodDebug.playerState().x > 72, null, { timeout: 8000 }).catch(() => {});
+    await page.waitForFunction(() => window.__mistwoodDebug.playerState().x > 146, null, { timeout: 8000 }).catch(() => {});
     await wait(600);
     await page.keyboard.up('KeyD');
     await page.keyboard.up('ShiftLeft');
     await wait(500);
     const atWall = await state();
     assert.equal(atWall.respawnCount, before.respawnCount, '走到邊界時不應掉落');
-    assert.ok(atWall.x > 70 && atWall.x < 74, `沒有停在東邊界：x=${atWall.x.toFixed(2)}`);
-    await page.evaluate(() => window.__mistwoodDebug.teleport(86, 0));
+    assert.ok(atWall.x > 144 && atWall.x < 148, `沒有停在東邊界：x=${atWall.x.toFixed(2)}`);
+    await page.evaluate(() => window.__mistwoodDebug.teleport(170, 5));
     await page.waitForFunction((n) => window.__mistwoodDebug.playerState().respawnCount > n, before.respawnCount, {
       timeout: 10_000,
     });
     await wait(800);
     const s = await state();
     assert.equal(s.grounded, true, '重置後沒有站在地面上');
-    assert.ok(s.x > 60 && s.x <= 74.5, `重置位置 x=${s.x.toFixed(2)}（應在東緣內側，非出生點）`);
-    assert.ok(Math.abs(s.z) < 2, `重置位置 z=${s.z.toFixed(2)}`);
+    assert.ok(s.x > 126 && s.x <= 148.5, `重置位置 x=${s.x.toFixed(2)}（應在東緣內側，非出生點）`);
+    assert.ok(Math.abs(s.z - 5) < 2, `重置位置 z=${s.z.toFixed(2)}`);
     const clearance = s.y - 0.78 - terrainHeight(s.x, s.z);
     assert.ok(clearance > -0.1 && clearance < 0.3, `腳底與地面距離 ${clearance.toFixed(3)}`);
   });

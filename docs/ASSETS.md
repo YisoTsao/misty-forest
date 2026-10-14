@@ -16,10 +16,12 @@
 | 村莊雜物：fence_wood_straight、barrel、crate_A_big / small、wheelbarrow、resource_lumber、sack、bucket_water | `public/models/kaykit-hexagon/` | 同上 | CC0 1.0 | 可 | 可（不強制署名） | 柵欄牧場、木桶、木箱等生活感細節（規格 4.3） | 正式使用 |
 | 樹樁：tree_single_A_cut、tree_single_B_cut | `public/models/kaykit-hexagon/` | 同上（KayKit Medieval Hexagon Pack 1.0） | CC0 1.0 | 可 | 可（不強制署名） | 砍樹後留下的樹樁（任務 2A） | 正式使用 |
 | 雲：cloud_big、cloud_small | `public/models/kaykit-hexagon/` | 同上 | CC0 1.0 | 可 | 可（不強制署名） | 天空中緩慢飄移的雲 | 正式使用 |
+| 晨曦谷地擴大的建築與雜物：building_home_A_red / home_B_yellow / home_B_blue、blacksmith_red、lumbermill_yellow、market_red、watermill_yellow、grain、tower_A_blue（晨曦燈塔暫用）、destroyed、windmill_blue、stage_A、tent、target、fence_stone_straight、crate_long_A、crate_open、pallet、weaponrack、resource_stone、waterlily_A、waterplant_A、rock_single_D / E、flag_yellow / blue | `public/models/kaykit-hexagon/` | KayKit Medieval Hexagon Pack 1.0（同上，[GitHub](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)） | CC0 1.0 | 可 | 可（不強制署名） | 西坊農田聚落、晨曦燈塔、溪邊水車、波木木工坊、鐵匠鋪、營地、遺跡廢屋、踏腳石（任務 7A） | 正式使用 |
+| 自然素材 72 個：樹（oak / default / detailed / fat / plateau / pine / cone / tall / blocks / simple，含秋色與暗色變體）、樹樁、灌木、草叢、小花、蘑菇、倒木與木柴堆、大岩石與岩柱、石柱 / 方尖碑 / 石環 / 石像、作物與泥土畦、柵欄、帳篷、營火、陶罐、獨木舟、睡蓮 | `public/models/kenney-nature/` | Kenney Nature Kit 2.1（kenney.nl，[下載](https://kenney.nl/assets/nature-kit)） | CC0 1.0（授權檔同目錄 `LICENSE.txt`） | 可 | 可（不強制署名） | 晨曦谷地擴大後各區域的植被、遺跡、農田與營地（任務 7A）；材質色依名稱換成本專案色票（`render/palette.ts`） | 正式使用 |
 | 寶箱（chest） | `public/models/props/kaykit-dungeon/chest.glb` | KayKit Dungeon Remastered 1.0，Kay Lousberg；取自 [GitHub](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0) | CC0 1.0（授權檔同目錄 `LICENSE.txt`） | 可 | 可（不強制署名） | 可互動寶箱（含可動的蓋子節點 `chest_lid`） | 正式使用 |
 
 | 音效（腳步、砍樹、敲石頭、拾取、寶箱、任務、建造、戰鬥、介面等 46 個） | `public/audio/kenney/` | Kenney：RPG Audio、Impact Sounds、Interface Sounds（kenney.nl） | CC0 1.0（授權檔同目錄 `License_*.txt`） | 可 | 可（不強制署名） | 音效（`game/audio/sounds.ts`） | 正式使用 |
 
-程式產生（不需授權）：環境音（風、鳥叫、迷霧嗡鳴、水聲）與背景音樂（Web Audio 合成，`game/audio/audioEngine.ts`）、地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火、酒館室內（牆、地板、壁爐）與門墊（`render/proceduralModels.ts`）、迷霧噗啾（迷霧生物）、星光夥伴芽芽、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層；地圖邊界迷霧牆（任務 6A）；太陽、月亮與月相、星空、螢火蟲、夜晚燈光光暈、蟲鳴（任務 6B）；揮砍拖尾、命中火花與衝擊塵（任務 6C）。
+程式產生（不需授權）：環境音（風、鳥叫、迷霧嗡鳴、水聲）與背景音樂（Web Audio 合成，`game/audio/audioEngine.ts`）、地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火、酒館室內（牆、地板、壁爐）與門墊（`render/proceduralModels.ts`）、迷霧噗啾（迷霧生物）、星光夥伴芽芽、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層、湖與溪共用的水面與水深貼圖（任務 7A）；地圖邊界迷霧牆（任務 6A）；太陽、月亮與月相、星空、螢火蟲、夜晚燈光光暈、蟲鳴（任務 6B）；揮砍拖尾、命中火花與衝擊塵（任務 6C）。
 
 參考圖請放在 `docs/art/reference/`（目前尚未提供）。

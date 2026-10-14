@@ -32,6 +32,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   7: (data) => ({ ...data, loadout: { weapon: DEFAULT_WEAPON } }),
   // v8 → v9：加入星光值（魔法，GAME_DESIGN 5.4）；v8 時還沒有魔法，給滿
   8: (data) => ({ ...data, combat: { ...(data.combat as Record<string, unknown>), mp: MAX_MP } }),
+  // v9 → v10：地圖擴大（任務 7A）新增高地、農田、溪流區域；既有區域的迷霧保留，缺少的補上新遊戲的初始值
+  9: (data) => ({ ...data, mist: { ...initialMistStages, ...(data.mist as Record<string, unknown>) } }),
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

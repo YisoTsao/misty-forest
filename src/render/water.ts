@@ -1,18 +1,47 @@
 import * as THREE from 'three';
-import { ISLAND, LAKE } from '@/game-core/world/terrain';
+import { TERRAIN_SIZE, WATER_LEVEL } from '@/game-core/world/terrain';
+import { getTerrainGrid, sampleGrid } from '@/game-core/world/terrainGrid';
 import { patchMist } from './mist';
 import { palette } from './palette';
 import { toonGradient } from './toon';
 
+/** 水深貼圖的解析度（覆蓋整張地形）與記錄的最大水深（公尺） */
+const DEPTH_RES = 256;
+const DEPTH_MAX = 4;
+
 /**
- * 湖面（規格 4.3：水面波紋）。不用反射與深度貼圖，以手繪感的色帶表現：
- * - 深淺：依到湖岸與小島的距離（與地形同一組湖泊參數）混合深水與淺水色。
+ * 水深貼圖：由 terrainHeight 取樣「水面到地面的深度」，水面 shader 以此決定深淺色與岸邊泡沫。
+ * 湖、溪、淺灘都適用，不需要為每個水域另外寫參數。8 bit 就夠（解析度約 1.6 cm）。
+ */
+export function createWaterDepthTexture(): THREE.DataTexture {
+  const data = new Uint8Array(DEPTH_RES * DEPTH_RES);
+  const grid = getTerrainGrid();
+  for (let j = 0; j < DEPTH_RES; j++) {
+    const z = ((j + 0.5) / DEPTH_RES - 0.5) * TERRAIN_SIZE;
+    for (let i = 0; i < DEPTH_RES; i++) {
+      const x = ((i + 0.5) / DEPTH_RES - 0.5) * TERRAIN_SIZE;
+      const depth = WATER_LEVEL - sampleGrid(grid, grid.height, x, z);
+      data[j * DEPTH_RES + i] = Math.round(Math.min(1, Math.max(0, depth / DEPTH_MAX)) * 255);
+    }
+  }
+  const tex = new THREE.DataTexture(data, DEPTH_RES, DEPTH_RES, THREE.RedFormat, THREE.UnsignedByteType);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.generateMipmaps = false;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/**
+ * 水面（規格 4.3：水面波紋）。不用反射，以手繪感的色帶表現：
+ * - 深淺：依水深貼圖（湖、溪共用）混合深水與淺水色。
  * - 波紋：兩組緩慢移動的雜訊線條提亮；岸邊一圈隨時間起伏的白色泡沫。
  * 透明度低，看得到淺水處的沙岸。所有水面共用 uTime（由 Water 元件每幀更新）。
  */
 export const waterUniforms = { uTime: { value: 0 } };
 
-export function createWaterMaterial(): THREE.MeshToonMaterial {
+export function createWaterMaterial(depthTexture: THREE.Texture): THREE.MeshToonMaterial {
   const material = new THREE.MeshToonMaterial({
     gradientMap: toonGradient(),
     color: '#ffffff',
@@ -25,8 +54,8 @@ export function createWaterMaterial(): THREE.MeshToonMaterial {
     uDeep: { value: new THREE.Color(palette.waterDeep) },
     uShallow: { value: new THREE.Color(palette.waterShallow) },
     uFoam: { value: new THREE.Color(palette.waterFoam) },
-    uLake: { value: new THREE.Vector3(LAKE.x, LAKE.z, LAKE.radius) },
-    uIsland: { value: new THREE.Vector3(ISLAND.x, ISLAND.z, ISLAND.radius) },
+    uDepthTex: { value: depthTexture },
+    uDepthScale: { value: new THREE.Vector2(1 / TERRAIN_SIZE, DEPTH_MAX) },
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -41,8 +70,8 @@ export function createWaterMaterial(): THREE.MeshToonMaterial {
         uniform vec3 uDeep;
         uniform vec3 uShallow;
         uniform vec3 uFoam;
-        uniform vec3 uLake;
-        uniform vec3 uIsland;
+        uniform sampler2D uDepthTex;
+        uniform vec2 uDepthScale;
         varying vec2 vWaterXZ;
         float wHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float wNoise(vec2 p) {
@@ -54,8 +83,10 @@ export function createWaterMaterial(): THREE.MeshToonMaterial {
         '#include <color_fragment>',
         `#include <color_fragment>
         {
-          // 到岸邊的距離（正值 = 離岸越遠越深）
-          float toShore = min(uLake.z - 0.6 - distance(vWaterXZ, uLake.xy), distance(vWaterXZ, uIsland.xy) - uIsland.z - 1.4);
+          // 水深（公尺）：岸邊為 0；toShore 換算成與舊版相近的「離岸距離」，泡沫寬度不變
+          float waterDepth = texture2D(uDepthTex, vWaterXZ * uDepthScale.x + 0.5).r * uDepthScale.y;
+          if (waterDepth <= 0.0) discard;
+          float toShore = waterDepth * 2.2;
           float depth = smoothstep(0.0, 5.0, toShore);
           vec3 col = mix(uShallow, uDeep, depth);
           // 波紋：兩組方向不同、緩慢流動的細線

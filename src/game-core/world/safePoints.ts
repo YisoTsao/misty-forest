@@ -23,7 +23,7 @@ export type SafePointOptions = {
 };
 
 export const defaultSafePointOptions: SafePointOptions = {
-  halfExtent: 80,
+  halfExtent: 154,
   edgeMargin: 6,
   minSpacing: 2,
   settleTime: 0.3,

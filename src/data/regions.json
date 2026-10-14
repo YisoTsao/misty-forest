@@ -1,9 +1,12 @@
 [
   {"id": "meadow", "nameKey": "region.meadow"},
   {"id": "village", "nameKey": "region.village", "area": {"center": [-11, -34], "radius": 19, "blend": 8}},
-  {"id": "forest", "nameKey": "region.forest", "area": {"center": [60, -58], "radius": 26, "blend": 12}},
+  {"id": "forest", "nameKey": "region.forest", "area": {"center": [66, -66], "radius": 32, "blend": 12}},
   {"id": "lake", "nameKey": "region.lake", "area": {"center": [34, 8], "radius": 19, "blend": 8}},
   {"id": "home", "nameKey": "region.home", "area": {"center": [37.5, 8], "radius": 6, "blend": 3}},
-  {"id": "overlook", "nameKey": "region.overlook"},
-  {"id": "ruins", "nameKey": "region.ruins"}
+  {"id": "overlook", "nameKey": "region.overlook", "area": {"center": [-88, 92], "radius": 26, "blend": 10}},
+  {"id": "ruins", "nameKey": "region.ruins", "area": {"center": [60, 104], "radius": 22, "blend": 10}},
+  {"id": "highland", "nameKey": "region.highland", "area": {"center": [-40, -128], "radius": 52, "blend": 16}},
+  {"id": "farmland", "nameKey": "region.farmland", "area": {"center": [-86, -28], "radius": 30, "blend": 10}},
+  {"id": "river", "nameKey": "region.river", "area": {"center": [100, 30], "path": [[118, -122], [104, -92], [108, -58], [98, -24], [100, 0], [106, 30], [96, 62], [100, 96], [92, 130]], "radius": 11, "blend": 6}}
 ]

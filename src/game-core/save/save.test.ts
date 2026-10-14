@@ -240,6 +240,30 @@ describe('版本遷移', () => {
     expect(loaded.time).toBe(42);
   });
 
+  it('實際的 v9 存檔：遷移後補上新區域的迷霧，既有區域的迷霧保留', () => {
+    const v9 = {
+      version: 9,
+      savedAt: '2026-10-13T09:00:00.000Z',
+      player: { position: { x: 0, y: 1, z: 18 }, facingYaw: 0 },
+      world: { time: 42, objects: [] },
+      inventory: { slots: [null] },
+      tutorial: 'done',
+      mist: { meadow: 'clear', village: 'clear', forest: 'clear', lake: 'clear', home: 'clear', overlook: 'light', ruins: 'dense' },
+      quests: {},
+      combat: { hp: 80, enemies: [], spawners: {}, mp: 50 },
+      companion: { unlocked: true },
+      build: { buildings: [], nextBuildingId: 1 },
+      loadout: { weapon: 'knife' },
+    };
+    const loaded = fromSaveData(v9, ctx).state;
+    expect(loaded.mist.forest).toBe('clear');
+    expect(loaded.mist.village).toBe('clear');
+    expect(loaded.mist.highland).toBe(initialGameState().mist.highland);
+    expect(loaded.mist.farmland).toBe(initialGameState().mist.farmland);
+    expect(loaded.mist.river).toBe(initialGameState().mist.river);
+    expect(loaded.player).toMatchObject({ hp: 80, weapon: 'knife', mp: 50 });
+  });
+
   it('建造物寫入存檔並讀回（類型、位置、旋轉）', () => {
     const state = { ...initialGameState(), buildings: [{ id: 'building_3', buildable: 'fire', x: 37.5, z: 8, yaw: Math.PI / 2 }], nextBuildingId: 4 };
     const loaded = roundTrip(toSaveData(state, player, new Date())).state;

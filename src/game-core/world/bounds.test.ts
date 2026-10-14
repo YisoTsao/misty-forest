@@ -7,13 +7,13 @@ const { halfExtent, cornerRadius } = PLAY_BOUNDS;
 describe('boundaryDistance', () => {
   it('is the distance to the nearest straight edge inside the play area', () => {
     expect(boundaryDistance(0, 0)).toBeCloseTo(halfExtent);
-    expect(boundaryDistance(70, 0)).toBeCloseTo(4);
-    expect(boundaryDistance(0, -73)).toBeCloseTo(1);
+    expect(boundaryDistance(halfExtent - 4, 0)).toBeCloseTo(4);
+    expect(boundaryDistance(0, -(halfExtent - 1))).toBeCloseTo(1);
   });
 
   it('is negative outside and zero on the edge', () => {
     expect(boundaryDistance(halfExtent, 5)).toBeCloseTo(0);
-    expect(boundaryDistance(78, 0)).toBeCloseTo(-4);
+    expect(boundaryDistance(halfExtent + 4, 0)).toBeCloseTo(-4);
   });
 
   it('follows the rounded corners', () => {
@@ -39,11 +39,11 @@ describe('clampInsideBounds', () => {
 
   it('pulls positions outside back onto the edge with margin', () => {
     for (const [x, z] of [
-      [90, 3],
-      [-85, -40],
-      [12, 200],
-      [80, 80],
-      [-79, 75],
+      [halfExtent + 16, 3],
+      [-(halfExtent + 11), -40],
+      [12, 400],
+      [halfExtent + 6, halfExtent + 6],
+      [-(halfExtent + 5), halfExtent + 1],
     ] as const) {
       const p = clampInsideBounds(x, z, 1);
       expect(boundaryDistance(p.x, p.z)).toBeCloseTo(1, 5);
@@ -68,7 +68,7 @@ describe('boundaryOutline', () => {
   });
 
   it('has no large gaps between consecutive points', () => {
-    const points = boundaryOutline(4, 6);
+    const points = boundaryOutline(4, 8);
     for (let i = 0; i < points.length; i++) {
       const a = points[i]!;
       const b = points[(i + 1) % points.length]!;

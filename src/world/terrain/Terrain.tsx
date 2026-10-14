@@ -1,23 +1,26 @@
 import { RigidBody, TrimeshCollider } from '@react-three/rapier';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { distanceToPath, TERRAIN_SIZE, terrainHeight } from '@/game-core/world/terrain';
+import { TERRAIN_SIZE } from '@/game-core/world/terrain';
+import { getTerrainGrid } from '@/game-core/world/terrainGrid';
 import { createTerrainMaterial } from '@/render/terrainMaterial';
 
-const SEGMENTS = 160;
-
 function buildTerrainGeometry(): THREE.BufferGeometry {
-  const geo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
+  // 頂點與共用的地形取樣格一一對應（1 m 一點），不必再呼叫 terrainHeight
+  const grid = getTerrainGrid();
+  const segments = grid.size - 1;
+  const geo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, segments, segments);
   geo.rotateX(-Math.PI / 2);
 
   const pos = geo.attributes.position as THREE.BufferAttribute;
   // 到小路中心的距離：地形 shader 以此計算泥土路的 splat 權重
   const pathDist = new Float32Array(pos.count);
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const z = pos.getZ(i);
-    pos.setY(i, terrainHeight(x, z));
-    pathDist[i] = distanceToPath(x, z);
+  const half = TERRAIN_SIZE / 2;
+  for (let v = 0; v < pos.count; v++) {
+    const i = Math.round((pos.getX(v) + half) / grid.step);
+    const j = Math.round((pos.getZ(v) + half) / grid.step);
+    pos.setY(v, grid.height[j * grid.size + i]!);
+    pathDist[v] = grid.pathDist[j * grid.size + i]!;
   }
 
   geo.setAttribute('aPathDist', new THREE.BufferAttribute(pathDist, 1));

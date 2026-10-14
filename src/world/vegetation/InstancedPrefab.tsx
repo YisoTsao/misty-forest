@@ -3,8 +3,10 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Placement, Prefab } from '@/game-core/world/types';
+import { chunkPlacements } from '@/game-core/world/worldData';
 import { buildProceduralModel, PROCEDURAL_PREFIX, type ModelPart as Part } from '@/render/proceduralModels';
 import { patchOcclusion } from '@/render/occlusion';
+import { recolorForPalette } from '@/render/palette';
 import { toToonMaterial } from '@/render/toon';
 import { assetUrl } from '@/game/worldData';
 
@@ -19,7 +21,9 @@ function useGltfParts(model: string): Part[] {
       const source = Array.isArray(obj.material) ? obj.material[0] : obj.material;
       if (!source) return;
       // 世界物件會在擋住攝影機時鏤空（render/occlusion.ts）
-      list.push({ key: obj.uuid, name: obj.name, geometry: obj.geometry, material: patchOcclusion(toToonMaterial(source)), local: obj.matrixWorld.clone() });
+      const material = toToonMaterial(source);
+      recolorForPalette(model, source.name, material.color);
+      list.push({ key: obj.uuid, name: obj.name, geometry: obj.geometry, material: patchOcclusion(material), local: obj.matrixWorld.clone() });
     });
     if (list.length === 0) throw new Error(`模型沒有可渲染的 mesh：${model}`);
     return list;
@@ -95,7 +99,11 @@ function useProceduralParts(model: string): Part[] {
 
 type InstancedProps = { model: string; placements: readonly Placement[]; animate?: Prefab['animate'] };
 
-/** 同一 prefab 的所有 placement 以 InstancedMesh 渲染（規格 4.3、7）。 */
+/**
+ * 同一 prefab 的所有 placement 以 InstancedMesh 渲染（規格 4.3、7）。
+ * 依位置分成 64 m 的區塊（任務 7A）：每塊一組 InstancedMesh，視錐外的區塊（含陰影）由 three 剔除；
+ * 模型的材質與幾何所有區塊共用。
+ */
 export function InstancedPrefab({ model, placements, animate }: InstancedProps) {
   if (placements.length === 0) return null;
   return model.startsWith(PROCEDURAL_PREFIX) ? (
@@ -106,7 +114,8 @@ export function InstancedPrefab({ model, placements, animate }: InstancedProps) 
 }
 
 function GltfInstanced({ model, placements, animate }: InstancedProps) {
-  return <InstancedParts parts={useGltfParts(model)} placements={placements} animate={animate} receiveShadow />;
+  // Kenney Nature Kit 的大塊平面（樹冠、岩石）放大後接收陰影會出現條紋（shadow acne），只投影不接收
+  return <InstancedParts parts={useGltfParts(model)} placements={placements} animate={animate} receiveShadow={!model.includes('kenney-nature/')} />;
 }
 
 function ProceduralInstanced({ model, placements, animate }: InstancedProps) {
@@ -125,17 +134,20 @@ function InstancedParts({
   receiveShadow: boolean;
   animate?: Prefab['animate'];
 }) {
+  const chunks = useMemo(() => chunkPlacements(placements), [placements]);
   return (
     <>
-      {parts.map((part) => (
-        <InstancedPart
-          key={part.key}
-          part={part}
-          placements={placements}
-          receiveShadow={receiveShadow}
-          anim={animate?.find((a) => a.node === part.name)}
-        />
-      ))}
+      {chunks.map(([chunk, list]) =>
+        parts.map((part) => (
+          <InstancedPart
+            key={`${chunk}:${part.key}`}
+            part={part}
+            placements={list}
+            receiveShadow={receiveShadow}
+            anim={animate?.find((a) => a.node === part.name)}
+          />
+        )),
+      )}
     </>
   );
 }

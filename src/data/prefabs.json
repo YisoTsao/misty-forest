@@ -970,5 +970,1548 @@
     "model": "models/kaykit-hexagon/tree_single_B.gltf",
     "collider": "none",
     "persists": false
+  },
+  {
+    "id": "k_oak",
+    "model": "models/kenney-nature/tree_oak.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_oak_fall",
+    "model": "models/kenney-nature/tree_oak_fall.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_default",
+    "model": "models/kenney-nature/tree_default.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_default_fall",
+    "model": "models/kenney-nature/tree_default_fall.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_detailed",
+    "model": "models/kenney-nature/tree_detailed.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.07,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_fat",
+    "model": "models/kenney-nature/tree_fat.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.07,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_fat_fall",
+    "model": "models/kenney-nature/tree_fat_fall.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.07,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_plateau",
+    "model": "models/kenney-nature/tree_plateau.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_pine_tall_a",
+    "model": "models/kenney-nature/tree_pineTallA.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_pine_tall_b",
+    "model": "models/kenney-nature/tree_pineTallB.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_pine_round_a",
+    "model": "models/kenney-nature/tree_pineRoundA.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_pine_round_c",
+    "model": "models/kenney-nature/tree_pineRoundC.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_cone",
+    "model": "models/kenney-nature/tree_cone.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_cone_dark",
+    "model": "models/kenney-nature/tree_cone_dark.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_tall_dark",
+    "model": "models/kenney-nature/tree_tall_dark.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_blocks_fall",
+    "model": "models/kenney-nature/tree_blocks_fall.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.06,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_tree_simple",
+    "model": "models/kenney-nature/tree_simple.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.05,
+      "height": 0.8,
+      "cameraIgnore": true
+    },
+    "interaction": "harvest",
+    "nameKey": "object.tree",
+    "harvest": {
+      "lootTableId": "wood_basic",
+      "respawnSec": 600,
+      "harvestedModel": "models/kenney-nature/stump_round.glb",
+      "harvestedCollision": {
+        "shape": "cylinder",
+        "radius": 0.12,
+        "height": 0.16,
+        "cameraIgnore": true
+      },
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_edge_pine",
+    "model": "models/kenney-nature/tree_pineTallB.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_edge_cone",
+    "model": "models/kenney-nature/tree_cone_dark.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_edge_oak",
+    "model": "models/kenney-nature/tree_oak.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_rock_tall_c",
+    "model": "models/kenney-nature/rock_tallC.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.2,
+      "height": 0.7
+    },
+    "interaction": "harvest",
+    "nameKey": "object.rock",
+    "harvest": {
+      "lootTableId": "stone_basic",
+      "respawnSec": 900,
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_rock_tall_e",
+    "model": "models/kenney-nature/rock_tallE.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.22,
+      "height": 0.4
+    },
+    "interaction": "harvest",
+    "nameKey": "object.rock",
+    "harvest": {
+      "lootTableId": "stone_basic",
+      "respawnSec": 900,
+      "anim": "attack"
+    },
+    "persists": true
+  },
+  {
+    "id": "k_rock_large_a",
+    "model": "models/kenney-nature/rock_largeA.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.4,
+      "height": 0.25
+    },
+    "persists": false
+  },
+  {
+    "id": "k_rock_large_b",
+    "model": "models/kenney-nature/rock_largeB.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.4,
+      "height": 0.4
+    },
+    "persists": false
+  },
+  {
+    "id": "k_rock_large_c",
+    "model": "models/kenney-nature/rock_largeC.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.48,
+      "height": 0.3
+    },
+    "persists": false
+  },
+  {
+    "id": "k_rock_large_d",
+    "model": "models/kenney-nature/rock_largeD.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.48,
+      "height": 0.55
+    },
+    "persists": false
+  },
+  {
+    "id": "k_rock_tall_a",
+    "model": "models/kenney-nature/rock_tallA.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.4,
+      "height": 1.0
+    },
+    "persists": false
+  },
+  {
+    "id": "k_rock_tall_b",
+    "model": "models/kenney-nature/rock_tallB.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.36,
+      "height": 0.88
+    },
+    "persists": false
+  },
+  {
+    "id": "k_stone_tall_a",
+    "model": "models/kenney-nature/stone_tallA.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.4,
+      "height": 1.0
+    },
+    "persists": false
+  },
+  {
+    "id": "k_stone_tall_b",
+    "model": "models/kenney-nature/stone_tallB.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.36,
+      "height": 0.88
+    },
+    "persists": false
+  },
+  {
+    "id": "k_log_large",
+    "model": "models/kenney-nature/log_large.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.95,
+        0.4,
+        0.45
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_log",
+    "model": "models/kenney-nature/log.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.2,
+        0.16,
+        0.7
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_log_stack",
+    "model": "models/kenney-nature/log_stack.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.4,
+        0.34,
+        0.7
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_log_stack_large",
+    "model": "models/kenney-nature/log_stackLarge.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.6,
+        0.34,
+        0.7
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_stump_old",
+    "model": "models/kenney-nature/stump_old.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.16,
+      "height": 0.26,
+      "cameraIgnore": true
+    },
+    "persists": false
+  },
+  {
+    "id": "k_stump_old_tall",
+    "model": "models/kenney-nature/stump_oldTall.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.16,
+      "height": 0.66,
+      "cameraIgnore": true
+    },
+    "persists": false
+  },
+  {
+    "id": "k_column",
+    "model": "models/kenney-nature/statue_column.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.14,
+      "height": 1.0
+    },
+    "persists": false
+  },
+  {
+    "id": "k_column_broken",
+    "model": "models/kenney-nature/statue_columnDamaged.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.14,
+      "height": 0.7
+    },
+    "persists": false
+  },
+  {
+    "id": "k_obelisk",
+    "model": "models/kenney-nature/statue_obelisk.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.14,
+      "height": 0.88
+    },
+    "persists": false
+  },
+  {
+    "id": "k_stone_ring",
+    "model": "models/kenney-nature/statue_ring.glb",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          0.12,
+          0.8,
+          0.3
+        ],
+        "offset": [
+          -0.24,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.12,
+          0.8,
+          0.3
+        ],
+        "offset": [
+          0.24,
+          0,
+          0
+        ]
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "k_statue_head",
+    "model": "models/kenney-nature/statue_head.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.7,
+        1.0,
+        0.5
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_statue_block",
+    "model": "models/kenney-nature/statue_block.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_bush",
+    "model": "models/kenney-nature/plant_bush.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_bush_large",
+    "model": "models/kenney-nature/plant_bushLarge.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_bush_detailed",
+    "model": "models/kenney-nature/plant_bushDetailed.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_bush_small",
+    "model": "models/kenney-nature/plant_bushSmall.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_mushroom_red",
+    "model": "models/kenney-nature/mushroom_red.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_mushroom_group",
+    "model": "models/kenney-nature/mushroom_redGroup.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_mushroom_tan",
+    "model": "models/kenney-nature/mushroom_tanGroup.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_mushroom_tall",
+    "model": "models/kenney-nature/mushroom_redTall.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_grass_large",
+    "model": "models/kenney-nature/grass_large.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_grass_leafs",
+    "model": "models/kenney-nature/grass_leafsLarge.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_flower_red",
+    "model": "models/kenney-nature/flower_redA.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_flower_purple",
+    "model": "models/kenney-nature/flower_purpleA.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_flower_yellow",
+    "model": "models/kenney-nature/flower_yellowA.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_lily_large",
+    "model": "models/kenney-nature/lily_large.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_lily_small",
+    "model": "models/kenney-nature/lily_small.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_corn",
+    "model": "models/kenney-nature/crops_cornStageD.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_wheat",
+    "model": "models/kenney-nature/crops_wheatStageB.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_pumpkin",
+    "model": "models/kenney-nature/crop_pumpkin.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_melon",
+    "model": "models/kenney-nature/crop_melon.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_carrot",
+    "model": "models/kenney-nature/crop_carrot.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_leafy_crop",
+    "model": "models/kenney-nature/crops_leafsStageB.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_dirt_row",
+    "model": "models/kenney-nature/crops_dirtRow.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_campfire_stones",
+    "model": "models/kenney-nature/campfire_stones.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_campfire_logs",
+    "model": "models/kenney-nature/campfire_logs.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_canoe",
+    "model": "models/kenney-nature/canoe.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_fence",
+    "model": "models/kenney-nature/fence_simple.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.0,
+        0.35,
+        0.07
+      ],
+      "offset": [
+        0,
+        0,
+        -0.47
+      ],
+      "cameraIgnore": true
+    },
+    "persists": false
+  },
+  {
+    "id": "k_fence_gate",
+    "model": "models/kenney-nature/fence_gate.glb",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "k_tent",
+    "model": "models/kenney-nature/tent_detailedOpen.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.8,
+        0.55,
+        0.6
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_tent_small",
+    "model": "models/kenney-nature/tent_smallClosed.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.5,
+        0.55,
+        0.6
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "k_pot",
+    "model": "models/kenney-nature/pot_large.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.25,
+      "height": 0.2
+    },
+    "persists": false
+  },
+  {
+    "id": "house_small_red",
+    "model": "models/kaykit-hexagon/building_home_A_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.7,
+        0.9,
+        0.75
+      ],
+      "offset": [
+        0,
+        0,
+        -0.04
+      ]
+    },
+    "smoke": [
+      0,
+      0.98,
+      -0.35
+    ],
+    "persists": false
+  },
+  {
+    "id": "house_tall_yellow",
+    "model": "models/kaykit-hexagon/building_home_B_yellow.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.75,
+        1.2,
+        0.9
+      ]
+    },
+    "smoke": [
+      0.15,
+      1.33,
+      -0.45
+    ],
+    "persists": false
+  },
+  {
+    "id": "house_tall_blue",
+    "model": "models/kaykit-hexagon/building_home_B_blue.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.75,
+        1.2,
+        0.9
+      ]
+    },
+    "smoke": [
+      0.15,
+      1.33,
+      -0.45
+    ],
+    "persists": false
+  },
+  {
+    "id": "blacksmith",
+    "model": "models/kaykit-hexagon/building_blacksmith_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.1,
+        1.0,
+        1.0
+      ],
+      "offset": [
+        0,
+        0,
+        0.05
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "lumbermill",
+    "model": "models/kaykit-hexagon/building_lumbermill_yellow.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.2,
+        1.0,
+        1.0
+      ],
+      "offset": [
+        0,
+        0,
+        0.1
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "market",
+    "model": "models/kaykit-hexagon/building_market_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.9,
+        1.2
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "watermill",
+    "model": "models/kaykit-hexagon/building_watermill_yellow.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.9,
+        1.3,
+        0.9
+      ],
+      "offset": [
+        0,
+        0,
+        0.05
+      ]
+    },
+    "animate": [
+      {
+        "node": "building_watermill_wheel_yellow",
+        "kind": "spin",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "speed": 0.8
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "grain_field",
+    "model": "models/kaykit-hexagon/building_grain.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "lighthouse",
+    "model": "models/kaykit-hexagon/building_tower_A_blue.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.42,
+      "height": 2.2
+    },
+    "persists": false
+  },
+  {
+    "id": "house_ruined",
+    "model": "models/kaykit-hexagon/building_destroyed.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.2,
+        0.6,
+        1.1
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "windmill_blue",
+    "model": "models/kaykit-hexagon/building_windmill_blue.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.6,
+        1.4,
+        0.6
+      ]
+    },
+    "animate": [
+      {
+        "node": "building_windmill_top_fan_blue",
+        "kind": "spin",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "speed": 0.7
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "camp_tent",
+    "model": "models/kaykit-hexagon/tent.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.45,
+        0.5,
+        0.45
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "archery_target",
+    "model": "models/kaykit-hexagon/target.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.1,
+      "height": 0.3
+    },
+    "persists": false
+  },
+  {
+    "id": "fence_stone",
+    "model": "models/kaykit-hexagon/fence_stone_straight.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.2,
+        0.27,
+        1.15
+      ],
+      "offset": [
+        -1.0,
+        0,
+        0
+      ],
+      "cameraIgnore": true
+    },
+    "persists": false
+  },
+  {
+    "id": "crate_long",
+    "model": "models/kaykit-hexagon/crate_long_A.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.4,
+        0.15,
+        0.2
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "weapon_rack",
+    "model": "models/kaykit-hexagon/weaponrack.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.2,
+        0.24,
+        0.12
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "stone_pile",
+    "model": "models/kaykit-hexagon/resource_stone.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.2,
+      "height": 0.26
+    },
+    "persists": false
+  },
+  {
+    "id": "water_lily",
+    "model": "models/kaykit-hexagon/waterlily_A.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "water_plant",
+    "model": "models/kaykit-hexagon/waterplant_A.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "pebble_d",
+    "model": "models/kaykit-hexagon/rock_single_D.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "pebble_e",
+    "model": "models/kaykit-hexagon/rock_single_E.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "flag_yellow",
+    "model": "models/kaykit-hexagon/flag_yellow.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "flag_blue",
+    "model": "models/kaykit-hexagon/flag_blue.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "crate_open",
+    "model": "models/kaykit-hexagon/crate_open.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.3,
+        0.2,
+        0.2
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "pallet",
+    "model": "models/kaykit-hexagon/pallet.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "stage",
+    "model": "models/kaykit-hexagon/building_stage_A.gltf",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "river_bridge",
+    "model": "procedural:wood_bridge",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          2.6,
+          0.3,
+          14
+        ],
+        "offset": [
+          0,
+          -0.3,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.16,
+          1.25,
+          13.6
+        ],
+        "offset": [
+          -1.25,
+          -0.3,
+          0
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.16,
+          1.25,
+          13.6
+        ],
+        "offset": [
+          1.25,
+          -0.3,
+          0
+        ],
+        "cameraIgnore": true
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "chest_hidden",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.chest",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_hidden"
+    }
+  },
+  {
+    "id": "chest_ruins",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.chest",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_ruins"
+    }
+  },
+  {
+    "id": "signpost_farmland",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.farmland.title",
+      "bodyKey": "sign.farmland.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_river",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.river.title",
+      "bodyKey": "sign.river.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_highland",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.highland.title",
+      "bodyKey": "sign.highland.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_ruins",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.ruins.title",
+      "bodyKey": "sign.ruins.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_overlook",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.overlook.title",
+      "bodyKey": "sign.overlook.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_south",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.south.title",
+      "bodyKey": "sign.south.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "ancient_tree",
+    "model": "models/kenney-nature/tree_detailed.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.1,
+      "height": 1.0
+    },
+    "persists": false
+  },
+  {
+    "id": "great_oak",
+    "model": "models/kenney-nature/tree_oak.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.08,
+      "height": 0.8
+    },
+    "persists": false
   }
 ]

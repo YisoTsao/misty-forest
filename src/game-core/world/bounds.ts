@@ -8,8 +8,8 @@ export type PlayBounds = {
   cornerRadius: number;
 };
 
-/** 晨曦谷地垂直切片的可玩區：±74 m（與安全點範圍一致：地形半寬 80 − 邊緣保留 6） */
-export const PLAY_BOUNDS: PlayBounds = { halfExtent: 74, cornerRadius: 10 };
+/** 晨曦谷地的可玩區：±148 m（任務 7A；與安全點範圍一致：154 − 邊緣保留 6），地形半寬 160 */
+export const PLAY_BOUNDS: PlayBounds = { halfExtent: 148, cornerRadius: 18 };
 
 /** 迷霧牆從距邊界這麼遠開始變濃 */
 export const BOUNDARY_FOG_START = 12;

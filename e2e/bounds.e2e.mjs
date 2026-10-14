@@ -5,8 +5,8 @@
 import assert from 'node:assert/strict';
 import { placements, prefabs, runE2e } from './lib.mjs';
 
-const HALF = 74;
-const CORNER = 10;
+const HALF = 148;
+const CORNER = 18;
 /** 與 game-core/world/bounds.ts 相同的圓角方形距離（界內為正） */
 function boundaryDistance(x, z) {
   const inner = HALF - CORNER;
@@ -49,7 +49,7 @@ const lanes = [
   { name: '西', dir: [-1, 0], along: [0, 1] },
   { name: '南', dir: [0, 1], along: [1, 0] },
   { name: '北', dir: [0, -1], along: [1, 0] },
-  { name: '東北角', dir: [diag, -diag], along: [diag, diag] },
+  { name: '西北角', dir: [-diag, -diag], along: [diag, -diag] },
 ].map((l) => ({ ...l, ...findLane(l.dir[0], l.dir[1], l.along) }));
 
 await runE2e('bounds e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, state, camera, teleport }) => {

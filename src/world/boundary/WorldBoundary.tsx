@@ -24,7 +24,7 @@ const WALL_HALF_HEIGHT = 20;
 export function BoundaryColliders() {
   const { world, rapier } = useRapier();
   useEffect(() => {
-    const points = boundaryOutline(6, 4, WALL_HALF_THICKNESS);
+    const points = boundaryOutline(6, 6, WALL_HALF_THICKNESS);
     const colliders: RapierCollider[] = [];
     for (let i = 0; i < points.length; i++) {
       const a = points[i]!;

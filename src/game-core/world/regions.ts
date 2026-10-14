@@ -2,6 +2,7 @@
 // 權威狀態只存每區三段（濃 / 淡 / 清），畫面上的 mistLevel 由玩家所在位置在區域之間平滑混合。
 import { z } from 'zod';
 import { mistLevelOf, mistStages, type MistStage } from './mist';
+import { polylineDistance } from './terrain';
 import { regionIds, type RegionId } from './types';
 
 /** 沒有落在任何區域範圍內時所屬的區域（開闊的草原） */
@@ -10,10 +11,15 @@ export const DEFAULT_REGION: RegionId = 'meadow';
 export const regionDefSchema = z.object({
   id: z.enum(regionIds),
   nameKey: z.string().min(1),
-  /** 圓形範圍；省略表示這個區域還沒有實際場地（例如之後才加入的區域） */
+  /**
+   * 範圍：圓形（center）或沿折線的帶狀（path，例如溪流，radius 為離中心線的距離）；
+   * 省略表示這個區域還沒有實際場地（例如之後才加入的區域）
+   */
   area: z
     .object({
       center: z.tuple([z.number(), z.number()]),
+      /** 帶狀範圍的中心線；有此欄位時 center 只作為地圖標籤位置 */
+      path: z.array(z.tuple([z.number(), z.number()])).min(2).optional(),
       radius: z.number().positive(),
       /** 邊界兩側的混合寬度（公尺），迷霧在這段距離內漸變 */
       blend: z.number().positive(),
@@ -27,7 +33,7 @@ export const mistStagesSchema = z.object(
   Object.fromEntries(regionIds.map((id) => [id, z.enum(mistStages)])) as Record<RegionId, z.ZodEnum<{ [K in MistStage]: K }>>,
 );
 
-/** 新遊戲的迷霧：出生草原晴朗，村莊與湖泊淡霧，森林與遺跡濃霧（第一章要逐步驅散） */
+/** 新遊戲的迷霧：出生草原與農田晴朗，村莊、湖泊、溪流、高地淡霧，森林與遺跡濃霧（第一章要逐步驅散） */
 export const initialMistStages: MistStages = {
   meadow: 'clear',
   village: 'light',
@@ -36,6 +42,9 @@ export const initialMistStages: MistStages = {
   home: 'clear',
   overlook: 'light',
   ruins: 'dense',
+  highland: 'light',
+  farmland: 'clear',
+  river: 'light',
 };
 
 export function parseRegions(raw: unknown): RegionDef[] {
@@ -56,8 +65,8 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
 /** 區域在 (x, z) 的權重：中心區為 1，邊界 ± blend/2 內平滑降到 0 */
 function weightAt(region: RegionDef, x: number, z: number): number {
   if (!region.area) return 0;
-  const { center, radius, blend } = region.area;
-  const d = Math.hypot(x - center[0], z - center[1]);
+  const { center, path, radius, blend } = region.area;
+  const d = path ? polylineDistance(x, z, path) : Math.hypot(x - center[0], z - center[1]);
   return 1 - smoothstep(radius - blend / 2, radius + blend / 2, d);
 }
 

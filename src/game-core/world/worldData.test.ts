@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupPlacementsByPrefab, parseWorldData, WorldDataError } from './worldData';
+import { chunkPlacements, groupPlacementsByPrefab, parseWorldData, WorldDataError } from './worldData';
 import prefabs from '@/data/prefabs.json';
 import placements from '@/data/placements.json';
 
@@ -51,5 +51,26 @@ describe('groupPlacementsByPrefab', () => {
   it('依 prefab 分組', () => {
     const groups = groupPlacementsByPrefab(parseWorldData([tree], [at('a'), at('b')]).placements);
     expect(groups.get('pine')).toHaveLength(2);
+  });
+});
+
+describe('chunkPlacements', () => {
+  it('依水平位置分塊，每個 placement 只出現一次，結果順序固定', () => {
+    const list = [
+      { ...at('a'), position: [1, 0, 1] as [number, number, number] },
+      { ...at('b'), position: [70, 0, 1] as [number, number, number] },
+      { ...at('c'), position: [-1, 0, 1] as [number, number, number] },
+      { ...at('d'), position: [10, 5, 60] as [number, number, number] },
+    ] as Parameters<typeof chunkPlacements>[0];
+    const chunks = chunkPlacements(list, 64);
+    expect(chunks.map(([k]) => k)).toEqual(['-1,0', '0,0', '1,0']);
+    expect(chunks.flatMap(([, l]) => l.map((p) => p.id)).sort()).toEqual(['a', 'b', 'c', 'd']);
+    expect(chunks.find(([k]) => k === '0,0')?.[1].map((p) => p.id)).toEqual(['a', 'd']);
+  });
+
+  it('專案的所有 placement 都分到區塊內', () => {
+    const data = parseWorldData(prefabs, placements);
+    const total = chunkPlacements(data.placements).reduce((n, [, l]) => n + l.length, 0);
+    expect(total).toBe(data.placements.length);
   });
 });

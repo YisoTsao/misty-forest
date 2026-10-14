@@ -3,22 +3,23 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import {
   BRIDGE,
-  distanceToPath,
+  distanceToMainRoad,
   ISLAND,
   isUnderwater,
   LAKE,
+  LEGACY_HALF_EXTENT,
   PATH_HALF_WIDTH,
   SPAWN_POINT,
-  TERRAIN_SIZE,
   terrainHeight,
   VILLAGE_CENTER,
   VILLAGE_RADIUS,
 } from '../src/game-core/world/terrain.ts';
 import { mulberry32 } from '../src/game-core/util/random.ts';
-import { boundaryDistance, boundaryOutline } from '../src/game-core/world/bounds.ts';
+import { addDawnvaleExpansion } from './gen-dawnvale.ts';
 
 const rand = mulberry32(20261012);
-const half = TERRAIN_SIZE / 2 - 6;
+// 任務 7A 之前的地圖範圍：舊散佈沿用同一範圍與同一組亂數，既有物件的 id 與位置不變
+const half = LEGACY_HALF_EXTENT;
 const placements: object[] = [];
 const taken: { x: number; z: number; r: number }[] = [];
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -116,7 +117,8 @@ for (const b of bookmarks) {
 
 function free(x: number, z: number, r: number): boolean {
   if (Math.hypot(x - SPAWN_POINT.x, z - SPAWN_POINT.z) < 12) return false; // 出生點保持開闊
-  if (distanceToPath(x, z) < PATH_HALF_WIDTH + 2) return false; // 不擋路
+  // 不擋路（舊散佈只看主路，亂數序列與擴大前相同；落在新支線上的物件於下方事後移除）
+  if (distanceToMainRoad(x, z) < PATH_HALF_WIDTH + 2) return false;
   return !taken.some((t) => Math.hypot(t.x - x, t.z - z) < t.r + r);
 }
 
@@ -307,40 +309,9 @@ for (const [id, prefabId, regionId, x, z, yaw, scale] of ambient) {
   });
 }
 
-// 地圖邊界（任務 6A，GAME_DESIGN 5.1）：迷霧牆外側一圈較密的裝飾樹，讓邊界看起來是「森林與濃霧」而不是隱形牆。
-// 用獨立的種子、附加在最後，前面所有物件的位置與 id 都不變。樹在碰撞牆外，玩家碰不到，所以不可採集、沒有碰撞。
-{
-  const edgeRand = mulberry32(20261013);
-  const outline = boundaryOutline(3.2, 6, 0);
-  let n = 0;
-  for (const p of outline) {
-    // 兩排：貼著牆外 2–4 m 與 5–8 m，沿邊界往外推（以原點方向近似法線即可，邊界為凸形）
-    for (const [from, to] of [
-      [2, 4],
-      [5, 8],
-    ] as const) {
-      if (edgeRand() < 0.25) continue;
-      const len = Math.hypot(p.x, p.z);
-      const push = from + edgeRand() * (to - from);
-      const jitter = (edgeRand() - 0.5) * 2.4;
-      const x = p.x + (p.x / len) * push + (-p.z / len) * jitter;
-      const z = p.z + (p.z / len) * push + (p.x / len) * jitter;
-      if (Math.max(Math.abs(x), Math.abs(z)) > TERRAIN_SIZE / 2 - 0.5) continue;
-      if (boundaryDistance(x, z) > -1.5) continue;
-      n++;
-      const s = 5 + edgeRand() * 2.8;
-      placements.push({
-        id: `edge_tree_${String(n).padStart(3, '0')}`,
-        prefabId: edgeRand() < 0.6 ? 'tree_edge_tall' : 'tree_edge_round',
-        regionId: 'meadow',
-        position: [round(x), round(terrainHeight(x, z) - 0.05), round(z)],
-        rotation: [0, round(edgeRand() * Math.PI * 2), 0],
-        scale: [round(s), round(s * (0.9 + edgeRand() * 0.25)), round(s)],
-      });
-    }
-  }
-  console.log(`placed ${n} boundary trees`);
-}
+// 任務 7A：晨曦谷地擴大到 320 m（新支線、溪流、高地、農田、遺跡、望星丘、邊界樹）。
+// 舊物件中落在新道路或溪裡的會被移除，其餘不變；新內容以獨立種子附加在後。
+addDawnvaleExpansion(placements, taken);
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');
 console.log(`wrote ${placements.length} placements`);

@@ -51,3 +51,18 @@ export function groupPlacementsByPrefab(placements: readonly Placement[]): Map<s
   }
   return groups;
 }
+
+/** 渲染分塊的邊長（公尺）：每塊各自一組 InstancedMesh，視錐外的區塊由 three 剔除（任務 7A 地圖變大） */
+export const RENDER_CHUNK_SIZE = 64;
+
+/** 依水平位置把 placement 分到渲染區塊；回傳 [區塊 key, placements]，順序固定。 */
+export function chunkPlacements(placements: readonly Placement[], size = RENDER_CHUNK_SIZE): [string, Placement[]][] {
+  const chunks = new Map<string, Placement[]>();
+  for (const p of placements) {
+    const key = `${Math.floor(p.position[0] / size)},${Math.floor(p.position[2] / size)}`;
+    const list = chunks.get(key);
+    if (list) list.push(p);
+    else chunks.set(key, [p]);
+  }
+  return [...chunks.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}

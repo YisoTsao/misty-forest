@@ -5,8 +5,8 @@ import { tutorialSteps } from '../tutorial/tutorial';
 import { mistStagesSchema } from '../world/regions';
 import { weaponIds } from '../combat/weapons';
 
-/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion。v7：加入建造物 buildings */
-export const SAVE_VERSION = 9;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion。v7：加入建造物 buildings。v8：裝備。v9：星光值。v10：地圖擴大後新增的區域迷霧（任務 7A） */
+export const SAVE_VERSION = 10;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 

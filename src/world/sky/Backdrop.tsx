@@ -146,8 +146,8 @@ type RangeLayer = { radius: number; base: number; amplitude: number; sharpness: 
 
 /** 兩層山脈：近處低矮的綠色丘陵、遠處較高的藍紫色山峰（空氣透視讓遠層更淡） */
 const RANGE_LAYERS: RangeLayer[] = [
-  { radius: 330, base: 34, amplitude: 70, sharpness: 2.2, seed: 5, bottom: '#7d93b8', top: '#a9bcd8' },
-  { radius: 240, base: 14, amplitude: 26, sharpness: 1.4, seed: 9, bottom: '#4f8a5e', top: '#7fb07a' },
+  { radius: 440, base: 46, amplitude: 92, sharpness: 2.2, seed: 5, bottom: '#7d93b8', top: '#a9bcd8' },
+  { radius: 310, base: 18, amplitude: 32, sharpness: 1.4, seed: 9, bottom: '#4f8a5e', top: '#7fb07a' },
 ];
 
 /** 山脊高度：數個不同頻率的正弦疊加後取次方，做出圓潤但有起伏的稜線 */
@@ -217,7 +217,7 @@ function createRangeMaterial(haze: HazeUniforms): THREE.MeshBasicMaterial {
  */
 function createSkirtGeometry(): THREE.BufferGeometry {
   const inner = TERRAIN_SIZE / 2 - 1;
-  const outer = 400;
+  const outer = 560;
   const y = 2;
   const innerColor = new THREE.Color(palette.grassDark);
   const outerColor = new THREE.Color(RANGE_LAYERS[1]!.bottom);
