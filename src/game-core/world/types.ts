@@ -118,6 +118,8 @@ export const prefabSchema = z
         lootTableId: z.string().min(1).optional(),
         /** 只有這個頭目戰鬥中才能啟動（任務 8D 戰場邊的水槽） */
         boss: z.string().min(1).optional(),
+        /** 擊敗這個頭目後才能啟動（任務 8D-2 森林根源石） */
+        afterBoss: z.string().min(1).optional(),
         anim: z.enum(['attack', 'interact']).optional(),
       })
       .optional(),

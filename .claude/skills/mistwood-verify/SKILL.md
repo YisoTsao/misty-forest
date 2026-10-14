@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），28 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），29 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -40,7 +40,8 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），28 個全跑
 | 小地圖、世界地圖 | `map` | `--map` |
 | 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |
 | 螢苔祕林的任務與水道（琳娜、奇奇、`activate` / `turn` 機關、`waterway.ts`、`Waterway.tsx`、`flowWater`） | `forestquest`（改到共用的互動或修理時加 `lake`、`world`） | `--waterway`（例如 `node scripts/screenshot.mjs phase8 glowmoss_wheel --waterway`） |
-| 頭目戰（`bossAi.ts`、`bossRuntime.ts`、`MossThump`、`BossArena`、`BossBar`、頭目資料） | `boss`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`、`forestmobs`） | `--boss`（例如 `node scripts/screenshot.mjs phase8 --boss`） |
+| 頭目戰（`bossAi.ts`、`bossRuntime.ts`、`MossThump`、`BossArena`、`BossBar`、頭目資料） | `boss`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`、`forestmobs`） | `--boss`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --boss`） |
+| 苔冠下的守衛（`quest_forest_003`、根源石、戰後的苔咚 NPC、程式造型 / 有出現條件的 NPC、林間水道） | `forestguard`（改到 NPC 系統時加 `npc`、`quest`） | `--guardian`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --guardian`） |
 | 存檔（`game/save`） | `save` | 不拍 |
 | `src/render/**`（shader、後處理、植被、迷霧外觀） | 所屬功能的 suite（上表）；純視覺不跑 | 受影響書籤（`--mist` 只在迷霧相關時加） |
 | `src/app`、`src/ui`、React effect / 生命週期 | `dev`（StrictMode）＋所屬畫面的 suite | 有改畫面才用 `--menu` |

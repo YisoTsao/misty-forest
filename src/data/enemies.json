@@ -417,7 +417,7 @@
       "arena": { "center": [2100, 46], "radius": 22, "trigger": 18 },
       "home": [2091, 46],
       "avoid": { "center": [2100, 46], "radius": 2.2 },
-      "requires": { "questCompleted": "quest_forest_002" },
+      "requires": { "questActive": "quest_forest_003" },
       "gate": { "center": [2073, 46], "width": 22, "yaw": 1.5708 },
       "retryAt": [2063, 46],
       "troughs": ["glowmoss_crown_trough_01", "glowmoss_crown_trough_02", "glowmoss_crown_trough_03"],

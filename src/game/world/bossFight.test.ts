@@ -1,4 +1,4 @@
-// 任務 8D：苔咚頭目戰的權威規則，以實際資料驗證——開戰條件、水槽只在戰鬥中能注水、迷霧護盾、
+// 任務 8D：苔咚頭目戰的權威規則，以實際資料驗證——開戰條件（8D-2：守衛任務進行中）、水槽只在戰鬥中能注水、迷霧護盾、
 // 水槽沒注滿前打不倒、招式傷害與睡眠孢子、倒下後重試（頭目回去、水槽保留）、擊敗後的掉落與紀錄、存讀檔。
 import { describe, expect, it } from 'vitest';
 import { applyEvents, filledTroughs, handleCommand, initialGameState, type GameCommand, type GameEvent, type GameState, type RulesContext } from '@/game-core/authority/rules';
@@ -47,9 +47,9 @@ function rejection(state: GameState, cmd: GameCommand): string | null {
   return e && e.type === 'CommandRejected' ? e.reason : null;
 }
 
-/** 奇奇的水道任務完成（苔冠空地入口打開） */
+/** 奇奇的水道任務完成（苔冠空地入口打開），接了「苔冠下的守衛」（任務 8D-2：開戰條件） */
 function ready(): GameState {
-  return { ...initialGameState(), quests: { quest_forest_002: { status: 'completed' } } };
+  return { ...initialGameState(), quests: { quest_forest_002: { status: 'completed' }, quest_forest_003: { status: 'active' } } };
 }
 
 function fighting(): { state: GameState; enemyId: string } {
@@ -95,8 +95,11 @@ describe('苔咚的資料', () => {
 });
 
 describe('苔咚頭目戰', () => {
-  it('水道任務完成前不能開戰；完成後開戰，重複開戰被拒絕；一般生成不會補出頭目', () => {
+  it('沒接「苔冠下的守衛」前不能開戰；接了以後開戰，重複開戰被拒絕；一般生成不會補出頭目', () => {
     expect(rejection(initialGameState(), { type: 'StartBossFight', boss: BOSS })).toBe('quest-unavailable');
+    // 只完成水道任務、還沒接守衛任務：不開戰
+    const waterOnly = { ...initialGameState(), quests: { quest_forest_002: { status: 'completed' as const } } };
+    expect(rejection(waterOnly, { type: 'StartBossFight', boss: BOSS })).toBe('quest-unavailable');
     const { state, enemyId } = fighting();
     expect(state.enemies.get(enemyId)).toMatchObject({ kind: BOSS, hp: def.maxHp });
     expect(rejection(state, { type: 'StartBossFight', boss: BOSS })).toBe('already-active');

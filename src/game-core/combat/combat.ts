@@ -22,8 +22,8 @@ export const bossDefSchema = z.object({
   home: point,
   /** 戰場中不能走進去的圓（巨大蘑菇樹的樹幹） */
   avoid: z.object({ center: point, radius: z.number().positive() }).optional(),
-  /** 開戰的條件：這個任務已完成 */
-  requires: z.object({ questCompleted: z.string().min(1) }).optional(),
+  /** 開戰的條件：questActive 任務進行中（任務 8D-2）／ questCompleted 任務已完成 */
+  requires: z.object({ questActive: z.string().min(1).optional(), questCompleted: z.string().min(1).optional() }).optional(),
   /** 戰場入口：開戰後樹根封住（中心、寬度、面向），倒下後在 retryAt 重新站起來 */
   gate: z.object({ center: point, width: z.number().positive(), yaw: z.number() }),
   retryAt: point,
@@ -199,4 +199,12 @@ export function bossSpawner(data: CombatData, bossId: string): SpawnerDef | unde
 /** 頭目的迷霧護盾倍率：依已注水的水槽數 */
 export function bossShieldScale(boss: BossDef, filled: number): number {
   return boss.shield[Math.max(0, Math.min(boss.shield.length - 1, filled))]!;
+}
+
+/** 頭目的開戰條件是否達成（不含是否已擊敗、是否已在戰鬥中） */
+export function bossRequirementsMet(boss: BossDef, quests: Readonly<Record<string, { status: 'active' | 'completed' }>>): boolean {
+  const { questActive, questCompleted } = boss.requires ?? {};
+  if (questActive && quests[questActive]?.status !== 'active') return false;
+  if (questCompleted && quests[questCompleted]?.status !== 'completed') return false;
+  return true;
 }

@@ -23,6 +23,8 @@ export const objectiveSchema = z.discriminatedUnion('type', [
     descKey: z.string().min(1),
     milestones: z.array(z.object({ count: z.number().int().positive(), region: z.enum(regionIds), stage: z.enum(mistStages) })).optional(),
   }),
+  /** 擊敗頭目（任務 8D-2）：以「已擊敗的頭目」判斷，接任務前就打倒的也算 */
+  z.object({ type: z.literal('boss'), boss: z.string().min(1), descKey: z.string().min(1) }),
 ]);
 export type Objective = z.infer<typeof objectiveSchema>;
 
@@ -67,6 +69,7 @@ export function parseQuests(
     for (const id of items) if (!refs.items.has(id)) throw new Error(`任務 ${q.id} 參照不存在的物品：${id}`);
     for (const o of q.objectives) {
       if (o.type === 'defeat' && refs.enemies && !refs.enemies.has(o.enemy)) throw new Error(`任務 ${q.id} 參照不存在的敵人：${o.enemy}`);
+      if (o.type === 'boss' && refs.enemies && !refs.enemies.has(o.boss)) throw new Error(`任務 ${q.id} 參照不存在的頭目：${o.boss}`);
     }
     if (refs.placements) {
       const ids = [
@@ -87,6 +90,8 @@ type QuestState = {
   quests: Readonly<Record<string, QuestRecord>>;
   inventory: Parameters<typeof countItem>[0];
   objects: ReadonlyMap<string, { repaired?: boolean; active?: boolean }>;
+  /** 已擊敗的頭目（省略視為沒有） */
+  defeatedBosses?: readonly string[];
 };
 
 export function questStatus(state: QuestState, def: QuestDef): QuestStatus {
@@ -107,6 +112,8 @@ export function objectiveProgress(state: QuestState, def: QuestDef): { current: 
         return { current: o.placementIds.filter((id) => state.objects.get(id)?.active === true).length, target: o.placementIds.length };
       case 'defeat':
         return { current: Math.min(state.quests[def.id]?.progress?.[i] ?? 0, o.count), target: o.count };
+      case 'boss':
+        return { current: state.defeatedBosses?.includes(o.boss) ? 1 : 0, target: 1 };
     }
   });
 }

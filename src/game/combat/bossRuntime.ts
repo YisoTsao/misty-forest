@@ -3,10 +3,10 @@
 import { create } from 'zustand';
 import { filledTroughs } from '@/game-core/authority/rules';
 import { bossStrikeHits, stepBossAi, type BossState, type BossStrike } from '@/game-core/combat/bossAi';
-import type { BossDef, BossMoveId, EnemyDef } from '@/game-core/combat/combat';
+import { bossRequirementsMet, type BossDef, type BossMoveId, type EnemyDef } from '@/game-core/combat/combat';
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { terrainHeight } from '@/game-core/world/terrain';
-import { authority, combat } from '../authority';
+import { authority, combat, worldIndex } from '../authority';
 import { companionSay } from '../companion/companionRuntime';
 import { t } from '../i18n';
 import { cameraRuntime, playerRuntime } from '../player/localRuntime';
@@ -69,8 +69,7 @@ export function stepBossArenas(dt: number): void {
       continue;
     }
     if (startCooldown > 0 || state.defeatedBosses.includes(def.id)) continue;
-    const requires = def.boss.requires?.questCompleted;
-    if (requires && state.quests[requires]?.status !== 'completed') continue;
+    if (!bossRequirementsMet(def.boss, state.quests)) continue;
     if (Math.hypot(x - def.boss.arena.center[0], z - def.boss.arena.center[1]) > def.boss.arena.trigger) continue;
     startCooldown = START_RETRY_SEC;
     authority.send({ type: 'StartBossFight', boss: def.id });
@@ -185,6 +184,7 @@ export function installBossRuntime(): void {
           break;
         }
         case 'ObjectActivated': {
+          if (resonanceRestored(e.placementId, state.companion.unlocked)) break;
           const def = bosses.find((b) => b.boss.troughs.includes(e.placementId));
           if (!def) break;
           const filled = filledTroughs(state, def.boss);
@@ -206,6 +206,25 @@ export function installBossRuntime(): void {
       }
     }
   });
+}
+
+/**
+ * 戰後啟動的機關（任務 8D-2 森林根源石）：芽之共鳴回來了——綠光從石頭擴散、芽芽說話。
+ * 不是這種機關時回傳 false。
+ */
+function resonanceRestored(placementId: string, companionUnlocked: boolean): boolean {
+  const placement = worldIndex.placement(placementId);
+  const prefab = placement && worldIndex.prefab(placement.prefabId);
+  if (!placement || !prefab?.activate?.afterBoss) return false;
+  const [x, , z] = placement.position;
+  const y = terrainHeight(x, z);
+  const mint = [0.55, 0.95, 0.75] as const;
+  vfx({ type: 'flash', x, y: y + 1.6, z, color: mint, intensity: 6, duration: 1.4, distance: 22 });
+  vfx({ type: 'shockwave', x, y: y + 0.15, z, radius: 16, duration: 1.6, color: mint });
+  vfx({ type: 'burst', preset: 'purify', x, y: y + 1.4, z, color: mint, scale: 2.4 });
+  useUiStore.getState().pushToast({ textKey: 'toast.resonance' });
+  if (companionUnlocked) companionSay('companion.resonance');
+  return true;
 }
 
 /** 除錯與測試：下一招指定為某一招（出招後清除） */

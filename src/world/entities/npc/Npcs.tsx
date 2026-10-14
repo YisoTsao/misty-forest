@@ -1,16 +1,18 @@
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
-import { useEffect, useMemo, useRef } from 'react';
+import { BallCollider, CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { stepPatrol, type NpcDef } from '@/game-core/npc/npc';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { npcs } from '@/game/authority';
-import { npcRuntime } from '@/game/npc/npcRuntime';
+import { npcRuntime, npcVisible } from '@/game/npc/npcRuntime';
+import { useGameStateStore } from '@/game/state/gameStateStore';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { assetUrl } from '@/game/worldData';
 import { AssetBoundary } from '../../AssetBoundary';
+import { MossThumpBuddy } from '../enemy/MossThump';
 import { prepareModel } from '../player/CharacterModel';
 
 /** 與玩家相同的膠囊尺寸（同一套骨架模型） */
@@ -27,9 +29,60 @@ export function Npcs() {
     <>
       {npcs.map((npc) => (
         <AssetBoundary key={npc.id} name={`npc:${npc.id}`}>
-          <NpcActor def={npc} />
+          {npc.visible ? <ConditionalNpc def={npc} /> : <NpcBody def={npc} />}
         </AssetBoundary>
       ))}
+    </>
+  );
+}
+
+/** 有出現條件的 NPC（任務 8D-2 戰後的苔咚）：條件不成立時不建立（沒有碰撞、不能對話） */
+function ConditionalNpc({ def }: { def: NpcDef }) {
+  const visible = useGameStateStore((s) => npcVisible(def, s.state));
+  return visible ? <NpcBody def={def} /> : null;
+}
+
+function NpcBody({ def }: { def: NpcDef }) {
+  return def.model.startsWith('procedural:') ? <ProceduralNpcActor def={def} /> : <NpcActor def={def} />;
+}
+
+/** 程式造型的 NPC（目前只有苔咚）：固定站位，對話時轉向玩家 */
+const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => boolean) => ReactNode }> = {
+  moss_thump: { radius: 0.55, render: (talking) => <MossThumpBuddy talking={talking} /> },
+};
+
+function ProceduralNpcActor({ def }: { def: NpcDef }) {
+  const kind = def.model.slice('procedural:'.length);
+  const spec = PROCEDURAL_NPCS[kind];
+  if (!spec) throw new Error(`NPC ${def.id} 的程式造型不存在：${kind}`);
+  const visualRef = useRef<THREE.Group>(null);
+  const runtime = npcRuntime.get(def.id);
+  if (!runtime) throw new Error(`NPC ${def.id} 沒有執行期狀態`);
+  const talking = useMemo(() => () => runtime.talking, [runtime]);
+
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 1 / 20);
+    if (currentScreen() === 'paused') return;
+    const player = playerRuntime.position;
+    const desiredYaw = runtime.talking ? Math.atan2(player.x - runtime.x, player.z - runtime.z) : def.facingYaw;
+    runtime.yaw += angleDelta(runtime.yaw, desiredYaw) * Math.min(1, TURN_RATE * 0.5 * dt);
+    runtime.y = def.floorY ?? terrainHeight(runtime.x, runtime.z);
+    const visual = visualRef.current;
+    if (visual) {
+      visual.position.set(runtime.x, runtime.y, runtime.z);
+      visual.rotation.y = runtime.yaw;
+    }
+  });
+
+  const r = spec.radius;
+  return (
+    <>
+      <RigidBody type="fixed" colliders={false} position={[runtime.x, runtime.y + r, runtime.z]}>
+        <BallCollider args={[r]} />
+      </RigidBody>
+      <group ref={visualRef} position={[runtime.x, runtime.y, runtime.z]} rotation-y={runtime.yaw}>
+        <group scale={def.scale}>{spec.render(talking)}</group>
+      </group>
     </>
   );
 }
@@ -39,6 +92,8 @@ function angleDelta(from: number, to: number): number {
 }
 
 function NpcActor({ def }: { def: NpcDef }) {
+  const clips = def.clips;
+  if (!clips) throw new Error(`NPC ${def.id} 沒有動畫片段`);
   const gltf = useGLTF(assetUrl(def.model));
   const { root, materials } = useMemo(() => prepareModel(gltf.scene, def.hiddenNodes), [gltf.scene, def.hiddenNodes]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
@@ -51,14 +106,14 @@ function NpcActor({ def }: { def: NpcDef }) {
   if (!runtime) throw new Error(`NPC ${def.id} 沒有執行期狀態`);
 
   useEffect(() => {
-    const missing = Object.values(def.clips).filter((name) => !actions[name]);
+    const missing = Object.values(clips).filter((name) => !actions[name]);
     if (missing.length > 0) throw new Error(`NPC ${def.id} 缺少動畫片段：${missing.join(', ')}`);
-    const talk = actions[def.clips.talk];
+    const talk = actions[clips.talk];
     if (talk) {
       talk.setLoop(THREE.LoopOnce, 1);
       talk.clampWhenFinished = false;
     }
-  }, [actions, def]);
+  }, [actions, def, clips]);
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20);
@@ -92,9 +147,9 @@ function NpcActor({ def }: { def: NpcDef }) {
     }
 
     // 動畫：開始對話時播一次說話手勢，之後待機；巡邏中走路
-    if (runtime.talking && !anim.wasTalking) anim.talkUntil = anim.time + (actions[def.clips.talk]?.getClip().duration ?? 0);
+    if (runtime.talking && !anim.wasTalking) anim.talkUntil = anim.time + (actions[clips.talk]?.getClip().duration ?? 0);
     anim.wasTalking = runtime.talking;
-    const clip = runtime.walking ? def.clips.walk : anim.time < anim.talkUntil ? def.clips.talk : def.clips.idle;
+    const clip = runtime.walking ? clips.walk : anim.time < anim.talkUntil ? clips.talk : clips.idle;
     if (clip === anim.current) return;
     const next = actions[clip];
     const prev = anim.current ? actions[anim.current] : undefined;

@@ -13,6 +13,8 @@ export const landmarkSchema = z.object({
   nameKey: z.string().min(1),
   icon: z.enum(landmarkIcons),
   position: z.tuple([z.number(), z.number()]),
+  /** 這個任務完成後才標出（任務 8D-2：通往澄鏡湖的林間水道） */
+  requires: z.object({ questCompleted: z.string().min(1) }).optional(),
 });
 export type Landmark = z.infer<typeof landmarkSchema>;
 
@@ -24,6 +26,11 @@ export function parseLandmarks(raw: unknown): Landmark[] {
     seen.add(l.id);
   }
   return list;
+}
+
+/** 地標是否已經出現在地圖上 */
+export function landmarkShown(l: Landmark, quests: Readonly<Record<string, { status: string }>>): boolean {
+  return !l.requires || quests[l.requires.questCompleted]?.status === 'completed';
 }
 
 export type QuestMarker = {
@@ -40,6 +47,7 @@ type MarkerState = {
   quests: Parameters<typeof questStatus>[0]['quests'];
   inventory: Inventory;
   objects: ReadonlyMap<string, ObjectRuntime>;
+  defeatedBosses?: readonly string[];
 };
 
 /**
@@ -80,9 +88,12 @@ export function questMarkers(
           const p = ctx.placement(id);
           if (p) out.push({ questId: q.id, kind: 'objective', x: p.position[0], z: p.position[2] });
         }
-      } else if (o.type === 'defeat') {
+      } else if (o.type === 'defeat' || o.type === 'boss') {
+        // 頭目：標出戰場（頭目的生成點）
+        const enemy = o.type === 'defeat' ? o.enemy : o.boss;
+        if (o.type === 'boss' && state.defeatedBosses?.includes(o.boss)) continue;
         for (const s of ctx.spawners) {
-          if (s.enemy === o.enemy) out.push({ questId: q.id, kind: 'objective', x: s.center[0], z: s.center[1], radius: s.radius });
+          if (s.enemy === enemy) out.push({ questId: q.id, kind: 'objective', x: s.center[0], z: s.center[1], radius: s.radius });
         }
       }
     }

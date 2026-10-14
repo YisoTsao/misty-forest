@@ -20,6 +20,7 @@ export type SoundId =
   | 'enemy_down'
   | 'skill'
   | 'dialogue'
+  | 'bubble'
   | 'companion';
 
 const kenney = (names: string[]) => names.map((n) => `audio/kenney/${n}.ogg`);
@@ -45,5 +46,7 @@ export const sounds: Record<SoundId, { files: string[]; volume: number; rate?: [
   enemy_down: { files: kenney(['impactSoft_medium_000']), volume: 0.6, rate: [0.7, 0.8] },
   skill: { files: kenney(['impactGlass_light_000', 'impactGlass_light_001']), volume: 0.6, rate: [1.2, 1.3] },
   dialogue: { files: kenney(['bookFlip1']), volume: 0.35 },
+  // 苔咚的泡泡音（任務 8D-2）：水滴聲放慢
+  bubble: { files: kenney(['drop_002']), volume: 0.55, rate: [0.55, 0.8] },
   companion: { files: kenney(['select_002']), volume: 0.4, rate: [1.3, 1.4] },
 };

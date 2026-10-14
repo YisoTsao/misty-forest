@@ -117,7 +117,7 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
       drawLayer(ctx, getMapBase(data, map), view, map);
       drawLayer(ctx, fogFor(state.explored, map), view, map);
       drawRegionLabels(ctx, view, state.explored, map);
-      drawLandmarks(ctx, view, state.explored, true, map);
+      drawLandmarks(ctx, view, state, true, map);
       drawChests(ctx, view, state);
       drawNpcs(ctx, view, zoom >= 1.6);
       drawQuestMarkers(ctx, view, currentQuestMarkers(state));

@@ -170,6 +170,29 @@ const icons: Record<string, ReactNode> = {
       <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </>
   ),
+  resonance_bud: (
+    <>
+      <circle cx="24" cy="26" r="17" fill="#8de6be" opacity="0.28" />
+      <circle cx="24" cy="26" r="11" fill="#8de6be" opacity="0.35" />
+      <path d="M24 40 Q23 30 24 22" stroke="#2f7a3a" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M24 25 Q14 24 11 15 Q21 13 24 25 Z" fill="#6cc164" stroke="#2f6a3a" strokeWidth="1.8" />
+      <path d="M24 22 Q32 18 37 9 Q27 8 24 22 Z" fill="#9fe0b0" stroke="#2f6a3a" strokeWidth="1.8" />
+      <ellipse cx="24" cy="41" rx="7" ry="3.2" fill="#8a6a4a" stroke="#5e3a1c" strokeWidth="1.5" />
+      <circle cx="14" cy="34" r="1.6" fill="#fffbd0" />
+      <circle cx="35" cy="28" r="1.4" fill="#fffbd0" />
+      <circle cx="31" cy="38" r="1.1" fill="#fffbd0" />
+    </>
+  ),
+  moss_cloth: (
+    <>
+      <path d="M9 12 Q24 8 39 12 L37 36 Q24 40 11 36 Z" fill="#5f9a6a" stroke="#2f5a3e" strokeWidth="2" />
+      <path d="M11 36 Q24 40 37 36 L36 41 Q24 45 12 41 Z" fill="#386b53" stroke="#2f5a3e" strokeWidth="1.6" />
+      <path d="M14 18 Q24 15 34 18 M13 25 Q24 22 35 25 M12 31 Q24 28 36 31" stroke="#8de6be" strokeWidth="1.4" fill="none" opacity="0.8" />
+      <circle cx="17" cy="21" r="1.6" fill="#8de6be" />
+      <circle cx="30" cy="28" r="1.4" fill="#8de6be" />
+      <circle cx="23" cy="34" r="1.2" fill="#ffc6e8" />
+    </>
+  ),
   herb_potion: (
     <>
       <rect x="20" y="6" width="8" height="6" rx="1.5" fill="#a86f4b" stroke="#5e3a1c" strokeWidth="1.5" />

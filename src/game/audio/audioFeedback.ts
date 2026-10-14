@@ -1,4 +1,4 @@
-import { authority, worldIndex } from '../authority';
+import { authority, npcs, worldIndex } from '../authority';
 import { useCompanionBubble } from '../companion/companionRuntime';
 import { useUiStore } from '../state/uiStore';
 import { audio } from './audioEngine';
@@ -68,7 +68,7 @@ export function installAudioFeedback(): void {
   });
   // 對話翻頁、露米說話
   useUiStore.subscribe((s, prev) => {
-    if (s.dialogue && s.dialogue.nodeId !== prev.dialogue?.nodeId) audio.play('dialogue');
+    if (s.dialogue && s.dialogue.nodeId !== prev.dialogue?.nodeId) audio.play(npcs.find((n) => n.id === s.dialogue?.npcId)?.voice ?? 'dialogue');
   });
   useCompanionBubble.subscribe((s, prev) => {
     if (s.text && s.id !== prev.id) audio.play('companion');

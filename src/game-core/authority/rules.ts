@@ -2,7 +2,7 @@
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
 import { placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
-import { bossShieldScale, bossSpawner, PLAYER_STATS, stanceDamageScale, type BossDef, type BossMoveId, type CombatData, type EnemyStance } from '../combat/combat';
+import { bossRequirementsMet, bossShieldScale, bossSpawner, PLAYER_STATS, stanceDamageScale, type BossDef, type BossMoveId, type CombatData, type EnemyStance } from '../combat/combat';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
@@ -151,6 +151,7 @@ export type RejectReason =
   | 'not-enough-mp'
   | 'already-defeated'
   | 'not-in-fight'
+  | 'boss-not-defeated'
   | 'invalid-command';
 
 export type GameEvent =
@@ -395,6 +396,8 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
   }
   // 頭目戰場的水槽：只有戰鬥中才能注水（任務 8D）
   if (spec.boss && bossEnemies(state, spec.boss).length === 0) return reject('ActivateObject', 'not-in-fight', placementId);
+  // 森林根源石：守衛平靜下來之前碰不到（任務 8D-2）
+  if (spec.afterBoss && !state.defeatedBosses.includes(spec.afterBoss)) return reject('ActivateObject', 'boss-not-defeated', placementId);
   const events: GameEvent[] = [{ type: 'ObjectActivated', placementId, source: 'player' }];
   if (spec.lootTableId) {
     // 背包放不下時不能啟動（物品不會遺失）
@@ -522,8 +525,7 @@ function startBossFight(state: GameState, bossId: string, ctx: RulesContext): Ga
   if (state.player.defeated) return reject('StartBossFight', 'player-defeated');
   if (state.defeatedBosses.includes(bossId)) return reject('StartBossFight', 'already-defeated');
   if (bossEnemies(state, bossId).length > 0) return reject('StartBossFight', 'already-active');
-  const requires = def.boss.requires?.questCompleted;
-  if (requires && state.quests[requires]?.status !== 'completed') return reject('StartBossFight', 'quest-unavailable');
+  if (!bossRequirementsMet(def.boss, state.quests)) return reject('StartBossFight', 'quest-unavailable');
   const counter = (state.spawners[spawner.id]?.counter ?? 0) + 1;
   return [{ type: 'EnemySpawned', enemyId: `${spawner.id}#${counter}`, kind: bossId, spawner: spawner.id, hp: def.maxHp }];
 }

@@ -60,7 +60,8 @@ function ObjectiveRow({ objective: o, progress, state }: { objective: Objective;
     case 'collect':
       return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
     case 'activate':
-    case 'defeat': {
+    case 'defeat':
+    case 'boss': {
       const done = progress.current >= progress.target;
       return (
         <li className={`flex items-center gap-2 ${done ? 'text-emerald-300' : ''}`}>

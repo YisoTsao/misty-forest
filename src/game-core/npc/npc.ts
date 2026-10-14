@@ -5,15 +5,21 @@ import { regionIds } from '../world/types';
 
 const point = z.tuple([z.number(), z.number()]);
 
-export const npcDefSchema = z.object({
+export const npcDefSchema = z
+  .object({
   id: z.string().min(1),
   nameKey: z.string().min(1),
   regionId: z.enum(regionIds),
-  /** 外觀：與玩家同骨架的角色模型 */
+  /** 外觀：與玩家同骨架的角色模型，或 `procedural:<id>`（程式造型，例如戰後的苔咚） */
   model: z.string().min(1),
   scale: z.number().positive(),
   hiddenNodes: z.array(z.string()),
-  clips: z.object({ idle: z.string().min(1), walk: z.string().min(1), talk: z.string().min(1) }),
+  /** 角色模型的動畫片段（程式造型不需要） */
+  clips: z.object({ idle: z.string().min(1), walk: z.string().min(1), talk: z.string().min(1) }).optional(),
+  /** 出現的條件（任務 8D-2：苔咚在戰後才成為 NPC）；省略時一直都在 */
+  visible: conditionSchema.optional(),
+  /** 說話的聲音：bubble 為泡泡音（不會說完整句子的苔咚）；省略時是一般的翻頁音 */
+  voice: z.enum(['bubble']).optional(),
   /** 站立位置與面向（yaw，0 = 面向 +Z） */
   position: point,
   /** 地板高度（室內 NPC 使用；省略時貼齊地形） */
@@ -24,7 +30,8 @@ export const npcDefSchema = z.object({
   talk: z.array(z.object({ when: conditionSchema.optional(), dialogue: z.string().min(1) })).min(1),
   /** 簡單移動：在幾個點之間來回走，每個點停留 pauseSec 秒 */
   patrol: z.object({ points: z.array(point).min(2), speed: z.number().positive(), pauseSec: z.number().nonnegative() }).optional(),
-});
+  })
+  .refine((n) => n.model.startsWith('procedural:') || n.clips !== undefined, { message: '角色模型的 NPC 必須提供 clips', path: ['clips'] });
 export type NpcDef = z.infer<typeof npcDefSchema>;
 
 export function parseNpcs(raw: unknown, dialogueIds: ReadonlySet<string>): NpcDef[] {

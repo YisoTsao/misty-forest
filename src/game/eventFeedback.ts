@@ -8,6 +8,7 @@ const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejec
   'inventory-full': 'toast.inventoryFull',
   'quest-unavailable': 'toast.questLocked',
   'not-in-fight': 'toast.troughIdle',
+  'boss-not-defeated': 'toast.guardianAwake',
 };
 
 function itemName(itemId: string): string {

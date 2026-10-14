@@ -1,5 +1,5 @@
 // 端對端：任務 8D — 苔咚，苔冠守衛（Bible §6.5、§27.4）。
-// 水道任務完成前不會開戰；完成後走進苔冠空地開戰（HUD、入口樹根封住）；按 E 把水引進水槽讓迷霧退去；
+// 沒接奇奇的「苔冠下的守衛」前不會開戰（8D-2）；接了以後走進苔冠空地開戰（HUD、入口樹根封住）；按 E 把水引進水槽讓迷霧退去；
 // 根刺 / 跳躍震地 / 睡眠孢子實際打中玩家、跑開躲得掉；倒下後在入口外重來（水槽保留）；擊敗後掉落、入口打開、不再開戰。
 // 外觀以截圖檢查（node scripts/screenshot.mjs <階段> --boss）。
 // 用法：pnpm build && node e2e/boss.e2e.mjs
@@ -32,15 +32,16 @@ await runE2e('boss e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, 
   });
   await page.waitForTimeout(2500);
 
-  await check('水道任務完成前，走進苔冠空地不會開戰', async () => {
+  await check('沒接守衛任務前，走進苔冠空地不會開戰', async () => {
     await teleport(CX - 10, CZ, 1500);
     assert.equal(await bossState(), null);
     assert.equal(await hud.count(), 0);
   });
 
-  await check('水道任務完成後走進空地：苔咚從地底鑽出來、HUD 顯示名稱與三個乾水槽', async () => {
+  await check('接了守衛任務後走進空地：苔咚從地底鑽出來、HUD 顯示名稱與三個乾水槽', async () => {
     await teleport(CX - 22, CZ, 400);
     await g(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_002'));
+    await send({ type: 'AcceptQuest', quest: 'quest_forest_003' });
     await page.waitForTimeout(400);
     assert.equal(await bossState(), null, '還沒走進空地就開戰');
     await teleport(CX - 12, CZ, 600);

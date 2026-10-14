@@ -1,7 +1,8 @@
 // 本機暫態：NPC 的位置、面向與動作（規格 5.2：NPC 不持久化）。NpcActor 每幀寫入，互動系統讀取。
-import type { PatrolState } from '@/game-core/npc/npc';
+import { evaluateCondition } from '@/game-core/dialogue/conditions';
+import type { NpcDef, PatrolState } from '@/game-core/npc/npc';
 import { terrainHeight } from '@/game-core/world/terrain';
-import { npcs } from '../authority';
+import { authority, npcs, quests } from '../authority';
 
 export type NpcRuntime = {
   x: number;
@@ -28,3 +29,8 @@ export const npcRuntime = new Map<string, NpcRuntime>(
     },
   ]),
 );
+
+/** NPC 目前是否在場（任務 8D-2：有出現條件的 NPC，例如戰後的苔咚） */
+export function npcVisible(def: NpcDef, state = authority.getState()): boolean {
+  return evaluateCondition(def.visible, state, { quests });
+}

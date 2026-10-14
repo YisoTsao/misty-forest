@@ -546,3 +546,94 @@ export function MossThumpWarmup() {
     </>
   );
 }
+
+let buddyMaterials: { body: THREE.Material; rim: THREE.Material; flowers: THREE.Material } | null = null;
+
+/** 戰後的苔咚用的材質（不透明、傘緣奶油色；頭目的共用材質會在戰鬥中改透明度與顏色，不能共用） */
+function getBuddyMaterials() {
+  buddyMaterials ??= {
+    body: patchMist(new THREE.MeshToonMaterial({ gradientMap: toonGradient(), vertexColors: true })),
+    rim: patchMist(new THREE.MeshToonMaterial({ gradientMap: toonGradient(), color: RIM_CLEAR })),
+    flowers: new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
+  };
+  return buddyMaterials;
+}
+
+/**
+ * 戰後的苔咚（任務 8D-2，Bible §6.5：縮成普通尺寸，成為森林的守護 NPC，以動作和泡泡音表達）。
+ * 外形與頭目相同，只做待機的呼吸與搖擺；說話時（talking）開心地小跳。位置、面向由 NPC 系統寫在外層 group。
+ * 頭目倒下縮小的動畫還在播時，等它播完再從地上冒出來。
+ */
+export function MossThumpBuddy({ talking }: { talking: () => boolean }) {
+  const { shape } = getShared();
+  const materials = getBuddyMaterials();
+  const root = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Group>(null);
+  const cap = useRef<THREE.Group>(null);
+  const legs = useRef<(THREE.Mesh | null)[]>([]);
+  const local = useMemo(() => {
+    const vanishing = [...enemyRuntime.values()].some((v) => v.boss && v.vanishing !== null);
+    return { time: 0, delay: vanishing ? VANISH_SEC : 0, appear: 0, hop: 0 };
+  }, []);
+
+  useFrame((_, rawDt) => {
+    if (currentScreen() === 'paused') return;
+    const dt = Math.min(rawDt, 1 / 20);
+    local.time += dt;
+    if (local.delay > 0) {
+      local.delay -= dt;
+      if (root.current) root.current.visible = false;
+      return;
+    }
+    local.appear = Math.min(1, local.appear + dt / 0.6);
+    if (talking()) local.hop += dt;
+    else local.hop = 0;
+    const t = local.time;
+    const r = root.current;
+    if (!r) return;
+    r.visible = true;
+    // 從地上冒出來（稍微彈一下）
+    const k = local.appear;
+    const pop = k < 1 ? 1 + 0.18 * Math.sin(k * Math.PI) - (1 - easeOut(k)) : 1;
+    r.scale.setScalar(Math.max(0.01, pop));
+    // 說話時一下一下地跳
+    const hop = local.hop > 0 ? Math.abs(Math.sin(local.hop * 7)) * 0.5 : 0;
+    r.position.y = hop;
+    if (body.current) {
+      const breathe = 1 + Math.sin(t * 2.2) * 0.03;
+      body.current.scale.set(1 / Math.sqrt(breathe), breathe, 1 / Math.sqrt(breathe));
+      body.current.rotation.z = Math.sin(t * 1.3) * 0.05;
+    }
+    if (cap.current) cap.current.rotation.set(Math.sin(t * 1.1) * 0.04, 0, Math.sin(t * 1.7) * 0.06 + (hop > 0 ? Math.sin(local.hop * 14) * 0.08 : 0));
+    legs.current.forEach((leg, i) => {
+      if (!leg) return;
+      const [lx, lz] = LEGS[i]!;
+      leg.position.set(lx, hop > 0 ? -hop * 0.4 : 0, lz);
+    });
+  });
+
+  return (
+    <group ref={root} visible={false}>
+      {LEGS.map(([x, z], i) => (
+        <mesh
+          key={i}
+          ref={(m) => {
+            legs.current[i] = m;
+          }}
+          geometry={shape.leg}
+          material={materials.body}
+          position={[x, 0, z]}
+          castShadow
+        />
+      ))}
+      <group ref={body}>
+        <mesh geometry={shape.torso} material={materials.body} castShadow />
+        <group ref={cap}>
+          <mesh geometry={shape.cap} material={materials.body} castShadow />
+          <mesh geometry={shape.rim} material={materials.rim} />
+          <mesh geometry={shape.flowers} material={materials.flowers} />
+        </group>
+      </group>
+    </group>
+  );
+}

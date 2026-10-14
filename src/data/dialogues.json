@@ -639,5 +639,142 @@
         "textKey": "dlg.kiki.after"
       }
     }
+  },
+  {
+    "id": "kiki_guard_offer",
+    "start": "hello",
+    "nodes": {
+      "hello": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.hello",
+        "next": "stone"
+      },
+      "stone": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.stone",
+        "next": "ask"
+      },
+      "ask": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.ask",
+        "options": [
+          {
+            "textKey": "dlg.kiki.guard.opt.go",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.kiki.guard.opt.why",
+            "next": "why"
+          },
+          {
+            "textKey": "dlg.kiki.opt.bye"
+          }
+        ]
+      },
+      "why": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.why",
+        "next": "ask"
+      },
+      "accept": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.accept"
+      }
+    }
+  },
+  {
+    "id": "kiki_guard_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.remind"
+      }
+    }
+  },
+  {
+    "id": "kiki_guard_turnin",
+    "start": "listen",
+    "nodes": {
+      "listen": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.listen",
+        "options": [
+          {
+            "textKey": "dlg.kiki.guard.opt.done",
+            "next": "guardian",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.kiki.opt.later"
+          }
+        ]
+      },
+      "guardian": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.guardian",
+        "next": "gift"
+      },
+      "gift": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.gift",
+        "next": "lake"
+      },
+      "lake": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.lake"
+      }
+    }
+  },
+  {
+    "id": "kiki_after_guard",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.guard.after"
+      }
+    }
+  },
+  {
+    "id": "moss_thump_stone",
+    "start": "bubble",
+    "nodes": {
+      "bubble": {
+        "speakerKey": "npc.moss_thump",
+        "textKey": "dlg.mossThump.bubble",
+        "next": "stone"
+      },
+      "stone": {
+        "speakerKey": "npc.moss_thump",
+        "textKey": "dlg.mossThump.stone"
+      }
+    }
+  },
+  {
+    "id": "moss_thump_restored",
+    "start": "bubble",
+    "nodes": {
+      "bubble": {
+        "speakerKey": "npc.moss_thump",
+        "textKey": "dlg.mossThump.happy",
+        "next": "words"
+      },
+      "words": {
+        "speakerKey": "npc.moss_thump",
+        "textKey": "dlg.mossThump.words"
+      }
+    }
   }
 ]

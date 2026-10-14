@@ -72,7 +72,7 @@ export function Minimap() {
       const map = currentMap();
       drawLayer(ctx, getMapBase(data, map), view, map);
       drawLayer(ctx, fogFor(state.explored, map), view, map);
-      drawLandmarks(ctx, view, state.explored, false, map);
+      drawLandmarks(ctx, view, state, false, map);
       drawChests(ctx, view, state);
       drawNpcs(ctx, view, false);
       drawEnemies(ctx, view, RANGE_M * 1.2, p);

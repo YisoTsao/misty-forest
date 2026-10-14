@@ -635,6 +635,76 @@ function crownTrough(full: boolean): ForestModel {
   return { solid: merge(solid, '注滿的水槽'), plant: merge(plant, '甦醒的苔'), glow: merge(glow, '水槽的水光') };
 }
 
+/**
+ * 森林根源石（`prop_forest_root_stone`，任務 8D-2）：半人高的圓頂石，被樹根環抱，正面刻著一株嫩芽。
+ * 沉睡時石面灰暗、苔蘚枯黃、刻紋沒有光；喚醒後刻紋與根縫發出螢光薄荷色，周圍冒出新芽與光點（芽之共鳴）。
+ */
+function rootStone(awake: boolean): ForestModel {
+  const rand = mulberry32(awake ? 43 : 42);
+  const body = new THREE.DodecahedronGeometry(0.75, 1);
+  body.scale(1.05, 1.45, 0.8);
+  body.translate(0, 1.0, 0);
+  const solid: THREE.BufferGeometry[] = [paint(body, awake ? c('#8d978f') : c('#80807c'), 0.06, rand), cylinder(1.25, 1.45, 0.3, [0, 0, 0], c('#6f6e66'), 10)];
+  // 環抱的樹根：從地面繞上石頭側面
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 + 0.5;
+    const r0 = 1.9;
+    solid.push(
+      root(
+        [
+          [Math.cos(a) * r0, -0.1, Math.sin(a) * r0],
+          [Math.cos(a) * 1.15, 0.45, Math.sin(a) * 0.95],
+          [Math.cos(a + 0.5) * 0.82, 1.2 + (i % 2) * 0.3, Math.sin(a + 0.5) * 0.62],
+          [Math.cos(a + 0.9) * 0.55, 1.75 + (i % 2) * 0.2, Math.sin(a + 0.9) * 0.42],
+        ],
+        0.16,
+        i % 2 ? BARK : BARK_DARK,
+        0.35,
+        14,
+      ),
+    );
+  }
+  // 頂上的苔蘚
+  solid.push(sphere(0.5, [0, 2.05, 0], awake ? MOSS_LIGHT : c('#8a8566'), [1.3, 0.38, 1.1]));
+  // 正面（+Z）的嫩芽刻紋：莖與兩片葉
+  const carve: THREE.BufferGeometry[] = [];
+  const rune = awake ? glowColor(MINT, 2.4) : c('#5b5c58');
+  const stem = new THREE.BoxGeometry(0.07, 0.62, 0.05);
+  stem.translate(0, 1.0, 0.63);
+  carve.push(paint(stem, rune));
+  for (const side of [-1, 1]) {
+    const leafG = new THREE.SphereGeometry(0.16, 8, 6);
+    leafG.scale(1.4, 0.55, 0.3);
+    leafG.rotateZ(side * 0.5);
+    leafG.translate(side * 0.17, 1.3, 0.62);
+    carve.push(paint(leafG, rune));
+  }
+  const seed = new THREE.SphereGeometry(0.11, 8, 6);
+  seed.scale(1.2, 0.8, 0.4);
+  seed.translate(0, 0.66, 0.64);
+  carve.push(paint(seed, rune));
+  const plant: THREE.BufferGeometry[] = [];
+  if (!awake) {
+    solid.push(...carve);
+    for (let i = 0; i < 7; i++) plant.push(leaf((i / 7) * Math.PI * 2, 0.4, 0.08, 0.5, c('#7d7860'), c('#a39d80')).translate(Math.cos(i) * 1.3, 0.12, Math.sin(i) * 1.3));
+    return { solid: merge(solid, '沉睡的根源石'), plant: merge(plant, '枯黃的苔') };
+  }
+  const glow = carve;
+  // 根縫的光與周圍浮起的光點
+  for (let i = 0; i < 14; i++) {
+    const a = rand() * Math.PI * 2;
+    const r = 1.1 + rand() * 1.0;
+    glow.push(sphere(0.04 + rand() * 0.03, [Math.cos(a) * r, 0.25 + rand() * 1.9, Math.sin(a) * r], glowColor(MINT, 1.9), [1, 1, 1], 0));
+  }
+  // 冒出來的新芽
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + rand() * 0.3;
+    const r = 1.35 + rand() * 0.5;
+    for (let k = 0; k < 3; k++) plant.push(leaf((k / 3) * Math.PI * 2 + a, 0.32, 0.09, 0.95, MOSS, c('#9fe0b0')).translate(Math.cos(a) * r, 0.1, Math.sin(a) * r));
+  }
+  return { solid: merge(solid, '甦醒的根源石'), plant: merge(plant, '新芽'), glow: merge(glow, '芽之共鳴的光') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
   glowmoss_patch: glowmossPatch,
   glowmoss_tuft: glowmossTuft,
@@ -660,4 +730,6 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   moss_node: () => mossNode(true),
   crown_trough: () => crownTrough(false),
   crown_trough_full: () => crownTrough(true),
+  root_stone: () => rootStone(false),
+  root_stone_awake: () => rootStone(true),
 };

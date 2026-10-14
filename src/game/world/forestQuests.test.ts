@@ -227,7 +227,7 @@ describe('quest_forest_002 把水還給森林', () => {
     expect(s.objects.get('glowmoss_crown_roots')?.active).toBe(true);
     // 退開的樹根不再能互動
     expect(canInteract(index.prefab('crown_roots')!, s.objects.get('glowmoss_crown_roots'))).toBe(false);
-    expect(talk(s, 'kiki')).toBe('kiki_after_water');
+    expect(talk(s, 'kiki')).toBe('kiki_guard_offer');
     expect(talk(s, 'linna')).toBe('linna_after_water');
   });
 

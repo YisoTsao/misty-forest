@@ -13,7 +13,7 @@ import { isGateOpen } from '@/game-core/world/gates';
 import { isMapId } from '@/game-core/world/maps';
 import { audio } from '@/game/audio/audioEngine';
 import { input } from '@/game/input/inputManager';
-import { npcRuntime } from '@/game/npc/npcRuntime';
+import { npcRuntime, npcVisible } from '@/game/npc/npcRuntime';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
@@ -96,6 +96,7 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     }
     // NPC 會移動，不放進靜態格網；數量少，直接逐一檢查
     for (const npc of npcs) {
+      if (!npcVisible(npc, state)) continue;
       const rt = npcRuntime.get(npc.id);
       if (rt) scratch.candidates.push({ id: NPC_PREFIX + npc.id, x: rt.x, z: rt.z, radius: npc.interactRadius });
     }

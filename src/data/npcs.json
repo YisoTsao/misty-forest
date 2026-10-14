@@ -306,6 +306,29 @@
       {
         "when": {
           "type": "questReady",
+          "quest": "quest_forest_003"
+        },
+        "dialogue": "kiki_guard_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "active"
+        },
+        "dialogue": "kiki_guard_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "completed"
+        },
+        "dialogue": "kiki_after_guard"
+      },
+      {
+        "when": {
+          "type": "questReady",
           "quest": "quest_forest_002"
         },
         "dialogue": "kiki_water_turnin"
@@ -317,6 +340,14 @@
           "is": "active"
         },
         "dialogue": "kiki_water_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "available"
+        },
+        "dialogue": "kiki_guard_offer"
       },
       {
         "when": {
@@ -336,6 +367,45 @@
       },
       {
         "dialogue": "kiki_intro"
+      }
+    ]
+  },
+  {
+    "id": "moss_thump",
+    "nameKey": "npc.moss_thump",
+    "regionId": "moss_crown",
+    "model": "procedural:moss_thump",
+    "scale": 0.34,
+    "hiddenNodes": [],
+    "visible": {
+      "type": "bossDefeated",
+      "boss": "boss_moss_thump"
+    },
+    "voice": "bubble",
+    "position": [
+      2094.5,
+      51
+    ],
+    "facingYaw": -1.5708,
+    "interactRadius": 2.6,
+    "talk": [
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_003"
+        },
+        "dialogue": "moss_thump_restored"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "active"
+        },
+        "dialogue": "moss_thump_stone"
+      },
+      {
+        "dialogue": "moss_thump_restored"
       }
     ]
   }

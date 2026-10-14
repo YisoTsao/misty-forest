@@ -204,5 +204,53 @@
         "glowmoss_crown_roots"
       ]
     }
+  },
+  {
+    "id": "quest_forest_003",
+    "nameKey": "quest.forest3.name",
+    "descKey": "quest.forest3.desc",
+    "giver": "kiki",
+    "requires": [
+      "quest_forest_002"
+    ],
+    "objectives": [
+      {
+        "type": "boss",
+        "boss": "boss_moss_thump",
+        "descKey": "quest.forest3.guardian"
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "glowmoss_root_stone"
+        ],
+        "descKey": "quest.forest3.stone"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "moss_shawl_cloth",
+          "count": 1
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ],
+      "mist": [
+        {
+          "region": "moss_crown",
+          "stage": "clear"
+        },
+        {
+          "region": "root_maze",
+          "stage": "light"
+        }
+      ],
+      "objects": [
+        "glowmoss_lake_roots"
+      ]
+    }
   }
 ]

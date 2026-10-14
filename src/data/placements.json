@@ -99693,5 +99693,65 @@
       1,
       1
     ]
+  },
+  {
+    "id": "glowmoss_root_stone",
+    "prefabId": "root_stone",
+    "regionId": "moss_crown",
+    "position": [
+      2107,
+      0.97,
+      46
+    ],
+    "rotation": [
+      0,
+      -1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_lake_roots",
+    "prefabId": "lake_roots",
+    "regionId": "moss_glade",
+    "position": [
+      2006.6,
+      -1.33,
+      136
+    ],
+    "rotation": [
+      0,
+      -3.04,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_lake_sign",
+    "prefabId": "signpost_lake_channel",
+    "regionId": "moss_glade",
+    "position": [
+      2011.4,
+      1.47,
+      133
+    ],
+    "rotation": [
+      0,
+      -1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
   }
 ]

@@ -2,13 +2,13 @@
 // 只讀狀態（權威狀態、本機暫態），不修改任何東西；每次呼叫畫一整幀。
 import type { GameState } from '@/game-core/authority/rules';
 import { EXPLORE_CELL, EXPLORE_GRID, isCellExplored, isExploredAt, mapCellOffset, type Explored } from '@/game-core/map/explore';
-import { isOnMapTerrain, mapAt, mapIdAt, MAPS, type MapId } from '@/game-core/world/maps';
-import { questMarkers, type LandmarkIcon, type QuestMarker } from '@/game-core/map/markers';
+import { isOnMapTerrain, mapAt, mapIdAt, mapIds, MAPS, type MapId } from '@/game-core/world/maps';
+import { landmarkShown, questMarkers, type LandmarkIcon, type QuestMarker } from '@/game-core/map/markers';
 import { TERRAIN_SIZE } from '@/game-core/world/terrain';
 import { combat, landmarks, npcs, quests, regions, worldIndex } from '@/game/authority';
 import { enemyRuntime } from '@/game/combat/combatRuntime';
 import { t } from '@/game/i18n';
-import { npcRuntime } from '@/game/npc/npcRuntime';
+import { npcRuntime, npcVisible } from '@/game/npc/npcRuntime';
 import { worldDataResult } from '@/game/worldData';
 import { MAP_PX_PER_M, MAP_SIZE_PX } from '@/render/mapImage';
 
@@ -119,10 +119,11 @@ export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, e
 }
 
 /** 地標圖示與名稱（已探索的地標） */
-export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, explored: Explored, withNames: boolean, map: MapId = 'dawnvale'): void {
+export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, state: Pick<GameState, 'explored' | 'quests'>, withNames: boolean, map: MapId = 'dawnvale'): void {
+  const { explored } = state;
   const size = Math.max(14, Math.min(24, view.pxPerM * 9));
   for (const l of landmarks) {
-    if (mapIdAt(l.position[0], l.position[1]) !== map) continue;
+    if (mapIdAt(l.position[0], l.position[1]) !== map || !landmarkShown(l, state.quests)) continue;
     if (!isExploredAt(explored, l.position[0], l.position[1])) continue;
     const { sx, sy } = worldToScreen(view, l.position[0], l.position[1]);
     ctx.fillStyle = 'rgba(255, 248, 225, 0.92)';
@@ -161,11 +162,17 @@ export function drawChests(ctx: CanvasRenderingContext2D, view: MapView, state: 
   }
 }
 
+/** 在某張地圖的地形上（不是室內子場景）；螢苔祕林的 NPC 也要畫（原本只看晨曦谷地的範圍） */
+function onSomeMap(x: number, z: number): boolean {
+  return mapIds.some((id) => isOnMapTerrain(MAPS[id], x, z));
+}
+
 /** NPC：綠色圓點與名字 */
 export function drawNpcs(ctx: CanvasRenderingContext2D, view: MapView, withNames: boolean): void {
   for (const n of npcs) {
+    if (!npcVisible(n)) continue;
     const r = npcRuntime.get(n.id);
-    if (!r || Math.abs(r.x) > TERRAIN_SIZE / 2) continue; // 室內的 NPC 不畫
+    if (!r || !onSomeMap(r.x, r.z)) continue; // 室內的 NPC 不畫
     const { sx, sy } = worldToScreen(view, r.x, r.z);
     ctx.fillStyle = '#3fae5a';
     ctx.strokeStyle = '#fff';
@@ -199,9 +206,10 @@ export function currentQuestMarkers(state: GameState): QuestMarker[] {
   return questMarkers(state, quests, {
     npcPosition: (id) => {
       const r = npcRuntime.get(id);
-      if (r && Math.abs(r.x) <= TERRAIN_SIZE / 2) return { x: r.x, z: r.z };
       const def = npcs.find((n) => n.id === id);
-      return def && Math.abs(def.position[0]) <= TERRAIN_SIZE / 2 ? { x: def.position[0], z: def.position[1] } : null;
+      if (def && !npcVisible(def, state)) return null;
+      if (r && onSomeMap(r.x, r.z)) return { x: r.x, z: r.z };
+      return def && onSomeMap(def.position[0], def.position[1]) ? { x: def.position[0], z: def.position[1] } : null;
     },
     placement: (id) => worldIndex.placement(id),
     spawners: combat.spawners,

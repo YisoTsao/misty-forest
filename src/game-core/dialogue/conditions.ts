@@ -20,6 +20,8 @@ export type Condition =
   | { type: 'hasBuilt'; buildable?: string }
   /** 遊戲時鐘在 [from, to) 小時內；from > to 表示跨午夜（GAME_DESIGN 5.2） */
   | { type: 'timeRange'; from: number; to: number }
+  /** 這個頭目已經被擊敗（任務 8D-2：戰後的苔咚） */
+  | { type: 'bossDefeated'; boss: string }
   | { type: 'not'; condition: Condition }
   | { type: 'all'; conditions: Condition[] };
 
@@ -32,6 +34,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ type: z.literal('questReady'), quest: z.string().min(1) }),
     z.object({ type: z.literal('hasBuilt'), buildable: z.string().min(1).optional() }),
     z.object({ type: z.literal('timeRange'), from: z.number().min(0).max(24), to: z.number().min(0).max(24) }),
+    z.object({ type: z.literal('bossDefeated'), boss: z.string().min(1) }),
     z.object({ type: z.literal('not'), condition: conditionSchema }),
     z.object({ type: z.literal('all'), conditions: z.array(conditionSchema).min(1) }),
   ]),
@@ -62,6 +65,8 @@ export function evaluateCondition(condition: Condition | undefined, state: GameS
       return state.buildings.some((b) => condition.buildable === undefined || b.buildable === condition.buildable);
     case 'timeRange':
       return inTimeRange(clockAt(state.time), condition.from, condition.to);
+    case 'bossDefeated':
+      return state.defeatedBosses.includes(condition.boss);
     case 'not':
       return !evaluateCondition(condition.condition, state, ctx);
     case 'all':

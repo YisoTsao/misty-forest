@@ -84,6 +84,17 @@ function yawAcross(dx: number, dz: number): number {
   return Math.atan2(-dx, -dz);
 }
 
+/** 渠道在某個 z 的中心 x（沿線內插） */
+function channelCenterAt(z: number): number {
+  for (let i = 0; i + 1 < CHANNEL_PATH.length; i++) {
+    const a = CHANNEL_PATH[i]!;
+    const b = CHANNEL_PATH[i + 1]!;
+    if (z < Math.min(a[1], b[1]) || z > Math.max(a[1], b[1])) continue;
+    return a[0] + ((b[0] - a[0]) * (z - a[1])) / (b[1] - a[1]);
+  }
+  throw new Error(`渠道沒有經過 z = ${z}`);
+}
+
 /** 折線在某點附近的方向 */
 function directionNear(line: readonly (readonly [number, number])[], x: number, z: number): [number, number] {
   let best = Infinity;
@@ -117,6 +128,10 @@ const WATERWAY = {
 const CROWN_SEAL = { x: 70 } as const;
 /** 任務 8D：苔冠空地邊緣三個水槽的方向（從菌樹看出去，東、南、北），落在周圍大蘑菇之間；離菌樹 18 m */
 const CROWN_TROUGHS = { angles: [-0.0618, 1.509, -1.633], radius: 18 } as const;
+/** 任務 8D-2：森林根源石在菌樹東側（從入口看過去在菌樹後面），刻紋面向入口 */
+const ROOT_STONE = { x: MOSS_CROWN.x + 7, z: MOSS_CROWN.z } as const;
+/** 任務 8D-2：斷流小渠南端往澄鏡湖的林間水道（堵住的樹根與路標） */
+const LAKE_CHANNEL_Z = 136;
 
 /** 讓模型的 +X 朝東（操作桿、互動點放在 +X 那一側的岸上，靠近小徑與奇奇） */
 function eastFacing(yaw: number): number {
@@ -559,6 +574,16 @@ export function addGlowmoss(placements: Out[]): void {
       const z = MOSS_CROWN.z + Math.sin(a) * CROWN_TROUGHS.radius;
       placeQuest(`glowmoss_crown_trough_${pad2(i + 1)}`, 'crown_trough', x, z, { yaw: Math.atan2(MOSS_CROWN.x - x, MOSS_CROWN.z - z), r: 2 });
     });
+    // 任務 8D-2：森林根源石（Bible §6.7 prop_forest_root_stone）
+    placeQuest('glowmoss_root_stone', 'root_stone', ROOT_STONE.x, ROOT_STONE.z, { yaw: -Math.PI / 2, r: 2.6 });
+    // 任務 8D-2：小渠南端往澄鏡湖的林間水道：堵住渠道的樹根（完成後退開）與路標
+    {
+      const z = LAKE_CHANNEL_Z;
+      const x = channelCenterAt(z);
+      const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
+      placeQuest('glowmoss_lake_roots', 'lake_roots', x, z, { yaw: yawAcross(dx, dz), dy: -0.2, r: 4 });
+      placeQuest('glowmoss_lake_sign', 'signpost_lake_channel', x + CHANNEL_HALF_WIDTH + 2.4, z - 3, { yaw: -Math.PI / 2, r: 1.2 });
+    }
   }
   const scatterPrefixes = /^glowmoss_(giant_tree|tree|bush|fern|mushroom|stone|pebble|log|stump|moss|glowcap|tuft|moondew|moondew_decor)_\d+$/;
   const before = out.length;

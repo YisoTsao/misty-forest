@@ -87,7 +87,7 @@ export function parseGameData(raw: {
   // 條件中的物品必須存在
   const conditions = [
     ...[...dialogues.values()].flatMap((d) => Object.values(d.nodes).flatMap((n) => (n.options ?? []).map((o) => o.when))),
-    ...npcs.flatMap((n) => n.talk.map((t) => t.when)),
+    ...npcs.flatMap((n) => [...n.talk.map((t) => t.when), n.visible]),
   ];
   for (const itemId of conditions.flatMap(conditionItemIds)) {
     if (!items.has(itemId)) throw new WorldDataError(`對話條件參照不存在的物品：${itemId}`);
@@ -173,6 +173,15 @@ export function parseGameData(raw: {
     landmarks = parseLandmarks(raw.landmarks ?? []);
   } catch (err) {
     throw new WorldDataError(`landmarks 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  for (const l of landmarks) {
+    if (l.requires && !quests.has(l.requires.questCompleted)) throw new WorldDataError(`地標 ${l.id} 參照不存在的任務：${l.requires.questCompleted}`);
+  }
+  // 頭目的開戰條件參照的任務必須存在
+  for (const e of combat.enemies.values()) {
+    for (const questId of Object.values(e.boss?.requires ?? {})) {
+      if (questId && !quests.has(questId)) throw new WorldDataError(`頭目 ${e.id} 的開戰條件參照不存在的任務：${questId}`);
+    }
   }
   let waterways: WaterwayDef[];
   try {

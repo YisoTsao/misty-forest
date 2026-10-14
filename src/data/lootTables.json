@@ -25,5 +25,6 @@
   {"id": "mob_snow_yeti_drop", "drops": [{"itemId": "stone", "min": 1, "max": 2}, {"itemId": "starlight_shard", "min": 1, "max": 2, "chance": 0.5}]},
   {"id": "mob_mushroom_king_drop", "drops": [{"itemId": "starlight_shard", "min": 3, "max": 4}, {"itemId": "mist_gel", "min": 2, "max": 2}, {"itemId": "herb", "min": 2, "max": 3}]},
   {"id": "boss_moss_thump_drop", "drops": [{"itemId": "moss_cap", "min": 1, "max": 1}, {"itemId": "starlight_shard", "min": 4, "max": 5}, {"itemId": "glow_pollen", "min": 2, "max": 3}]},
+  {"id": "root_stone_resonance", "drops": [{"itemId": "seed_resonance_bud", "min": 1, "max": 1}]},
   {"id": "channel_roots_fiber", "drops": [{"itemId": "root_fiber", "min": 2, "max": 2}]}
 ]
