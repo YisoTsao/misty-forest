@@ -29,6 +29,7 @@ import { useInputDeviceStore } from './input/device';
 import { input } from './input/inputManager';
 import { currentMap, mapGateTo, travelToMap, useLocationStore } from './location';
 import { npcRuntime } from './npc/npcRuntime';
+import { lighthouseVisual } from './world/lighthouseRuntime';
 import { perfStats } from './perfStats';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
 import { useDebugStore, type CameraMode } from './state/debugStore';
@@ -170,6 +171,8 @@ export type MistwoodDebugApi = {
   /** 頭目的下一招指定為某一招 */
   forceBossMove: (move: BossMoveId) => void;
   defeatedBosses: () => readonly string[];
+  /** 晨曦燈塔的光柱是否已建立（任務 7D） */
+  lighthouseBeam: () => boolean;
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
@@ -416,6 +419,7 @@ export function installDebugApi(): void {
       bossDebugState.force = move;
     },
     defeatedBosses: () => [...authority.getState().defeatedBosses],
+    lighthouseBeam: () => lighthouseVisual.beam,
     waterway: () => {
       const def = waterways[0];
       if (!def) return null;

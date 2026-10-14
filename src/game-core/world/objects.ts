@@ -20,7 +20,7 @@ export function canInteract(prefab: Prefab, runtime: ObjectRuntime | undefined, 
   // 啟動後消失的物件（苔冠空地入口的樹根退開後）不再能互動
   if (prefab.activate && !prefab.activate.model && runtime?.active) return false;
   if (prefab.interaction === 'open') return runtime?.open !== true;
-  if (prefab.interaction === 'harvest') return runtime?.harvested !== true;
+  if (prefab.interaction === 'harvest') return runtime?.harvested !== true && (!prefab.harvest?.quest || isQuestActive(prefab.harvest.quest));
   if (prefab.interaction === 'repair') return runtime?.repaired !== true && (!prefab.repair?.quest || isQuestActive(prefab.repair.quest));
   if (prefab.interaction === 'activate') return runtime?.active !== true && (!prefab.activate?.quest || isQuestActive(prefab.activate.quest));
   return true;

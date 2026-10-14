@@ -14,6 +14,7 @@
   { "id": "ruins_ghosts", "regionId": "ruins", "enemy": "mob_mist_ghost", "center": [44, 120], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 50 },
   { "id": "ruins_king", "regionId": "ruins", "enemy": "mob_mushroom_king", "center": [62, 112], "radius": 6, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 240 },
   { "id": "east_dinos", "regionId": "meadow", "enemy": "mob_horn_dino", "center": [132, 40], "radius": 12, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
+  { "id": "lighthouse_wisps", "regionId": "highland", "enemy": "mist_wisp", "center": [-26, -117], "radius": 7, "budget": { "dense": 3, "light": 3, "clear": 0 }, "respawnSec": 25 },
   { "id": "stargaze_wisps", "regionId": "overlook", "enemy": "mist_wisp", "center": [-66, 112], "radius": 10, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 30 },
   { "id": "glade_moths", "regionId": "moss_glade", "enemy": "mob_fog_moth", "center": [1992, 28], "radius": 9, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
   { "id": "ring_moths", "regionId": "moss_glade", "enemy": "mob_fog_moth", "center": [2036, 32], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 40 },

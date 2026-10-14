@@ -44,6 +44,7 @@ import { Backdrop } from './sky/Backdrop';
 import { Sky } from './sky/Sky';
 import { Terrain } from './terrain/Terrain';
 import { Water } from './water/Water';
+import { LighthouseBeam } from './dawn/LighthouseBeam';
 import { Waterway } from './water/Waterway';
 import { GrassField } from './vegetation/GrassField';
 import { WorldPlacements } from './vegetation/WorldPlacements';
@@ -95,6 +96,7 @@ export function WorldScene({ data }: { data: WorldData }) {
           <MistWall map="dawnvale" />
           <Fireflies kind="fireflies" />
           <ChimneySmoke data={data} />
+          <LighthouseBeam />
         </MapOnly>
         <MapOnly map="glowmoss">
           <GrassField index={index} map="glowmoss" />

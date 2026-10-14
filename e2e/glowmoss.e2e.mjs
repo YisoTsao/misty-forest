@@ -33,7 +33,7 @@ await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env 
     assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /前往\s*林道入口：螢苔祕林/);
   });
 
-  await check('木橋修好之前：說明原因、不能通過', async () => {
+  await check('木橋修好、燈塔點亮之前：說明原因、不能通過', async () => {
     await page.keyboard.press('KeyE');
     const dialog = page.locator('[data-testid="message-dialog"]');
     await dialog.waitFor({ timeout: 2000 });
@@ -44,8 +44,9 @@ await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env 
     assert.equal((await currentMap()).at, 'dawnvale');
   });
 
-  await check('修好木橋後：黑幕轉場到螢苔祕林的林緣小徑，站在地面上、面向林子', async () => {
+  await check('修好木橋、點亮燈塔後：黑幕轉場到螢苔祕林的林緣小徑，站在地面上、面向林子', async () => {
     await debug(() => window.__mistwoodDebug.setQuestCompleted('repair_bridge'));
+    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_dawn_003'));
     await faceGate(dawnGate);
     await page.keyboard.press('KeyE');
     await page.waitForFunction(() => window.__mistwoodDebug.currentMap().at === 'glowmoss', null, { timeout: 3000 });

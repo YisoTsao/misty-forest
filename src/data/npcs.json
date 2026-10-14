@@ -24,6 +24,37 @@
     "talk": [
       {
         "when": {
+          "type": "questReady",
+          "quest": "quest_dawn_003"
+        },
+        "dialogue": "elder_lighthouse_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_003",
+          "is": "active"
+        },
+        "dialogue": "elder_lighthouse_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_003",
+          "is": "completed"
+        },
+        "dialogue": "elder_lighthouse_done"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_dawn_003",
+          "is": "available"
+        },
+        "dialogue": "elder_lighthouse_offer"
+      },
+      {
+        "when": {
           "type": "mistStage",
           "region": "forest",
           "is": "clear"

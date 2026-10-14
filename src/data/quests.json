@@ -95,6 +95,57 @@
     }
   },
   {
+    "id": "quest_dawn_003",
+    "nameKey": "quest.dawn3.name",
+    "descKey": "quest.dawn3.desc",
+    "giver": "elder",
+    "requires": [
+      "clear_forest"
+    ],
+    "objectives": [
+      {
+        "type": "defeat",
+        "enemy": "mist_wisp",
+        "count": 3,
+        "descKey": "quest.dawn3.wisps"
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "highland_mist_core"
+        ],
+        "descKey": "quest.dawn3.core"
+      },
+      {
+        "type": "repair",
+        "placementId": "highland_lighthouse_lamp",
+        "descKey": "quest.dawn3.lamp"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "dawn_resonance",
+          "count": 1
+        },
+        {
+          "itemId": "dawn_charm",
+          "count": 1
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ],
+      "mist": [
+        {
+          "region": "highland",
+          "stage": "clear"
+        }
+      ]
+    }
+  },
+  {
     "id": "quest_forest_001",
     "nameKey": "quest.forest1.name",
     "descKey": "quest.forest1.desc",

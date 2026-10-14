@@ -137,6 +137,9 @@ export function parseGameData(raw: {
   }
   const placementsById = new Map(world.placements.map((p) => [p.id, p]));
   for (const prefab of world.prefabs.values()) {
+    for (const need of [prefab.harvest?.quest, prefab.repair?.quest, prefab.activate?.quest]) {
+      if (need !== undefined && !quests.has(need)) throw new WorldDataError(`prefab ${prefab.id} 參照不存在的任務：${need}`);
+    }
     const enter = prefab.enter;
     if (!enter) continue;
     if ((mapIds as readonly string[]).includes(enter.to)) {

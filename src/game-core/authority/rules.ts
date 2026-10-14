@@ -8,7 +8,7 @@ import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
-import { questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
+import { earlierObjectivesDone, questConsumption, questStatus, isQuestReady, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import type { MistStage } from '../world/mist';
 import { secondsUntilHour } from '../world/timeOfDay';
@@ -152,6 +152,7 @@ export type RejectReason =
   | 'already-defeated'
   | 'not-in-fight'
   | 'boss-not-defeated'
+  | 'out-of-order'
   | 'invalid-command';
 
 export type GameEvent =
@@ -338,6 +339,10 @@ function harvest(state: GameState, placementId: string, ctx: RulesContext): Game
   const { harvest: spec, interaction } = found.prefab;
   if (interaction !== 'harvest' || !spec) return reject('HarvestObject', 'wrong-interaction', placementId);
   if (state.objects.get(placementId)?.harvested) return reject('HarvestObject', 'already-harvested', placementId);
+  if (spec.quest) {
+    const quest = ctx.quests.get(spec.quest);
+    if (!quest || questStatus(state, quest) !== 'active') return reject('HarvestObject', 'quest-unavailable', placementId);
+  }
   const items = rollIntoInventory(state, spec.lootTableId, ctx);
   if (!items) return reject('HarvestObject', 'inventory-full', placementId);
   const respawnAt = spec.respawnSec === undefined ? undefined : state.time + spec.respawnSec;
@@ -376,6 +381,7 @@ function repairObject(state: GameState, placementId: string, ctx: RulesContext):
   if (spec.quest) {
     const quest = ctx.quests.get(spec.quest);
     if (!quest || questStatus(state, quest) !== 'active') return reject('RepairObject', 'quest-unavailable', placementId);
+    if (spec.ordered && !earlierObjectivesDone(state, quest, placementId)) return reject('RepairObject', 'out-of-order', placementId);
   }
   if (!removeItems(state.inventory, spec.materials)) return reject('RepairObject', 'missing-materials', placementId);
   return [
@@ -393,6 +399,7 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
   if (spec.quest) {
     const quest = ctx.quests.get(spec.quest);
     if (!quest || questStatus(state, quest) !== 'active') return reject('ActivateObject', 'quest-unavailable', placementId);
+    if (spec.ordered && !earlierObjectivesDone(state, quest, placementId)) return reject('ActivateObject', 'out-of-order', placementId);
   }
   // 頭目戰場的水槽：只有戰鬥中才能注水（任務 8D）
   if (spec.boss && bossEnemies(state, spec.boss).length === 0) return reject('ActivateObject', 'not-in-fight', placementId);

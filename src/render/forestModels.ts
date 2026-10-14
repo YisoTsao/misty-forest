@@ -14,7 +14,7 @@ export type ForestModel = { solid?: THREE.BufferGeometry; plant?: THREE.BufferGe
 
 const c = (hex: string) => new THREE.Color(hex);
 /** HDR 自發光色（乘上亮度後超過 Bloom 門檻） */
-const glowColor = (hex: string, power: number) => new THREE.Color(hex).multiplyScalar(power);
+export const glowColor = (hex: string, power: number) => new THREE.Color(hex).multiplyScalar(power);
 
 const MOSS = c('#386b53');
 const MOSS_LIGHT = c('#5f9a6a');
@@ -22,7 +22,7 @@ const BARK = c('#6b4a35');
 const BARK_DARK = c('#4c3426');
 const MINT = '#8de6be';
 
-function paint(g: THREE.BufferGeometry, color: THREE.Color, jitter = 0, rand?: () => number): THREE.BufferGeometry {
+export function paint(g: THREE.BufferGeometry, color: THREE.Color, jitter = 0, rand?: () => number): THREE.BufferGeometry {
   const n = g.attributes.position!.count;
   const colors = new Float32Array(n * 3);
   const tmp = new THREE.Color();
@@ -35,7 +35,7 @@ function paint(g: THREE.BufferGeometry, color: THREE.Color, jitter = 0, rand?: (
   return g;
 }
 
-function merge(parts: THREE.BufferGeometry[], name: string): THREE.BufferGeometry {
+export function merge(parts: THREE.BufferGeometry[], name: string): THREE.BufferGeometry {
   // 屬性一致：位置、法線、頂點色
   const flat = parts.map((p) => {
     const g = p.index ? p.toNonIndexed() : p;
@@ -50,14 +50,14 @@ function merge(parts: THREE.BufferGeometry[], name: string): THREE.BufferGeometr
   return merged;
 }
 
-function sphere(radius: number, at: [number, number, number], color: THREE.Color, squash: [number, number, number] = [1, 1, 1], detail = 1): THREE.BufferGeometry {
+export function sphere(radius: number, at: [number, number, number], color: THREE.Color, squash: [number, number, number] = [1, 1, 1], detail = 1): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(radius, detail);
   g.scale(...squash);
   g.translate(...at);
   return paint(g, color);
 }
 
-function cylinder(rTop: number, rBottom: number, height: number, at: [number, number, number], color: THREE.Color, segments = 8, rot: [number, number, number] = [0, 0, 0]): THREE.BufferGeometry {
+export function cylinder(rTop: number, rBottom: number, height: number, at: [number, number, number], color: THREE.Color, segments = 8, rot: [number, number, number] = [0, 0, 0]): THREE.BufferGeometry {
   const g = new THREE.CylinderGeometry(rTop, rBottom, height, segments, 1);
   g.translate(0, height / 2, 0);
   g.rotateX(rot[0]);
@@ -113,7 +113,7 @@ function carpet(radius: number, color: THREE.Color, edge: THREE.Color, rand: () 
 }
 
 /** 一片斜向外伸的葉子（兩個三角形），法線朝上 */
-function leaf(angle: number, length: number, width: number, tilt: number, base: THREE.Color, tip: THREE.Color, y = 0): THREE.BufferGeometry {
+export function leaf(angle: number, length: number, width: number, tilt: number, base: THREE.Color, tip: THREE.Color, y = 0): THREE.BufferGeometry {
   const dx = Math.cos(angle);
   const dz = Math.sin(angle);
   const px = -dz * width;

@@ -127,3 +127,12 @@ export function isQuestReady(state: QuestState, def: QuestDef): boolean {
 export function questConsumption(def: QuestDef): ItemStack[] {
   return def.objectives.flatMap((o) => (o.type === 'collect' && o.consume ? [{ itemId: o.itemId, count: o.count }] : []));
 }
+
+/** 這個物件所屬的目標之前的目標是否都已完成（機關 / 修理的 ordered；物件不在任務目標裡時視為 true） */
+export function earlierObjectivesDone(state: QuestState, def: QuestDef, placementId: string): boolean {
+  const index = def.objectives.findIndex((o) => (o.type === 'activate' ? o.placementIds.includes(placementId) : o.type === 'repair' && o.placementId === placementId));
+  if (index <= 0) return true;
+  return objectiveProgress(state, def)
+    .slice(0, index)
+    .every((p) => p.current >= p.target);
+}

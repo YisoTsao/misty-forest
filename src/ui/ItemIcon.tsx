@@ -170,6 +170,32 @@ const icons: Record<string, ReactNode> = {
       <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </>
   ),
+  lantern_shard: (
+    <>
+      <path d="M12 38 Q10 22 22 9 L34 14 Q26 26 28 40 Z" fill="#ffe7a3" stroke="#a07a32" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M17 33 Q16 23 23 14" stroke="#fffaf0" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <path d="M12 38 L28 40" stroke="#8a6a2a" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="36" cy="30" r="1.8" fill="#ffd77a" />
+      <circle cx="38" cy="22" r="1.2" fill="#ffd77a" />
+    </>
+  ),
+  dawn_resonance: (
+    <>
+      <circle cx="24" cy="25" r="17" fill="#ffd77a" opacity="0.25" />
+      <circle cx="24" cy="25" r="10" fill="#ffe7a3" stroke="#d29a3a" strokeWidth="2" />
+      <circle cx="24" cy="25" r="5" fill="#fffaf0" />
+      <path d="M24 5 V11 M24 39 V45 M4 25 H10 M38 25 H44 M10 11 L14 15 M34 35 L38 39 M38 11 L34 15 M14 35 L10 39" stroke="#e8a845" strokeWidth="2.6" strokeLinecap="round" />
+    </>
+  ),
+  dawn_charm: (
+    <>
+      <path d="M24 6 Q30 6 30 11" stroke="#8a6a3a" strokeWidth="2" fill="none" />
+      <path d="M24 6 Q18 6 18 11" stroke="#8a6a3a" strokeWidth="2" fill="none" />
+      <path d="M24 12 L36 22 L24 42 L12 22 Z" fill="#f6c86a" stroke="#9a6a2a" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M24 17 L30 23 L24 34 L18 23 Z" fill="#fff3c4" />
+      <circle cx="24" cy="24" r="2.4" fill="#ffffff" />
+    </>
+  ),
   resonance_bud: (
     <>
       <circle cx="24" cy="26" r="17" fill="#8de6be" opacity="0.28" />

@@ -776,5 +776,117 @@
         "textKey": "dlg.mossThump.words"
       }
     }
+  },
+  {
+    "id": "elder_lighthouse_offer",
+    "start": "joy",
+    "nodes": {
+      "joy": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.cleared",
+        "next": "lighthouse"
+      },
+      "lighthouse": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse",
+        "next": "broken"
+      },
+      "broken": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.broken",
+        "next": "ask"
+      },
+      "ask": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.ask",
+        "options": [
+          {
+            "textKey": "dlg.elder.lighthouse.opt.go",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_dawn_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.elder.lighthouse.opt.why",
+            "next": "why"
+          },
+          {
+            "textKey": "dlg.elder.opt.bye"
+          }
+        ]
+      },
+      "why": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.why",
+        "next": "ask"
+      },
+      "accept": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.accept"
+      }
+    }
+  },
+  {
+    "id": "elder_lighthouse_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.remind"
+      }
+    }
+  },
+  {
+    "id": "elder_lighthouse_turnin",
+    "start": "listen",
+    "nodes": {
+      "listen": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.listen",
+        "options": [
+          {
+            "textKey": "dlg.elder.lighthouse.opt.done",
+            "next": "thanks",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_dawn_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.elder.lighthouse.opt.later"
+          }
+        ]
+      },
+      "thanks": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.thanks",
+        "next": "gift"
+      },
+      "gift": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.gift",
+        "next": "forest"
+      },
+      "forest": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.forest"
+      }
+    }
+  },
+  {
+    "id": "elder_lighthouse_done",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.elder",
+        "textKey": "dlg.elder.lighthouse.after"
+      }
+    }
   }
 ]

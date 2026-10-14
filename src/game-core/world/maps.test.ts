@@ -148,11 +148,12 @@ describe('地圖出入口', () => {
     }
   });
 
-  it('通往螢苔祕林要先修好木橋', () => {
+  it('通往螢苔祕林要先點亮燈塔（T-144）', () => {
     const enter = prefabs.get('gate_to_glowmoss')!.enter!;
     expect(isGateOpen(enter, {})).toBe(false);
-    expect(isGateOpen(enter, { repair_bridge: { status: 'active' } })).toBe(false);
-    expect(isGateOpen(enter, { repair_bridge: { status: 'completed' } })).toBe(true);
+    expect(isGateOpen(enter, { repair_bridge: { status: 'completed' } })).toBe(false);
+    expect(isGateOpen(enter, { quest_dawn_003: { status: 'active' } })).toBe(false);
+    expect(isGateOpen(enter, { quest_dawn_003: { status: 'completed' } })).toBe(true);
     expect(isGateOpen(prefabs.get('gate_to_dawnvale')!.enter!, {})).toBe(true);
   });
 

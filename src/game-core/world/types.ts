@@ -86,6 +86,8 @@ export const prefabSchema = z
         harvestedCollision: collisionSchema.optional(),
         /** 採集時角色播放的動作（砍樹、敲石頭用 attack，摘花用 interact） */
         anim: z.enum(['attack', 'interact']).optional(),
+        /** 只有這個任務進行中才能撿（任務 7D 燈罩碎片：任務唯一的固定拾取物） */
+        quest: z.string().min(1).optional(),
       })
       .optional(),
     /** 寶箱內容（打開時給予，只能領一次） */
@@ -102,6 +104,8 @@ export const prefabSchema = z
         materials: z.array(z.object({ itemId: z.string().min(1), count: z.number().int().positive() })).min(1),
         /** 只有這個任務進行中才能修（規格：修復任務中可互動） */
         quest: z.string().min(1).optional(),
+        /** 依序：任務中排在這個物件之前的目標都完成了才能修（任務 7D：先清掉迷霧核心才能點亮燈塔） */
+        ordered: z.boolean().optional(),
       })
       .optional(),
     /**
@@ -120,6 +124,8 @@ export const prefabSchema = z
         boss: z.string().min(1).optional(),
         /** 擊敗這個頭目後才能啟動（任務 8D-2 森林根源石） */
         afterBoss: z.string().min(1).optional(),
+        /** 依序：任務中排在這個物件之前的目標都完成了才能啟動（任務 7D：先趕走迷霧噗啾才能淨化迷霧核心） */
+        ordered: z.boolean().optional(),
         anim: z.enum(['attack', 'interact']).optional(),
       })
       .optional(),

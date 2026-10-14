@@ -14515,26 +14515,6 @@
     ]
   },
   {
-    "id": "highland_boulder_016",
-    "prefabId": "k_rock_tall_b",
-    "regionId": "highland",
-    "position": [
-      -27.63,
-      11.39,
-      -118.37
-    ],
-    "rotation": [
-      0,
-      1.94,
-      0
-    ],
-    "scale": [
-      5.58,
-      5.84,
-      5.58
-    ]
-  },
-  {
     "id": "highland_boulder_017",
     "prefabId": "k_rock_large_c",
     "regionId": "meadow",
@@ -52892,6 +52872,106 @@
       7.03,
       8.06,
       7.03
+    ]
+  },
+  {
+    "id": "highland_lighthouse_lamp",
+    "prefabId": "lighthouse_lamp",
+    "regionId": "highland",
+    "position": [
+      -34,
+      26.77,
+      -126
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "highland_mist_core",
+    "prefabId": "mist_core",
+    "regionId": "highland",
+    "position": [
+      -25.5,
+      11.15,
+      -118.5
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "highland_lantern_shard_01",
+    "prefabId": "lantern_shard",
+    "regionId": "meadow",
+    "position": [
+      28.5,
+      10.96,
+      -122.5
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "highland_lantern_shard_02",
+    "prefabId": "lantern_shard",
+    "regionId": "highland",
+    "position": [
+      -73,
+      13.07,
+      -126.5
+    ],
+    "rotation": [
+      0,
+      2.1,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "highland_lantern_shard_03",
+    "prefabId": "lantern_shard",
+    "regionId": "highland",
+    "position": [
+      -47,
+      11.42,
+      -135
+    ],
+    "rotation": [
+      0,
+      4.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
     ]
   },
   {

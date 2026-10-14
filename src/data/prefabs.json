@@ -3111,7 +3111,7 @@
       "arriveAt": "glowmoss_gate_dawnvale",
       "arriveDistance": 4,
       "requires": {
-        "questCompleted": "repair_bridge"
+        "questCompleted": "quest_dawn_003"
       },
       "lockedKey": "gate.glowmoss.locked"
     },
@@ -3460,5 +3460,50 @@
     "interactRadius": 2.2,
     "read": { "titleKey": "sign.lakeChannel.title", "bodyKey": "sign.lakeChannel.body" },
     "persists": false
+  },
+  {
+    "id": "lantern_shard",
+    "model": "procedural:lantern_shard",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.lanternShard",
+    "verbKey": "interact.pickUp",
+    "interactRadius": 1.8,
+    "harvest": { "lootTableId": "lantern_shard_pick", "anim": "interact", "quest": "quest_dawn_003" },
+    "persists": true
+  },
+  {
+    "id": "mist_core",
+    "model": "procedural:mist_core",
+    "collider": "static",
+    "collision": { "shape": "cylinder", "radius": 0.9, "height": 2.2 },
+    "interaction": "activate",
+    "nameKey": "object.mistCore",
+    "verbKey": "interact.purify",
+    "interactRadius": 2.6,
+    "activate": {
+      "model": "procedural:mist_core_clear",
+      "collision": { "shape": "cylinder", "radius": 0.5, "height": 1.2 },
+      "quest": "quest_dawn_003",
+      "ordered": true,
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
+    "id": "lighthouse_lamp",
+    "model": "procedural:lighthouse_lamp",
+    "collider": "none",
+    "interaction": "repair",
+    "nameKey": "object.lighthouseLamp",
+    "verbKey": "interact.lightLamp",
+    "interactRadius": 4.6,
+    "repair": {
+      "model": "procedural:lighthouse_lamp_lit",
+      "materials": [{ "itemId": "lantern_shard", "count": 3 }],
+      "quest": "quest_dawn_003",
+      "ordered": true
+    },
+    "persists": true
   }
 ]

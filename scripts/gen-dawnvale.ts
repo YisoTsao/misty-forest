@@ -553,6 +553,45 @@ export function addDawnvaleExpansion(placements: object[], taken: Taken[]): void
     console.log(`placed ${n} boundary trees`);
   }
 
+  // ── 5. 任務 7D「燈塔的最後一盞光」（Bible §5.4 quest_dawn_003）：燈塔頂的燈籠室、迷霧核心、三片燈罩碎片 ──
+  // 附加在最後，既有物件的 id 與位置不變；只移除與新物件重疊的散佈點綴。
+  {
+    const L = LIGHTHOUSE;
+    const questOut: Out[] = [];
+    const clear: Taken[] = [];
+    const quest = (id: string, prefabId: string, x: number, z: number, o: { y?: number; yaw?: number; r: number }) => {
+      questOut.push({
+        id,
+        prefabId,
+        regionId: regionAt(regions, x, z),
+        position: [round(x), round(o.y ?? terrainHeight(x, z) - 0.03), round(z)],
+        rotation: [0, round(o.yaw ?? 0), 0],
+        scale: [1, 1, 1],
+      });
+      clear.push({ x, z, r: o.r });
+    };
+    // 燈籠室在塔頂（燈塔模型 2.19 單位高 × 縮放 7）
+    quest('highland_lighthouse_lamp', 'lighthouse_lamp', L.x, L.z, { y: terrainHeight(L.x, L.z) - 0.03 + LIGHTHOUSE_TOP, r: 0 });
+    quest('highland_mist_core', 'mist_core', MIST_CORE.x, MIST_CORE.z, { r: 3 });
+    LANTERN_SHARDS.forEach(([x, z], i) => quest(`highland_lantern_shard_${String(i + 1).padStart(2, '0')}`, 'lantern_shard', x, z, { yaw: i * 2.1, r: 1.2 }));
+    const scatterId = /^(?!edge_tree_)[a-z_]+_\d{3}$/;
+    const before = out.length;
+    const kept = out.filter((o) => !scatterId.test(o.id) || !clear.some((c) => Math.hypot(c.x - o.position[0], c.z - o.position[2]) < c.r + 0.6));
+    console.log(`quest 7D: removed ${before - kept.length} scattered placements overlapping ${questOut.length} quest objects`);
+    out.length = 0;
+    out.push(...kept);
+    for (const o of questOut) push(o);
+  }
+
   placements.push(...out);
   console.log(`added ${out.length} dawnvale expansion placements (${nextScatter} scattered)`);
 }
+
+/** 任務 7D：燈塔頂（燈籠室的原點）離地高度、迷霧核心、三片燈罩碎片（登山客營地、廢屋、燈塔後面） */
+const LIGHTHOUSE_TOP = 15.3;
+const MIST_CORE = { x: LIGHTHOUSE.x + 8.5, z: LIGHTHOUSE.z + 7.5 } as const;
+const LANTERN_SHARDS: readonly [number, number][] = [
+  [28.5, -122.5],
+  [-73, -126.5],
+  [LIGHTHOUSE.x - 13, LIGHTHOUSE.z - 9],
+];
