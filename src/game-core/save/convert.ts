@@ -45,6 +45,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
       mp: state.player.mp,
       enemies: [...state.enemies.values()].map((e) => ({ ...e })),
       spawners: Object.fromEntries(Object.entries(state.spawners).map(([id, s]) => [id, { ...s }])),
+      defeatedBosses: [...state.defeatedBosses],
     },
     companion: { ...state.companion },
     build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
@@ -93,6 +94,8 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
       warnings.push(`略過已不存在的敵人：${e.id}`);
       continue;
     }
+    // 存檔時正在打的頭目：讀檔後回到戰場重新開戰（不保留打到一半的血量）
+    if (ctx.combat.enemies.get(e.kind)?.boss) continue;
     enemies.set(e.id, { ...e });
   }
 
@@ -127,6 +130,11 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
       }),
       nextBuildingId: data.build.nextBuildingId,
       explored,
+      defeatedBosses: data.combat.defeatedBosses.filter((id) => {
+        if (ctx.combat.enemies.get(id)?.boss) return true;
+        warnings.push(`略過已不存在的頭目：${id}`);
+        return false;
+      }),
     },
     player: data.player,
     savedAt: data.savedAt,

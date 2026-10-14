@@ -7,6 +7,7 @@ import { useUiStore } from './state/uiStore';
 const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejected' }>['reason'], string>> = {
   'inventory-full': 'toast.inventoryFull',
   'quest-unavailable': 'toast.questLocked',
+  'not-in-fight': 'toast.troughIdle',
 };
 
 function itemName(itemId: string): string {

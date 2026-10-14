@@ -1,4 +1,6 @@
 import { exploredRatio, isExploredAt } from '@/game-core/map/explore';
+import type { BossMoveId } from '@/game-core/combat/combat';
+import { bossDebug, bossDebugState } from './combat/bossRuntime';
 import { setWorldMapOpen } from '@/ui/map/WorldMap';
 import { currentQuestMarkers } from '@/ui/map/mapDraw';
 import { requiredClipKeys, type ClipKey } from '@/game-core/character/characterDef';
@@ -163,6 +165,11 @@ export type MistwoodDebugApi = {
   /** 任務每個目標的進度（任務 8C） */
   questObjectives: (id: string) => { current: number; target: number }[];
   /** 水道謎題（任務 8C）：權威狀態算出的水流，與畫面上水面推進到哪裡 */
+  /** 頭目戰（任務 8D）：目前的狀態（沒有開戰時 null） */
+  boss: () => ReturnType<typeof bossDebug>;
+  /** 頭目的下一招指定為某一招 */
+  forceBossMove: (move: BossMoveId) => void;
+  defeatedBosses: () => readonly string[];
   waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
@@ -404,6 +411,11 @@ export function installDebugApi(): void {
       if (!def) throw new Error(`未知的任務：${id}`);
       return objectiveProgress(authority.getState(), def);
     },
+    boss: () => bossDebug(),
+    forceBossMove: (move) => {
+      bossDebugState.force = move;
+    },
+    defeatedBosses: () => [...authority.getState().defeatedBosses],
     waterway: () => {
       const def = waterways[0];
       if (!def) return null;

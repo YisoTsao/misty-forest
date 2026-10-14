@@ -4,7 +4,7 @@ import { assistFacing } from '@/game-core/combat/weapons';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
 import { authority, spells } from '@/game/authority';
-import { attackEnemy, combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
+import { attackEnemy, enemyHitRadius, combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
 import { cooldownOf, spellRuntime, type Projectile } from '@/game/combat/spellRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
@@ -15,7 +15,6 @@ import { projectileVisuals, vfx, type Rgb } from '@/game/vfx/vfxQueue';
 import { launchMeteors, meteorCenter, updateMeteors } from './meteors';
 
 /** 敵人身體半徑（命中判定用，與近戰相同） */
-const ENEMY_RADIUS = 0.5;
 /** 彈體從手的高度發射、飛向敵人身體中心 */
 const HAND_HEIGHT = 1.05;
 const BODY_HEIGHT = 0.8;
@@ -150,7 +149,7 @@ function release(spell: SpellDef): void {
   if (spell.kind === 'nova') {
     for (const [id, v] of enemyRuntime) {
       if (v.vanishing !== null) continue;
-      if (isInBlast(position, spell.radius, { x: v.ai.x, z: v.ai.z, radius: ENEMY_RADIUS })) {
+      if (isInBlast(position, spell.radius, { x: v.ai.x, z: v.ai.z, radius: enemyHitRadius(v.kind) })) {
         attackEnemy(id, spell.id);
         spellRuntime.hits++;
       }
@@ -234,7 +233,7 @@ function updateProjectiles(dt: number): void {
 function hitEnemy(pr: Projectile): string | null {
   for (const [id, v] of enemyRuntime) {
     if (v.vanishing !== null) continue;
-    if (Math.hypot(v.ai.x - pr.x, v.ai.z - pr.z) <= pr.spell.radius + ENEMY_RADIUS) return id;
+    if (Math.hypot(v.ai.x - pr.x, v.ai.z - pr.z) <= pr.spell.radius + enemyHitRadius(v.kind)) return id;
   }
   return null;
 }

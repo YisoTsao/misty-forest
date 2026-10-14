@@ -158,6 +158,18 @@ const icons: Record<string, ReactNode> = {
       <path d="M17 15 Q20 9 24 15 Q28 9 31 15" stroke="#7fb8e0" strokeWidth="1.8" fill="none" strokeLinecap="round" />
     </>
   ),
+  moss_cap: (
+    <>
+      <path d="M8 26 Q8 10 24 9 Q40 10 40 26 Q32 30 24 30 Q16 30 8 26 Z" fill="#f1e4c4" stroke="#8a7458" strokeWidth="2" />
+      <path d="M8 26 Q16 30 24 30 Q32 30 40 26" stroke="#8a7fa8" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <path d="M19 30 Q18 38 20 41 Q24 43 28 41 Q30 38 29 30" fill="#e8dcc0" stroke="#8a7458" strokeWidth="1.8" />
+      <circle cx="18" cy="17" r="2.6" fill="#fff8e6" />
+      <circle cx="29" cy="15" r="2" fill="#fff8e6" />
+      <circle cx="33" cy="21" r="1.6" fill="#8de6be" />
+      <path d="M12 41 Q16 38 20 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <path d="M28 41 Q32 38 36 41" stroke="#386b53" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+    </>
+  ),
   herb_potion: (
     <>
       <rect x="20" y="6" width="8" height="6" rx="1.5" fill="#a86f4b" stroke="#5e3a1c" strokeWidth="1.5" />

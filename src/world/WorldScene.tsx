@@ -18,6 +18,7 @@ import { TitleCameraRig } from './camera/TitleCameraRig';
 import { PerfProbe } from './debug/PerfProbe';
 import { SceneReadyProbe } from './debug/SceneReadyProbe';
 import { ShaderWarmup } from './debug/ShaderWarmup';
+import { BossArenas } from './boss/BossArena';
 import { BoundaryColliders, BoundaryWatcher, MistWall } from './boundary/WorldBoundary';
 import { BuildController } from './build/BuildController';
 import { BuiltObjects } from './build/BuiltObjects';
@@ -81,6 +82,7 @@ export function WorldScene({ data }: { data: WorldData }) {
           </OutdoorOnly>
           <Npcs />
           <Enemies />
+          <BossArenas />
           <BuiltObjects />
           {cameraMode === 'follow' && !onTitle && <FollowCamera playerCollider={playerCollider} />}
         </Physics>

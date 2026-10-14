@@ -24,6 +24,9 @@ export class LocalAuthority implements Authority {
 
   send(command: GameCommand): void {
     const events = handleCommand(this.state, command, this.ctx);
+    // 沒有事件（例如走進已探索過的格子）時不通知：空的事件清單保留給 replaceState（新遊戲 / 讀檔），
+    // 訂閱者以此重設本機暫態（夥伴位置、施法、緩速、頭目 HUD）
+    if (events.length === 0) return;
     this.state = applyEvents(this.state, events, this.ctx);
     this.emit(events);
   }

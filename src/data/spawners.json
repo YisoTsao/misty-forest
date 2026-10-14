@@ -22,5 +22,6 @@
   { "id": "channel_beetles", "regionId": "moss_glade", "enemy": "mob_root_beetle", "center": [2040, -96], "radius": 10, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
   { "id": "glade_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1972, 84], "radius": 10, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
   { "id": "maze_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [2038, -46], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 45 },
+  { "id": "crown_boss", "regionId": "moss_crown", "enemy": "boss_moss_thump", "center": [2091, 46], "radius": 4, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true },
   { "id": "crescent_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1952, -44], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 }
 ]

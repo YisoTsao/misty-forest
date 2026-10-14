@@ -116,6 +116,8 @@ export const prefabSchema = z
         collision: collisionSchema.optional(),
         quest: z.string().min(1).optional(),
         lootTableId: z.string().min(1).optional(),
+        /** 只有這個頭目戰鬥中才能啟動（任務 8D 戰場邊的水槽） */
+        boss: z.string().min(1).optional(),
         anim: z.enum(['attack', 'interact']).optional(),
       })
       .optional(),

@@ -5,6 +5,49 @@ import type { MistStage } from '../world/mist';
 import { mistStages } from '../world/mist';
 import { regionIds } from '../world/types';
 
+const point = z.tuple([z.number(), z.number()]);
+
+/**
+ * 頭目（任務 8D）。招式都有預兆（Bible §11.2）：
+ * - spikes 根刺：玩家腳下與周圍出現 count 個地面標記（第二階段 count2 個），windup 秒後根刺突起，標記半徑內受傷
+ * - slam 跳躍震地：windup 秒蹲下蓄力（落點標記已出現），air 秒跳到落點，落地時半徑內受傷，之後 recoverSec 秒卡在地上（破綻）
+ * - spores 睡眠孢子：windup 秒菌傘鼓起，朝面向吹出扇形孢子（range、arcDeg），命中受傷並讓玩家昏昏欲睡（變慢）
+ * - guard 縮入菌傘：連續被打 afterHits 下後縮起來 sec 秒，受到的傷害 × scale
+ * shield：迷霧護盾，依已注水的水槽數（0..troughs）決定受到的傷害倍率；水槽沒有全部注水前打不倒（血量最少留 1）
+ */
+export const bossDefSchema = z.object({
+  /** 戰場：中心、半徑（頭目不會離開）、玩家走進 trigger 半徑內開戰 */
+  arena: z.object({ center: point, radius: z.number().positive(), trigger: z.number().positive() }),
+  /** 開戰時出現的位置 */
+  home: point,
+  /** 戰場中不能走進去的圓（巨大蘑菇樹的樹幹） */
+  avoid: z.object({ center: point, radius: z.number().positive() }).optional(),
+  /** 開戰的條件：這個任務已完成 */
+  requires: z.object({ questCompleted: z.string().min(1) }).optional(),
+  /** 戰場入口：開戰後樹根封住（中心、寬度、面向），倒下後在 retryAt 重新站起來 */
+  gate: z.object({ center: point, width: z.number().positive(), yaw: z.number() }),
+  retryAt: point,
+  /** 戰場邊緣的水槽（placement id）：戰鬥中才能注水 */
+  troughs: z.array(z.string().min(1)).min(1),
+  shield: z.array(z.number().positive().max(1)).min(2),
+  introSec: z.number().nonnegative(),
+  moveSpeed: z.number().positive(),
+  /** 第二階段：血量比例低於這個值 */
+  phase2Below: z.number().gt(0).lt(1),
+  /** 第二階段的招式冷卻倍率 */
+  phase2Cooldown: z.number().positive().max(1),
+  recoverScale: z.number().min(1),
+  guard: z.object({ afterHits: z.number().int().positive(), sec: z.number().positive(), scale: z.number().min(0).max(1) }),
+  moves: z.object({
+    spikes: z.object({ windup: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), count: z.number().int().positive(), count2: z.number().int().positive(), spread: z.number().positive(), cooldown: z.number().positive() }),
+    slam: z.object({ windup: z.number().positive(), air: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), recoverSec: z.number().positive(), minRange: z.number().nonnegative(), cooldown: z.number().positive() }),
+    spores: z.object({ windup: z.number().positive(), damage: z.number().positive(), range: z.number().positive(), arcDeg: z.number().positive().max(360), slowSec: z.number().positive(), slowScale: z.number().positive().max(1), cooldown: z.number().positive() }),
+  }),
+});
+export type BossDef = z.infer<typeof bossDefSchema>;
+export type BossMoveId = keyof BossDef['moves'];
+export const bossMoveIds = ['spikes', 'slam', 'spores'] as const satisfies readonly BossMoveId[];
+
 export const enemyDefSchema = z.object({
   id: z.string().min(1),
   nameKey: z.string().min(1),
@@ -54,6 +97,10 @@ export const enemyDefSchema = z.object({
       }),
     ])
     .optional(),
+  /** 被玩家攻擊命中的半徑（公尺，水平）；省略時 0.5（一般怪物），頭目較大 */
+  hitRadius: z.number().positive().optional(),
+  /** 區域頭目（任務 8D，Bible §27.4）：不由一般生成點補充，玩家走進戰場時開戰；有自己的 AI 與招式（bossAi.ts） */
+  boss: bossDefSchema.optional(),
   /** 程式產生的造型（任務 8B：霧孢飛蛾、根鬚甲蟲）；與 model 二選一，都省略時為迷霧噗啾 */
   procedural: z.enum(['fog_moth', 'root_beetle']).optional(),
   /**
@@ -91,6 +138,8 @@ export const spawnerSchema = z.object({
   budget: z.object(Object.fromEntries(mistStages.map((s) => [s, z.number().int().nonnegative()])) as Record<MistStage, z.ZodNumber>),
   /** 被擊敗後多久補充一隻（遊戲時間秒） */
   respawnSec: z.number().positive(),
+  /** 不自動補充（頭目：由 StartBossFight 生成，任務 8D） */
+  manual: z.boolean().optional(),
 });
 export type SpawnerDef = z.infer<typeof spawnerSchema>;
 
@@ -103,6 +152,8 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
     if (e.lootTableId && !lootTableIds.has(e.lootTableId)) throw new Error(`敵人 ${e.id} 參照不存在的掉落表：${e.lootTableId}`);
     if (e.model && e.procedural) throw new Error(`敵人 ${e.id} 不能同時有模型與程式造型`);
     if (e.behavior?.kind === 'spit' && e.behavior.minRange >= e.behavior.range) throw new Error(`敵人 ${e.id} 的吐泥距離範圍無效`);
+    if (e.boss && e.boss.shield.length !== e.boss.troughs.length + 1) throw new Error(`頭目 ${e.id} 的護盾倍率數量必須是水槽數 + 1`);
+    if (e.boss && e.boss.shield.at(-1) !== 1) throw new Error(`頭目 ${e.id} 的水槽全部注水後護盾倍率必須是 1`);
     enemies.set(e.id, e);
   }
   const spawners = z.array(spawnerSchema).parse(rawSpawners);
@@ -111,6 +162,10 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
     if (seen.has(s.id)) throw new Error(`生成點 id 重複：${s.id}`);
     seen.add(s.id);
     if (!enemies.has(s.enemy)) throw new Error(`生成點 ${s.id} 參照不存在的敵人：${s.enemy}`);
+    if (Boolean(enemies.get(s.enemy)?.boss) !== Boolean(s.manual)) throw new Error(`生成點 ${s.id}：頭目只能用 manual 生成點，manual 生成點只能放頭目`);
+  }
+  for (const e of enemies.values()) {
+    if (e.boss && spawners.filter((s) => s.enemy === e.id).length !== 1) throw new Error(`頭目 ${e.id} 必須剛好有一個生成點`);
   }
   return { enemies, spawners };
 }
@@ -127,10 +182,21 @@ export const PLAYER_STATS = {
   campfire: { radius: 3.5, regenDelay: 1, regenPerSec: 14 },
 } as const;
 
-/** 敵人目前的姿態對受到傷害的倍率（根鬚甲蟲縮殼時減傷、出手後的破綻時加傷） */
+/** 敵人目前的姿態對受到傷害的倍率（根鬚甲蟲縮殼時減傷、出手後的破綻時加傷；頭目縮入菌傘、震地後卡住） */
 export type EnemyStance = 'guard' | 'recover';
 
 export function stanceDamageScale(def: EnemyDef, stance: EnemyStance | undefined): number {
+  if (stance && def.boss) return stance === 'guard' ? def.boss.guard.scale : def.boss.recoverScale;
   if (!stance || def.behavior?.kind !== 'shell') return 1;
   return stance === 'guard' ? def.behavior.guardScale : def.behavior.recoverScale;
+}
+
+/** 頭目的生成點（parseCombatData 已檢查每個頭目剛好一個） */
+export function bossSpawner(data: CombatData, bossId: string): SpawnerDef | undefined {
+  return data.spawners.find((s) => s.enemy === bossId);
+}
+
+/** 頭目的迷霧護盾倍率：依已注水的水槽數 */
+export function bossShieldScale(boss: BossDef, filled: number): number {
+  return boss.shield[Math.max(0, Math.min(boss.shield.length - 1, filled))]!;
 }

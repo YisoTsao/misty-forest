@@ -25,6 +25,14 @@ describe('LocalAuthority', () => {
     expect(authority.getState().inventory).toBe(before.inventory);
   });
 
+  it('沒有產生事件的指令不通知（空的事件清單只代表 replaceState）', () => {
+    const authority = new LocalAuthority(initialGameState(), testContext());
+    const listener = vi.fn();
+    authority.subscribe(listener);
+    authority.send({ type: 'EquipWeapon', weapon: authority.getState().player.weapon });
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('replaceState 替換狀態並通知；取消訂閱後不再收到', () => {
     const authority = new LocalAuthority(initialGameState(), testContext());
     authority.send({ type: 'HarvestObject', placementId: 't1' });

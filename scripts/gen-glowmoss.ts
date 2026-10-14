@@ -115,6 +115,8 @@ const WATERWAY = {
 };
 /** 任務 8C：苔冠空地入口（西側開口）封住的位置 */
 const CROWN_SEAL = { x: 70 } as const;
+/** 任務 8D：苔冠空地邊緣三個水槽的方向（從菌樹看出去，東、南、北），落在周圍大蘑菇之間；離菌樹 18 m */
+const CROWN_TROUGHS = { angles: [-0.0618, 1.509, -1.633], radius: 18 } as const;
 
 /** 讓模型的 +X 朝東（操作桿、互動點放在 +X 那一側的岸上，靠近小徑與奇奇） */
 function eastFacing(yaw: number): number {
@@ -551,6 +553,12 @@ export function addGlowmoss(placements: Out[]): void {
       placeQuest('glowmoss_crown_roots', 'crown_roots', x, z, { yaw: Math.PI / 2, dy: -0.3, r: 5, scale: [2.1, 1.3, 1.3] });
       for (const side of [-1, 1]) for (let k = 1; k <= 4; k++) clear.push({ x, z: z + side * k * 2, r: 1.8 });
     }
+    // 苔冠空地邊緣的三個水槽（任務 8D，Bible §6.5：把水引入戰場邊緣的三個小水槽）：槽身的 +Z 面向菌樹
+    CROWN_TROUGHS.angles.forEach((a, i) => {
+      const x = MOSS_CROWN.x + Math.cos(a) * CROWN_TROUGHS.radius;
+      const z = MOSS_CROWN.z + Math.sin(a) * CROWN_TROUGHS.radius;
+      placeQuest(`glowmoss_crown_trough_${pad2(i + 1)}`, 'crown_trough', x, z, { yaw: Math.atan2(MOSS_CROWN.x - x, MOSS_CROWN.z - z), r: 2 });
+    });
   }
   const scatterPrefixes = /^glowmoss_(giant_tree|tree|bush|fern|mushroom|stone|pebble|log|stump|moss|glowcap|tuft|moondew|moondew_decor)_\d+$/;
   const before = out.length;

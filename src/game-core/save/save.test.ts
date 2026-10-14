@@ -333,6 +333,16 @@ describe('版本遷移', () => {
     expect([...roundTrip(data).state.objects.values()]).toEqual([...state.objects.values()]);
   });
 
+  it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const v13 = { ...current, version: 13, combat: { ...current.combat, defeatedBosses: undefined } };
+    delete v13.combat.defeatedBosses;
+    expect(migrateSave(v13)).toEqual({ ...current, version: SAVE_VERSION });
+    const loaded = fromSaveData({ ...current, combat: { ...current.combat, defeatedBosses: ['boss_gone'] } }, ctx);
+    expect(loaded.state.defeatedBosses).toEqual([]);
+    expect(loaded.warnings).toEqual(['略過已不存在的頭目：boss_gone']);
+  });
+
   it('探索紀錄寫入存檔並讀回；格式不符時重新開始並回報', () => {
     const state = { ...initialGameState(), explored: withCells(createExplored(), [3, 99, 1200]) };
     const data = toSaveData(state, player, new Date());

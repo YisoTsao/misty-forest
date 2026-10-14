@@ -10,5 +10,6 @@
   { "id": "mist_gel", "nameKey": "item.mist_gel.name", "descKey": "item.mist_gel.desc", "icon": "gel", "category": "material", "maxStack": 99 },
   { "id": "moondew_salve", "nameKey": "item.moondew_salve.name", "descKey": "item.moondew_salve.desc", "icon": "moondew_salve", "category": "consumable", "maxStack": 20 },
   { "id": "herb_potion", "nameKey": "item.herb_potion.name", "descKey": "item.herb_potion.desc", "icon": "herb_potion", "category": "consumable", "maxStack": 20 },
+  { "id": "moss_cap", "nameKey": "item.moss_cap.name", "descKey": "item.moss_cap.desc", "icon": "moss_cap", "category": "special", "maxStack": 20 },
   { "id": "starlight_shard", "nameKey": "item.starlight_shard.name", "descKey": "item.starlight_shard.desc", "icon": "starlight", "category": "special", "maxStack": 20 }
 ]

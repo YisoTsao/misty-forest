@@ -2,7 +2,7 @@
 // handleCommand 為純函式：輸入目前狀態、指令與規則所需的資料，輸出事件；狀態只由 applyEvents 推導。
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
 import { placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
-import { PLAYER_STATS, stanceDamageScale, type CombatData, type EnemyStance } from '../combat/combat';
+import { bossShieldScale, bossSpawner, PLAYER_STATS, stanceDamageScale, type BossDef, type BossMoveId, type CombatData, type EnemyStance } from '../combat/combat';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
 import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
@@ -44,6 +44,8 @@ export type GameState = {
   readonly nextBuildingId: number;
   /** 世界地圖的探索紀錄（Bible §31.3，存檔 v11）：只在 AreaExplored 事件時換新參照 */
   readonly explored: Explored;
+  /** 已擊敗的頭目（任務 8D，存檔 v14）：擊敗後不再開戰 */
+  readonly defeatedBosses: readonly string[];
 };
 
 export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
@@ -64,6 +66,7 @@ export function initialGameState(): GameState {
     buildings: [],
     nextBuildingId: 1,
     explored: createExplored(),
+    defeatedBosses: [],
   };
 }
 
@@ -92,8 +95,12 @@ export type GameCommand =
   /** 切換近戰武器（GAME_DESIGN 5.3） */
   | { type: 'EquipWeapon'; weapon: WeaponId }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
-  /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢） */
-  | { type: 'EnemyStrike'; enemyId: string; spit?: boolean }
+  /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
+  | { type: 'EnemyStrike'; enemyId: string; spit?: boolean; move?: BossMoveId }
+  /** 玩家走進頭目戰場：開戰（任務 8D） */
+  | { type: 'StartBossFight'; boss: string }
+  /** 玩家離開戰場（傳送、換地圖）：頭目回去，下次走進來重新開戰 */
+  | { type: 'EndBossFight'; boss: string }
   /** 倒下後重新站起來 */
   | { type: 'RespawnPlayer' }
   /** 在酒館休息（對話選項）：體力回滿 */
@@ -142,6 +149,8 @@ export type RejectReason =
   | 'weapon-not-equipped'
   | 'unknown-spell'
   | 'not-enough-mp'
+  | 'already-defeated'
+  | 'not-in-fight'
   | 'invalid-command';
 
 export type GameEvent =
@@ -169,10 +178,13 @@ export type GameEvent =
   /** 星光值回復或除錯設定 */
   | { type: 'MpChanged'; mp: number }
   | { type: 'EnemyDefeated'; enemyId: string; kind: string; spawner: string }
+  /** 頭目被擊敗（任務 8D）：記錄下來，不再開戰 */
+  | { type: 'BossDefeated'; boss: string }
   | { type: 'SpawnerCooldown'; spawner: string; nextSpawnAt: number }
   | { type: 'PlayerDamaged'; amount: number; hp: number; enemyId: string }
   /** 被迷霧芽怪的泥團打中：一段時間內移動變慢（本機表現，不存檔） */
-  | { type: 'PlayerSlowed'; sec: number; scale: number }
+  /** cause：spores 為頭目的睡眠孢子（任務 8D），省略為泥團 */
+  | { type: 'PlayerSlowed'; sec: number; scale: number; cause?: 'spores' }
   | { type: 'PlayerHealed'; hp: number }
   | { type: 'PlayerDefeated' }
   | { type: 'PlayerRespawned'; hp: number }
@@ -241,7 +253,14 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       if (state.player.weapon === cmd.weapon) return [];
       return [{ type: 'WeaponEquipped', weapon: cmd.weapon }];
     case 'EnemyStrike':
-      return enemyStrike(state, cmd.enemyId, ctx, cmd.spit === true);
+      return enemyStrike(state, cmd.enemyId, ctx, cmd.spit === true, cmd.move);
+    case 'StartBossFight':
+      return startBossFight(state, cmd.boss, ctx);
+    case 'EndBossFight': {
+      const fighting = bossEnemies(state, cmd.boss);
+      if (fighting.length === 0) return reject('EndBossFight', 'not-in-fight');
+      return fighting.map((e) => ({ type: 'EnemyDespawned', enemyId: e.id }));
+    }
     case 'RespawnPlayer':
       if (!state.player.defeated) return reject('RespawnPlayer', 'invalid-command');
       return [{ type: 'PlayerRespawned', hp: PLAYER_STATS.maxHp }];
@@ -374,6 +393,8 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
     const quest = ctx.quests.get(spec.quest);
     if (!quest || questStatus(state, quest) !== 'active') return reject('ActivateObject', 'quest-unavailable', placementId);
   }
+  // 頭目戰場的水槽：只有戰鬥中才能注水（任務 8D）
+  if (spec.boss && bossEnemies(state, spec.boss).length === 0) return reject('ActivateObject', 'not-in-fight', placementId);
   const events: GameEvent[] = [{ type: 'ObjectActivated', placementId, source: 'player' }];
   if (spec.lootTableId) {
     // 背包放不下時不能啟動（物品不會遺失）
@@ -421,15 +442,21 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   if (!enemy || !def) return reject('AttackEnemy', 'unknown-enemy');
   const base = attackDamage(state, attack, ctx);
   if (typeof base === 'string') return reject('AttackEnemy', base);
-  // 根鬚甲蟲縮殼時減傷、出手後的破綻時加傷（其他敵人的姿態倍率一律為 1）
-  const amount = Math.round(base * stanceDamageScale(def, stance));
-  const hp = Math.max(0, enemy.hp - amount);
-  const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount, hp, attack }];
+  // 根鬚甲蟲縮殼時減傷、出手後的破綻時加傷（其他敵人的姿態倍率一律為 1）；頭目另有迷霧護盾
+  const boss = def.boss;
+  const filled = boss ? filledTroughs(state, boss) : 0;
+  const shield = boss ? bossShieldScale(boss, filled) : 1;
+  const amount = Math.round(base * stanceDamageScale(def, stance) * shield);
+  // 水槽還沒全部注水前，迷霧把傷口補回去：頭目打不倒（Bible §6.5 戰鬥提示）
+  const floor = boss && filled < boss.troughs.length ? 1 : 0;
+  const hp = Math.max(floor, enemy.hp - amount);
+  const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount: boss ? enemy.hp - hp : amount, hp, attack }];
   if (hp > 0) return events;
 
   events.push({ type: 'EnemyDefeated', enemyId, kind: enemy.kind, spawner: enemy.spawner });
+  if (boss) events.push({ type: 'BossDefeated', boss: enemy.kind });
   const spawner = ctx.combat.spawners.find((s) => s.id === enemy.spawner);
-  if (spawner) events.push({ type: 'SpawnerCooldown', spawner: spawner.id, nextSpawnAt: state.time + spawner.respawnSec });
+  if (spawner && !spawner.manual) events.push({ type: 'SpawnerCooldown', spawner: spawner.id, nextSpawnAt: state.time + spawner.respawnSec });
   // 掉落：背包放不下時不掉（不影響擊敗）
   if (def.lootTableId) {
     const items = rollIntoInventory(state, def.lootTableId, ctx);
@@ -453,25 +480,59 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   return events;
 }
 
-function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit: boolean): GameEvent[] {
+function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit: boolean, move?: BossMoveId): GameEvent[] {
   const enemy = state.enemies.get(enemyId);
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('EnemyStrike', 'unknown-enemy');
   if (state.player.defeated) return reject('EnemyStrike', 'player-defeated');
   const behavior = def.behavior;
   if (spit && behavior?.kind !== 'spit') return reject('EnemyStrike', 'invalid-command');
-  const amount = spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  // 頭目只用招式攻擊，一般敵人不能帶招式
+  if ((move !== undefined) !== Boolean(def.boss)) return reject('EnemyStrike', 'invalid-command');
+  const bossMove = move && def.boss ? def.boss.moves[move] : undefined;
+  if (move && !bossMove) return reject('EnemyStrike', 'invalid-command');
+  const amount = bossMove ? bossMove.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
   const hp = Math.max(0, state.player.hp - amount);
   const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId }];
   if (spit && behavior?.kind === 'spit' && hp > 0) events.push({ type: 'PlayerSlowed', sec: behavior.slowSec, scale: behavior.slowScale });
-  if (hp <= 0) events.push({ type: 'PlayerDefeated' });
+  // 睡眠孢子：昏昏欲睡，一段時間內走得很慢
+  if (move === 'spores' && def.boss && hp > 0) events.push({ type: 'PlayerSlowed', sec: def.boss.moves.spores.slowSec, scale: def.boss.moves.spores.slowScale, cause: 'spores' });
+  if (hp <= 0) {
+    events.push({ type: 'PlayerDefeated' });
+    // 失敗後重試（Bible §27.4）：頭目回去、血量回滿，已注水的水槽保留
+    for (const e of state.enemies.values()) if (ctx.combat.enemies.get(e.kind)?.boss) events.push({ type: 'EnemyDespawned', enemyId: e.id });
+  }
   return events;
+}
+
+/** 正在戰鬥中的這個頭目（通常 0 或 1 隻） */
+function bossEnemies(state: GameState, bossId: string): EnemyRuntime[] {
+  return [...state.enemies.values()].filter((e) => e.kind === bossId);
+}
+
+/** 已注水的水槽數 */
+export function filledTroughs(state: Pick<GameState, 'objects'>, boss: BossDef): number {
+  return boss.troughs.filter((id) => state.objects.get(id)?.active).length;
+}
+
+function startBossFight(state: GameState, bossId: string, ctx: RulesContext): GameEvent[] {
+  const def = ctx.combat.enemies.get(bossId);
+  const spawner = bossSpawner(ctx.combat, bossId);
+  if (!def?.boss || !spawner) return reject('StartBossFight', 'unknown-enemy');
+  if (state.player.defeated) return reject('StartBossFight', 'player-defeated');
+  if (state.defeatedBosses.includes(bossId)) return reject('StartBossFight', 'already-defeated');
+  if (bossEnemies(state, bossId).length > 0) return reject('StartBossFight', 'already-active');
+  const requires = def.boss.requires?.questCompleted;
+  if (requires && state.quests[requires]?.status !== 'completed') return reject('StartBossFight', 'quest-unavailable');
+  const counter = (state.spawners[spawner.id]?.counter ?? 0) + 1;
+  return [{ type: 'EnemySpawned', enemyId: `${spawner.id}#${counter}`, kind: bossId, spawner: spawner.id, hp: def.maxHp }];
 }
 
 /** 生成點補充與收回（規格 1.4：生成率依區域迷霧；迷霧變淡時多出來的迷霧生物消散） */
 function spawnerEvents(state: GameState, time: number, ctx: RulesContext): GameEvent[] {
   const events: GameEvent[] = [];
   for (const spawner of ctx.combat.spawners) {
+    if (spawner.manual) continue;
     const budget = spawner.budget[state.mist[spawner.regionId]];
     const alive = [...state.enemies.values()].filter((e) => e.spawner === spawner.id);
     for (const extra of alive.slice(budget)) events.push({ type: 'EnemyDespawned', enemyId: extra.id });
@@ -569,7 +630,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored } = state;
+  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -690,11 +751,14 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'AreaExplored':
         explored = withCells(explored, e.cells);
         break;
+      case 'BossDefeated':
+        if (!defeatedBosses.includes(e.boss)) defeatedBosses = [...defeatedBosses, e.boss];
+        break;
       case 'CommandRejected':
         break;
     }
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored };
+  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
 }

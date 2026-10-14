@@ -2,6 +2,7 @@
 // 敵人「存在與血量」是權威狀態；這裡依權威層的事件建立 / 移除對應的模擬與表現。
 import { create } from 'zustand';
 import type { GameState } from '@/game-core/authority/rules';
+import { bossStance, createBossAi, onBossHit, type BossAi } from '@/game-core/combat/bossAi';
 import { aiStance, applyHitReaction, createEnemyAi, type EnemyAi } from '@/game-core/combat/enemyAi';
 import { createCombo, DEFAULT_WEAPON, type ComboState } from '@/game-core/combat/weapons';
 import { terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
@@ -23,6 +24,8 @@ export type EnemyVisual = {
   sinceUpdate: number;
   /** 模型怪物目前播放的動畫片段（ModelEnemy 寫入；除錯與測試用） */
   anim?: string;
+  /** 頭目自己的 AI 狀態（任務 8D）；位置仍在 ai */
+  boss?: BossAi;
 };
 
 export const enemyRuntime = new Map<string, EnemyVisual>();
@@ -111,6 +114,14 @@ function spawnPosition(spawnerId: string): { x: number; z: number } {
 }
 
 function addEnemy(id: string, kind: string, spawner: string): void {
+  const boss = combat.enemies.get(kind)?.boss;
+  if (boss) {
+    // 頭目：從菌樹下面向戰場入口現身
+    const [x, z] = boss.home;
+    const [gx, gz] = boss.gate.center;
+    enemyRuntime.set(id, { ai: createEnemyAi(x, z, Math.atan2(gx - x, gz - z)), kind, spawner, fadeIn: 0, flash: 0, vanishing: null, sinceUpdate: 0, boss: createBossAi() });
+    return;
+  }
   const { x, z } = spawnPosition(spawner);
   enemyRuntime.set(id, { ai: createEnemyAi(x, z, Math.random() * Math.PI * 2), kind, spawner, fadeIn: 0, flash: 0, vanishing: null, sinceUpdate: 0 });
 }
@@ -130,8 +141,13 @@ export function removeEnemyVisual(id: string): void {
 /** 對敵人出手（近戰、法術共用）：附上敵人目前的姿態，權威層依此計算傷害倍率（根鬚甲蟲縮殼 / 破綻） */
 export function attackEnemy(enemyId: string, attack: string): void {
   const v = enemyRuntime.get(enemyId);
-  const stance = v ? aiStance(v.ai) : undefined;
+  const stance = v?.boss ? bossStance(v.boss) : v ? aiStance(v.ai) : undefined;
   authority.send(stance ? { type: 'AttackEnemy', enemyId, attack, stance } : { type: 'AttackEnemy', enemyId, attack });
+}
+
+/** 被玩家攻擊命中的半徑（頭目較大） */
+export function enemyHitRadius(kind: string): number {
+  return combat.enemies.get(kind)?.hitRadius ?? 0.5;
 }
 
 export function enemyY(x: number, z: number): number {
@@ -157,10 +173,15 @@ export function installCombatRuntime(): void {
           const v = enemyRuntime.get(e.enemyId);
           if (!v) break;
           v.flash = 0.18;
+          pushDamageNumber({ x: v.ai.x, y: enemyY(v.ai.x, v.ai.z) + (v.boss ? 4.4 : 1.9), z: v.ai.z, amount: e.amount, target: 'enemy' });
+          // 頭目不會被擊退或打斷，只累計被打的次數（連續被打會縮入菌傘）
+          if (v.boss) {
+            onBossHit(v.boss);
+            break;
+          }
           // 擊退：往遠離玩家的方向（規格 6.6）；根鬚甲蟲會縮殼
           const knockback = spells.get(e.attack)?.knockback ?? weapons.moves.get(e.attack)?.move.knockback ?? 0;
           applyHitReaction(v.ai, playerRuntime.position, knockback, combat.enemies.get(v.kind));
-          pushDamageNumber({ x: v.ai.x, y: enemyY(v.ai.x, v.ai.z) + 1.9, z: v.ai.z, amount: e.amount, target: 'enemy' });
           break;
         }
         case 'EnemyDefeated':
@@ -169,6 +190,7 @@ export function installCombatRuntime(): void {
           if (v) {
             v.vanishing = 0;
             v.ai.state = 'dead';
+            if (v.boss) v.boss.state = 'dead';
           }
           break;
         }
@@ -182,7 +204,7 @@ export function installCombatRuntime(): void {
           break;
         }
         case 'PlayerSlowed':
-          if (combatRuntime.slow.remaining <= 0) useUiStore.getState().pushToast({ textKey: 'combat.slowed' });
+          if (combatRuntime.slow.remaining <= 0) useUiStore.getState().pushToast({ textKey: e.cause === 'spores' ? 'combat.sleepy' : 'combat.slowed' });
           combatRuntime.slow.remaining = e.sec;
           combatRuntime.slow.scale = e.scale;
           break;

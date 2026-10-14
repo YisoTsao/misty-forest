@@ -5,14 +5,13 @@ import { isInBlast, meteorPlan } from '@/game-core/combat/spells';
 import { clampInsideMap } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
-import { attackEnemy, enemyRuntime } from '@/game/combat/combatRuntime';
+import { attackEnemy, enemyHitRadius, enemyRuntime } from '@/game/combat/combatRuntime';
 import { spellRuntime } from '@/game/combat/spellRuntime';
 import { cameraRuntime } from '@/game/player/localRuntime';
 import { useSettingsStore } from '@/game/state/settingsStore';
 import { projectileVisuals, vfx, type Rgb } from '@/game/vfx/vfxQueue';
 
 /** 敵人身體半徑（命中判定用） */
-const ENEMY_RADIUS = 0.5;
 /** 流星從撞擊點的這個相對位置開始落下（斜斜地從天空劃過） */
 const FALL_FROM = { x: 7, y: 26, z: -5 } as const;
 
@@ -65,7 +64,7 @@ function impact(spell: SpellDef, x: number, y: number, z: number, final: boolean
   const radius = final ? spell.radius : spell.meteor!.impactRadius;
   for (const [id, v] of enemyRuntime) {
     if (v.vanishing !== null) continue;
-    if (isInBlast({ x, z }, radius, { x: v.ai.x, z: v.ai.z, radius: ENEMY_RADIUS })) {
+    if (isInBlast({ x, z }, radius, { x: v.ai.x, z: v.ai.z, radius: enemyHitRadius(v.kind) })) {
       attackEnemy(id, spell.id);
       spellRuntime.hits++;
     }

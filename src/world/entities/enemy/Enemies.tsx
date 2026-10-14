@@ -12,6 +12,7 @@ import { createWispMaterial, wispEyeMaterial } from '@/render/mistWisp';
 import { updateEnemyAi } from './enemyUpdate';
 import { ModelEnemy, ModelEnemyWarmup } from './ModelEnemy';
 import { CritterEnemy, CritterEnemyWarmup } from './CritterEnemy';
+import { MossThump, MossThumpWarmup } from './MossThump';
 import { clearSpits, stepSpits } from '@/game/combat/enemySpits';
 import { isControllable } from '@/game-core/flow/gameFlow';
 
@@ -58,6 +59,7 @@ export function Enemies() {
       <EnemyShaderWarmup geometry={shared} />
       {ids.map((id) => {
         const def = combat.enemies.get(enemyRuntime.get(id)?.kind ?? '');
+        if (def?.boss) return <MossThump key={id} id={id} def={{ ...def, boss: def.boss }} />;
         if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
         if (def?.procedural) return <CritterEnemy key={id} id={id} def={{ ...def, procedural: def.procedural }} />;
         return <MistWisp key={id} id={id} geometry={shared} />;
@@ -87,6 +89,7 @@ function EnemyShaderWarmup({ geometry }: { geometry: { body: THREE.BufferGeometr
       {[...combat.enemies.values()].map((def) => {
         if (def.model) return <ModelEnemyWarmup key={def.id} def={{ ...def, model: def.model }} />;
         if (def.procedural) return <CritterEnemyWarmup key={def.id} kind={def.procedural} />;
+        if (def.boss) return <MossThumpWarmup key={def.id} />;
         return null;
       })}
       <mesh geometry={geometry.body} material={wisp} castShadow />

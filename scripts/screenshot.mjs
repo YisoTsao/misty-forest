@@ -6,6 +6,7 @@
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
+//   --boss：苔咚頭目戰：開場鑽出地面、HUD、根刺 / 震地 / 睡眠孢子的預兆與出招、縮入菌傘、震地後的破綻、入口的樹根、注滿的水槽與迷霧退去、倒下縮小（任務 8D）
 //   --monsters：每種怪物在自己的生成區域的近照與總覽（任務 7C）；--enemies=a,b 只拍這幾種（任務 8B）
 //   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
 //   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
@@ -52,6 +53,7 @@ const withMagic = flags.has('--magic');
 const withMap = flags.has('--map');
 const withMonsters = flags.has('--monsters');
 const withWaterway = flags.has('--waterway');
+const withBoss = flags.has('--boss');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -894,6 +896,117 @@ try {
     await page.evaluate(() => window.__mistwoodDebug.setClock(21));
     await view('glowmoss_lanterns', 'waterway_lanterns_night', 2000);
     await view('glowmoss_wheel', 'waterway_wheel_night', 1500);
+  }
+
+  if (withBoss) {
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const look = (cam) => d((c) => window.__mistwoodDebug.camera(c), cam);
+    const heal = () => d(() => window.__mistwoodDebug.send({ type: 'Rest' }));
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(null);
+      g.setClock(10);
+      g.setQuestCompleted('wood_for_bridge');
+      g.setQuestCompleted('repair_bridge');
+      g.setQuestCompleted('quest_forest_002');
+      for (const from of ['move', 'interact', 'harvest', 'inventory']) g.send({ type: 'AdvanceTutorial', from });
+      g.setCameraMode('follow');
+      g.travelToMap('glowmoss');
+    });
+    await page.waitForTimeout(2500);
+    // 從入口走進空地：開戰，苔咚從菌樹下鑽出來（攝影機在玩家西側、看向東）
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.setPeaceful(true);
+      g.teleport(2083, 47);
+      g.face(2100, 46);
+    });
+    await look({ yaw: -1.35, pitch: 0.22, distance: 9 });
+    await page.waitForTimeout(1300);
+    await shot('boss_intro');
+    await page.waitForTimeout(2600);
+    await shot('boss_hud');
+    // 入口的樹根：從空地裡往西看（自由攝影機，拍完回到跟隨）
+    await d(() => window.__mistwoodDebug.viewAt([2090, 5.5, 53], [2073, 2, 45]));
+    await page.waitForTimeout(900);
+    await shot('boss_gate');
+    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
+    const force = async (move, wait) => {
+      await heal();
+      await d((m) => {
+        const g = window.__mistwoodDebug;
+        g.setPeaceful(false);
+        g.forceBossMove(m);
+      }, move);
+      await page.waitForTimeout(wait);
+    };
+    await look({ yaw: -1.2, pitch: 0.42, distance: 12 });
+    await force('spikes', 750);
+    await shot('boss_spikes_warn');
+    await page.waitForTimeout(500);
+    await shot('boss_spikes');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
+    await page.waitForTimeout(2500);
+    // 震地：玩家退開，看得到落點圈
+    await d(() => window.__mistwoodDebug.teleport(2084, 56));
+    await look({ yaw: -0.9, pitch: 0.4, distance: 13 });
+    await page.waitForTimeout(600);
+    await force('slam', 550);
+    await shot('boss_slam_warn');
+    await page.waitForTimeout(500);
+    await shot('boss_slam_air');
+    await page.waitForTimeout(500);
+    await shot('boss_recover');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
+    await page.waitForTimeout(2500);
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      const b = g.boss();
+      if (b) g.teleport(b.x - 4.5, b.z + 0.5);
+    });
+    await look({ yaw: -2.2, pitch: 0.3, distance: 10 });
+    await page.waitForTimeout(400);
+    await force('spores', 900);
+    await shot('boss_spores');
+    await d(() => window.__mistwoodDebug.setPeaceful(true));
+    await page.waitForTimeout(2000);
+    // 連續被打：縮入菌傘
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      const b = g.boss();
+      for (let i = 0; i < 6 && b; i++) g.hitEnemy(b.enemyId, 'spell_star_bolt');
+    });
+    await page.waitForTimeout(500);
+    await shot('boss_guard');
+    await page.waitForTimeout(2500);
+    // 三個水槽注滿：迷霧退去
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      for (const id of ['glowmoss_crown_trough_01', 'glowmoss_crown_trough_02', 'glowmoss_crown_trough_03']) g.send({ type: 'ActivateObject', placementId: id });
+      g.teleport(2096, 30);
+      g.face(2099, 28);
+    });
+    await look({ yaw: 0.3, pitch: 0.35, distance: 6 });
+    await page.waitForTimeout(1500);
+    await shot('boss_trough_full');
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      const b = g.boss();
+      if (!b) return;
+      g.teleport(b.x - 7, b.z + 3);
+      g.viewAt([b.x - 9, 4.5, b.z + 7], [b.x, 2.6, b.z]);
+    });
+    await page.waitForTimeout(2000);
+    await shot('boss_cleared');
+    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      const b = g.boss();
+      for (let i = 0; i < 80 && g.boss(); i++) g.hitEnemy(b.enemyId, 'spell_starlight_burst');
+    });
+    await page.waitForTimeout(1200);
+    await shot('boss_defeated');
   }
 
   if (withNpc) {

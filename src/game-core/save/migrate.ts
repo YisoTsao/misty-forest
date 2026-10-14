@@ -49,6 +49,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   },
   // v12 → v13：世界物件多了機關的開關與水輪位置（任務 8C）；都是選填欄位，舊存檔的內容不必改
   12: (data) => data,
+  // v13 → v14：加入已擊敗的頭目（任務 8D）；舊存檔還沒有頭目戰
+  13: (data) => ({ ...data, combat: { ...(data.combat as Record<string, unknown>), defeatedBosses: [] } }),
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

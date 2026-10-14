@@ -585,6 +585,56 @@ function mossNode(awake: boolean): ForestModel {
   return { solid: merge(solid, '苔蘚節點'), plant: merge(plant, '甦醒的苔'), glow: merge(glow, '苔蘚節點光點') };
 }
 
+/**
+ * 苔冠空地邊緣的水槽（任務 8D，Bible §6.5）：石槽 2.4 × 1.2 m（沿 X），+Z 面向菌樹；
+ * 背面（−Z）有一截樹根空心木管把水接進來。乾涸時槽底是龜裂的泥、苔蘚灰灰的；注滿時水面發光、木管流下水柱、苔蘚冒出光點
+ */
+function crownTrough(full: boolean): ForestModel {
+  const stone = c('#9a978c');
+  const stoneDark = c('#7d7a70');
+  const box = (size: [number, number, number], at: [number, number, number], color: THREE.Color) => {
+    const g = new THREE.BoxGeometry(...size);
+    g.translate(...at);
+    return paint(g, color);
+  };
+  const solid = [
+    box([2.4, 0.16, 1.2], [0, 0.08, 0], stoneDark),
+    box([2.4, 0.56, 0.18], [0, 0.36, 0.51], stone),
+    box([2.4, 0.56, 0.18], [0, 0.36, -0.51], stone),
+    box([0.18, 0.56, 0.84], [1.11, 0.36, 0], stone),
+    box([0.18, 0.56, 0.84], [-1.11, 0.36, 0], stone),
+    // 空心木管：從背後斜斜伸進槽的上方
+    cylinder(0.13, 0.15, 1.1, [0.3, 0.72, -1.45], BARK, 8, [Math.PI / 2 - 0.25, 0, 0]),
+    root([[-0.4, 0, -1.3], [-0.1, 0.5, -1.2], [0.25, 0.8, -1.1], [0.55, 0.62, -0.9]], 0.07, BARK_DARK, 0.5, 10),
+  ];
+  const rand = mulberry32(full ? 41 : 40);
+  const plant: THREE.BufferGeometry[] = [];
+  const glow: THREE.BufferGeometry[] = [];
+  // 四個角落的苔蘚
+  for (const [x, z] of [[-1.1, 0.5], [1.1, 0.5], [-1.1, -0.5], [1.1, -0.5]] as const) {
+    solid.push(sphere(0.2, [x, 0.66, z], full ? MOSS : c('#77766a'), [1.2, 0.45, 1.2]));
+  }
+  if (!full) {
+    // 槽底龜裂的泥塊
+    for (let i = 0; i < 9; i++) {
+      const g = new THREE.CylinderGeometry(0.2 + rand() * 0.1, 0.22 + rand() * 0.1, 0.04, 6);
+      g.translate(-0.8 + (i % 5) * 0.4 + rand() * 0.08, 0.18, i < 5 ? -0.17 : 0.18);
+      solid.push(paint(g, i % 2 ? c('#7a6a55') : c('#6c5d4a')));
+    }
+    for (let i = 0; i < 6; i++) plant.push(leaf((i / 6) * Math.PI * 2, 0.22, 0.05, 1.1, c('#6c6857'), c('#9a9480'), 0.68).translate(i % 2 ? 1.1 : -1.1, 0, i < 3 ? 0.5 : -0.5));
+    return { solid: merge(solid, '乾涸的水槽'), plant: merge(plant, '乾枯的苔') };
+  }
+  glow.push(box([2.04, 0.04, 0.84], [0, 0.52, 0], glowColor('#77c9df', 1.25)));
+  // 木管流下的水柱
+  glow.push(box([0.12, 0.42, 0.1], [0.3, 0.72, -0.4], glowColor('#9fe9ff', 1.4)));
+  for (let i = 0; i < 10; i++) {
+    const a = rand() * Math.PI * 2;
+    glow.push(sphere(0.035 + rand() * 0.02, [Math.cos(a) * 0.9, 0.58 + rand() * 0.25, Math.sin(a) * 0.35], glowColor(MINT, 1.8), [1, 1, 1], 0));
+  }
+  for (let i = 0; i < 8; i++) plant.push(leaf((i / 8) * Math.PI * 2 + 0.3, 0.3, 0.07, 0.6, MOSS, c('#7fc49a'), 0.68).translate(i % 2 ? 1.1 : -1.1, 0, i < 4 ? 0.5 : -0.5));
+  return { solid: merge(solid, '注滿的水槽'), plant: merge(plant, '甦醒的苔'), glow: merge(glow, '水槽的水光') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
   glowmoss_patch: glowmossPatch,
   glowmoss_tuft: glowmossTuft,
@@ -608,4 +658,6 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   water_wheel_lever: waterWheelLever,
   moss_node_dry: () => mossNode(false),
   moss_node: () => mossNode(true),
+  crown_trough: () => crownTrough(false),
+  crown_trough_full: () => crownTrough(true),
 };

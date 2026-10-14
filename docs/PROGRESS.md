@@ -1,7 +1,7 @@
 # 開發進度
 
 ## 目前階段
-**Phase 8 螢苔祕林（Bible §6）進行中：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）已完成，下一個是 8D 頭目苔咚。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
+**Phase 8 螢苔祕林（Bible §6）進行中：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）已完成，下一個是 8D-2 `quest_forest_003`「苔冠下的守衛」（DECISIONS T-135）。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
 **續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
@@ -20,6 +20,15 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 8D-1：頭目苔咚，苔冠守衛的戰鬥（2026-10-14，Bible §6.5、§27.4）
+- 頭目框架（T-131）：敵人資料 `boss`、`manual` 生成點、指令 `StartBossFight` / `EndBossFight`、`EnemyStrike.move`、事件 `BossDefeated`，存檔 v14（`combat.defeatedBosses`）；純函式 AI `game-core/combat/bossAi.ts`；本機端 `game/combat/bossRuntime.ts`（走進戰場開戰、離開結束、招式命中、HUD 與提示）。
+- 苔咚（T-132）：程式造型（奶油色菌傘、深綠苔甲、四隻根腳、背上的發光小花，迷霧期傘緣灰紫色、身邊飄著迷霧）`world/entities/enemy/MossThump.tsx`；開場從菌樹下鑽出、追擊（繞過樹幹、不離開空地）、根刺 / 跳躍震地 / 睡眠孢子都有地面預兆、縮入菌傘、震地後頭昏眼花的破綻、50% 以下第二階段。
+- 戰場機制：空地邊緣三個水槽（prefab `crown_trough`，乾涸 / 注滿兩種程式模型，placement 附加 3 個，其餘不變），戰鬥中按 E 引水，每注一個迷霧退一層（傷害倍率 0.15 → 0.4 → 0.7 → 1），沒注滿前打不倒。入口樹根牆（`world/boss/BossArena.tsx`）、頭目血條與水槽指示（`ui/BossBar.tsx`）。倒下後在入口外重來、水槽保留；離開空地結束戰鬥（T-133）。
+- 擊敗：固定掉落苔冠菌帽（新物品 `moss_cap`，圖示 SVG）、星光碎屑 4–5、螢光花粉 2–3；苔咚縮小淡出，不再開戰。開戰條件暫為水道任務完成；任務、根源石、芽之共鳴、戰後的苔咚 NPC 在 8D-2（T-135）。
+- 修正（T-134）：權威層在指令沒有產生事件時不再通知訂閱者（原本會被當成讀檔，重設頭目 HUD、緩速、施法與夥伴位置）。
+- 測試：Vitest 652 項（新增 `bossAi.test.ts` 8 項：開場、根刺標記與躲避、第二階段、震地落點與破綻、孢子扇形、縮入菌傘、不離開戰場與繞過樹幹、玩家倒下時不出招；`bossFight.test.ts` 10 項：資料位置、開戰條件、水槽只在戰鬥中、護盾倍率與血量下限、姿態倍率、招式傷害與孢子緩速、倒下重試、離開戰場、擊敗與掉落、存讀檔；v13 → v14 遷移；權威層不通知空事件）。端對端新增 `e2e/boss.e2e.mjs` 8 項（開戰條件、HUD、入口走不出去、按 E 注水、根刺打中 / 震地躲開、孢子緩速、倒下重來、擊敗後入口打開與存檔），combat 9、melee 13、magic 11、forestmobs 5、monsters 5、companion 6、save 12、forestquest 12 重跑全過；未跑完整 `pnpm e2e`。
+- 截圖 `docs/screenshots/phase8/boss_*.png`（`node scripts/screenshot.mjs phase8 --boss`，已檢視：開場、HUD、入口樹根、三種預兆與出招、破綻的星星、縮入菌傘、注滿的水槽、迷霧退去後的傘緣、擊敗的掉落）。效能：截圖時 FPS 面板 120 fps、draw calls 325–356（空地內）；未跑 `perf.mjs`。
+
 ### 移動掉幀修正、除錯面板書籤名稱、上線計劃（2026-10-14）
 - 使用者回報移動時 FPS 從 80–90 瞬間掉到 40–60。量測（前景 Electron，跑 16 秒、CPU profile、記錄新編譯的 program 與觸發的物件）：長幀 117–266 ms 全部是 shader 第一次編譯（`getProgramInfoLog`）：遠處區塊、陰影深度材質、靠近才生成的怪物（風絮團、飛蛾、迷霧芽怪等）。修正：載入時預熱（T-129，`ShaderWarmup`、`EnemyShaderWarmup`）。修正後連跑 3 次：移動中最長幀約 25 ms、移動中沒有新編譯的 program，平均 8.3 ms。主選單後第一次按鍵建立 AudioContext 的一次性長幀不在此列（正常遊玩發生在主選單）。
 - 第二輪（使用者要求以跑步與跳躍測試）：沿路點衝刺加跳躍繞晨曦谷地一圈約 2 分鐘，移動中 > 25 ms 的幀 104 次、越跑越長（33 → 142 ms）。原因是小地圖 / 世界地圖的霧罩每進一格探索格就整張重畫，且每個已探索格各做一次模糊（T-130）；另外預熱用的怪物材質卸載時 dispose，把預熱好的 program 一起刪掉了（T-129 補充）。修正後同一路線只剩 1 次（42 ms）、平均 8.3 ms；原地跳、只跑不跳都沒有長幀（`PERF.md`）。
@@ -321,7 +330,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 8. Phase 7 晨曦谷地完整 MVP（§9）。
 
 ## 使用者新指示（2026-10-14，優先於上方順序）：擴大第一章地圖、建立第二章，另加世界地圖、小地圖、場景豐富化、多樣怪物
-進度：7A、7B、7C、8A、8B、8C 完成；接著是 8D 頭目苔咚（苔冠空地；`quest_forest_003`「苔冠下的守衛」，`quest_forest_002` 完成後入口的樹根已退開。Bible 的戰鬥提示「把水引入戰場邊緣的三個小水槽」可沿用 8C 的 `waterways` 與 `activate`）。
+進度：7A、7B、7C、8A、8B、8C、8D-1 完成；接著是 8D-2 `quest_forest_003`「苔冠下的守衛」（奇奇交付、開戰條件改為任務進行中、戰後啟動森林根源石、芽之共鳴、苔咚守護 NPC、奇奇戰後台詞；DECISIONS T-135）。
 原規劃（7A 實作時的差異見 DECISIONS T-103–T-109：北方是 -Z，所以高地在 z < -100）：
 已完成調查，規劃如下（單次一個任務；驗證依 `mistwood-verify` 分層執行）：
 - **任務 7A 晨曦谷地擴大**：`TERRAIN_SIZE` 160 → 320（Bible §5.2），可玩區 ±148、圓角 18；地形網格 320 段。既有中心內容（出生點、村莊、湖、森林）座標不變，`gen-placements.ts` 舊散佈保留原 `half = 74` 以維持 id/位置，舊邊界樹移除、新邊界重新產生。

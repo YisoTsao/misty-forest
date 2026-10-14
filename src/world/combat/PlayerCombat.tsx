@@ -8,7 +8,8 @@ import { useSettingsStore } from '@/game/state/settingsStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { audio } from '@/game/audio/audioEngine';
 import { authority, weapons } from '@/game/authority';
-import { attackEnemy, combatRuntime, enemyRuntime, pushImpact } from '@/game/combat/combatRuntime';
+import { bossRetryPoint } from '@/game/combat/bossRuntime';
+import { attackEnemy, enemyHitRadius, combatRuntime, enemyRuntime, pushImpact } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 
@@ -16,7 +17,6 @@ import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 export const RESPAWN_DELAY = 3;
 /** 倒下後回到的地點：晨曦村南邊路口（安全、離森林有段距離） */
 /** 敵人身體半徑（命中判定用） */
-const ENEMY_RADIUS = 0.5;
 /** 先行輸入：動作結束前這段時間內按下的攻擊會排隊，動作一結束就出招（連段不會因為按早一點而斷掉） */
 const BUFFER_SEC = 0.3;
 /** 命中時的鏡頭震動（公尺，乘上招式的停頓長度換算） */
@@ -79,8 +79,9 @@ export function PlayerCombat() {
       combatRuntime.defeatedFor += dt;
       if (combatRuntime.defeatedFor >= RESPAWN_DELAY) {
         authority.send({ type: 'RespawnPlayer' });
-        // 回到所在地圖的重生點（晨曦谷地為村子路口、螢苔祕林為林緣小徑入口）
-        const { respawn } = mapAt(playerRuntime.position.x, playerRuntime.position.z);
+        // 回到所在地圖的重生點（晨曦谷地為村子路口、螢苔祕林為林緣小徑入口）；在頭目戰場倒下時回到戰場入口外（任務 8D）
+        const { x, z } = playerRuntime.position;
+        const respawn = bossRetryPoint(x, z) ?? mapAt(x, z).respawn;
         playerRuntime.teleportRequest = { x: respawn.x, z: respawn.z };
       }
       return;
@@ -155,7 +156,7 @@ function resolveHit(hit: PendingHit): void {
   let landed = false;
   for (const [id, v] of enemyRuntime) {
     if (v.vanishing !== null) continue;
-    const target = { x: v.ai.x, z: v.ai.z, radius: ENEMY_RADIUS };
+    const target = { x: v.ai.x, z: v.ai.z, radius: enemyHitRadius(v.kind) };
     if (!isInMoveArea(hit.move, self, target)) continue;
     // 切換武器後，前一把武器還沒揮下的招式不算
     if (authority.getState().player.weapon !== hit.weapon) continue;

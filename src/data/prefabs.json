@@ -3290,6 +3290,29 @@
     "persists": true
   },
   {
+    "id": "crown_trough",
+    "model": "procedural:crown_trough",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [2.4, 0.7, 1.2]
+    },
+    "interaction": "activate",
+    "nameKey": "object.crownTrough",
+    "verbKey": "interact.pourWater",
+    "interactRadius": 2.6,
+    "activate": {
+      "model": "procedural:crown_trough_full",
+      "collision": {
+        "shape": "box",
+        "size": [2.4, 0.7, 1.2]
+      },
+      "boss": "boss_moss_thump",
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
     "id": "trail_lantern",
     "model": "procedural:trail_lantern",
     "collider": "static",
