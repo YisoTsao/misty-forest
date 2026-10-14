@@ -43,6 +43,7 @@ import { Lighting } from './sky/Lighting';
 import { Backdrop } from './sky/Backdrop';
 import { Sky } from './sky/Sky';
 import { Terrain } from './terrain/Terrain';
+import { MirrorPuzzle } from './water/MirrorPuzzle';
 import { Water } from './water/Water';
 import { LighthouseBeam } from './dawn/LighthouseBeam';
 import { WindowGlowDriver } from './dawn/WindowGlowDriver';
@@ -115,6 +116,9 @@ export function WorldScene({ data }: { data: WorldData }) {
         <MapOnly map="mirrorlake">
           <GrassField index={index} map="mirrorlake" />
           <Water map="mirrorlake" />
+          <AssetBoundary name="mirror-puzzle">
+            <MirrorPuzzle />
+          </AssetBoundary>
           <MistWall map="mirrorlake" />
         </MapOnly>
         <OutdoorOnly>

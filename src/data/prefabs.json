@@ -4396,25 +4396,6 @@
     "persists": false
   },
   {
-    "id": "mirror_pillar",
-    "model": "procedural:mirror_pillar",
-    "collider": "static",
-    "collision": [
-      {
-        "shape": "cylinder",
-        "radius": 1.4,
-        "height": 0.5,
-        "cameraIgnore": true
-      },
-      {
-        "shape": "cylinder",
-        "radius": 0.45,
-        "height": 4.4
-      }
-    ],
-    "persists": false
-  },
-  {
     "id": "sunken_tower",
     "model": "procedural:sunken_tower",
     "collider": "static",
@@ -4619,5 +4600,95 @@
     },
     "persists": true,
     "castShadow": false
+  },
+  {
+    "id": "lake_mirror",
+    "model": "procedural:mirror_pillar_base",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 1.4,
+        "height": 0.5,
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.45,
+        "height": 4.4
+      }
+    ],
+    "interaction": "turn",
+    "nameKey": "object.lakeMirror",
+    "verbKey": "interact.turnMirror",
+    "interactRadius": 2.6,
+    "turn": {
+      "positions": 4,
+      "quest": "quest_lake_002"
+    },
+    "persists": true
+  },
+  {
+    "id": "light_pillar",
+    "model": "procedural:light_pillar",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.5,
+      "height": 4.4
+    },
+    "interaction": "read",
+    "nameKey": "object.lightPillar",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "object.lightPillar",
+      "bodyKey": "lightPillar.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "lake_sluice",
+    "model": "procedural:lake_sluice",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          0.9,
+          4,
+          1.2
+        ],
+        "offset": [
+          -2.1,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.9,
+          4,
+          1.2
+        ],
+        "offset": [
+          2.1,
+          0,
+          0
+        ]
+      }
+    ],
+    "interaction": "read",
+    "nameKey": "object.lakeSluice",
+    "interactRadius": 3,
+    "read": {
+      "titleKey": "object.lakeSluice",
+      "bodyKey": "lakeSluice.body"
+    },
+    "activate": {
+      "model": "procedural:lake_sluice_open",
+      "quest": "quest_lake_002"
+    },
+    "persists": true
   }
 ]

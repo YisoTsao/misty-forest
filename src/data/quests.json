@@ -533,5 +533,50 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_lake_002",
+    "nameKey": "quest.lake2.name",
+    "category": "main",
+    "descKey": "quest.lake2.desc",
+    "giver": "kiki",
+    "requires": [
+      "quest_lake_001"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "mirrorlake_sluice"
+        ],
+        "descKey": "quest.lake2.sluice"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "water_charm",
+          "count": 1
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ],
+      "mist": [
+        {
+          "region": "lake_shore",
+          "stage": "clear"
+        },
+        {
+          "region": "mirror_ruins",
+          "stage": "light"
+        },
+        {
+          "region": "reed_isle",
+          "stage": "light"
+        }
+      ]
+    }
   }
 ]

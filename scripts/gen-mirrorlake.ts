@@ -68,6 +68,11 @@ function slopeAt(x: number, z: number): number {
   return Math.hypot(height(x + 0.6, z) - height(x - 0.6, z), height(x, z + 0.6) - height(x, z - 0.6)) / 1.2;
 }
 
+/** 任務 9D：光源（曙光石）、湖底閘門（南岸遺構東邊的水裡），以及每面水鏡要轉幾次才對準下一站 */
+const LIGHT_SOURCE = { x: -46, z: -60 } as const;
+const LAKE_SLUICE = { x: 40, z: 62 } as const;
+const LIGHT_SOLUTION = [2, 1, 3] as const;
+
 /** 螢苔祕林小渠南端的水道入口（局部座標，渠道中央；堵住的樹根在北邊 7 m，任務 8D-2 完成後退開） */
 const GLOWMOSS_LAKE_GATE_Z = 143;
 function channelCenterAt(z: number): number {
@@ -174,8 +179,12 @@ export function addMirrorlake(placements: Out[]): void {
   taken.push({ x: REED_ISLE.x, z: REED_ISLE.z, r: 3 });
 
   // ── 5. 三面水鏡（之後的光路謎題）：鏡面朝湖心 ──
+  // 任務 9D：光路依序是曙光石 → 三面水鏡 → 湖底閘門。鏡子的 yaw 讓「轉到 LIGHT_SOLUTION 次」時正好對準下一站（一開始都沒對準）
+  const lightChain: (readonly [number, number])[] = [...MIRROR_PILLARS, [LAKE_SLUICE.x, LAKE_SLUICE.z]];
   MIRROR_PILLARS.forEach(([x, z], i) => {
-    place(`mirrorlake_mirror_${pad2(i + 1)}`, 'mirror_pillar', x, z, { yaw: Math.atan2(MIRROR_TEMPLE.x - x, MIRROR_TEMPLE.z - z), r: 3 });
+    const [nx, nz] = lightChain[i + 1]!;
+    const yaw = Math.atan2(nx - x, nz - z) - LIGHT_SOLUTION[i]! * (Math.PI / 2);
+    place(`mirrorlake_mirror_${pad2(i + 1)}`, 'lake_mirror', x, z, { yaw, r: 3 });
   });
 
   // ── 6. 區域 D：半沉沒的水鏡遺構（南岸），湖裡的半沉沒鐘樓 ──
@@ -316,6 +325,22 @@ export function addMirrorlake(placements: Out[]): void {
     ids.add(id);
     // 倒影浮在水面上（陸上的貼地）
     kept.push({ id, prefabId, regionId: regionAt(x + O.x, z + O.z), position: [round(x + O.x), round(Math.max(height(x, z), WATER) + 0.02), round(z + O.z)], rotation: [0, round(yaw), 0], scale: [1, 1, 1] });
+  }
+
+  // ── 11. 任務 9D：曙光石與湖底閘門（附加在最後，只移除重疊的散佈點綴）──
+  const lightProps: [string, string, number, number, number, number | null][] = [
+    ['mirrorlake_light_pillar', 'light_pillar', LIGHT_SOURCE.x, LIGHT_SOURCE.z, 0, null],
+    // 閘門的原點在湖底（水面下 1.2 m），石樑露出水面；石框橫跨東西
+    ['mirrorlake_sluice', 'lake_sluice', LAKE_SLUICE.x, LAKE_SLUICE.z, Math.atan2(MIRROR_PILLARS[2]![0] - LAKE_SLUICE.x, MIRROR_PILLARS[2]![1] - LAKE_SLUICE.z), WATER - 1.2],
+  ];
+  for (let i = kept.length - 1; i >= 0; i--) {
+    const o = kept[i]!;
+    if (scatterIds.test(o.id) && lightProps.some(([, , x, z]) => Math.hypot(o.position[0] - O.x - x, o.position[2] - O.z - z) < 3.5)) kept.splice(i, 1);
+  }
+  for (const [id, prefabId, x, z, yaw, y] of lightProps) {
+    if (ids.has(id)) throw new Error(`placement id 重複：${id}`);
+    ids.add(id);
+    kept.push({ id, prefabId, regionId: regionAt(x + O.x, z + O.z), position: [round(x + O.x), round(y ?? height(x, z) - 0.03), round(z + O.z)], rotation: [0, round(yaw), 0], scale: [1, 1, 1] });
   }
 
   placements.push(...kept);

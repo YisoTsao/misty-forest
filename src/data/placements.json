@@ -100696,7 +100696,7 @@
   },
   {
     "id": "mirrorlake_mirror_01",
-    "prefabId": "mirror_pillar",
+    "prefabId": "lake_mirror",
     "regionId": "lake_shore",
     "position": [
       3954,
@@ -100705,7 +100705,7 @@
     ],
     "rotation": [
       0,
-      0.98,
+      -1.82,
       0
     ],
     "scale": [
@@ -100716,7 +100716,7 @@
   },
   {
     "id": "mirrorlake_mirror_02",
-    "prefabId": "mirror_pillar",
+    "prefabId": "lake_mirror",
     "regionId": "lake_shore",
     "position": [
       4104,
@@ -100725,7 +100725,7 @@
     ],
     "rotation": [
       0,
-      -1.18,
+      -2.42,
       0
     ],
     "scale": [
@@ -100736,7 +100736,7 @@
   },
   {
     "id": "mirrorlake_mirror_03",
-    "prefabId": "mirror_pillar",
+    "prefabId": "lake_mirror",
     "regionId": "mirror_ruins",
     "position": [
       4018,
@@ -100745,7 +100745,7 @@
     ],
     "rotation": [
       0,
-      2.65,
+      -2.79,
       0
     ],
     "scale": [
@@ -129066,6 +129066,46 @@
     "rotation": [
       0,
       0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "mirrorlake_light_pillar",
+    "prefabId": "light_pillar",
+    "regionId": "lake_shore",
+    "position": [
+      3954,
+      2,
+      -60
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "mirrorlake_sluice",
+    "prefabId": "lake_sluice",
+    "regionId": "lake_shore",
+    "position": [
+      4040,
+      -2.2,
+      62
+    ],
+    "rotation": [
+      0,
+      -1.22,
       0
     ],
     "scale": [

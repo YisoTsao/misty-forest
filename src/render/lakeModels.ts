@@ -150,37 +150,6 @@ function fisherHut(): ForestModel {
   return { solid: merge(solid, '湖畔漁屋'), glow: merge(glow, '漁屋窗光') };
 }
 
-/**
- * 水鏡（`prop_lake_mirror_pillar`）：石柱頂上一面圓形鏡片，外圍一圈可轉動的石環（之後的光路謎題按 90° 旋轉）。
- * 鏡面朝 +Z；石環上的刻痕指出鏡面的方向。
- */
-function mirrorPillar(): ForestModel {
-  const solid: THREE.BufferGeometry[] = [];
-  const glow: THREE.BufferGeometry[] = [];
-  solid.push(cylinder(1.3, 1.5, 0.4, [0, 0, 0], STONE_DARK, 12));
-  // 旋轉石環（底座上的一圈，四個方向各一個刻痕）
-  const ring = new THREE.TorusGeometry(1.05, 0.16, 6, 20);
-  ring.rotateX(Math.PI / 2);
-  ring.translate(0, 0.5, 0);
-  solid.push(paint(ring, STONE));
-  solid.push(box([0.18, 0.12, 0.5], [0, 0.6, 1.05], c('#5f6d70')));
-  solid.push(cylinder(0.32, 0.4, 2.6, [0, 0.4, 0], STONE, 8));
-  // 鏡框與鏡片
-  const frame = new THREE.TorusGeometry(0.75, 0.1, 6, 24);
-  frame.translate(0, 3.7, 0);
-  solid.push(paint(frame, c('#c8b27a')));
-  solid.push(box([0.2, 0.7, 0.2], [0, 3.0, 0], STONE));
-  const glass = new THREE.CircleGeometry(0.68, 24);
-  glass.translate(0, 3.7, 0.02);
-  glow.push(paint(glass, glowColor(LAKE_BLUE, 1.05)));
-  const back = new THREE.CircleGeometry(0.68, 24);
-  back.rotateY(Math.PI);
-  back.translate(0, 3.7, -0.02);
-  solid.push(paint(back, STONE_DARK));
-  solid.push(sphere(0.35, [0.6, 0.45, -0.7], MOSS, [1.4, 0.4, 1]));
-  return { solid: merge(solid, '水鏡'), glow: merge(glow, '鏡面') };
-}
-
 /** 半沉沒的鐘樓（`ruin_lake_submerged_tower`）：原點在湖底，石塔斜斜插在湖裡，頂端的鐘亭露出水面 */
 function sunkenTower(): ForestModel {
   const rand = mulberry32(907);
@@ -328,14 +297,86 @@ function oddReflection(seen: boolean): ForestModel {
   return { solid: merge(solid, '倒影'), glow: merge(glow, '倒影的光') };
 }
 
+/** 水鏡的底座（任務 9D）：石座、可轉動的石環、石柱；鏡面（鏡框與鏡片）由 MirrorPuzzle 另外畫，才能依轉動的方向旋轉 */
+function mirrorPillarBase(): ForestModel {
+  const solid: THREE.BufferGeometry[] = [cylinder(1.3, 1.5, 0.4, [0, 0, 0], STONE_DARK, 12), cylinder(0.32, 0.4, 2.9, [0, 0.4, 0], STONE, 8)];
+  const ring = new THREE.TorusGeometry(1.05, 0.16, 6, 20);
+  ring.rotateX(Math.PI / 2);
+  ring.translate(0, 0.5, 0);
+  solid.push(paint(ring, STONE));
+  // 四個方向的刻痕（Bible：每座鏡片只可按 90 度旋轉）
+  for (let k = 0; k < 4; k++) {
+    const a = (k * Math.PI) / 2;
+    solid.push(box([0.16, 0.1, 0.36], [Math.sin(a) * 1.05, 0.62, Math.cos(a) * 1.05], c('#5f6d70'), [0, a, 0]));
+  }
+  solid.push(sphere(0.35, [0.6, 0.45, -0.7], MOSS, [1.4, 0.4, 1]));
+  return { solid: merge(solid, '水鏡底座') };
+}
+
+/** 水鏡的鏡面（MirrorPuzzle 用）：原點在石柱頂端，鏡面朝 +Z，下方一支指向鏡面方向的金色指針 */
+export function mirrorHead(): ForestModel {
+  const solid: THREE.BufferGeometry[] = [];
+  const glow: THREE.BufferGeometry[] = [];
+  const frame = new THREE.TorusGeometry(0.75, 0.1, 6, 24);
+  frame.translate(0, 0.45, 0);
+  solid.push(paint(frame, c('#c8b27a')), box([0.3, 0.25, 0.3], [0, -0.1, 0], STONE), box([0.12, 0.08, 0.7], [0, -0.05, 0.4], c('#c8b27a')));
+  const back = new THREE.CircleGeometry(0.68, 24);
+  back.rotateY(Math.PI);
+  back.translate(0, 0.45, -0.02);
+  solid.push(paint(back, STONE_DARK));
+  const glass = new THREE.CircleGeometry(0.68, 24);
+  glass.translate(0, 0.45, 0.02);
+  glow.push(paint(glass, glowColor(LAKE_BLUE, 1.05)));
+  return { solid: merge(solid, '水鏡鏡框'), glow: merge(glow, '鏡面') };
+}
+
+/** 曙光石（任務 9D 光路的光源）：北岸的一根白石柱，頂端托著一顆會發光的水晶；lit 時亮起 */
+function lightPillar(lit: boolean): ForestModel {
+  const solid: THREE.BufferGeometry[] = [cylinder(0.9, 1.1, 0.4, [0, 0, 0], STONE_DARK, 10), cylinder(0.35, 0.45, 3.2, [0, 0.4, 0], c('#d8dcd6'), 8)];
+  for (let k = 0; k < 4; k++) {
+    const a = (k * Math.PI) / 2 + Math.PI / 4;
+    solid.push(box([0.12, 0.6, 0.12], [Math.sin(a) * 0.32, 3.8, Math.cos(a) * 0.32], c('#c8b27a'), [Math.cos(a) * 0.35, 0, -Math.sin(a) * 0.35]));
+  }
+  const crystal = new THREE.OctahedronGeometry(0.42, 0);
+  crystal.scale(0.8, 1.3, 0.8);
+  crystal.translate(0, 4.05, 0);
+  const glow = [paint(crystal, lit ? glowColor('#fff4c8', 2.6) : glowColor('#9fb4bc', 0.5))];
+  return { solid: merge(solid, '曙光石'), glow: merge(glow, '曙光石的水晶') };
+}
+
+/** 湖底閘門（任務 9D，`prop_lake_gate_mechanism`）：原點在湖底，石框中間一道木閘門；open 時閘門升起、框上的潮紋亮起 */
+function lakeSluice(open: boolean): ForestModel {
+  const solid: THREE.BufferGeometry[] = [];
+  const glow: THREE.BufferGeometry[] = [];
+  for (const side of [-1, 1]) solid.push(box([0.9, 3.4, 1.2], [side * 2.1, 1.7, 0], STONE));
+  solid.push(box([5.1, 0.7, 1.4], [0, 3.6, 0], STONE_DARK));
+  // 木閘門：關著時落到底、打開時升到石樑下
+  const lift = open ? 2.2 : 0;
+  for (let k = 0; k < 5; k++) solid.push(box([3.2, 0.42, 0.2], [0, 0.3 + k * 0.44 + lift, 0], k % 2 ? WOOD : WOOD_DARK));
+  // 石樑上的潮紋（三道波浪）
+  for (let k = 0; k < 3; k++) {
+    const pts: THREE.Vector3[] = [];
+    for (let i = 0; i <= 10; i++) pts.push(new THREE.Vector3(-0.6 + i * 0.12, 3.45 + k * 0.16 + Math.sin(i * 1.2) * 0.04, 0.72));
+    const wave = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 12, 0.025, 4);
+    if (open) glow.push(paint(wave, glowColor('#bff0ff', 2)));
+    else solid.push(paint(wave, c('#7f8c8f')));
+  }
+  return glow.length ? { solid: merge(solid, '湖底閘門'), glow: merge(glow, '閘門的潮紋') } : { solid: merge(solid, '湖底閘門') };
+}
+
 export const lakeBuilders: Record<string, () => ForestModel> = {
+  mirror_pillar_base: mirrorPillarBase,
+  mirror_head: mirrorHead,
+  light_pillar: () => lightPillar(false),
+  light_pillar_lit: () => lightPillar(true),
+  lake_sluice: () => lakeSluice(false),
+  lake_sluice_open: () => lakeSluice(true),
   odd_reflection: () => oddReflection(false),
   odd_reflection_seen: () => oddReflection(true),
   lake_reeds: lakeReeds,
   moon_bridge: moonBridge,
   wood_dock: woodDock,
   fisher_hut: fisherHut,
-  mirror_pillar: mirrorPillar,
   sunken_tower: sunkenTower,
   mirror_temple: mirrorTemple,
   lantern_boat: lanternBoat,

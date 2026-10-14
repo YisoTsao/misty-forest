@@ -1742,5 +1742,98 @@
         "textKey": "dlg.eve.afterReflection"
       }
     }
+  },
+  {
+    "id": "kiki_lake_offer",
+    "start": "heard",
+    "nodes": {
+      "heard": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.lakeHeard",
+        "next": "plan"
+      },
+      "plan": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.lakePlan",
+        "options": [
+          {
+            "textKey": "dlg.kiki.opt.lakeGo",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_lake_002"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.kiki.opt.lakeLater"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.lakeAccept"
+      }
+    }
+  },
+  {
+    "id": "kiki_lake_progress",
+    "start": "remind",
+    "nodes": {
+      "remind": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.lakeRemind"
+      }
+    }
+  },
+  {
+    "id": "kiki_lake_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.lakeReport",
+        "options": [
+          {
+            "textKey": "dlg.kiki.opt.lakeDone",
+            "next": "charm",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_lake_002"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.kiki.opt.lakeLater"
+          }
+        ]
+      },
+      "charm": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.lakeCharm"
+      }
+    }
+  },
+  {
+    "id": "kiki_after_lake",
+    "start": "talk",
+    "nodes": {
+      "talk": {
+        "speakerKey": "npc.kiki",
+        "textKey": "dlg.kiki.afterLake"
+      }
+    }
+  },
+  {
+    "id": "eve_mirrors",
+    "start": "seen",
+    "nodes": {
+      "seen": {
+        "speakerKey": "npc.eve",
+        "textKey": "dlg.eve.mirrors"
+      }
+    }
   }
 ]

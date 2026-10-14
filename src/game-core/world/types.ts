@@ -146,7 +146,7 @@ export const prefabSchema = z
       })
       .optional(),
     /** 可轉動的機關（任務 8C 水輪）：每次互動轉到下一個位置，共 positions 個位置 */
-    turn: z.object({ positions: z.number().int().min(2) }).optional(),
+    turn: z.object({ positions: z.number().int().min(2), /** 只有這個任務進行中才能轉（任務 9D 水鏡） */ quest: z.string().min(1).optional() }).optional(),
     /** 互動點相對物件原點的位移（模型單位，會乘上縮放並旋轉）：例如木橋在橋頭互動 */
     interactOffset: vec3.optional(),
     /**

@@ -72,6 +72,7 @@ const withShop = flags.has('--shop');
 const withGarden = flags.has('--garden');
 const withFootprints = flags.has('--footprints');
 const withCellar = flags.has('--cellar');
+const withLightPuzzle = flags.has('--lightpuzzle');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -1099,6 +1100,37 @@ try {
       g.setClock(10);
       g.setCameraMode('follow');
     });
+  }
+
+  if (withLightPuzzle) {
+    // 任務 9D 水鏡光路：接任務後光只照到第一面鏡子 → 一面一面對準 → 照到湖底閘門
+    const d = (fn, arg) => page.evaluate(fn, arg);
+    const light = JSON.parse(readFileSync('src/data/lightPaths.json', 'utf8'))[0];
+    await d(() => {
+      const g = window.__mistwoodDebug;
+      g.resetWorld();
+      g.setMist(0);
+      g.setClock(17);
+      for (const q of ['quest_dawn_003', 'quest_forest_003', 'quest_lake_001']) g.setQuestCompleted(q);
+      g.send({ type: 'AcceptQuest', quest: 'quest_lake_002' });
+      g.setCameraMode('free');
+      g.teleport(3996, -70);
+    });
+    const view = async (name, position, target, wait = 1800) => {
+      await d(([p, t]) => window.__mistwoodDebug.viewAt(p, t), [position, target]);
+      await page.waitForTimeout(wait);
+      await shot(name);
+    };
+    await view('lightpuzzle_start', [3964, 5, -68], [3954, 3.5, -48]);
+    for (const [i, id] of light.mirrors.entries()) {
+      for (let k = 0; k < 4; k++) {
+        const lp = await d(() => window.__mistwoodDebug.lightPath());
+        if (lp.lit >= i + 2 || lp.solved) break;
+        await d((pid) => window.__mistwoodDebug.send({ type: 'TurnObject', placementId: pid }), id);
+      }
+    }
+    await view('lightpuzzle_solved', [4010, 60, -110], [4020, 0, 10], 2500);
+    await view('lightpuzzle_sluice', [4024, 5, 78], [4040, 1, 62]);
   }
 
   if (withCellar) {

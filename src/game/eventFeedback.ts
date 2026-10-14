@@ -42,6 +42,8 @@ export function installEventFeedback(): void {
         ui.pushToast(nameKey === 'object.bridge' || !nameKey ? { textKey: 'toast.bridgeRepaired' } : { textKey: 'toast.objectRepaired', vars: { name: t(nameKey) } });
       } else if (e.type === 'ObjectActivated' && e.source === 'water') {
         ui.pushToast({ textKey: 'toast.mossAwake' });
+      } else if (e.type === 'ObjectActivated' && e.source === 'light') {
+        ui.pushToast({ textKey: 'toast.sluiceOpen' });
       } else if (e.type === 'ObjectActivated' && e.source === 'player') {
         // 啟動時看到的景象（任務 9C 湖面的倒影）
         const placement = worldIndex.placement(e.placementId);

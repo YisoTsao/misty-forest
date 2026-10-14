@@ -13,6 +13,7 @@ import { parseFlocks, type FlockDef } from '../ambient/sheep';
 import { parseInteriors, type InteriorDef } from './interiors';
 import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
+import { parseLightPaths, type LightPathDef } from './lightPath';
 import { parseWaterways, type WaterwayDef } from './waterway';
 import { parseShops, type ShopDef } from '../shop/shop';
 import { parseCraftData, type CraftData } from '../craft/craft';
@@ -39,6 +40,7 @@ export type GameData = WorldData & {
   landmarks: readonly Landmark[];
   /** 水道謎題（任務 8C） */
   waterways: readonly WaterwayDef[];
+  lightPaths: readonly LightPathDef[];
   /** 商店（任務 7H） */
   shops: ReadonlyMap<string, ShopDef>;
   /** 工作台與配方（任務 7J） */
@@ -67,6 +69,7 @@ export function parseGameData(raw: {
   landmarks?: unknown;
   /** 省略時沒有水道（測試用的最小資料） */
   waterways?: unknown;
+  lightPaths?: unknown;
   shops?: unknown;
   crafting?: unknown;
 }): GameData {
@@ -213,6 +216,17 @@ export function parseGameData(raw: {
       if (!p?.activate && !p?.repair) throw new WorldDataError(`水道 ${w.id} 的阻擋點不能排除（需要 activate 或 repair）：${id}`);
     }
   }
+  let lightPaths: LightPathDef[];
+  try {
+    lightPaths = parseLightPaths(raw.lightPaths ?? [], new Set(world.placements.map((p) => p.id)));
+  } catch (err) {
+    throw new WorldDataError(`lightPaths 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  for (const l of lightPaths) {
+    const prefabOf = (id: string) => world.prefabs.get(placementsById.get(id)?.prefabId ?? '');
+    for (const id of l.mirrors) if (prefabOf(id)?.turn?.positions !== 4) throw new WorldDataError(`光路 ${l.id} 的水鏡必須能轉 4 個方向：${id}`);
+    if (!prefabOf(l.target)?.activate) throw new WorldDataError(`光路 ${l.id} 的終點不是可啟動的物件：${l.target}`);
+  }
   let shops: Map<string, ShopDef>;
   try {
     shops = parseShops(raw.shops ?? [], { items, npcs: new Set(npcs.map((n) => n.id)), quests: new Set(quests.keys()) });
@@ -225,5 +239,5 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`crafting 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways, shops, crafting };
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways, lightPaths, shops, crafting };
 }

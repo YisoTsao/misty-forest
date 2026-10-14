@@ -17,6 +17,7 @@ import weapons from '@/data/weapons.json';
 import spells from '@/data/spells.json';
 import landmarks from '@/data/landmarks.json';
 import waterways from '@/data/waterways.json';
+import lightPaths from '@/data/lightPaths.json';
 import shops from '@/data/shops.json';
 import crafting from '@/data/crafting.json';
 import { parseGameData, type GameData } from '@/game-core/world/gameData';
@@ -27,7 +28,7 @@ export type WorldDataResult = { ok: true; data: GameData } | { ok: false; error:
 /** 啟動時驗證一次；失敗交由 UI 顯示錯誤畫面，不得白畫面。 */
 export const worldDataResult: WorldDataResult = (() => {
   try {
-    return { ok: true, data: parseGameData({ prefabs, placements, items, lootTables, regions, dialogues, npcs, quests, enemies, spawners, companion, buildables, interiors, ambient, weapons, spells, landmarks, waterways, shops, crafting }) };
+    return { ok: true, data: parseGameData({ prefabs, placements, items, lootTables, regions, dialogues, npcs, quests, enemies, spawners, companion, buildables, interiors, ambient, weapons, spells, landmarks, waterways, lightPaths, shops, crafting }) };
   } catch (err) {
     console.error(err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };

@@ -13,6 +13,7 @@ import type { InteriorDef } from '@/game-core/world/interiors';
 import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import type { Landmark } from '@/game-core/map/markers';
+import type { LightPathDef } from '@/game-core/world/lightPath';
 import type { WaterwayDef } from '@/game-core/world/waterway';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
@@ -40,6 +41,7 @@ const data = worldDataResult.ok
       spells: new Map() as SpellCatalog,
       landmarks: [] as Landmark[],
       waterways: [] as WaterwayDef[],
+      lightPaths: [] as LightPathDef[],
       shops: new Map() as ShopCatalog,
       crafting: { stations: [], recipes: [] } as CraftData,
     };
@@ -64,6 +66,7 @@ export const landmarks: readonly Landmark[] = data.landmarks;
 
 /** 水道謎題（任務 8C） */
 export const waterways: readonly WaterwayDef[] = data.waterways;
+export const lightPaths: readonly LightPathDef[] = data.lightPaths;
 
 /** 商店（任務 7H） */
 export const shops: ShopCatalog = data.shops;
@@ -91,6 +94,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   spells: data.spells,
   buildables: data.buildables,
   waterways: data.waterways,
+  lightPaths: data.lightPaths,
   shops: data.shops,
   crafting: data.crafting,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),

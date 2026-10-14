@@ -19,7 +19,9 @@ import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { audio } from './audio/audioEngine';
-import { authority, buildables, quests, regions, waterways } from './authority';
+import { authority, buildables, lightPaths, quests, regions, waterways, worldIndex } from './authority';
+import { traceLight } from '@/game-core/world/lightPath';
+import { lightPathRuntime } from './world/lightPathRuntime';
 import { waterwayFlow } from '@/game-core/world/waterway';
 import { waterwayRuntime } from './world/waterwayRuntime';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
@@ -165,6 +167,8 @@ export type MistwoodDebugApi = {
   setQuestCompleted: (id: string) => void;
   /** 任務第一個目標的進度 */
   questProgress: (id: string) => number;
+  /** 水鏡光路（任務 9D）：被光照到的鏡子數、是否照到閘門、場景上畫出的光束數 */
+  lightPath: () => { lit: number; solved: boolean; beams: number };
   /** 任務每個目標的進度（任務 8C） */
   questObjectives: (id: string) => { current: number; target: number }[];
   /** 水道謎題（任務 8C）：權威狀態算出的水流，與畫面上水面推進到哪裡 */
@@ -414,6 +418,12 @@ export function installDebugApi(): void {
     combatState: () => {
       const { hp, defeated } = authority.getState().player;
       return { hp, defeated, attackCooldown: combatRuntime.attackCooldown, skillCooldown: combatRuntime.skillCooldown };
+    },
+    lightPath: () => {
+      const def = lightPaths[0];
+      if (!def) throw new Error('沒有水鏡光路');
+      const t = traceLight(def, (id) => worldIndex.placement(id), authority.getState().objects);
+      return { lit: t.lit.length, solved: t.solved, beams: lightPathRuntime.beams };
     },
     questProgress: (id) => {
       const def = quests.get(id);

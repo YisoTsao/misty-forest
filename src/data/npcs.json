@@ -497,6 +497,37 @@
       {
         "when": {
           "type": "questReady",
+          "quest": "quest_lake_002"
+        },
+        "dialogue": "kiki_lake_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_002",
+          "is": "active"
+        },
+        "dialogue": "kiki_lake_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_002",
+          "is": "available"
+        },
+        "dialogue": "kiki_lake_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_002",
+          "is": "completed"
+        },
+        "dialogue": "kiki_after_lake"
+      },
+      {
+        "when": {
+          "type": "questReady",
           "quest": "quest_forest_003"
         },
         "dialogue": "kiki_guard_turnin"
@@ -880,6 +911,14 @@
     "facingYaw": 1.4,
     "interactRadius": 2.3,
     "talk": [
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_lake_002",
+          "is": "active"
+        },
+        "dialogue": "eve_mirrors"
+      },
       {
         "when": {
           "type": "questStatus",
