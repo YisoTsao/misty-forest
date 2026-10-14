@@ -155,6 +155,31 @@ export function channelDistance(x: number, z: number): number {
   return lineDistance(x, z, CHANNEL_PATH);
 }
 
+/** 渠道中心線的總長（公尺，從泉眼起算） */
+export const CHANNEL_LENGTH = CHANNEL_PATH.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - CHANNEL_PATH[i]![0], p[1] - CHANNEL_PATH[i]![1]), 0);
+
+/** 某點投影到渠道中心線上、從泉眼起算的沿線距離（任務 8C：水流到哪裡為止） */
+export function channelArc(x: number, z: number): number {
+  let best = Infinity;
+  let arc = 0;
+  let run = 0;
+  for (let i = 0; i + 1 < CHANNEL_PATH.length; i++) {
+    const a = CHANNEL_PATH[i]!;
+    const b = CHANNEL_PATH[i + 1]!;
+    const dx = b[0] - a[0];
+    const dz = b[1] - a[1];
+    const len = Math.hypot(dx, dz);
+    const t = Math.min(1, Math.max(0, ((x - a[0]) * dx + (z - a[1]) * dz) / (len * len)));
+    const d = Math.hypot(x - (a[0] + dx * t), z - (a[1] + dz * t));
+    if (d < best) {
+      best = d;
+      arc = run + t * len;
+    }
+    run += len;
+  }
+  return arc;
+}
+
 /** 苔冠空地外圍山脊的高度（只有西側開口） */
 function crownRidge(x: number, z: number): number {
   const dx = x - MOSS_CROWN.x;

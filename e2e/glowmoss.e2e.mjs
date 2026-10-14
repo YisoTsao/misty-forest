@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { placements, prefabs, runE2e, tempSaveDir } from './lib.mjs';
+import { placements, prefabs, runE2e, SAVE_VERSION, tempSaveDir } from './lib.mjs';
 
 const env = { MISTWOOD_SAVE_DIR: tempSaveDir(), MISTWOOD_USER_DATA_DIR: tempSaveDir() };
 const primary = path.join(env.MISTWOOD_SAVE_DIR, 'slot1.json');
@@ -124,11 +124,11 @@ await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env 
     assert.ok((await itemCount('glow_moss')) >= 1);
   });
 
-  await check('在螢苔祕林存檔（v12），位置是新地圖的世界座標', async () => {
+  await check('在螢苔祕林存檔（目前版本），位置是新地圖的世界座標', async () => {
     await teleport(ORIGIN.x - 100, ORIGIN.z + 2, 900);
     assert.equal(await debug(() => window.__mistwoodDebug.saveNow()), true);
     const data = JSON.parse(readFileSync(primary, 'utf8'));
-    assert.equal(data.version, 12);
+    assert.equal(data.version, SAVE_VERSION);
     assert.ok(Math.abs(data.player.position.x - (ORIGIN.x - 100)) < 1);
     assert.equal(typeof data.mist.moss_glade, 'string');
   });

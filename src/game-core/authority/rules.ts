@@ -16,6 +16,7 @@ import { initialMistStages, type MistStages } from '../world/regions';
 import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
+import { outletsToWake, type WaterwayDef } from '../world/waterway';
 
 /** 權威遊戲狀態。之後的階段會加入任務、各區域迷霧、建造物件等。 */
 export type GameState = {
@@ -76,6 +77,10 @@ export type GameCommand =
   | { type: 'AcceptQuest'; quest: string }
   /** 修復物件（木橋）：消耗材料 */
   | { type: 'RepairObject'; placementId: string }
+  /** 啟動開關式機關（任務 8C：點亮路燈、移開樹根、打開閘門） */
+  | { type: 'ActivateObject'; placementId: string }
+  /** 轉動機關到下一個位置（任務 8C 水輪） */
+  | { type: 'TurnObject'; placementId: string }
   /**
    * 玩家攻擊命中敵人（命中判定在本機以招式範圍計算，規則驗證目標存在並結算傷害）。
    * attack：近戰招式 id（必須屬於目前裝備的武器，data/weapons.json），或法術 id（data/spells.json）
@@ -125,6 +130,7 @@ export type RejectReason =
   | 'quest-unavailable'
   | 'quest-incomplete'
   | 'already-repaired'
+  | 'already-active'
   | 'missing-materials'
   | 'unknown-enemy'
   | 'player-defeated'
@@ -150,6 +156,9 @@ export type GameEvent =
   | { type: 'QuestCompleted'; quest: string }
   | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' }
   | { type: 'ObjectRepaired'; placementId: string }
+  /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
+  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'water' | 'quest' }
+  | { type: 'ObjectTurned'; placementId: string; turn: number }
   | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
   | { type: 'EnemyDespawned'; enemyId: string }
   /** attack：招式 id 或 'skill' */
@@ -186,6 +195,8 @@ export type RulesContext = {
   weapons: WeaponCatalog;
   spells: SpellCatalog;
   buildables: BuildableCatalog;
+  /** 水道謎題（任務 8C）；省略時沒有水道 */
+  waterways?: readonly WaterwayDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
   isOccupied?: (x: number, z: number, margin: number) => boolean;
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
@@ -207,7 +218,11 @@ export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesCont
       if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
     case 'RepairObject':
-      return repairObject(state, cmd.placementId, ctx);
+      return withWater(state, repairObject(state, cmd.placementId, ctx), ctx);
+    case 'ActivateObject':
+      return withWater(state, activateObject(state, cmd.placementId, ctx), ctx);
+    case 'TurnObject':
+      return withWater(state, turnObject(state, cmd.placementId, ctx), ctx);
     case 'AttackEnemy':
       return attackEnemy(state, cmd.enemyId, cmd.attack, ctx, cmd.stance);
     case 'CastSpell': {
@@ -349,6 +364,46 @@ function repairObject(state: GameState, placementId: string, ctx: RulesContext):
   ];
 }
 
+function activateObject(state: GameState, placementId: string, ctx: RulesContext): GameEvent[] {
+  const found = lookup(ctx, placementId);
+  if (!found) return reject('ActivateObject', 'unknown-object', placementId);
+  const spec = found.prefab.activate;
+  if (found.prefab.interaction !== 'activate' || !spec) return reject('ActivateObject', 'wrong-interaction', placementId);
+  if (state.objects.get(placementId)?.active) return reject('ActivateObject', 'already-active', placementId);
+  if (spec.quest) {
+    const quest = ctx.quests.get(spec.quest);
+    if (!quest || questStatus(state, quest) !== 'active') return reject('ActivateObject', 'quest-unavailable', placementId);
+  }
+  const events: GameEvent[] = [{ type: 'ObjectActivated', placementId, source: 'player' }];
+  if (spec.lootTableId) {
+    // 背包放不下時不能啟動（物品不會遺失）
+    const items = rollIntoInventory(state, spec.lootTableId, ctx);
+    if (!items) return reject('ActivateObject', 'inventory-full', placementId);
+    if (items.length > 0) events.push({ type: 'ItemsGained', items, source: placementId });
+  }
+  return events;
+}
+
+function turnObject(state: GameState, placementId: string, ctx: RulesContext): GameEvent[] {
+  const found = lookup(ctx, placementId);
+  if (!found) return reject('TurnObject', 'unknown-object', placementId);
+  const spec = found.prefab.turn;
+  if (found.prefab.interaction !== 'turn' || !spec) return reject('TurnObject', 'wrong-interaction', placementId);
+  const turn = ((state.objects.get(placementId)?.turn ?? 0) + 1) % spec.positions;
+  return [{ type: 'ObjectTurned', placementId, turn }];
+}
+
+/**
+ * 水道（任務 8C）：機關改變後重新計算水流；水流到還沒喚醒的苔蘚節點時一併送出啟動事件。
+ * 指令被拒絕時不加任何事件。
+ */
+function withWater(state: GameState, events: GameEvent[], ctx: RulesContext): GameEvent[] {
+  if (!ctx.waterways?.length || events.some((e) => e.type === 'CommandRejected')) return events;
+  const next = applyEvents(state, events, ctx);
+  for (const placementId of outletsToWake(ctx.waterways, next.objects)) events.push({ type: 'ObjectActivated', placementId, source: 'water' });
+  return events;
+}
+
 /** 招式的傷害：近戰招式必須屬於目前裝備的武器 */
 function attackDamage(state: GameState, attack: string, ctx: RulesContext): number | RejectReason {
   const spell = ctx.spells.get(attack);
@@ -473,6 +528,9 @@ function turnInQuest(state: GameState, questId: string, ctx: RulesContext): Game
   for (const m of def.rewards.mist ?? []) {
     if (state.mist[m.region] !== m.stage) events.push({ type: 'MistStageChanged', region: m.region, stage: m.stage });
   }
+  for (const placementId of def.rewards.objects ?? []) {
+    if (!state.objects.get(placementId)?.active) events.push({ type: 'ObjectActivated', placementId, source: 'quest' });
+  }
   return events;
 }
 
@@ -520,7 +578,7 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
     const map = mutableObjects();
     const merged: ObjectRuntime = { ...(map.get(id) ?? { placementId: id }), ...change };
     // 回到預設狀態的物件從表中移除，存檔只記錄差異
-    if (!merged.open && !merged.harvested && !merged.repaired && merged.respawnAt === undefined && merged.hp === undefined) map.delete(id);
+    if (!merged.open && !merged.harvested && !merged.repaired && !merged.active && !merged.turn && merged.respawnAt === undefined && merged.hp === undefined) map.delete(id);
     else map.set(id, merged);
   };
 
@@ -540,6 +598,12 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         break;
       case 'ObjectRepaired':
         patch(e.placementId, { repaired: true });
+        break;
+      case 'ObjectActivated':
+        patch(e.placementId, { active: true });
+        break;
+      case 'ObjectTurned':
+        patch(e.placementId, { turn: e.turn || undefined });
         break;
       case 'ItemsGained': {
         const next = addItems(inventory, e.items, ctx.items);

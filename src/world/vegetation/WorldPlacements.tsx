@@ -33,6 +33,7 @@ export function WorldPlacements({ data }: { data: WorldData }) {
         if (prefab.entity === 'chest') return list.map((p) => <Chest key={p.id} placement={p} model={prefab.model} />);
         if (prefab.harvest) return <HarvestableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.repair) return <RepairableGroup key={prefabId} prefab={prefab} placements={list} />;
+        if (prefab.activate) return <ActivatableGroup key={prefabId} prefab={prefab} placements={list} />;
         return (
           <InstancedPrefab
             key={prefabId}
@@ -82,6 +83,24 @@ function RepairableGroup({ prefab, placements }: { prefab: Prefab; placements: r
     <>
       <InstancedPrefab model={prefab.model} placements={broken} />
       {prefab.repair && <InstancedPrefab model={prefab.repair.model} placements={repaired} />}
+    </>
+  );
+}
+
+/** 開關式機關（任務 8C：路燈、樹根、閘門、苔蘚節點），依權威狀態選擇外觀；啟動後沒有外觀的物件隱藏 */
+function ActivatableGroup({ prefab, placements }: { prefab: Prefab; placements: readonly Placement[] }) {
+  const objects = useGameStateStore((s) => s.state.objects);
+  const [idle, active] = useMemo(() => {
+    const idle: Placement[] = [];
+    const active: Placement[] = [];
+    for (const p of placements) (objects.get(p.id)?.active ? active : idle).push(p);
+    return [idle, active];
+  }, [objects, placements]);
+  const activeModel = prefab.activate?.model;
+  return (
+    <>
+      <InstancedPrefab model={prefab.model} placements={idle} />
+      {activeModel && <InstancedPrefab model={activeModel} placements={active} />}
     </>
   );
 }

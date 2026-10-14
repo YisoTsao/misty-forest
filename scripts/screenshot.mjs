@@ -5,6 +5,7 @@
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
+//   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
 //   --monsters：每種怪物在自己的生成區域的近照與總覽（任務 7C）；--enemies=a,b 只拍這幾種（任務 8B）
 //   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
 //   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
@@ -50,6 +51,7 @@ const withMelee = flags.has('--melee');
 const withMagic = flags.has('--magic');
 const withMap = flags.has('--map');
 const withMonsters = flags.has('--monsters');
+const withWaterway = flags.has('--waterway');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
 const outDir = path.join('docs', 'screenshots', stage);
@@ -842,6 +844,56 @@ try {
     });
     await page.waitForTimeout(1200);
     await shot('lake_bridge_walk');
+  }
+
+  if (withWaterway) {
+    const view = async (bookmark, name, wait = 1500) => {
+      await page.evaluate((b) => window.__mistwoodDebug.setBookmark(b), bookmark);
+      await page.waitForTimeout(wait);
+      await shot(name);
+    };
+    const send = (cmds) => page.evaluate((list) => list.forEach((c) => window.__mistwoodDebug.send(c)), cmds);
+    await page.evaluate(() => {
+      const d = window.__mistwoodDebug;
+      d.resetWorld();
+      d.setMist(null);
+      d.setQuestCompleted('wood_for_bridge');
+      d.setQuestCompleted('repair_bridge');
+      d.travelToMap('glowmoss');
+    });
+    await page.waitForTimeout(2500);
+    const lanterns = ['glowmoss_lantern_01', 'glowmoss_lantern_02', 'glowmoss_lantern_03'];
+    await send([{ type: 'AcceptQuest', quest: 'quest_forest_001' }]);
+    await view('glowmoss_lanterns', 'waterway_lanterns_unlit');
+    await send([
+      ...lanterns.map((placementId) => ({ type: 'ActivateObject', placementId })),
+      { type: 'DebugGiveItems', items: [{ itemId: 'glow_moss', count: 5 }, { itemId: 'moondew_herb', count: 3 }, { itemId: 'stone', count: 4 }] },
+      { type: 'TurnInQuest', quest: 'quest_forest_001' },
+      { type: 'AcceptQuest', quest: 'quest_forest_002' },
+    ]);
+    await view('glowmoss_lanterns', 'waterway_lanterns_lit');
+    await view('glowmoss_wheel', 'waterway_wheel_dry');
+    await view('glowmoss_channel', 'waterway_gate_closed');
+    await view('glowmoss_crown_gate', 'waterway_crown_sealed');
+    await send([
+      { type: 'ActivateObject', placementId: 'glowmoss_channel_roots' },
+      { type: 'ActivateObject', placementId: 'glowmoss_water_gate_01' },
+      { type: 'ActivateObject', placementId: 'glowmoss_water_gate_02' },
+      { type: 'RepairObject', placementId: 'glowmoss_channel_breach' },
+    ]);
+    // 水從泉眼一路流下來需要幾秒
+    await view('glowmoss_channel', 'waterway_gate_open', 9000);
+    await view('glowmoss_wheel', 'waterway_wheel_flowing', 3000);
+    await send([{ type: 'TurnObject', placementId: 'glowmoss_water_wheel' }]);
+    await view('glowmoss_wheel', 'waterway_wheel_turned', 3500);
+    await send([
+      { type: 'TurnObject', placementId: 'glowmoss_water_wheel' },
+      { type: 'TurnInQuest', quest: 'quest_forest_002' },
+    ]);
+    await view('glowmoss_crown_gate', 'waterway_crown_open');
+    await page.evaluate(() => window.__mistwoodDebug.setClock(21));
+    await view('glowmoss_lanterns', 'waterway_lanterns_night', 2000);
+    await view('glowmoss_wheel', 'waterway_wheel_night', 1500);
   }
 
   if (withNpc) {

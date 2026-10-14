@@ -215,5 +215,128 @@
         "dialogue": "molly_talk"
       }
     ]
+  },
+  {
+    "id": "linna",
+    "nameKey": "npc.linna",
+    "regionId": "moss_trail",
+    "model": "models/characters/kaykit-adventurers/Mage.glb",
+    "scale": 0.7,
+    "hiddenNodes": [
+      "1H_Wand",
+      "2H_Staff",
+      "Spellbook",
+      "Spellbook_open",
+      "Mage_Hat"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Interact"
+    },
+    "position": [
+      1892,
+      -5
+    ],
+    "facingYaw": -1.1,
+    "interactRadius": 2.4,
+    "talk": [
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_001"
+        },
+        "dialogue": "linna_forest1_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_001",
+          "is": "active"
+        },
+        "dialogue": "linna_forest1_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "completed"
+        },
+        "dialogue": "linna_after_water"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_001",
+          "is": "completed"
+        },
+        "dialogue": "linna_after_path"
+      },
+      {
+        "dialogue": "linna_intro"
+      }
+    ]
+  },
+  {
+    "id": "kiki",
+    "nameKey": "npc.kiki",
+    "regionId": "moss_glade",
+    "model": "models/characters/kaykit-adventurers/Rogue.glb",
+    "scale": 0.62,
+    "hiddenNodes": [
+      "1H_Crossbow",
+      "2H_Crossbow",
+      "Knife",
+      "Knife_Offhand",
+      "Throwable",
+      "Rogue_Cape"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Cheer"
+    },
+    "position": [
+      2016,
+      -14
+    ],
+    "facingYaw": -1.1,
+    "interactRadius": 2.4,
+    "talk": [
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_002"
+        },
+        "dialogue": "kiki_water_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "active"
+        },
+        "dialogue": "kiki_water_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "completed"
+        },
+        "dialogue": "kiki_after_water"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "available"
+        },
+        "dialogue": "kiki_water_offer"
+      },
+      {
+        "dialogue": "kiki_intro"
+      }
+    ]
   }
 ]

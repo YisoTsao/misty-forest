@@ -1,7 +1,8 @@
 // 物品定義與掉落表（規格 6.3：物品定義與玩家背包分離；6.2：資源有數量與條件）。
 import { z } from 'zod';
 
-export const itemCategories = ['material', 'special', 'quest'] as const;
+/** consumable：藥膏與藥水（任務 8C 的獎勵；使用功能在之後的任務加入） */
+export const itemCategories = ['material', 'special', 'quest', 'consumable'] as const;
 
 export const itemDefSchema = z.object({
   id: z.string().min(1),

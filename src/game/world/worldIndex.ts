@@ -16,7 +16,7 @@ export type ColliderShapeSpec = {
 
 /**
  * 一個 placement 的碰撞體：平常的形狀，以及狀態改變後的另一組形狀
- * （採集後的樹樁、修好的木橋；空陣列表示那個狀態沒有碰撞）。
+ * （採集後的樹樁、修好的木橋、退開的樹根；空陣列表示那個狀態沒有碰撞）。
  */
 export type StaticColliderSpec = {
   id: string;
@@ -24,7 +24,7 @@ export type StaticColliderSpec = {
   x: number;
   z: number;
   normal: ColliderShapeSpec[];
-  alternate?: { when: 'harvested' | 'repaired'; shapes: ColliderShapeSpec[] };
+  alternate?: { when: 'harvested' | 'repaired' | 'active'; shapes: ColliderShapeSpec[] };
 };
 
 export type InteractableSpec = {
@@ -80,6 +80,7 @@ function colliderSpec(p: Placement, prefab: Prefab): StaticColliderSpec | null {
   const spec: StaticColliderSpec = { id: p.id, x: p.position[0], z: p.position[2], normal: shapeSpecs(p, prefab.collision) };
   if (prefab.harvest) spec.alternate = { when: 'harvested', shapes: shapeSpecs(p, prefab.harvest.harvestedCollision) };
   else if (prefab.repair) spec.alternate = { when: 'repaired', shapes: shapeSpecs(p, prefab.repair.collision) };
+  else if (prefab.activate) spec.alternate = { when: 'active', shapes: shapeSpecs(p, prefab.activate.collision) };
   return spec;
 }
 

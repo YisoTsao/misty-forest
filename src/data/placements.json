@@ -54056,7 +54056,7 @@
   },
   {
     "id": "glowmoss_channel_roots",
-    "prefabId": "root_wall",
+    "prefabId": "channel_roots",
     "regionId": "moss_glade",
     "position": [
       2031.5,
@@ -62015,26 +62015,6 @@
     ]
   },
   {
-    "id": "glowmoss_tree_260",
-    "prefabId": "gm_tree_oak",
-    "regionId": "moss_crown",
-    "position": [
-      2068.91,
-      2.75,
-      40.5
-    ],
-    "rotation": [
-      0,
-      5.62,
-      0
-    ],
-    "scale": [
-      9.92,
-      9.64,
-      9.92
-    ]
-  },
-  {
     "id": "glowmoss_tree_261",
     "prefabId": "gm_tree_fat",
     "regionId": "moss_glade",
@@ -63995,26 +63975,6 @@
     ]
   },
   {
-    "id": "glowmoss_tree_359",
-    "prefabId": "k_tree_tall_dark",
-    "regionId": "moss_glade",
-    "position": [
-      1999.44,
-      3.46,
-      -36.65
-    ],
-    "rotation": [
-      0,
-      6.11,
-      0
-    ],
-    "scale": [
-      10.11,
-      10.63,
-      10.11
-    ]
-  },
-  {
     "id": "glowmoss_tree_360",
     "prefabId": "gm_tree_simple",
     "regionId": "moss_trail",
@@ -65472,26 +65432,6 @@
       4.17,
       3.81,
       4.17
-    ]
-  },
-  {
-    "id": "glowmoss_bush_003",
-    "prefabId": "k_bush",
-    "regionId": "moss_glade",
-    "position": [
-      2022.6,
-      2.56,
-      -36.6
-    ],
-    "rotation": [
-      0,
-      3.34,
-      0
-    ],
-    "scale": [
-      2.62,
-      2.94,
-      2.62
     ]
   },
   {
@@ -67312,26 +67252,6 @@
       3.17,
       3.04,
       3.17
-    ]
-  },
-  {
-    "id": "glowmoss_bush_095",
-    "prefabId": "k_bush_large",
-    "regionId": "moss_glade",
-    "position": [
-      2003.68,
-      3.38,
-      -34.62
-    ],
-    "rotation": [
-      0,
-      1.49,
-      0
-    ],
-    "scale": [
-      3.92,
-      3.66,
-      3.92
     ]
   },
   {
@@ -71572,26 +71492,6 @@
       3.5,
       3.23,
       3.5
-    ]
-  },
-  {
-    "id": "glowmoss_fern_168",
-    "prefabId": "gm_fern_short",
-    "regionId": "moss_glade",
-    "position": [
-      1979.13,
-      0.35,
-      -4.27
-    ],
-    "rotation": [
-      0,
-      4.11,
-      0
-    ],
-    "scale": [
-      4.94,
-      5.12,
-      4.94
     ]
   },
   {
@@ -76232,26 +76132,6 @@
       3.28,
       3.03,
       3.28
-    ]
-  },
-  {
-    "id": "glowmoss_fern_401",
-    "prefabId": "gm_fern_tall",
-    "regionId": "moss_glade",
-    "position": [
-      1998.99,
-      3.1,
-      -25.53
-    ],
-    "rotation": [
-      0,
-      4.37,
-      0
-    ],
-    "scale": [
-      4.99,
-      5.05,
-      4.99
     ]
   },
   {
@@ -86275,26 +86155,6 @@
     ]
   },
   {
-    "id": "glowmoss_glowcap_007",
-    "prefabId": "glow_mushrooms",
-    "regionId": "moss_glade",
-    "position": [
-      1976.79,
-      0.48,
-      -3.47
-    ],
-    "rotation": [
-      0,
-      3.31,
-      0
-    ],
-    "scale": [
-      1.64,
-      1.65,
-      1.64
-    ]
-  },
-  {
     "id": "glowmoss_glowcap_008",
     "prefabId": "glow_mushrooms",
     "regionId": "moss_glade",
@@ -87332,26 +87192,6 @@
       1.68,
       1.57,
       1.68
-    ]
-  },
-  {
-    "id": "glowmoss_tuft_016",
-    "prefabId": "glowmoss_tuft",
-    "regionId": "moss_glade",
-    "position": [
-      2017,
-      2.88,
-      -35.4
-    ],
-    "rotation": [
-      0,
-      3.81,
-      0
-    ],
-    "scale": [
-      1.65,
-      1.49,
-      1.65
     ]
   },
   {
@@ -99612,6 +99452,186 @@
       10.55,
       10.33,
       10.55
+    ]
+  },
+  {
+    "id": "glowmoss_lantern_01",
+    "prefabId": "trail_lantern",
+    "regionId": "moss_trail",
+    "position": [
+      1920.58,
+      -0.11,
+      9.61
+    ],
+    "rotation": [
+      0,
+      -2.91,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_lantern_02",
+    "prefabId": "trail_lantern",
+    "regionId": "moss_trail",
+    "position": [
+      1948.87,
+      -0.11,
+      2.31
+    ],
+    "rotation": [
+      0,
+      -2.8,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_lantern_03",
+    "prefabId": "trail_lantern",
+    "regionId": "moss_glade",
+    "position": [
+      1977.66,
+      0.35,
+      -4.36
+    ],
+    "rotation": [
+      0,
+      3.01,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_channel_breach",
+    "prefabId": "channel_breach",
+    "regionId": "moss_glade",
+    "position": [
+      2012,
+      -1.1,
+      -48
+    ],
+    "rotation": [
+      0,
+      6.17,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_water_wheel",
+    "prefabId": "water_wheel",
+    "regionId": "moss_glade",
+    "position": [
+      2010,
+      -1.1,
+      -32
+    ],
+    "rotation": [
+      0,
+      6.17,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_moss_node_01",
+    "prefabId": "moss_node",
+    "regionId": "moss_glade",
+    "position": [
+      1999,
+      3.45,
+      -38
+    ],
+    "rotation": [
+      0,
+      1.07,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_moss_node_02",
+    "prefabId": "moss_node",
+    "regionId": "moss_glade",
+    "position": [
+      2021,
+      2.62,
+      -38
+    ],
+    "rotation": [
+      0,
+      -1.07,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_moss_node_03",
+    "prefabId": "moss_node",
+    "regionId": "moss_glade",
+    "position": [
+      1997,
+      2.8,
+      -24
+    ],
+    "rotation": [
+      0,
+      2.12,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_crown_roots",
+    "prefabId": "crown_roots",
+    "regionId": "moss_crown",
+    "position": [
+      2070,
+      1.25,
+      46
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      2.1,
+      1.3,
+      1.3
     ]
   }
 ]

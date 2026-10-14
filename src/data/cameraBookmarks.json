@@ -18,6 +18,9 @@
   {"id": "glowmoss_crown", "position": [2066, 9, 40], "target": [2100, 6, 46]},
   {"id": "glowmoss_maze", "position": [2040, 22, -36], "target": [2074, 0, -72]},
   {"id": "glowmoss_channel", "position": [2016, 6, -78], "target": [2029, 0, -100]},
+  {"id": "glowmoss_wheel", "position": [2002, 7, -11], "target": [2011, 2.2, -36]},
+  {"id": "glowmoss_crown_gate", "position": [2059, 4.2, 47], "target": [2071, 2.4, 46]},
+  {"id": "glowmoss_lanterns", "position": [1936, 4.2, 12], "target": [1952, 1.4, 3]},
   {"id": "glowmoss_overview", "position": [1990, 55, 105], "target": [2000, 0, 20]},
   {"id": "dawn_gate", "position": [118, 6, 14], "target": [136, 2.5, 6.5]}
 ]

@@ -315,6 +315,24 @@ describe('版本遷移', () => {
     expect(exploredRatio(loaded.state.explored, 'glowmoss')).toBe(0);
   });
 
+  it('v12 存檔升到 v13 內容不變；機關的開關與木輪位置寫入存檔並讀回（任務 8C）', () => {
+    const v12 = { ...toSaveData(initialGameState(), player, new Date()), version: 12 };
+    expect(migrateSave(v12)).toEqual({ ...v12, version: SAVE_VERSION });
+    const state = {
+      ...initialGameState(),
+      objects: new Map([
+        ['c1', { placementId: 'c1', active: true }],
+        ['t1', { placementId: 't1', turn: 2 }],
+      ]),
+    };
+    const data = toSaveData(state, player, new Date());
+    expect(data.world.objects).toEqual([
+      { placementId: 'c1', active: true },
+      { placementId: 't1', turn: 2 },
+    ]);
+    expect([...roundTrip(data).state.objects.values()]).toEqual([...state.objects.values()]);
+  });
+
   it('探索紀錄寫入存檔並讀回；格式不符時重新開始並回報', () => {
     const state = { ...initialGameState(), explored: withCells(createExplored(), [3, 99, 1200]) };
     const data = toSaveData(state, player, new Date());

@@ -13,6 +13,7 @@ import { parseFlocks, type FlockDef } from '../ambient/sheep';
 import { parseInteriors, type InteriorDef } from './interiors';
 import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
+import { parseWaterways, type WaterwayDef } from './waterway';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
 
 /** 遊戲啟動時載入的全部靜態資料：世界物件 + 物品與掉落表。 */
@@ -34,6 +35,8 @@ export type GameData = WorldData & {
   spells: SpellCatalog;
   /** 世界地圖的地標（任務 7B） */
   landmarks: readonly Landmark[];
+  /** 水道謎題（任務 8C） */
+  waterways: readonly WaterwayDef[];
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -56,11 +59,13 @@ export function parseGameData(raw: {
   spells: unknown;
   /** 省略時沒有地標（測試用的最小資料） */
   landmarks?: unknown;
+  /** 省略時沒有水道（測試用的最小資料） */
+  waterways?: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
   for (const prefab of world.prefabs.values()) {
-    for (const tableId of [prefab.harvest?.lootTableId, prefab.contents?.lootTableId]) {
+    for (const tableId of [prefab.harvest?.lootTableId, prefab.contents?.lootTableId, prefab.activate?.lootTableId]) {
       if (tableId !== undefined && !lootTables.has(tableId)) {
         throw new WorldDataError(`prefab ${prefab.id} 參照不存在的掉落表：${tableId}`);
       }
@@ -95,7 +100,12 @@ export function parseGameData(raw: {
   }
   let quests: QuestCatalog;
   try {
-    quests = parseQuests(raw.quests, { items: new Set(items.keys()), npcs: new Set(npcs.map((n) => n.id)), enemies: new Set(combat.enemies.keys()) });
+    quests = parseQuests(raw.quests, {
+      items: new Set(items.keys()),
+      npcs: new Set(npcs.map((n) => n.id)),
+      enemies: new Set(combat.enemies.keys()),
+      placements: new Set(world.placements.map((p) => p.id)),
+    });
   } catch (err) {
     throw new WorldDataError(`quests 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
@@ -164,5 +174,23 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`landmarks 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks };
+  let waterways: WaterwayDef[];
+  try {
+    waterways = parseWaterways(raw.waterways ?? [], new Set(world.placements.map((p) => p.id)));
+  } catch (err) {
+    throw new WorldDataError(`waterways 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  for (const w of waterways) {
+    const wheel = world.prefabs.get(placementsById.get(w.wheel)?.prefabId ?? '');
+    if (wheel?.turn?.positions !== w.outlets.length) throw new WorldDataError(`水道 ${w.id} 的水輪位置數與節點數不同`);
+    const prefabOf = (id: string) => world.prefabs.get(placementsById.get(id)?.prefabId ?? '');
+    for (const id of w.outlets) {
+      if (!prefabOf(id)?.activate) throw new WorldDataError(`水道 ${w.id} 的節點不是可啟動的物件：${id}`);
+    }
+    for (const id of w.blockers) {
+      const p = prefabOf(id);
+      if (!p?.activate && !p?.repair) throw new WorldDataError(`水道 ${w.id} 的阻擋點不能排除（需要 activate 或 repair）：${id}`);
+    }
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways };
 }

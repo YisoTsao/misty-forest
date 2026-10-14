@@ -36,6 +36,12 @@ export function installAudioFeedback(): void {
         case 'ObjectRepaired':
           audio.play('repair');
           break;
+        case 'ObjectActivated':
+          audio.play(e.source === 'player' ? 'repair' : 'quest_accept');
+          break;
+        case 'ObjectTurned':
+          audio.play('build');
+          break;
         case 'BuildingPlaced':
           audio.play('build');
           break;

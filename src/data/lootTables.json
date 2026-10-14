@@ -23,5 +23,6 @@
   {"id": "mob_marsh_frog_drop", "drops": [{"itemId": "herb", "min": 1, "max": 1, "chance": 0.7}, {"itemId": "mist_gel", "min": 1, "max": 1, "chance": 0.3}]},
   {"id": "mob_horn_dino_drop", "drops": [{"itemId": "wood", "min": 2, "max": 3}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.4}]},
   {"id": "mob_snow_yeti_drop", "drops": [{"itemId": "stone", "min": 1, "max": 2}, {"itemId": "starlight_shard", "min": 1, "max": 2, "chance": 0.5}]},
-  {"id": "mob_mushroom_king_drop", "drops": [{"itemId": "starlight_shard", "min": 3, "max": 4}, {"itemId": "mist_gel", "min": 2, "max": 2}, {"itemId": "herb", "min": 2, "max": 3}]}
+  {"id": "mob_mushroom_king_drop", "drops": [{"itemId": "starlight_shard", "min": 3, "max": 4}, {"itemId": "mist_gel", "min": 2, "max": 2}, {"itemId": "herb", "min": 2, "max": 3}]},
+  {"id": "channel_roots_fiber", "drops": [{"itemId": "root_fiber", "min": 2, "max": 2}]}
 ]

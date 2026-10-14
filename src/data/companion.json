@@ -4,6 +4,36 @@
     {
       "when": {
         "type": "questReady",
+        "quest": "quest_forest_002"
+      },
+      "textKey": "companion.hint.forest2Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_002",
+        "is": "active"
+      },
+      "textKey": "companion.hint.forest2"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_001"
+      },
+      "textKey": "companion.hint.forest1Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_001",
+        "is": "active"
+      },
+      "textKey": "companion.hint.forest1"
+    },
+    {
+      "when": {
+        "type": "questReady",
         "quest": "clear_forest"
       },
       "textKey": "companion.hint.forestReady"

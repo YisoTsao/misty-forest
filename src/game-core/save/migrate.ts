@@ -47,6 +47,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
       map: { ...map, explored: encodeExplored(old ?? createExplored()) },
     };
   },
+  // v12 → v13：世界物件多了機關的開關與水輪位置（任務 8C）；都是選填欄位，舊存檔的內容不必改
+  12: (data) => data,
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

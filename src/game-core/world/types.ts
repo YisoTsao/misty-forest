@@ -56,7 +56,7 @@ export function collisionShapes(c: Collision | undefined): CollisionShape[] {
   return Array.isArray(c) ? c : [c];
 }
 
-export const interactionKinds = ['harvest', 'open', 'talk', 'enter', 'read', 'build', 'repair'] as const;
+export const interactionKinds = ['harvest', 'open', 'talk', 'enter', 'read', 'build', 'repair', 'activate', 'turn'] as const;
 export type InteractionKind = (typeof interactionKinds)[number];
 
 /** 1. Prefab：這種物件「是什麼」。 */
@@ -104,6 +104,23 @@ export const prefabSchema = z
         quest: z.string().min(1).optional(),
       })
       .optional(),
+    /**
+     * 開關式機關（任務 8C：點亮路燈、移開樹根、打開閘門、苔蘚節點被水喚醒）：只能啟動一次。
+     * model：啟動後的外觀（省略時整個物件隱藏）；collision：啟動後的碰撞（省略時移除碰撞）；
+     * quest：只有這個任務進行中才能啟動；lootTableId：啟動時取得的物品（移開的樹根留下根纖維）；
+     * interaction 不是 activate 的物件（苔蘚節點、苔冠空地的樹根）只由規則啟動（水流、任務獎勵）。
+     */
+    activate: z
+      .object({
+        model: z.string().min(1).optional(),
+        collision: collisionSchema.optional(),
+        quest: z.string().min(1).optional(),
+        lootTableId: z.string().min(1).optional(),
+        anim: z.enum(['attack', 'interact']).optional(),
+      })
+      .optional(),
+    /** 可轉動的機關（任務 8C 水輪）：每次互動轉到下一個位置，共 positions 個位置 */
+    turn: z.object({ positions: z.number().int().min(2) }).optional(),
     /** 互動點相對物件原點的位移（模型單位，會乘上縮放並旋轉）：例如木橋在橋頭互動 */
     interactOffset: vec3.optional(),
     /**
@@ -166,6 +183,14 @@ export const prefabSchema = z
     message: 'interaction 為 repair 時必須提供 repair 設定',
     path: ['repair'],
   })
+  .refine((p) => p.interaction !== 'activate' || p.activate !== undefined, {
+    message: 'interaction 為 activate 時必須提供 activate 設定',
+    path: ['activate'],
+  })
+  .refine((p) => p.interaction !== 'turn' || p.turn !== undefined, {
+    message: 'interaction 為 turn 時必須提供 turn 設定',
+    path: ['turn'],
+  })
   .refine((p) => p.interaction === undefined || p.nameKey !== undefined, {
     message: '可互動的 prefab 必須提供 nameKey',
     path: ['nameKey'],
@@ -193,9 +218,13 @@ export type ObjectRuntime = {
   open?: boolean;
   /** 可修復物件已修好 */
   repaired?: boolean;
+  /** 開關式機關已啟動（任務 8C） */
+  active?: boolean;
+  /** 可轉動機關目前的位置（任務 8C；省略為 0） */
+  turn?: number;
 };
 
 /** 4. SaveState：只記錄與預設不同的差異。 */
 export type SaveObjectDelta = { placementId: string } & Partial<
-  Pick<ObjectRuntime, 'harvested' | 'respawnAt' | 'hp' | 'open' | 'repaired'>
+  Pick<ObjectRuntime, 'harvested' | 'respawnAt' | 'hp' | 'open' | 'repaired' | 'active' | 'turn'>
 >;

@@ -93,5 +93,116 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_001",
+    "nameKey": "quest.forest1.name",
+    "descKey": "quest.forest1.desc",
+    "giver": "linna",
+    "requires": [
+      "repair_bridge"
+    ],
+    "objectives": [
+      {
+        "type": "collect",
+        "itemId": "glow_moss",
+        "count": 5,
+        "consume": true
+      },
+      {
+        "type": "collect",
+        "itemId": "moondew_herb",
+        "count": 3,
+        "consume": true
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "glowmoss_lantern_01",
+          "glowmoss_lantern_02",
+          "glowmoss_lantern_03"
+        ],
+        "descKey": "quest.forest1.lanterns"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "moondew_salve",
+          "count": 2
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 1
+        }
+      ],
+      "mist": [
+        {
+          "region": "moss_trail",
+          "stage": "clear"
+        }
+      ]
+    }
+  },
+  {
+    "id": "quest_forest_002",
+    "nameKey": "quest.forest2.name",
+    "descKey": "quest.forest2.desc",
+    "giver": "kiki",
+    "requires": [
+      "quest_forest_001"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "glowmoss_channel_roots"
+        ],
+        "descKey": "quest.forest2.roots"
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "glowmoss_water_gate_01",
+          "glowmoss_water_gate_02"
+        ],
+        "descKey": "quest.forest2.gates"
+      },
+      {
+        "type": "repair",
+        "placementId": "glowmoss_channel_breach",
+        "descKey": "quest.forest2.breach"
+      },
+      {
+        "type": "activate",
+        "placementIds": [
+          "glowmoss_moss_node_01",
+          "glowmoss_moss_node_02",
+          "glowmoss_moss_node_03"
+        ],
+        "descKey": "quest.forest2.nodes"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "herb_potion",
+          "count": 2
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 2
+        }
+      ],
+      "mist": [
+        {
+          "region": "moss_glade",
+          "stage": "clear"
+        }
+      ],
+      "objects": [
+        "glowmoss_crown_roots"
+      ]
+    }
   }
 ]

@@ -13,6 +13,8 @@ export const objectiveSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('collect'), itemId: z.string().min(1), count: z.number().int().positive(), consume: z.boolean() }),
   /** 修好指定的物件（木橋） */
   z.object({ type: z.literal('repair'), placementId: z.string().min(1), descKey: z.string().min(1) }),
+  /** 啟動指定的機關（任務 8C：點亮路燈、移開樹根、打開閘門、喚醒苔蘚節點）；進度為已啟動的數量 */
+  z.object({ type: z.literal('activate'), placementIds: z.array(z.string().min(1)).min(1), descKey: z.string().min(1) }),
   /** 接取後擊敗指定數量的敵人；達到里程碑時改變區域迷霧 */
   z.object({
     type: z.literal('defeat'),
@@ -38,6 +40,8 @@ export const questDefSchema = z.object({
     items: z.array(itemStack).optional(),
     /** 完成後改變的區域迷霧（規格 1.4：任務完成會降低迷霧） */
     mist: z.array(z.object({ region: z.enum(regionIds), stage: z.enum(mistStages) })).optional(),
+    /** 完成後啟動的物件（任務 8C：苔冠空地入口的樹根退開） */
+    objects: z.array(z.string().min(1)).optional(),
   }),
 });
 export type QuestDef = z.infer<typeof questDefSchema>;
@@ -49,7 +53,7 @@ export type QuestStatus = 'locked' | 'available' | 'active' | 'completed';
 
 export function parseQuests(
   raw: unknown,
-  refs: { items: ReadonlySet<string>; npcs: ReadonlySet<string>; enemies?: ReadonlySet<string> },
+  refs: { items: ReadonlySet<string>; npcs: ReadonlySet<string>; enemies?: ReadonlySet<string>; placements?: ReadonlySet<string> },
 ): Map<string, QuestDef> {
   const list = z.array(questDefSchema).parse(raw);
   const map = new Map<string, QuestDef>();
@@ -64,6 +68,13 @@ export function parseQuests(
     for (const o of q.objectives) {
       if (o.type === 'defeat' && refs.enemies && !refs.enemies.has(o.enemy)) throw new Error(`任務 ${q.id} 參照不存在的敵人：${o.enemy}`);
     }
+    if (refs.placements) {
+      const ids = [
+        ...q.objectives.flatMap((o) => (o.type === 'activate' ? o.placementIds : o.type === 'repair' ? [o.placementId] : [])),
+        ...(q.rewards.objects ?? []),
+      ];
+      for (const id of ids) if (!refs.placements.has(id)) throw new Error(`任務 ${q.id} 參照不存在的物件：${id}`);
+    }
     map.set(q.id, q);
   }
   for (const q of map.values()) {
@@ -75,7 +86,7 @@ export function parseQuests(
 type QuestState = {
   quests: Readonly<Record<string, QuestRecord>>;
   inventory: Parameters<typeof countItem>[0];
-  objects: ReadonlyMap<string, { repaired?: boolean }>;
+  objects: ReadonlyMap<string, { repaired?: boolean; active?: boolean }>;
 };
 
 export function questStatus(state: QuestState, def: QuestDef): QuestStatus {
@@ -92,6 +103,8 @@ export function objectiveProgress(state: QuestState, def: QuestDef): { current: 
         return { current: Math.min(countItem(state.inventory, o.itemId), o.count), target: o.count };
       case 'repair':
         return { current: state.objects.get(o.placementId)?.repaired ? 1 : 0, target: 1 };
+      case 'activate':
+        return { current: o.placementIds.filter((id) => state.objects.get(id)?.active === true).length, target: o.placementIds.length };
       case 'defeat':
         return { current: Math.min(state.quests[def.id]?.progress?.[i] ?? 0, o.count), target: o.count };
     }

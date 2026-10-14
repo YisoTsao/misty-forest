@@ -101,6 +101,26 @@ function directionNear(line: readonly (readonly [number, number])[], x: number, 
   return dir;
 }
 
+/** 任務 8C：林緣小徑三盞路燈的 x（局部座標） */
+const LANTERN_X = [-80, -52, -22] as const;
+/** 任務 8C：水道謎題的位置（局部座標）。木輪站在渠道中央，三塊苔蘚節點在兩岸 */
+const WATERWAY = {
+  breach: [12, -48] as const,
+  wheel: [10, -32] as const,
+  nodes: [
+    [-1, -38],
+    [21, -38],
+    [-3, -24],
+  ] as const,
+};
+/** 任務 8C：苔冠空地入口（西側開口）封住的位置 */
+const CROWN_SEAL = { x: 70 } as const;
+
+/** 讓模型的 +X 朝東（操作桿、互動點放在 +X 那一側的岸上，靠近小徑與奇奇） */
+function eastFacing(yaw: number): number {
+  return Math.cos(yaw) >= 0 ? yaw : yaw + Math.PI;
+}
+
 /** 根鬚迷宮：5 × 5 格（每格 8 m）的迷宮，以固定種子的深度優先產生；西南角是入口 */
 const MAZE = { cells: 5, cell: 8 } as const;
 const mazeX0 = ROOT_MAZE.x - (MAZE.cells * MAZE.cell) / 2;
@@ -221,7 +241,7 @@ export function addGlowmoss(placements: Out[]): void {
     const z = -126;
     const x = 31.5;
     const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
-    place('glowmoss_channel_roots', 'root_wall', x, z, { yaw: yawAcross(dx, dz), scale: 1, dy: -0.4, r: 5 });
+    place('glowmoss_channel_roots', 'channel_roots', x, z, { yaw: yawAcross(dx, dz), scale: 1, dy: -0.4, r: 5 });
   }
   const gates: [number, number][] = [
     [29.4, -100],
@@ -474,6 +494,78 @@ export function addGlowmoss(placements: Out[]): void {
     console.log(`placed ${n} glowmoss boundary trees`);
   }
 
-  placements.push(...out);
-  console.log(`added ${out.length} glowmoss placements (${scattered} scattered)`);
+  // ── 9. 任務 8C：琳娜的路燈、奇奇的水道（崩塌的渠段、分水木輪、三塊苔蘚節點）、苔冠空地入口的樹根 ──
+  // 附加在最後，既有物件的 id 與位置不變；只移除與新物件重疊的散佈點綴（樹、灌木、蕨類、石頭等）。
+  const questOut: Out[] = [];
+  const clear: Taken[] = [];
+  const placeQuest = (id: string, prefabId: string, x: number, z: number, o: { yaw?: number; dy?: number; r: number; scale?: [number, number, number] }) => {
+    questOut.push({
+      id,
+      prefabId,
+      regionId: regionAt(x + O.x, z + O.z),
+      position: [round(x + O.x), round(height(x, z) - 0.03 + (o.dy ?? 0)), round(z + O.z)],
+      rotation: [0, round(o.yaw ?? 0), 0],
+      scale: o.scale ?? [1, 1, 1],
+    });
+    clear.push({ x, z, r: o.r });
+  };
+  {
+    // 林緣小徑的三盞路燈（quest_forest_001）：小徑南側 2.6 m
+    const trail = GLOWMOSS_TRAILS[0]!;
+    LANTERN_X.forEach((lx, i) => {
+      let at: [number, number] = [lx, 0];
+      for (let k = 0; k + 1 < trail.length; k++) {
+        const a = trail[k]!;
+        const b = trail[k + 1]!;
+        if (lx < a[0] || lx > b[0]) continue;
+        const t = (lx - a[0]) / (b[0] - a[0]);
+        at = [lx, a[1] + (b[1] - a[1]) * t];
+      }
+      const [dx, dz] = directionNear(trail, at[0], at[1]);
+      const x = at[0] - dz * 2.6;
+      const z = at[1] + dx * 2.6;
+      // 燈頭（+Z 面）朝向小徑
+      placeQuest(`glowmoss_lantern_${pad2(i + 1)}`, 'trail_lantern', x, z, { yaw: Math.atan2(dz, -dx), r: 1.6 });
+    });
+    // 崩塌的渠段：渠道中央，互動點在東岸
+    {
+      const [x, z] = WATERWAY.breach;
+      const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
+      placeQuest('glowmoss_channel_breach', 'channel_breach', x, z, { yaw: eastFacing(yawAcross(dx, dz)), dy: 0.03, r: 4 });
+    }
+    // 分水木輪：站在渠道中央，操作桿在東岸；三道木槽通往兩岸的苔蘚節點
+    {
+      const [x, z] = WATERWAY.wheel;
+      const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
+      placeQuest('glowmoss_water_wheel', 'water_wheel', x, z, { yaw: eastFacing(yawAcross(dx, dz)), dy: 0.03, r: 5 });
+      WATERWAY.nodes.forEach(([nx, nz], i) => {
+        placeQuest(`glowmoss_moss_node_${pad2(i + 1)}`, 'moss_node', nx, nz, { yaw: Math.atan2(x - nx, z - nz), r: 2.4 });
+        // 木槽底下也保持淨空
+        for (let t = 0.2; t < 1; t += 0.2) clear.push({ x: x + (nx - x) * t, z: z + (nz - z) * t, r: 1.2 });
+      });
+    }
+    // 苔冠空地入口的樹根（修好水渠後退開，Bible §6.4：解鎖頭目空地）
+    {
+      const x = CROWN_SEAL.x;
+      const z = MOSS_CROWN.z;
+      placeQuest('glowmoss_crown_roots', 'crown_roots', x, z, { yaw: Math.PI / 2, dy: -0.3, r: 5, scale: [2.1, 1.3, 1.3] });
+      for (const side of [-1, 1]) for (let k = 1; k <= 4; k++) clear.push({ x, z: z + side * k * 2, r: 1.8 });
+    }
+  }
+  const scatterPrefixes = /^glowmoss_(giant_tree|tree|bush|fern|mushroom|stone|pebble|log|stump|moss|glowcap|tuft|moondew|moondew_decor)_\d+$/;
+  const before = out.length;
+  const kept = out.filter((o) => {
+    if (!scatterPrefixes.test(o.id)) return true;
+    const x = o.position[0] - O.x;
+    const z = o.position[2] - O.z;
+    return !clear.some((c) => Math.hypot(c.x - x, c.z - z) < c.r + 0.6);
+  });
+  console.log(`quest 8C: removed ${before - kept.length} scattered placements overlapping ${questOut.length} quest objects`);
+  for (const o of questOut) {
+    if (ids.has(o.id)) throw new Error(`placement id 重複：${o.id}`);
+    ids.add(o.id);
+  }
+
+  placements.push(...kept, ...questOut);
+  console.log(`added ${kept.length + questOut.length} glowmoss placements (${scattered} scattered)`);
 }

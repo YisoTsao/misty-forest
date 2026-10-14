@@ -46,6 +46,10 @@ function commandFor(prefab: Prefab, placementId: string): GameCommand | null {
       return { type: 'OpenChest', placementId };
     case 'repair':
       return { type: 'RepairObject', placementId };
+    case 'activate':
+      return { type: 'ActivateObject', placementId };
+    case 'turn':
+      return { type: 'TurnObject', placementId };
     default:
       return null;
   }
@@ -198,7 +202,7 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     if (!command) return;
 
     // 播放動作，在揮下 / 伸手的瞬間送出指令（結果由權威層的事件決定）
-    const clip = target.spec.prefab.harvest?.anim ?? 'interact';
+    const clip = target.spec.prefab.harvest?.anim ?? target.spec.prefab.activate?.anim ?? 'interact';
     playerRuntime.action = { clip, remaining: ACTION_SEC[clip] };
     ui.setInteractTarget(null);
     scratch.pending.push({ kind: 'command', command, delay: COMMAND_DELAY_SEC[clip] });

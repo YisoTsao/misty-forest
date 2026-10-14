@@ -350,7 +350,8 @@ function glowStone(): ForestModel {
 }
 
 /** 古水渠閘門（`prop_forest_watergate`）：兩根石柱、橫樑與卡住的木閘板（乾涸期：閘板歪斜、纏著樹根）；沿 X 軸跨過渠道 */
-function waterGate(): ForestModel {
+/** 古水渠閘門：兩根石柱與橫樑、中間五片木閘板；open 時閘板拉起到橫樑下（任務 8C） */
+function waterGate(open = false): ForestModel {
   const stone = c('#9a9a92');
   const wood = c('#8a5a33');
   const solid = [
@@ -360,13 +361,19 @@ function waterGate(): ForestModel {
   ];
   for (let i = 0; i < 5; i++) {
     const g = new THREE.BoxGeometry(1.15, 1.6, 0.14);
-    g.rotateZ((i - 2) * 0.06);
-    g.translate(-2.3 + i * 1.15, 0.45 - Math.abs(i - 2) * 0.12, 0);
+    g.rotateZ((open ? 0 : 1) * (i - 2) * 0.06);
+    g.translate(-2.3 + i * 1.15, open ? 1.78 : 0.45 - Math.abs(i - 2) * 0.12, 0);
     solid.push(paint(g, i % 2 ? wood : c('#a06a3d')));
   }
-  solid.push(root([[-3.2, 2.2, 0.3], [-1.4, 1.1, 0.35], [0.6, 0.6, 0.3], [2.6, 1.4, 0.32]], 0.22, BARK_DARK, 0.6, 12));
+  if (open) {
+    // 拉起閘板的鏈條與轉輪
+    for (const x of [-1.2, 1.2]) solid.push(cylinder(0.03, 0.03, 0.5, [x, 2.0, 0.12], c('#5c5a55'), 4));
+    solid.push(cylinder(0.32, 0.32, 0.12, [3.25, 2.15, 0.25], c('#6b4a35'), 10, [Math.PI / 2, 0, 0]));
+  } else {
+    solid.push(root([[-3.2, 2.2, 0.3], [-1.4, 1.1, 0.35], [0.6, 0.6, 0.3], [2.6, 1.4, 0.32]], 0.22, BARK_DARK, 0.6, 12));
+  }
   solid.push(sphere(0.5, [2.9, 2.3, 0], MOSS, [1, 0.45, 1]));
-  return { solid: merge(solid, '水渠閘門') };
+  return { solid: merge(solid, open ? '水渠閘門（打開）' : '水渠閘門') };
 }
 
 /** 林道入口（兩張地圖之間的出入口）：兩根纏著樹根的木柱、橫樑上掛著路牌與發光苔蘚燈；寬 4.4 m，沿 X 軸 */
@@ -393,6 +400,191 @@ function forestGate(): ForestModel {
   return { solid: merge(solid, '林道入口'), glow: merge(glow, '林道入口燈') };
 }
 
+
+// ── 任務 8C：琳娜的路燈與奇奇的水道（Bible §6.4、§6.7 prop_forest_waterwheel / watergate） ──
+
+/** 林間路燈：木柱、彎出的橫桿掛著一盞小燈籠；lit 時燈裡的螢苔發光（+Z 面朝向小徑） */
+function trailLantern(lit: boolean): ForestModel {
+  const wood = c('#6e4a2f');
+  const solid = [
+    cylinder(0.09, 0.12, 2.2, [0, 0, 0], wood, 7),
+    cylinder(0.05, 0.05, 0.75, [0, 2.05, 0], wood, 5, [Math.PI / 2, 0, 0]),
+    cylinder(0.012, 0.012, 0.22, [0, 1.84, 0.68], c('#4a3524'), 4),
+  ];
+  // 燈籠：上下兩片木蓋、四根細柱
+  solid.push(cylinder(0.17, 0.2, 0.07, [0, 1.8, 0.68], wood, 6), cylinder(0.2, 0.16, 0.06, [0, 1.42, 0.68], wood, 6));
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    solid.push(cylinder(0.014, 0.014, 0.32, [Math.cos(a) * 0.15, 1.48, 0.68 + Math.sin(a) * 0.15], wood, 4));
+  }
+  solid.push(sphere(0.28, [0, 0.05, 0], MOSS, [1.3, 0.35, 1.2]));
+  if (!lit) {
+    solid.push(sphere(0.1, [0, 1.58, 0.68], c('#7c7f74'), [1, 0.8, 1], 0));
+    return { solid: merge(solid, '林間路燈') };
+  }
+  const glow = [sphere(0.15, [0, 1.6, 0.68], glowColor(MINT, 2.6), [1, 1.1, 1], 1)];
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    glow.push(sphere(0.035, [Math.cos(a) * 0.32, 0.12, Math.sin(a) * 0.32], glowColor(MINT, 1.6), [1, 1, 1], 0));
+  }
+  return { solid: merge(solid, '林間路燈'), glow: merge(glow, '林間路燈光') };
+}
+
+/** 崩塌的渠段（原點在渠底中央，X 橫跨渠道）：broken 時東側渠壁塌成碎石、木襯板斷裂；修好後兩側整齊的石塊與木襯板 */
+function channelBreach(fixed: boolean): ForestModel {
+  const rand = mulberry32(816);
+  const stone = c('#8f8e86');
+  const wood = c('#8a5a33');
+  const solid: THREE.BufferGeometry[] = [];
+  if (fixed) {
+    for (const side of [-1, 1]) {
+      for (let k = 0; k < 5; k++) {
+        const g = new THREE.BoxGeometry(0.55, 0.9, 1.05);
+        g.translate(side * 2.35, 0.45, -2.1 + k * 1.05);
+        solid.push(paint(g, stone, 0.12, rand));
+      }
+      const plank = new THREE.BoxGeometry(0.08, 0.5, 5.2);
+      plank.translate(side * 2.04, 0.55, 0);
+      solid.push(paint(plank, wood));
+    }
+    // 新補上的苔蘚與一根釘牢的橫木
+    solid.push(cylinder(0.08, 0.08, 4.8, [-2.4, 0.95, 0.9], c('#7a5032'), 6, [0, 0, -Math.PI / 2]));
+    solid.push(sphere(0.3, [2.4, 0.95, -1.4], MOSS, [1.4, 0.4, 1.2]));
+    return { solid: merge(solid, '修好的渠段') };
+  }
+  // 西側還在的渠壁
+  for (let k = 0; k < 5; k++) {
+    const g = new THREE.BoxGeometry(0.55, 0.9, 1.05);
+    g.translate(-2.35, 0.45, -2.1 + k * 1.05);
+    solid.push(paint(g, stone, 0.12, rand));
+  }
+  // 東側塌下來的碎石與斷掉的木板
+  for (let k = 0; k < 9; k++) {
+    solid.push(sphere(0.22 + rand() * 0.22, [1.2 + rand() * 1.4, 0.12, -2.2 + rand() * 4.4], stone.clone().multiplyScalar(0.85 + rand() * 0.2), [1.2, 0.7, 1], 0));
+  }
+  for (let k = 0; k < 3; k++) {
+    const plank = new THREE.BoxGeometry(0.08, 0.45, 1.4);
+    plank.rotateX(0.4 - k * 0.35);
+    plank.rotateZ(0.5 + k * 0.2);
+    plank.translate(1.7 + k * 0.25, 0.25, -1.4 + k * 1.3);
+    solid.push(paint(plank, wood.clone().multiplyScalar(0.8)));
+  }
+  // 渠水從缺口滲走留下的濕泥
+  solid.push(paint(new THREE.CylinderGeometry(1.4, 1.5, 0.04, 12).translate(1.6, 0.02, 0), c('#3d3229')));
+  return { solid: merge(solid, '崩塌的渠段') };
+}
+
+/** 分水木輪的骨架（原點在渠底中央，X 橫跨渠道）：兩根石柱、輪軸、頂上的平台；高約 6 m */
+function waterWheelFrame(): ForestModel {
+  const stone = c('#8f8e86');
+  const wood = c('#7a5032');
+  const solid: THREE.BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    const pillar = new THREE.BoxGeometry(0.9, 6.2, 0.9);
+    pillar.translate(side * 1.0, 3.1, 0);
+    solid.push(paint(pillar, stone));
+    solid.push(sphere(0.38, [side * 1.0, 6.25, 0.3], MOSS, [1.2, 0.4, 1]));
+  }
+  solid.push(cylinder(0.12, 0.12, 2.6, [-1.3, 2.9, 0], c('#5c5a55'), 8, [0, 0, -Math.PI / 2]));
+  const deck = new THREE.BoxGeometry(2.9, 0.18, 1.6);
+  deck.translate(0, 6.25, 0);
+  solid.push(paint(deck, wood));
+  return { solid: merge(solid, '分水木輪骨架') };
+}
+
+/** 汲水輪（繞局部 X 軸轉動；中心在原點）：半徑 2.5 m，外圈 12 個水斗 */
+function waterWheelRotor(): ForestModel {
+  const wood = c('#8a5a33');
+  const dark = c('#5f3d24');
+  const solid: THREE.BufferGeometry[] = [];
+  for (const x of [-0.42, 0.42]) {
+    const ring = new THREE.TorusGeometry(2.4, 0.08, 6, 28);
+    ring.rotateY(Math.PI / 2);
+    ring.translate(x, 0, 0);
+    solid.push(paint(ring, dark));
+  }
+  for (let i = 0; i < 6; i++) {
+    const spoke = new THREE.BoxGeometry(0.1, 4.8, 0.12);
+    spoke.rotateX((i / 6) * Math.PI);
+    solid.push(paint(spoke, wood));
+  }
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const bucket = new THREE.BoxGeometry(0.95, 0.32, 0.42);
+    bucket.rotateX(a);
+    bucket.translate(0, Math.sin(a) * 2.45, Math.cos(a) * 2.45);
+    solid.push(paint(bucket, i % 2 ? wood : c('#a06a3d')));
+  }
+  solid.push(cylinder(0.3, 0.3, 1.0, [-0.5, 0, 0], dark, 10, [0, 0, -Math.PI / 2]));
+  return { solid: merge(solid, '汲水輪') };
+}
+
+/** 分水盆（繞 Y 軸轉動）：圓木盆與朝 +Z 伸出的出水口 */
+function waterWheelSpout(): ForestModel {
+  const wood = c('#8a5a33');
+  const solid = [cylinder(0.72, 0.6, 0.5, [0, 0, 0], wood, 12), cylinder(0.08, 0.08, 0.5, [0, -0.5, 0], c('#5c5a55'), 6)];
+  const lip = new THREE.BoxGeometry(0.42, 0.14, 1.0);
+  lip.translate(0, 0.32, 0.95);
+  solid.push(paint(lip, c('#a06a3d')));
+  for (const x of [-0.24, 0.24]) {
+    const wall = new THREE.BoxGeometry(0.06, 0.24, 1.0);
+    wall.translate(x, 0.44, 0.95);
+    solid.push(paint(wall, wood));
+  }
+  // 指向目前木槽的小旗（遠處也看得出方向）
+  solid.push(cylinder(0.025, 0.025, 1.1, [0, 0.4, 1.35], c('#5a3a22'), 4));
+  const flag = new THREE.BoxGeometry(0.03, 0.32, 0.45);
+  flag.translate(0, 1.3, 1.6);
+  solid.push(paint(flag, c('#f39a91')));
+  return { solid: merge(solid, '分水盆') };
+}
+
+/** 木輪的操作桿（岸上）：木樁與一根斜伸的握把 */
+function waterWheelLever(): ForestModel {
+  const wood = c('#6e4a2f');
+  const solid = [cylinder(0.14, 0.17, 1.0, [0, 0, 0], wood, 7), cylinder(0.04, 0.04, 0.9, [0, 0.9, 0], c('#a06a3d'), 5, [0.6, 0, 0])];
+  solid.push(sphere(0.08, [0, 1.62, 0.5], c('#f39a91'), [1, 1, 1], 0));
+  return { solid: merge(solid, '木輪操作桿') };
+}
+
+/** 苔蘚節點（木槽的出水處）：dry 時灰褐乾裂、捲曲的枯苔；喚醒後是飽滿的螢苔與發光小菌（+Z 面朝向木輪） */
+function mossNode(awake: boolean): ForestModel {
+  const rand = mulberry32(awake ? 817 : 818);
+  const stone = c('#8f8e86');
+  const solid: THREE.BufferGeometry[] = [];
+  // 承水的石槽（木槽的水落在這裡）
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2;
+    solid.push(sphere(0.26 + rand() * 0.1, [Math.cos(a) * 0.75, 0.1, 0.9 + Math.sin(a) * 0.42], stone, [1.2, 0.6, 1], 0));
+  }
+  if (!awake) {
+    const plant = [carpet(1.7, c('#7d7a68'), c('#5d5a4c'), rand), carpet(0.9, c('#8a8572'), c('#6c6857'), rand, 0.05)];
+    for (let i = 0; i < 8; i++) plant.push(leaf((i / 8) * Math.PI * 2 + 0.2, 0.28, 0.06, 1.1, c('#6c6857'), c('#9a9480'), 0.04));
+    solid.push(paint(new THREE.CylinderGeometry(0.55, 0.6, 0.03, 10).translate(0, 0.02, 0.9), c('#4a3f33')));
+    return { solid: merge(solid, '乾枯的苔蘚節點'), plant: merge(plant, '乾枯的苔') };
+  }
+  const plant = [carpet(1.9, MOSS_LIGHT, MOSS, rand), carpet(1.1, c('#6fae7a'), MOSS_LIGHT, rand, 0.06)];
+  for (let i = 0; i < 12; i++) plant.push(leaf((i / 12) * Math.PI * 2, 0.36, 0.09, 0.5, MOSS, c('#7fc49a'), 0.05));
+  const glow: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 22; i++) {
+    const a = rand() * Math.PI * 2;
+    const r = Math.sqrt(rand()) * 1.5;
+    glow.push(sphere(0.04 + rand() * 0.03, [Math.cos(a) * r, 0.1 + rand() * 0.2, Math.sin(a) * r], glowColor(MINT, 1.7 + rand() * 0.5), [1, 1, 1], 0));
+  }
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.7;
+    const x = Math.cos(a) * 1.2;
+    const z = Math.sin(a) * 1.2;
+    solid.push(cylinder(0.03, 0.04, 0.26, [x, 0, z], c('#efe3c8'), 6));
+    const cap = new THREE.SphereGeometry(0.11, 9, 5, 0, Math.PI * 2, 0, Math.PI / 2);
+    cap.scale(1, 0.62, 1);
+    cap.translate(x, 0.26, z);
+    glow.push(paint(cap, glowColor(i % 2 ? MINT : '#9fe9ff', 1.5)));
+  }
+  solid.push(paint(new THREE.CylinderGeometry(0.55, 0.6, 0.03, 10).translate(0, 0.04, 0.9), c('#77c9df')));
+  return { solid: merge(solid, '苔蘚節點'), plant: merge(plant, '甦醒的苔'), glow: merge(glow, '苔蘚節點光點') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
   glowmoss_patch: glowmossPatch,
   glowmoss_tuft: glowmossTuft,
@@ -403,6 +595,17 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   giant_mushroom: giantMushroom,
   crescent_tree: crescentTree,
   glow_stone: glowStone,
-  water_gate: waterGate,
+  water_gate: () => waterGate(false),
+  water_gate_open: () => waterGate(true),
   forest_gate: forestGate,
+  trail_lantern: () => trailLantern(false),
+  trail_lantern_lit: () => trailLantern(true),
+  channel_breach: () => channelBreach(false),
+  channel_breach_fixed: () => channelBreach(true),
+  water_wheel_frame: waterWheelFrame,
+  water_wheel_rotor: waterWheelRotor,
+  water_wheel_spout: waterWheelSpout,
+  water_wheel_lever: waterWheelLever,
+  moss_node_dry: () => mossNode(false),
+  moss_node: () => mossNode(true),
 };

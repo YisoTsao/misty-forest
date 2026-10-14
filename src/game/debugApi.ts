@@ -15,7 +15,9 @@ import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { audio } from './audio/audioEngine';
-import { authority, quests, regions } from './authority';
+import { authority, quests, regions, waterways } from './authority';
+import { waterwayFlow } from '@/game-core/world/waterway';
+import { waterwayRuntime } from './world/waterwayRuntime';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
 import { attackEnemy, combatRuntime, enemyRuntime, enemyY } from './combat/combatRuntime';
@@ -158,6 +160,10 @@ export type MistwoodDebugApi = {
   setQuestCompleted: (id: string) => void;
   /** 任務第一個目標的進度 */
   questProgress: (id: string) => number;
+  /** 任務每個目標的進度（任務 8C） */
+  questObjectives: (id: string) => { current: number; target: number }[];
+  /** 水道謎題（任務 8C）：權威狀態算出的水流，與畫面上水面推進到哪裡 */
+  waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; state: string; hp: number; anim: string | null }[];
   /** 以玩家的招式打敵人（附上敵人目前的姿態，與實際出招相同；任務 8B 甲蟲縮殼） */
@@ -392,6 +398,16 @@ export function installDebugApi(): void {
       const def = quests.get(id);
       if (!def) throw new Error(`未知的任務：${id}`);
       return objectiveProgress(authority.getState(), def)[0]?.current ?? 0;
+    },
+    questObjectives: (id) => {
+      const def = quests.get(id);
+      if (!def) throw new Error(`未知的任務：${id}`);
+      return objectiveProgress(authority.getState(), def);
+    },
+    waterway: () => {
+      const def = waterways[0];
+      if (!def) return null;
+      return { ...waterwayFlow(def, authority.getState().objects), ...waterwayRuntime, flumeReach: [...waterwayRuntime.flumeReach] };
     },
     setQuestCompleted: (id) => {
       if (!quests.has(id)) throw new Error(`未知的任務：${id}`);

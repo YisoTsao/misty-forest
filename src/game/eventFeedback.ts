@@ -14,6 +14,11 @@ function itemName(itemId: string): string {
   return def ? t(def.nameKey) : itemId;
 }
 
+function objectNameKey(placementId: string): string | undefined {
+  const placement = worldIndex.placement(placementId);
+  return placement && worldIndex.prefab(placement.prefabId)?.nameKey;
+}
+
 /** 把權威層事件轉成玩家看得到的回饋（取得物品、背包已滿）。只在啟動時安裝一次。 */
 export function installEventFeedback(): void {
   authority.subscribe((events) => {
@@ -24,7 +29,15 @@ export function installEventFeedback(): void {
       } else if (e.type === 'MistStageChanged') {
         ui.pushToast({ textKey: `toast.mist.${e.stage}`, vars: { region: t(`region.${e.region}`) } });
       } else if (e.type === 'ObjectRepaired') {
-        ui.pushToast({ textKey: 'toast.bridgeRepaired' });
+        const nameKey = objectNameKey(e.placementId);
+        ui.pushToast(nameKey === 'object.bridge' || !nameKey ? { textKey: 'toast.bridgeRepaired' } : { textKey: 'toast.objectRepaired', vars: { name: t(nameKey) } });
+      } else if (e.type === 'ObjectActivated' && e.source === 'water') {
+        ui.pushToast({ textKey: 'toast.mossAwake' });
+      } else if (e.type === 'ObjectActivated' && e.source === 'quest') {
+        const nameKey = objectNameKey(e.placementId);
+        if (nameKey) ui.pushToast({ textKey: 'toast.objectReleased', vars: { name: t(nameKey) } });
+      } else if (e.type === 'ObjectTurned') {
+        ui.pushToast({ textKey: 'toast.wheelTurned' });
       } else if (e.type === 'ItemsRemoved') {
         for (const stack of e.items) ui.pushToast({ textKey: 'toast.itemsGiven', vars: { item: itemName(stack.itemId), count: stack.count } });
       } else if (e.type === 'QuestAccepted' || e.type === 'QuestCompleted') {

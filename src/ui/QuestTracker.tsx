@@ -59,6 +59,7 @@ function ObjectiveRow({ objective: o, progress, state }: { objective: Objective;
   switch (o.type) {
     case 'collect':
       return <ItemCount itemId={o.itemId} current={progress.current} target={progress.target} />;
+    case 'activate':
     case 'defeat': {
       const done = progress.current >= progress.target;
       return (

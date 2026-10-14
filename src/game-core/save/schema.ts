@@ -5,8 +5,8 @@ import { tutorialSteps } from '../tutorial/tutorial';
 import { mistStagesSchema } from '../world/regions';
 import { weaponIds } from '../combat/weapons';
 
-/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion。v7：加入建造物 buildings。v8：裝備。v9：星光值。v10：地圖擴大後新增的區域迷霧（任務 7A）。v11：世界地圖的探索紀錄（任務 7B）。v12：螢苔祕林的區域迷霧與探索紀錄（任務 8A） */
-export const SAVE_VERSION = 12;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion。v7：加入建造物 buildings。v8：裝備。v9：星光值。v10：地圖擴大後新增的區域迷霧（任務 7A）。v11：世界地圖的探索紀錄（任務 7B）。v12：螢苔祕林的區域迷霧與探索紀錄（任務 8A）。v13：機關的開關與水輪位置（任務 8C） */
+export const SAVE_VERSION = 13;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 
@@ -18,6 +18,9 @@ export const saveObjectDeltaSchema = z.object({
   open: z.boolean().optional(),
   /** 任務 3D 加入（選填，v4 舊存檔沒有這個欄位仍然有效） */
   repaired: z.boolean().optional(),
+  /** 任務 8C：開關式機關已啟動、水輪的位置 */
+  active: z.boolean().optional(),
+  turn: z.number().int().nonnegative().optional(),
 });
 
 export const saveDataSchema = z.object({

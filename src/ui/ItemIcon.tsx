@@ -148,6 +148,25 @@ const icons: Record<string, ReactNode> = {
       <path d="M16 9 L36 13 L16 19 Z" fill="#ff5a5a" stroke="#b02a2a" strokeWidth="1.5" strokeLinejoin="round" />
     </>
   ),
+  moondew_salve: (
+    <>
+      <ellipse cx="24" cy="33" rx="15" ry="7" fill="#c9d6d2" stroke="#5b6b66" strokeWidth="2" />
+      <path d="M9 24 L9 33 A15 7 0 0 0 39 33 L39 24 Z" fill="#dfe8e4" stroke="#5b6b66" strokeWidth="2" />
+      <ellipse cx="24" cy="24" rx="15" ry="7" fill="#9fe3c4" stroke="#5b6b66" strokeWidth="2" />
+      <ellipse cx="22" cy="23" rx="7" ry="2.6" fill="#d9fff0" />
+      <circle cx="30" cy="25" r="1.6" fill="#ffffff" />
+      <path d="M17 15 Q20 9 24 15 Q28 9 31 15" stroke="#7fb8e0" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    </>
+  ),
+  herb_potion: (
+    <>
+      <rect x="20" y="6" width="8" height="6" rx="1.5" fill="#a86f4b" stroke="#5e3a1c" strokeWidth="1.5" />
+      <path d="M19 12 h10 v6 Q38 22 37 32 Q36 42 24 42 Q12 42 11 32 Q10 22 19 18 Z" fill="#e8f4ef" stroke="#4d6a5e" strokeWidth="2" />
+      <path d="M12.5 29 Q24 25 35.5 29 Q35 40 24 40 Q13 40 12.5 29 Z" fill="#6cc164" />
+      <path d="M16 22 Q15 27 16 30" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M24 36 Q22 31 25 28 Q27 32 24 36 Z" fill="#2f7a3a" />
+    </>
+  ),
   gel: (
     <>
       <path d="M24 8 Q34 20 37 28 Q40 40 24 41 Q8 40 11 28 Q14 20 24 8 Z" fill="#b9a2e6" stroke="#6b55a3" strokeWidth="2" />

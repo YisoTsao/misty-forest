@@ -70,8 +70,16 @@ export function questMarkers(
     }
     for (const o of q.objectives) {
       if (o.type === 'repair') {
+        if (state.objects.get(o.placementId)?.repaired) continue;
         const p = ctx.placement(o.placementId);
         if (p) out.push({ questId: q.id, kind: 'objective', x: p.position[0], z: p.position[2] });
+      } else if (o.type === 'activate') {
+        // 還沒啟動的機關各標一個（路燈、閘門）；苔蘚節點由水流喚醒，也一樣標出位置
+        for (const id of o.placementIds) {
+          if (state.objects.get(id)?.active) continue;
+          const p = ctx.placement(id);
+          if (p) out.push({ questId: q.id, kind: 'objective', x: p.position[0], z: p.position[2] });
+        }
       } else if (o.type === 'defeat') {
         for (const s of ctx.spawners) {
           if (s.enemy === o.enemy) out.push({ questId: q.id, kind: 'objective', x: s.center[0], z: s.center[1], radius: s.radius });

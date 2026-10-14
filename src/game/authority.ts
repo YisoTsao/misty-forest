@@ -11,6 +11,7 @@ import type { InteriorDef } from '@/game-core/world/interiors';
 import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import type { Landmark } from '@/game-core/map/markers';
+import type { WaterwayDef } from '@/game-core/world/waterway';
 import { initialGameState } from '@/game-core/authority/rules';
 import { WorldIndex } from './world/worldIndex';
 import { worldDataResult } from './worldData';
@@ -36,6 +37,7 @@ const data = worldDataResult.ok
       weapons: { weapons: new Map(), moves: new Map() } as WeaponCatalog,
       spells: new Map() as SpellCatalog,
       landmarks: [] as Landmark[],
+      waterways: [] as WaterwayDef[],
     };
 
 /** NPC 與對話資料 */
@@ -56,6 +58,9 @@ export const flocks: readonly FlockDef[] = data.flocks;
 /** 世界地圖的地標（任務 7B） */
 export const landmarks: readonly Landmark[] = data.landmarks;
 
+/** 水道謎題（任務 8C） */
+export const waterways: readonly WaterwayDef[] = data.waterways;
+
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;
 
@@ -75,6 +80,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   weapons: data.weapons,
   spells: data.spells,
   buildables: data.buildables,
+  waterways: data.waterways,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),
   allowDebugCommands,
 });

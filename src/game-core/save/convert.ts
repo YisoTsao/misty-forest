@@ -17,7 +17,7 @@ export type PlayerSnapshot = SaveData['player'];
 export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Date): SaveData {
   const objects: SaveData['world']['objects'] = [];
   for (const runtime of state.objects.values()) {
-    const { placementId, harvested, respawnAt, hp, open, repaired } = runtime;
+    const { placementId, harvested, respawnAt, hp, open, repaired, active, turn } = runtime;
     // 只記錄與預設不同的欄位（規格 3.1 第 4 層）
     objects.push({
       placementId,
@@ -26,6 +26,8 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
       ...(hp !== undefined ? { hp } : {}),
       ...(open ? { open } : {}),
       ...(repaired ? { repaired } : {}),
+      ...(active ? { active } : {}),
+      ...(turn ? { turn } : {}),
     });
   }
   return {
