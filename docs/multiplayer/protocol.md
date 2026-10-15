@@ -21,7 +21,7 @@
 
 ```
 WorldState { instanceId: string, players: Map<sessionId, PlayerState> }
-PlayerState { playerId, t: float64, name, x/y/z: float32, yaw: float32, anim, map, location, health: uint8 }
+PlayerState { playerId, t: float64, name, x/y/z: float32, yaw: float32, anim, map, location, health: uint8, online: boolean }
 ```
 
 - `x/y/z`：膠囊中心的世界座標（腳底 = y − 0.78）。
@@ -29,6 +29,17 @@ PlayerState { playerId, t: float64, name, x/y/z: float32, yaw: float32, anim, ma
 - `anim`：`idle | walk | run | jump | fall | land`。
 - `map` / `location`：由伺服器依位置判斷（`dawnvale | glowmoss | mirrorlake | whispermeadow`；`overworld` 或室內 id）。
 - `health`：先保留，第一階段固定 100。
+- `online`：`false` 表示斷線中、伺服器保留座位等他重連（任務 11C）。
+
+## 斷線續玩（任務 11C）
+
+| 情況 | 伺服器 | 客戶端 |
+|---|---|---|
+| 網路短暫中斷（關閉代碼 1006 等） | `onDrop`：`online = false`，保留座位 20 秒（`NET.reconnectSeconds`） | 狀態 `reconnecting`；SDK 自動重連（最多 8 次、間隔上限 3 秒） |
+| 在保留時間內重連成功 | `onReconnect`：`online = true`，允許下一則 `warp` 不受 1.5 秒間隔限制 | 同一個 sessionId；第一則送 `warp`（斷線期間走過的位置） |
+| 保留逾時 | `onLeave`：移除 | — |
+| 座位沒了（伺服器重啟 / 關機 4001 / 自動重連失敗） | — | 自動重新加入：1、2、4、8、10 秒…最多 3 分鐘，之後顯示「重新連線」 |
+| 主動離開（中斷、回主選單、關閉視窗的 `pagehide`） | `onLeave`：馬上移除 | 狀態 `offline` |
 
 ## 客戶端 → 伺服器
 

@@ -48,6 +48,8 @@ export class WorldRoom extends Room<{ state: WorldState }> {
   state = new WorldState();
   /** 測試可以換掉時鐘 */
   now: () => number = () => Date.now();
+  /** 斷線後保留座位的秒數（測試可以縮短） */
+  reconnectSeconds: number = NET.reconnectSeconds;
   private readonly tracks = new Map<string, Track>();
 
   onCreate(options: WorldRoomOptions = {}): void {
@@ -74,6 +76,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     player.playerId = `p${number}-${client.sessionId.slice(0, 4)}`;
     player.name = sanitizeName(options.name, `旅人${number}`);
     player.health = 100;
+    player.online = true;
 
     // 客戶端帶來的位置在可玩範圍內就採用（讀檔後可能在其他地圖）；否則放在出生點附近，彼此錯開
     const at = options.at;
@@ -97,6 +100,30 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     });
     // 被指派出生點時，客戶端從初始狀態讀到自己的位置後移過去（加入當下送訊息會比客戶端註冊 handler 早到）
     console.info(`[world] 加入 ${player.name}（${client.sessionId}），目前 ${this.clients.length} 人`);
+  }
+
+  /**
+   * 非自願斷線（網路中斷、分頁被關、伺服器端偵測到 ping 逾時）：保留座位 NET.reconnectSeconds 秒，
+   * 角色留在原地、標記為離線；客戶端在時間內重連回來就是同一個人（同一個 sessionId），逾時才呼叫 onLeave（任務 11C）。
+   */
+  onDrop(client: Client): void {
+    const player = this.state.players.get(client.sessionId);
+    if (player) player.online = false;
+    console.info(`[world] 斷線 ${player?.name ?? client.sessionId}，保留座位 ${this.reconnectSeconds} 秒`);
+    // 逾時時 Colyseus 會 reject 並接著呼叫 onLeave；這裡只需要避免未處理的 rejection
+    this.allowReconnection(client, this.reconnectSeconds).catch(() => undefined);
+  }
+
+  /** 斷線後在時間內重連回來：恢復在線；斷線期間客戶端自己走動過，下一則位置當作合法的瞬移 */
+  onReconnect(client: Client): void {
+    const player = this.state.players.get(client.sessionId);
+    const track = this.tracks.get(client.sessionId);
+    if (player) player.online = true;
+    if (track) {
+      track.lastAt = this.now();
+      track.lastWarpAt = null;
+    }
+    console.info(`[world] 重新連線 ${player?.name ?? client.sessionId}`);
   }
 
   onLeave(client: Client): void {

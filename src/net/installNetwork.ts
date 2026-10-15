@@ -1,10 +1,11 @@
-// 啟動時安裝一次（main.tsx）：進入遊戲時依 ?mp=1 自動連線，回到主選單時中斷連線。
+// 啟動時安裝一次（main.tsx）：進入遊戲時依 ?mp=1 自動連線，回到主選單時中斷連線，關閉視窗時主動離開。
 import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStore } from '@/game/state/gameStore';
 import { autoConnectFromUrl } from './config';
-import { connect, disconnect } from './netClient';
+import { connect, disconnect, leaveOnPageHide } from './netClient';
 
 export function installNetwork(): void {
+  leaveOnPageHide();
   const auto = autoConnectFromUrl();
   useGameStore.subscribe((state, prev) => {
     if (state.screen === prev.screen) return;

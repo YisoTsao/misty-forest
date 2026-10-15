@@ -21,6 +21,15 @@ const join = (room: WorldRoom, options: Record<string, unknown> = {}) => colyseu
 let sentAt = 0;
 const at = (x: number, y: number, z: number, anim = 'idle') => ({ t: (sentAt += 50), x, y, z, yaw: 0, anim });
 
+/** 等到條件成立（輪詢）。不用 room.waitForNextMessage：@colyseus/testing 在前一則訊息排的 timer 可能晚觸發、提早 resolve 下一次等待 */
+async function until(cond: () => boolean, ms = 3000): Promise<void> {
+  const end = Date.now() + ms;
+  while (!cond()) {
+    if (Date.now() > end) throw new Error('等待逾時');
+    await new Promise((r) => setTimeout(r, 20));
+  }
+}
+
 /** 讓房間的時鐘可以手動前進 */
 function manualClock(room: WorldRoom): { advance(ms: number): void } {
   let t = 1_000_000;
@@ -120,8 +129,7 @@ describe('世界房間：移動驗證', () => {
     expect(room.state.players.get(client.sessionId)!.map).toBe('glowmoss');
     clock.advance(1500);
     client.send(ClientMessage.warp, at(0, 1, 10));
-    await room.waitForNextMessage();
-    expect(room.state.players.get(client.sessionId)!.map).toBe('dawnvale');
+    await until(() => room.state.players.get(client.sessionId)!.map === 'dawnvale');
   });
 
   it('格式不對的訊息（NaN、未知動畫、多餘欄位）直接忽略', async () => {
@@ -132,10 +140,9 @@ describe('世界房間：移動驗證', () => {
     client.send(ClientMessage.move, { ...at(0.2, 1, 10), x: 'NaN' });
     client.send(ClientMessage.move, at(0.2, 1, 10, 'fly'));
     client.send(ClientMessage.move, { ...at(0.2, 1, 10), health: 999 });
-    await room.waitForNextMessage(50);
+    await until(() => room.rejectedCount(client.sessionId) === 3);
     expect(room.state.players.get(client.sessionId)!.x).toBe(0);
     expect(room.state.players.get(client.sessionId)!.health).toBe(100);
-    expect(room.rejectedCount(client.sessionId)).toBe(3);
   });
 
   it('每秒超過 30 則的訊息直接丟棄', async () => {
@@ -146,5 +153,86 @@ describe('世界房間：移動驗證', () => {
     for (let i = 1; i <= 40; i++) client.send(ClientMessage.move, at(i * 0.01, 1, 10));
     await new Promise((r) => setTimeout(r, 150));
     expect(room.state.players.get(client.sessionId)!.x).toBeCloseTo(0.3);
+  });
+});
+
+describe('世界房間：斷線續玩（任務 11C）', () => {
+  /** 模擬網路中斷：以「可以重連」的關閉代碼關掉連線（伺服器走 onDrop，SDK 會自動重連） */
+  const MAY_TRY_RECONNECT = 4010;
+  /** 記錄伺服器有沒有走到 onDrop（重連很快時，輪詢可能錯過離線的那一刻） */
+  const watchDrop = (room: WorldRoom) => {
+    const seen = { dropped: false, offline: false };
+    const original = room.onDrop.bind(room);
+    room.onDrop = (client) => {
+      seen.dropped = true;
+      original(client);
+      seen.offline = room.state.players.get(client.sessionId)?.online === false;
+    };
+    return seen;
+  };
+
+  it('斷線時保留座位、標記離線；自動重連回來是同一個人並恢復在線', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'B', at: at(2, 1, 10) });
+    const sessionBefore = a.sessionId;
+    // 重連等 200 ms 才開始：比伺服器的同步間隔（50 ms）長，B 才看得到 A 離線的那一段
+    a.reconnection.minUptime = 0;
+    a.reconnection.minDelay = 200;
+    a.reconnection.delay = 200;
+    let reconnected = false;
+    a.onReconnect(() => (reconnected = true));
+    // B 看到的 A：斷線期間還在、只是離線（重連很快，記錄有沒有看過離線的那一刻）
+    let bSawOffline = false;
+    b.onStateChange((state) => {
+      const p = (state as { players: Map<string, { online: boolean }> }).players.get(a.sessionId);
+      if (p && !p.online) bSawOffline = true;
+    });
+    const drop = watchDrop(room);
+    a.connection.close(MAY_TRY_RECONNECT, 'test');
+    await until(() => bSawOffline);
+    await until(() => reconnected);
+    expect(drop).toEqual({ dropped: true, offline: true });
+    expect(a.sessionId).toBe(sessionBefore);
+    await until(() => room.state.players.get(a.sessionId)?.online === true);
+    expect(room.state.players.size).toBe(2);
+  });
+
+  it('重連回來後第一則位置當合法的瞬移（斷線期間自己走動過）', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    a.send(ClientMessage.warp, at(5, 1, 10));
+    await until(() => Math.abs(room.state.players.get(a.sessionId)!.x - 5) < 0.01);
+    a.reconnection.minUptime = 0;
+    a.reconnection.minDelay = 10;
+    a.reconnection.delay = 10;
+    let reconnected = false;
+    a.onReconnect(() => (reconnected = true));
+    a.connection.close(MAY_TRY_RECONNECT, 'test');
+    await until(() => reconnected);
+    // 距上次 warp 不到 1.5 秒，但重連後允許一次
+    a.send(ClientMessage.warp, at(30, 1, 10));
+    await until(() => Math.abs(room.state.players.get(a.sessionId)!.x - 30) < 0.01);
+    expect(room.rejectedCount(a.sessionId)).toBe(0);
+  });
+
+  it('保留時間內沒有回來：從狀態移除', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    room.reconnectSeconds = 0.2;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'B', at: at(2, 1, 10) });
+    a.reconnection.enabled = false;
+    a.connection.close(MAY_TRY_RECONNECT, 'test');
+    await until(() => room.state.players.get(a.sessionId)?.online === false);
+    await until(() => !room.state.players.has(a.sessionId), 2000);
+    expect(room.state.players.has(b.sessionId)).toBe(true);
+  });
+
+  it('主動離開不保留座位，馬上移除', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    await join(room, { name: 'B', at: at(2, 1, 10) });
+    await a.leave(true);
+    await until(() => !room.state.players.has(a.sessionId), 500);
   });
 });

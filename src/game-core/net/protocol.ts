@@ -22,12 +22,22 @@ export const NET = {
   hardMessagesPerSecond: 60,
   maxClients: 16,
   nameMaxLength: 16,
-  /** 遠端玩家的呈現延遲（毫秒）：在兩個快照之間插值 */
+  /** 遠端玩家的呈現延遲（毫秒）：在兩個快照之間插值；網路抖動大時自動加長，最多到 interpDelayMaxMs（任務 11C） */
   interpDelayMs: 100,
+  interpDelayMaxMs: 300,
   /** 兩次瞬移（warp）最短間隔（毫秒） */
   warpMinIntervalMs: 1500,
   /** 兩次位置修正最短間隔（毫秒） */
   correctionMinIntervalMs: 250,
+  /** 斷線（非自願）後伺服器保留座位的秒數：這段時間內重連回來仍是同一個人（任務 11C） */
+  reconnectSeconds: 20,
+  /** 客戶端自動重連（同一個座位）的次數與最長間隔：總時間約 15 秒，短於伺服器保留的 20 秒 */
+  reconnectRetries: 8,
+  reconnectMaxDelayMs: 3000,
+  /** 座位沒了（伺服器重啟、休眠喚醒、保留逾時）時，自動重新加入的間隔（毫秒，依序使用、最後一個重複） */
+  rejoinDelaysMs: [1000, 2000, 4000, 8000, 10000],
+  /** 自動重新加入最久嘗試多久（毫秒）：涵蓋 Render 免費方案從休眠喚醒的時間 */
+  rejoinGiveUpMs: 180_000,
 } as const;
 
 /** 客戶端 → 伺服器 */
@@ -92,6 +102,8 @@ export type RemotePlayerView = {
   anim: NetAnim;
   map: string;
   location: string;
+  /** false：對方斷線、伺服器還保留座位等他重連（任務 11C） */
+  online: boolean;
 };
 
 /** 顯示名稱：去掉控制字元與前後空白、限制長度；空的就用預設名稱 */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { angleDelta, ClockSync, lerpAngle, SnapshotBuffer } from './interpolation';
+import { AdaptiveDelay, angleDelta, ClockSync, lerpAngle, SnapshotBuffer } from './interpolation';
 
 describe('遠端玩家插值', () => {
   it('在前後快照之間線性內插', () => {
@@ -70,5 +70,38 @@ describe('遠端玩家插值', () => {
     expect(b.size).toBe(3);
     expect(b.sample(940)?.x).toBe(0);
     expect(b.sample(975)?.x).toBeCloseTo(0.075);
+  });
+});
+
+describe('依抖動調整的呈現延遲（任務 11C）', () => {
+  it('網路穩定時維持基本延遲 100 ms', () => {
+    const d = new AdaptiveDelay();
+    for (let i = 0; i < 40; i++) d.observe(i % 3);
+    expect(d.targetMs).toBe(100);
+    expect(d.current(0)).toBe(100);
+    expect(d.current(1000)).toBe(100);
+  });
+
+  it('封包常常晚到約 100 ms：目標拉長到能涵蓋，且很快調上去', () => {
+    const d = new AdaptiveDelay();
+    d.current(0);
+    for (let i = 0; i < 40; i++) d.observe(i % 4 === 0 ? 110 : 5);
+    expect(d.targetMs).toBe(180);
+    // 往上調：0.5 ms / ms，160 ms 後到位
+    expect(d.current(100)).toBeCloseTo(150, 5);
+    expect(d.current(400)).toBe(180);
+  });
+
+  it('不超過上限；抖動消失後慢慢縮回基本延遲', () => {
+    const d = new AdaptiveDelay();
+    d.current(0);
+    for (let i = 0; i < 40; i++) d.observe(800);
+    expect(d.targetMs).toBe(300);
+    expect(d.current(1000)).toBe(300);
+    for (let i = 0; i < 40; i++) d.observe(0);
+    expect(d.targetMs).toBe(100);
+    // 往下調：0.05 ms / ms，1 秒只縮 50 ms
+    expect(d.current(2000)).toBeCloseTo(250, 5);
+    expect(d.current(10_000)).toBe(100);
   });
 });

@@ -29,7 +29,7 @@ pnpm dev:electron      # Electron（另開終端機）
 | 層級 | 指令 | 內容 |
 |---|---|---|
 | 單元 | `pnpm vitest run src/game-core/net` | 訊息格式、名稱、速度 / 垂直 / 範圍 / 頻率驗證、插值、時鐘同步、停下再走的快照 |
-| 房間 | `pnpm vitest run server` | `@colyseus/testing` 在測試程序內啟動伺服器：加入、離開、出生點、其他地圖、協定版本、移動、瞬移、可玩區外、warp 間隔、格式錯誤、頻率限制 |
+| 房間 | `pnpm vitest run server` | `@colyseus/testing` 在測試程序內啟動伺服器：加入、離開、出生點、其他地圖、協定版本、移動、瞬移、可玩區外、warp 間隔、格式錯誤、頻率限制；斷線續玩（以關閉代碼 4010 模擬斷線：保留座位與離線標記、重連回同一個人、重連後允許一次 warp、逾時移除、主動離開馬上移除） |
 | Electron 端對端 | `pnpm build && pnpm e2e:multiplayer` | 啟動 dist-server（2599 埠）與兩個 Electron 視窗，見下 |
 | Web 端對端 | `pnpm build && pnpm e2e:multiplayer-web` | `vite preview` + 同一個 Chromium 的兩個分頁（需要 `npx playwright install chromium`，不在 `e2e:all` 內） |
 
@@ -42,5 +42,6 @@ pnpm dev:electron      # Electron（另開終端機）
 3. 開 Electron（`pnpm dev:electron` 後在暫停選單連線）：三個客戶端都看得到另外兩個。
 4. 一個人走進酒館或走過地圖出入口：其他人看不到他；回來後又出現。
 5. 關掉一個分頁：其他人看到「○○ 離開了」、人數減一、角色消失。
-6. 停掉伺服器（Ctrl+C）：所有客戶端顯示「離線」與「重新連線」，遊戲仍可操作；重新啟動伺服器後按「重新連線」能再加入。
+6. 停掉伺服器（Ctrl+C）：所有客戶端顯示「重新連線中…」，遊戲仍可操作；重新啟動伺服器後幾秒內自動重新加入（3 分鐘內沒有啟動才顯示「重新連線」按鈕）。
+6a. 斷線續玩：關掉其中一台的 Wi-Fi 5 秒再打開：自己顯示「重新連線中…」後恢復；其他人看到他停在原地、名牌「（連線不穩）」，恢復後還是同一個人（沒有「離開了」「來到了這個世界」的通知）。
 7. 回到主選單：自動中斷連線，其他人看到離開。

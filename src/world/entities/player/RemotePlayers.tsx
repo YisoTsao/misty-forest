@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
+import { t } from '@/game/i18n';
 import { useLocationStore } from '@/game/location';
 import { assetUrl } from '@/game/worldData';
 import { remotePose, remoteRuntime, useNetStore } from '@/net/netStore';
@@ -19,6 +20,7 @@ const LABEL_DISTANCE = 35;
 /**
  * 其他玩家（任務 11A / 11B）：依 netStore 的名單生成 / 移除，每幀取對方時間軸上「現在 − 100 ms」的插值姿勢。
  * 沒有物理（碰撞由各自的客戶端處理，決策 T-168），只顯示同一張地圖、同一個室內的人。
+ * 對方斷線、伺服器保留座位時停在原地，名牌變淡並標示「連線不穩」（任務 11C）。
  */
 export function RemotePlayers() {
   const members = useNetStore((s) => s.members);
@@ -26,14 +28,14 @@ export function RemotePlayers() {
     <>
       {members.map((m) => (
         <AssetBoundary key={m.sessionId} name={`remote-player:${m.sessionId}`}>
-          <RemotePlayer sessionId={m.sessionId} name={m.name} />
+          <RemotePlayer sessionId={m.sessionId} name={m.name} online={m.online} />
         </AssetBoundary>
       ))}
     </>
   );
 }
 
-function RemotePlayer({ sessionId, name }: { sessionId: string; name: string }) {
+function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: string; online: boolean }) {
   const gltf = useGLTF(assetUrl(def.model));
   const { root, materials } = useMemo(() => prepareModel(gltf.scene, def.hiddenNodes), [gltf.scene]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
@@ -90,9 +92,10 @@ function RemotePlayer({ sessionId, name }: { sessionId: string; name: string }) 
         <div
           ref={labelRef}
           data-testid="remote-name"
-          className="whitespace-nowrap rounded-full bg-black/50 px-2 py-0.5 text-xs font-bold text-white shadow"
+          data-online={online}
+          className={`whitespace-nowrap rounded-full bg-black/50 px-2 py-0.5 text-xs font-bold shadow ${online ? 'text-white' : 'text-white/50'}`}
         >
-          {name}
+          {online ? name : `${name} ${t('net.remoteUnstable')}`}
         </div>
       </Html>
     </group>

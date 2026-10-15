@@ -1,13 +1,15 @@
 // 多人連線的狀態（任務 11A）：UI 用的 zustand store 只放「連線狀態、人數、有哪些人」，
 // 只在改變時 set；遠端玩家每 50 ms 的位置放在可變的 remoteRuntime，由 RemotePlayers 每幀讀取，不觸發 React 重新渲染。
 import { create } from 'zustand';
-import { ClockSync, SnapshotBuffer, type Pose } from '@/game-core/net/interpolation';
+import { AdaptiveDelay, ClockSync, SnapshotBuffer, type Pose } from '@/game-core/net/interpolation';
 import { NET, type RemotePlayerView } from '@/game-core/net/protocol';
 
-export const netStatuses = ['offline', 'connecting', 'connected', 'error'] as const;
+// reconnecting：斷線後自動重連（同一個座位）或自動重新加入中（任務 11C）
+export const netStatuses = ['offline', 'connecting', 'connected', 'reconnecting', 'error'] as const;
 export type NetStatus = (typeof netStatuses)[number];
 
-export type NetMember = { sessionId: string; name: string };
+/** online：false 表示對方斷線、伺服器還保留座位等他重連 */
+export type NetMember = { sessionId: string; name: string; online: boolean };
 
 type NetState = {
   status: NetStatus;
@@ -36,17 +38,17 @@ export const initialNetState: NetState = {
 
 export const useNetStore = create<NetState>(() => ({ ...initialNetState }));
 
-/** 遠端玩家：最新狀態、插值快照（對方的時間軸）、對方與本機的時鐘差 */
-export type RemoteEntry = { view: RemotePlayerView; buffer: SnapshotBuffer; clock: ClockSync };
+/** 遠端玩家：最新狀態、插值快照（對方的時間軸）、對方與本機的時鐘差、依抖動調整的呈現延遲 */
+export type RemoteEntry = { view: RemotePlayerView; buffer: SnapshotBuffer; clock: ClockSync; delay: AdaptiveDelay };
 
 export function createRemoteEntry(view: RemotePlayerView): RemoteEntry {
-  return { view, buffer: new SnapshotBuffer(NET.sendMs), clock: new ClockSync() };
+  return { view, buffer: new SnapshotBuffer(NET.sendMs), clock: new ClockSync(), delay: new AdaptiveDelay(NET.interpDelayMs, NET.interpDelayMaxMs, NET.sendMs) };
 }
 
 /** 本機此刻要畫的姿勢：對方時間軸上「現在 − 呈現延遲」那一刻 */
 export function remotePose(entry: RemoteEntry, localNow: number): Pose | null {
   const remoteNow = entry.clock.toRemote(localNow);
-  return remoteNow === null ? null : entry.buffer.sample(remoteNow - NET.interpDelayMs);
+  return remoteNow === null ? null : entry.buffer.sample(remoteNow - entry.delay.current(localNow));
 }
 
 /** 遠端玩家的最新狀態與插值快照（sessionId → entry） */

@@ -74,12 +74,14 @@ function MultiplayerWindow() {
           <ul data-testid="mp-members" className="max-h-32 overflow-y-auto rounded-lg bg-black/25 px-3 py-2 text-xs">
             <li className="opacity-70">{t('net.you', { name: connectionName() })}</li>
             {members.map((m) => (
-              <li key={m.sessionId}>{m.name}</li>
+              <li key={m.sessionId} className={m.online ? '' : 'opacity-50'}>
+                {m.online ? m.name : `${m.name} ${t('net.remoteUnstable')}`}
+              </li>
             ))}
           </ul>
         )}
         <div className="flex gap-2">
-          {status === 'connected' ? (
+          {status === 'connected' || status === 'reconnecting' ? (
             <button type="button" data-testid="mp-disconnect" onClick={() => void disconnect()} className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25">
               {t('net.disconnect')}
             </button>

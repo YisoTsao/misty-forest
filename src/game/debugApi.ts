@@ -234,8 +234,8 @@ export type MistwoodDebugApi = {
   flow: (action: FlowAction) => GameScreen;
   /** 多人連線（任務 11A）：連線狀態、人數、被伺服器修正的次數 */
   net: () => { status: NetStatus; playerCount: number; roomId: string | null; sessionId: string | null; playerId: string | null; error: string | null; corrections: number; lastCorrection: string | null };
-  /** 遠端玩家：伺服器最新位置（x/y/z）、畫面上插值後的位置（rx/ry/rz）、是否顯示在目前的地圖 */
-  remotePlayers: () => { sessionId: string; name: string; x: number; y: number; z: number; rx: number; ry: number; rz: number; anim: string; map: string; location: string; visible: boolean }[];
+  /** 遠端玩家：伺服器最新位置（x/y/z）、畫面上插值後的位置（rx/ry/rz）、是否顯示在目前的地圖、是否在線（斷線中為 false）、目前的呈現延遲（毫秒） */
+  remotePlayers: () => { sessionId: string; name: string; x: number; y: number; z: number; rx: number; ry: number; rz: number; anim: string; map: string; location: string; visible: boolean; online: boolean; delayMs: number }[];
   netConnect: (options?: { name?: string; url?: string }) => Promise<boolean>;
   netDisconnect: () => Promise<void>;
   netReconnect: () => Promise<boolean>;
@@ -523,6 +523,8 @@ export function installDebugApi(): void {
           map: view.map,
           location: view.location,
           visible: view.map === loc.map && view.location === loc.location,
+          online: view.online,
+          delayMs: entry.delay.current(now),
         };
       });
     },

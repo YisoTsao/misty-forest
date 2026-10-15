@@ -6,11 +6,12 @@ import { useNetStore } from '@/net/netStore';
 
 const DOT: Record<string, string> = {
   connecting: 'bg-amber-300 animate-pulse',
+  reconnecting: 'bg-amber-300 animate-pulse',
   connected: 'bg-emerald-400',
   error: 'bg-rose-400',
 };
 
-/** 小地圖下方的連線狀態（任務 11A）：狀態、房間人數、斷線原因與「重新連線」。沒有使用多人時不顯示。 */
+/** 小地圖下方的連線狀態（任務 11A、11C）：狀態、房間人數、自動重新連線中、放棄後的斷線原因與「重新連線」。沒有使用多人時不顯示。 */
 export function NetStatusBadge() {
   const { status, playerCount, error } = useNetStore();
   const onTitle = useGameStore((s) => s.screen === 'title');

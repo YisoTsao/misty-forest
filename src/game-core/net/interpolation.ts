@@ -107,3 +107,52 @@ export class SnapshotBuffer {
 function pose(s: Snapshot): Pose {
   return { x: s.x, y: s.y, z: s.z, yaw: s.yaw };
 }
+
+/**
+ * 依網路抖動調整的呈現延遲（任務 11C）。每個快照記錄「比最快的那一包晚了多少」（收到時的時鐘差 − ClockSync 的目標值），
+ * 目標延遲 = 送出間隔 + 最近 windowSize 包晚到時間的第 95 百分位 + 餘裕，限制在 [base, max]。
+ * 往上調得快（避免快照還沒到、角色停住），往下調得慢（抖動是一陣一陣的，不要一好轉就馬上縮短）。
+ */
+export class AdaptiveDelay {
+  private readonly late: number[] = [];
+  private target: number;
+  private applied: number;
+  private lastLocal: number | null = null;
+
+  constructor(
+    private readonly base = 100,
+    private readonly max = 300,
+    private readonly sendIntervalMs = 50,
+    private readonly marginMs = 20,
+    private readonly windowSize = 40,
+    /** 每經過 1 ms 本機時間，延遲最多加長 / 縮短多少 ms */
+    private readonly riseRate = 0.5,
+    private readonly fallRate = 0.05,
+  ) {
+    this.target = base;
+    this.applied = base;
+  }
+
+  /** 記錄一個快照晚到的時間（毫秒，≥ 0） */
+  observe(lateMs: number): void {
+    this.late.push(Math.max(0, lateMs));
+    if (this.late.length > this.windowSize) this.late.shift();
+    const sorted = [...this.late].sort((a, b) => a - b);
+    const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))]!;
+    this.target = Math.min(this.max, Math.max(this.base, this.sendIntervalMs + p95 + this.marginMs));
+  }
+
+  get targetMs(): number {
+    return this.target;
+  }
+
+  /** 本機此刻要用的延遲；呼叫時往目標移動 */
+  current(localNow: number): number {
+    const elapsed = this.lastLocal === null ? 0 : Math.max(0, localNow - this.lastLocal);
+    this.lastLocal = this.lastLocal === null ? localNow : Math.max(this.lastLocal, localNow);
+    const diff = this.target - this.applied;
+    const step = elapsed * (diff > 0 ? this.riseRate : this.fallRate);
+    this.applied += Math.max(-step, Math.min(step, diff));
+    return this.applied;
+  }
+}

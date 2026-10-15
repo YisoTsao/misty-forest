@@ -20,6 +20,8 @@ export const PlayerState = schema(
     location: t.string(),
     /** 先保留，第一階段不做戰鬥 */
     health: t.uint8(),
+    /** false：斷線中，伺服器保留座位等他重連（任務 11C） */
+    online: t.boolean(),
   },
   'PlayerState',
 );

@@ -210,7 +210,7 @@ flowchart TD
 | 階段 | 內容 | 需要的帳號 | 驗收 |
 |---|---|---|---|
 | ✅ 0–2（任務 11A–11B） | Colyseus 伺服器、在場玩家、移動同步、伺服器驗證 | — | `multiplayer` e2e 9 項 |
-| **3 斷線續玩** | `onDrop` + `allowReconnection(20 s)`、SDK 自動重連、伺服器重啟後自動重新加入、依抖動調整的呈現延遲、依出入口資料驗證 `warp` 落點 | 不需要 | e2e：切斷網路 5 秒後恢復，對方看到同一個人回來（不是離開再加入）；伺服器重啟後自動回來 |
+| ✅ 3 斷線續玩（任務 11C） | `onDrop` + `allowReconnection(20 s)`、SDK 自動重連、伺服器重啟後自動重新加入、依抖動調整的呈現延遲（依出入口資料驗證 `warp` 落點延到 Phase 6，T-174） | 不需要 | e2e：切斷網路 5 秒後恢復，對方看到同一個人回來（不是離開再加入）；伺服器重啟後自動回來 |
 | **4 部署** | `render.yaml`、`vercel.json`、`packageManager`、來源允許清單、CSP、`/health` 健康檢查、Render 休眠時的「伺服器喚醒中」提示 | Vercel、Render | 正式網址兩個瀏覽器互相看到；Electron 安裝檔連到同一台伺服器；`/health` 正常 |
 | **5 登入與雲端存檔** | Supabase Auth（Email 魔法連結，選用 Google）、`profiles`、`saves`＋RLS、伺服器驗證 JWT、Electron 的 `mistwood://` 回呼、存檔同步與衝突處理 | Supabase（選用 Google Cloud） | 網頁存檔 → 桌面讀到同一份；RLS 測試讀不到別人的存檔；沒有 token 不能加入房間 |
 | 6 AOI 與權威 RPG 系統 | 興趣範圍、`RemoteAuthority`、敵人 AI 與傷害 / 掉落 / 任務進度改由伺服器判定（`LAUNCH_PLAN.md` M2–M5） | 同上 | 兩人一起打同一隻怪，血量與掉落一致 |
@@ -229,10 +229,11 @@ flowchart TD
 
 ---
 
-## 8. 待決定（會影響實作）
+## 8. 已決定（2026-10-15，使用者）
 
-1. 「雙人」是指房間上限 2 人，還是先用兩個人測試、上限維持 16？（目前 `maxClients: 16`）
-2. 登入方式：只用 Email 魔法連結，還是加 Google？
-3. 正式部署分支：`main`（建議，`develop` 合併後才上線）還是直接 `develop`？
-4. 區域：Render 新加坡、Supabase 東京或新加坡（離台灣最近）。
-5. 有沒有商業化打算（決定 Vercel / Render / Supabase 的方案）。
+1. 房間上限維持 16 人，目前先兩個人測試（`NET.maxClients` 不變）。
+2. 登入只用 Email（魔法連結），不做 Google 登入。
+3. 正式部署分支用 `main`；`develop` 合併到 `main` 才上線。
+4. Vercel 暫時用免費的 Hobby 方案（非商業）；Render 用 Free；Supabase 用 Free。
+5. 先不自訂網域，用 `*.vercel.app` 與 `*.onrender.com`。
+6. 區域：Render 新加坡、Supabase 東京或新加坡（建立專案時選）。
