@@ -9,3 +9,5 @@ docs/screenshots/
 dist-server/
 .env
 .env.local
+# Vercel CLI 的專案連結（本機）
+.vercel

@@ -8,6 +8,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 
 **交接（2026-10-15，多人連線）**：使用者要求先做多人連線，任務 11A–11B 已完成並提交到 `develop`（見「已完成」）。多人連線的執行方式、協定與測試見 `docs/multiplayer/`。
 - 下一步（文件 Phase 4，任務 11D 上線）：程式與設定已完成（`render.yaml`、`vercel.json`、來源允許清單、喚醒提示），步驟見 `docs/multiplayer/deploy.md`。Vercel 專案由 Claude 透過 Vercel 工具建立（帳號 `yisotsao`、團隊 `yisotsaos-projects`）；Render 服務需要使用者在後台用 Blueprint 建立並填 `ALLOWED_ORIGINS`。上線後用兩個瀏覽器在正式網址驗收，並在 PROGRESS 記錄網址。之後 Phase 5 Supabase 登入（只用 Email）與雲端存檔、Phase 6 AOI 與伺服器權威的 RPG 系統（含依資料驗證瞬移落點，T-174）。
+- 上線狀態（2026-10-15）：`main` 已與 `develop` 同步（`0d04faf`）。**Supabase** 專案 `mistwood` 已建立（ref `dnnlmunlmmhiqpgkjbvr`，新加坡 `ap-southeast-1`，空的，Phase 5 才接上）。**Vercel**：透過 Vercel 工具建立專案時回 403（沒有建立專案的權限），本機也沒有 Vercel CLI 登入 → 改由使用者在後台匯入 repo（專案名 `mistwood`），或在本機 `npx vercel login` 後由 Claude 用 CLI 設定。**Render**：等使用者用 Blueprint 建立。
 - **上線整體規劃**：`docs/multiplayer/online-plan.md`（Vercel、Render、Supabase 的分工、架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖、環境變數、各階段要使用者提供的帳號）。Phase 4、5 開始前要先拿到使用者的 Vercel、Render 帳號與 Supabase 專案，見該文件 §8 與「待使用者處理」。
 
 **交接（2026-10-15，9F）**：任務 9F 風語草原的地圖與場景完成，`wip/9f-whispermeadow` 已 rebase 到多人連線之後並合回 `develop`（見「已完成」）。下一步可以接 9G（霏與風車聚落的居民、`quest_meadow_001`「風把話吹散了」），或回到多人連線 Phase 3，依使用者指示。
