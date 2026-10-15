@@ -1,6 +1,6 @@
 # 多人連線架構（任務 11A–11B）
 
-依使用者提供的〈3D RPG 多人連線技術規劃與 Claude Code 實作規格〉，完成其中 Phase 0–2：Colyseus 遊戲伺服器、在場玩家、移動同步。登入、Supabase、部署、斷線續玩（Phase 3–5）尚未開始。
+依使用者提供的〈3D RPG 多人連線技術規劃與 Claude Code 實作規格〉，完成其中 Phase 0–2：Colyseus 遊戲伺服器、在場玩家、移動同步。登入、Supabase、部署、斷線續玩（Phase 3–5）尚未開始。上線的整體規劃（Vercel、Render、Supabase、流程圖）見 `online-plan.md`。
 
 ## 現況盤點（Phase 0）
 

@@ -1,6 +1,7 @@
 # 上線與多人連線計劃書（草案，2026-10-14）
 
 > 目標：先上網頁版（Vercel），同時維持桌面版（Electron），之後加入多人連線。資料庫用 Supabase。
+> **多人部分已由 `docs/multiplayer/online-plan.md` 取代**（改用 Colyseus＋Render，DECISIONS T-166）。
 > 本文件是規劃，不是規格；定案的部分要寫進 `GAME_DESIGN.md` 與 `DECISIONS.md`。
 > 各服務的免費額度與條款會變動，以下數字查於 2026-10，**採用前請再看一次官方頁面**。
 
