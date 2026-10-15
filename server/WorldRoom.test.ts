@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
-import { ClientMessage, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type CorrectionMessage, type RemoteActionMessage } from '@/game-core/net/protocol';
+import { ClientMessage, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type ChatOut, type CorrectionMessage, type RemoteActionMessage } from '@/game-core/net/protocol';
 import { MAPS, NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { createGameServer } from './app';
 import type { WorldRoom } from './WorldRoom';
@@ -301,5 +301,130 @@ describe('世界房間：攻擊與施法（任務 11E）', () => {
     expect(room.state.players.get(a.sessionId)!.weapon).toBe('fist');
     const b = await join(room, { name: 'B', at: at(2, 1, 10), weapon: 'bazooka' });
     expect(room.state.players.get(b.sessionId)!.weapon).toBe('sword');
+  });
+});
+
+describe('世界房間：聊天（任務 11F）', () => {
+  /** 收集某個客戶端收到的聊天 */
+  function chats(client: Awaited<ReturnType<typeof join>>): ChatOut[] {
+    const got: ChatOut[] = [];
+    client.onMessage(ServerMessage.chat, (msg: ChatOut) => got.push(msg));
+    return got;
+  }
+  const said = (list: ChatOut[]) => list.filter((m) => m.channel !== 'system');
+  const systemKeys = (list: ChatOut[]) => list.filter((m) => m.channel === 'system').map((m) => m.key);
+  const settle = () => new Promise((r) => setTimeout(r, 80));
+
+  it('附近：同地圖 30 m 內的人（含自己）收到，遠的人與其他地圖的人收不到；名字由伺服器填', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const g = MAPS.mirrorlake.origin;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const near = await join(room, { name: 'Near', at: at(10, 1, 10) });
+    const far = await join(room, { name: 'Far', at: at(60, 1, 10) });
+    const lake = await join(room, { name: 'Lake', at: at(g.x, 2, g.z) });
+    const [toA, toNear, toFar, toLake] = [chats(a), chats(near), chats(far), chats(lake)];
+    a.send(ClientMessage.chat, { channel: 'say', text: '  哈囉\n大家  ' });
+    await until(() => said(toNear).length === 1 && said(toA).length === 1);
+    await settle();
+    expect(said(toNear)[0]).toMatchObject({ channel: 'say', text: '哈囉 大家', from: { sessionId: a.sessionId, name: 'A' } });
+    expect(said(toFar)).toEqual([]);
+    expect(said(toLake)).toEqual([]);
+  });
+
+  it('全服：所有人收到；5 秒內再送全服被擋並告知；新加入的人可以要最近的紀錄', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const clock = manualClock(room);
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'B', at: at(200, 1, 10) });
+    const [toA, toB] = [chats(a), chats(b)];
+    a.send(ClientMessage.chat, { channel: 'global', text: '第一則' });
+    await until(() => said(toB).length === 1);
+    a.send(ClientMessage.chat, { channel: 'global', text: '第二則' });
+    await until(() => systemKeys(toA).includes('chat.sys.globalCooldown'));
+    expect(said(toB)).toHaveLength(1);
+    clock.advance(NET.globalCooldownMs);
+    a.send(ClientMessage.chat, { channel: 'global', text: '第二則' });
+    await until(() => said(toB).length === 2);
+
+    const c = await join(room, { name: 'C', at: at(0, 1, 10) });
+    const history: ChatOut[][] = [];
+    c.onMessage(ServerMessage.chatHistory, (list: ChatOut[]) => history.push(list));
+    c.send(ClientMessage.chatHistory, {});
+    c.send(ClientMessage.chatHistory, {});
+    await until(() => history.length === 1);
+    await settle();
+    expect(history).toHaveLength(1);
+    expect(history[0]!.map((m) => m.text)).toEqual(['第一則', '第二則']);
+  });
+
+  it('密語：只有對方收到、自己收到回顯；找不到或同名時告知', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const clock = manualClock(room);
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'Bob', at: at(200, 1, 10) });
+    const c = await join(room, { name: 'C', at: at(1, 1, 10) });
+    const [toA, toB, toC] = [chats(a), chats(b), chats(c)];
+    a.send(ClientMessage.chat, { channel: 'whisper', to: 'bob', text: '悄悄話' });
+    await until(() => said(toB).length === 1 && said(toA).length === 1);
+    expect(said(toB)[0]).toMatchObject({ channel: 'whisper', text: '悄悄話', from: { name: 'A' } });
+    expect(said(toB)[0]!.to).toBeUndefined();
+    expect(said(toA)[0]).toMatchObject({ channel: 'whisper', to: 'Bob' });
+    a.send(ClientMessage.chat, { channel: 'whisper', to: 'nobody', text: '在嗎' });
+    await until(() => systemKeys(toA).includes('chat.sys.whisperNotFound'));
+    await join(room, { name: 'BOB', at: at(5, 1, 10) });
+    clock.advance(1000);
+    a.send(ClientMessage.chat, { channel: 'whisper', to: 'Bob', text: '你是哪一個' });
+    await until(() => systemKeys(toA).includes('chat.sys.whisperAmbiguous'));
+    await settle();
+    expect(said(toC)).toEqual([]);
+  });
+
+  it('清理與過濾：控制字元與零寬字元去掉、超過 120 字截斷、髒話換成 *；名字也過濾', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const toA = chats(a);
+    a.send(ClientMessage.chat, { channel: 'say', text: 'he\u200bllo\u202e what the FUCK' });
+    await until(() => said(toA).length === 1);
+    expect(said(toA)[0]!.text).toBe('hello what the ****');
+    a.send(ClientMessage.chat, { channel: 'say', text: '字'.repeat(300) });
+    await until(() => said(toA).length === 2);
+    expect([...said(toA)[1]!.text!]).toHaveLength(NET.chatMaxLength);
+    const bad = await join(room, { name: '王八蛋', at: at(1, 1, 10) });
+    expect(room.state.players.get(bad.sessionId)!.name).toBe('***');
+  });
+
+  it('頻率與重複：每秒 2 則、5 秒內同樣的內容被擋並告知；格式不對與空白訊息不送出', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const clock = manualClock(room);
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const toA = chats(a);
+    a.send(ClientMessage.chat, { channel: 'say', text: '一' });
+    a.send(ClientMessage.chat, { channel: 'say', text: '二' });
+    a.send(ClientMessage.chat, { channel: 'say', text: '三' });
+    await until(() => systemKeys(toA).includes('chat.sys.tooFast'));
+    expect(said(toA).map((m) => m.text)).toEqual(['一', '二']);
+    clock.advance(1000);
+    a.send(ClientMessage.chat, { channel: 'say', text: '二' });
+    await until(() => systemKeys(toA).includes('chat.sys.duplicate'));
+    clock.advance(NET.chatDuplicateMs);
+    a.send(ClientMessage.chat, { channel: 'say', text: '   ' });
+    a.send(ClientMessage.chat, { channel: 'say', text: '\u200b' });
+    a.send(ClientMessage.chat, { channel: 'shout', text: '大聲' });
+    a.send(ClientMessage.chat, { channel: 'say', text: '嗨', name: '假名字' });
+    a.send(ClientMessage.chat, { channel: 'say', text: '正常' });
+    await until(() => said(toA).length === 3);
+    expect(said(toA)[2]!.text).toBe('正常');
+    expect(room.rejectedCount(a.sessionId)).toBeGreaterThanOrEqual(6);
+  });
+
+  it('加入與離開時其他人收到系統訊息', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const toA = chats(a);
+    const b = await join(room, { name: 'B', at: at(2, 1, 10) });
+    await until(() => systemKeys(toA).includes('chat.sys.joined'));
+    await b.leave(true);
+    await until(() => systemKeys(toA).includes('chat.sys.left'));
+    expect(toA.filter((m) => m.channel === 'system').map((m) => m.vars?.name)).toEqual(['B', 'B']);
   });
 });

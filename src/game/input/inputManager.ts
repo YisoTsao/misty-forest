@@ -241,10 +241,17 @@ class InputManager {
 
   private onKeyDown = (e: KeyboardEvent): void => {
     if (e.isTrusted) setInputDevice('keyboard');
+    // 在輸入框打字（聊天、名稱）不是遊戲操作；空白鍵也要能打出空白
+    if (isTextField(e.target)) return;
     if (!this.lookup.has(e.code)) return;
     if (e.code === 'Space' || e.code === 'Tab') e.preventDefault();
     this.press(e.code);
   };
+
+  /** 放開所有按住的鍵（打開聊天時：之後的 keyup 送到輸入框，角色不會一直走） */
+  releaseAll(): void {
+    this.onBlur();
+  }
 
   private onKeyUp = (e: KeyboardEvent): void => {
     this.downCodes.delete(e.code);
@@ -289,3 +296,8 @@ function dispatchKey(code: string): void {
 }
 
 export const input = new InputManager(parseBindings(keybindings));
+
+/** 事件來自可以打字的元素（聊天輸入列、名稱欄） */
+function isTextField(target: EventTarget | null): boolean {
+  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable);
+}

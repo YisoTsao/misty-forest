@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 /** 協定版本：伺服器拒絕版本不同的客戶端，避免新舊版本互相送錯格式 */
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 /** 唯一的房間類型：整個世界一個房間，玩家各自帶地圖與室內（決策 T-169） */
 export const ROOM_NAME = 'world';
@@ -44,6 +44,21 @@ export const NET = {
   actionsPerSecond: 8,
   /** 接收端：比呈現時間晚這麼久還沒播放的動作就丟掉（毫秒；例如分頁在背景時累積的） */
   actionStaleMs: 2000,
+  /** 聊天（任務 11F）：一則最多幾個字（code point） */
+  chatMaxLength: 120,
+  /** 每秒最多幾則 */
+  chatPerSecond: 2,
+  /** 每 chatBurstWindowMs 內最多幾則 */
+  chatBurst: 8,
+  chatBurstWindowMs: 10_000,
+  /** 全服頻道兩則之間的最短間隔（毫秒） */
+  globalCooldownMs: 5000,
+  /** 同樣的內容在這段時間內再送一次就丟掉（毫秒） */
+  chatDuplicateMs: 5000,
+  /** 附近頻道聽得到的水平距離（公尺，同一張地圖、同一個室內） */
+  chatSayRadius: 30,
+  /** 伺服器保留的全服頻道紀錄（新加入的人可以看到最近幾則） */
+  chatHistory: 20,
 } as const;
 
 /** 客戶端 → 伺服器 */
@@ -56,6 +71,10 @@ export const ClientMessage = {
   action: 'action',
   /** 換手上的武器（任務 11E） */
   equip: 'equip',
+  /** 聊天（任務 11F） */
+  chat: 'chat',
+  /** 剛加入時要全服頻道最近的紀錄（每個連線一次） */
+  chatHistory: 'chatHistory',
 } as const;
 
 /** 伺服器 → 客戶端 */
@@ -64,6 +83,10 @@ export const ServerMessage = {
   correction: 'correction',
   /** 其他玩家的一次性動作（ActionMessage 加上 sessionId） */
   action: 'action',
+  /** 聊天訊息與系統訊息（ChatOut） */
+  chat: 'chat',
+  /** 全服頻道最近的紀錄（ChatOut[]） */
+  chatHistory: 'chatHistory',
 } as const;
 
 /** 同步的動畫狀態（game-core/character/characterDef.ts 的移動片段） */
@@ -116,6 +139,34 @@ export type RemoteActionMessage = ActionMessage & { sessionId: string };
 export const equipMessageSchema = z.strictObject({ weapon: dataId });
 export type EquipMessage = z.infer<typeof equipMessageSchema>;
 
+export const chatChannels = ['say', 'global', 'whisper'] as const;
+export type ChatChannel = (typeof chatChannels)[number];
+
+/** 客戶端送出的聊天（任務 11F）。text 在伺服器清理後才限制成 chatMaxLength；這裡只擋明顯過長的內容 */
+export const chatMessageSchema = z.strictObject({
+  channel: z.enum(chatChannels),
+  text: z.string().min(1).max(NET.chatMaxLength * 4),
+  /** 密語對象的名字 */
+  to: z.string().min(1).max(64).optional(),
+});
+export type ChatMessage = z.infer<typeof chatMessageSchema>;
+
+/**
+ * 伺服器送出的聊天：玩家說的話（from 由伺服器填，不信任客戶端），或系統訊息（key 為 i18n 字串、vars 為參數）。
+ * 密語：收到的人看到 from；送出的人收到一則 to 為對方名字的回顯。
+ */
+export type ChatOut = {
+  id: number;
+  /** 伺服器時間（毫秒） */
+  t: number;
+  channel: ChatChannel | 'system';
+  from?: { sessionId: string; name: string };
+  to?: string;
+  text?: string;
+  key?: string;
+  vars?: Record<string, string>;
+};
+
 export const joinOptionsSchema = z.object({
   protocol: z.number().int(),
   name: z.string().max(64).optional(),
@@ -149,10 +200,16 @@ export type RemotePlayerView = {
   online: boolean;
 };
 
-/** 顯示名稱：去掉控制字元與前後空白、限制長度；空的就用預設名稱 */
+/**
+ * 零寬字元與雙向文字控制字元：可以用來偽裝名字或訊息、把文字倒過來顯示（任務 11F）。
+ * 保留 ZWJ（U+200D）與變體選擇字元（U+FE0F 等）：組合 emoji（👨‍👩‍👧、❤️）需要它們。
+ */
+export const INVISIBLE_CHARS = /[\u00ad\u061c\u115f\u1160\u180e\u200b\u200c\u200e\u200f\u202a-\u202e\u2060-\u206f\u3164\ufeff]/g;
+
+/** 顯示名稱：去掉控制字元、看不見的字元與前後空白、限制長度；空的就用預設名稱 */
 export function sanitizeName(raw: string | undefined, fallback: string): string {
   // eslint-disable-next-line no-control-regex
-  const cleaned = (raw ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim();
+  const cleaned = (raw ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(INVISIBLE_CHARS, '').trim();
   return [...(cleaned || fallback)].slice(0, NET.nameMaxLength).join('');
 }
 

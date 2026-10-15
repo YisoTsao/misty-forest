@@ -30,6 +30,8 @@ type UiState = {
   settingsOpen: boolean;
   /** 多人連線面板（任務 11A，從暫停選單開啟） */
   multiplayerOpen: boolean;
+  /** 聊天輸入列開著（任務 11F）：算是視窗，打字時角色不動、不施法、不暫停 */
+  chatOpen: boolean;
   /** 建造模式（規格 6.7）：null 表示不在建造模式；menu 為建造選單是否開啟 */
   build: { menu: boolean; selected: string | null } | null;
   /** 進行中的 NPC 對話（dialogueController 寫入） */
@@ -48,6 +50,7 @@ type UiState = {
   setCraft: (craft: string | null) => void;
   setSettingsOpen: (open: boolean) => void;
   setMultiplayerOpen: (open: boolean) => void;
+  setChatOpen: (open: boolean) => void;
   setCurrentRegion: (region: RegionId) => void;
   setDialogue: (dialogue: UiState['dialogue']) => void;
   setBuild: (build: UiState['build']) => void;
@@ -64,6 +67,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   craft: null,
   settingsOpen: false,
   multiplayerOpen: false,
+  chatOpen: false,
   currentRegion: DEFAULT_REGION,
   dialogue: null,
   build: null,
@@ -82,6 +86,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setCraft: (craft) => set({ craft }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
   setMultiplayerOpen: (multiplayerOpen) => set({ multiplayerOpen }),
+  setChatOpen: (chatOpen) => set({ chatOpen }),
   setDialogue: (dialogue) => set({ dialogue }),
   setBuild: (build) => set({ build }),
   setCurrentRegion: (currentRegion) => {
@@ -91,8 +96,18 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  const { message, inventoryOpen, mapOpen, journalOpen, shop, craft, settingsOpen, multiplayerOpen, dialogue, build } = useUiStore.getState();
+  const { message, inventoryOpen, mapOpen, journalOpen, shop, craft, settingsOpen, multiplayerOpen, chatOpen, dialogue, build } = useUiStore.getState();
   return (
-    message !== null || inventoryOpen || mapOpen || journalOpen || shop !== null || craft !== null || settingsOpen || multiplayerOpen || dialogue !== null || build?.menu === true
+    message !== null ||
+    inventoryOpen ||
+    mapOpen ||
+    journalOpen ||
+    shop !== null ||
+    craft !== null ||
+    settingsOpen ||
+    multiplayerOpen ||
+    chatOpen ||
+    dialogue !== null ||
+    build?.menu === true
   );
 }

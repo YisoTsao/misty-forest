@@ -60,7 +60,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 苔冠下的守衛（`quest_forest_003`、根源石、戰後的苔咚 NPC、程式造型 / 有出現條件的 NPC、林間水道） | `forestguard`（改到 NPC 系統時加 `npc`、`quest`） | `--guardian`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --guardian`） |
 | 存檔（`game/save`） | `save` | 不拍 |
 | 多人連線純函式（`src/game-core/net/**`：協定、移動驗證、插值） | 不跑（`pnpm vitest run src/game-core/net server`） | 不拍 |
-| 多人連線（`server/**`、`src/net/**`、`render.yaml`、`vercel.json`、`RemotePlayers`、`NetStatusBadge`、`MultiplayerPanel`、`playerRuntime.warpSeq` / `positionAt` / `netActions`、`remoteSpell`） | `multiplayer`（改到 `Player.tsx` 時加 `movement`、`bounds`；改到暫停選單時加 `settings`、`dev`；要驗 Web 版時加 `node e2e/multiplayer-web.e2e.mjs`，需要 Playwright 的 Chromium） | `multiplayer` e2e 會拍 `docs/screenshots/phase11/multiplayer_two.png`、`multiplayer_spell.png` |
+| 多人連線（`server/**`、`src/net/**`、`render.yaml`、`vercel.json`、`RemotePlayers`、`NetStatusBadge`、`MultiplayerPanel`、`playerRuntime.warpSeq` / `positionAt` / `netActions`、`remoteSpell`、聊天 `ChatBox` / `chatStore` / `ChatBubble`、`uiStore.chatOpen`） | `multiplayer`（改到 `Player.tsx` 時加 `movement`、`bounds`；改到暫停選單時加 `settings`、`dev`；要驗 Web 版時加 `node e2e/multiplayer-web.e2e.mjs`，需要 Playwright 的 Chromium） | `multiplayer` e2e 會拍 `docs/screenshots/phase11/multiplayer_two.png`、`multiplayer_spell.png`、`chat.png` |
 | `src/render/**`（shader、後處理、植被、迷霧外觀） | 所屬功能的 suite（上表）；純視覺不跑 | 受影響書籤（`--mist` 只在迷霧相關時加） |
 | `src/app`、`src/ui`、React effect / 生命週期 | `dev`（StrictMode）＋所屬畫面的 suite | 有改畫面才用 `--menu` |
 | `e2e/**` 本身 | 只跑改到的那個 suite | 不拍 |

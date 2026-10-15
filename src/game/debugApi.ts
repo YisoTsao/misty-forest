@@ -50,6 +50,7 @@ import { mistRuntime } from './world/mistRuntime';
 import { mistTargetAt } from './world/mistTarget';
 import { cameraBookmarks } from './worldData';
 import { connect, disconnect, reconnect, sendRaw } from '@/net/netClient';
+import { chatRuntime, useChatStore } from '@/net/chatStore';
 import { remotePose, remoteRuntime, useNetStore, type NetStatus } from '@/net/netStore';
 
 export type MistwoodDebugApi = {
@@ -241,6 +242,13 @@ export type MistwoodDebugApi = {
   netReconnect: () => Promise<boolean>;
   /** 送任意訊息給伺服器（驗證伺服器會拒絕不合法的內容） */
   netSendRaw: (type: string, payload: unknown) => boolean;
+  /** 聊天（任務 11F）：輸入列是否開著、目前頻道、紀錄（系統訊息以 key 表示）、正在顯示的泡泡 */
+  chat: () => {
+    open: boolean;
+    channel: string;
+    lines: { channel: string; name: string | null; to: string | null; text: string | null; key: string | null }[];
+    bubbles: { sessionId: string; text: string }[];
+  };
 };
 
 declare global {
@@ -538,6 +546,16 @@ export function installDebugApi(): void {
     netDisconnect: () => disconnect(),
     netReconnect: () => reconnect(),
     netSendRaw: (type, payload) => sendRaw(type, payload),
+    chat: () => {
+      const now = performance.now();
+      const { lines, channel } = useChatStore.getState();
+      return {
+        open: useUiStore.getState().chatOpen,
+        channel,
+        lines: lines.map((l) => ({ channel: l.channel, name: l.from?.name ?? null, to: l.to ?? null, text: l.text ?? null, key: l.key ?? null })),
+        bubbles: [...chatRuntime.bubbles.entries()].filter(([, b]) => b.until > now).map(([sessionId, b]) => ({ sessionId, text: b.text })),
+      };
+    },
   };
 }
 

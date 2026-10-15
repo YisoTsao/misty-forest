@@ -26,6 +26,7 @@ import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { MultiplayerPanel } from '@/ui/MultiplayerPanel';
 import { NetStatusBadge } from '@/ui/NetStatusBadge';
+import { ChatBox } from '@/ui/ChatBox';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
 import { QuestTracker } from '@/ui/QuestTracker';
@@ -73,6 +74,7 @@ export function App() {
       <QuestTracker />
       <Minimap />
       <NetStatusBadge />
+      <ChatBox />
       <ControlHint />
       {debugEnabled && (
         <>

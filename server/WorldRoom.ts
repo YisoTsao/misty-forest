@@ -1,14 +1,18 @@
 // 世界房間（任務 11A / 11B）：玩家加入 / 離開、出生點、位置的驗證與廣播。
 // 只負責「誰在場、在哪、什麼動作」；任務、背包、戰鬥仍是各客戶端自己的 LocalAuthority（決策 T-169）。
 // 攻擊與施法（任務 11E）只轉送給其他人當作表現，不結算傷害（怪物還是各客戶端各自一份）。
+// 聊天（任務 11F）：附近（同地圖、同室內、30 m 內）、全服、密語與系統訊息；伺服器清理文字、遮蔽髒話、限制頻率。
 import { Room, ServerError, type AuthContext, type Client } from '@colyseus/core';
+import chatBlocklist from '@/data/chatBlocklist.json';
 import characters from '@/data/characters.json';
 import interiorsRaw from '@/data/interiors.json';
 import spellsRaw from '@/data/spells.json';
 import weapons from '@/data/weapons.json';
 import { DEFAULT_WEAPON, parseWeapons } from '@/game-core/combat/weapons';
+import { acceptInWindow, ChatFilter, sameName, sanitizeChat } from '@/game-core/net/chat';
 import {
   actionMessageSchema,
+  chatMessageSchema,
   ClientMessage,
   equipMessageSchema,
   joinOptionsSchema,
@@ -18,6 +22,7 @@ import {
   sanitizeName,
   ServerMessage,
   warpMessageSchema,
+  type ChatOut,
   type CorrectionMessage,
   type CorrectionReason,
   type MoveMessage,
@@ -35,6 +40,7 @@ const LIMITS = moveLimitsFor(traveler.locomotion, maxLungeIn(weapons));
 const FOOT_OFFSET = traveler.capsule.halfHeight + traveler.capsule.radius;
 const WEAPONS = parseWeapons(weapons);
 const SPELL_IDS = new Set(spellsRaw.map((s) => s.id));
+const CHAT_FILTER = new ChatFilter(chatBlocklist.words);
 const INTERIORS: InteriorZone[] = interiorsRaw.map((i) => ({ id: i.id, origin: [i.origin[0]!, i.origin[1]!] as const }));
 
 /** 每個連線在伺服器內部的追蹤資料（不同步給客戶端） */
@@ -46,6 +52,12 @@ type Track = {
   rate: { windowStart: number; count: number };
   /** 動作（攻擊、施法）另外限制頻率 */
   actionRate: { windowStart: number; count: number };
+  /** 聊天（任務 11F）：每秒、每 10 秒的次數，全服頻道上一則的時間，上一則內容（擋重複），是否已經要過紀錄 */
+  chatRate: { windowStart: number; count: number };
+  chatTimes: number[];
+  lastGlobalAt: number;
+  lastChat: { text: string; at: number } | null;
+  historySent: boolean;
   rejected: number;
 };
 
@@ -64,6 +76,9 @@ export class WorldRoom extends Room<{ state: WorldState }> {
   /** 斷線後保留座位的秒數（測試可以縮短） */
   reconnectSeconds: number = NET.reconnectSeconds;
   private readonly tracks = new Map<string, Track>();
+  /** 全服頻道最近的訊息（新加入的人要紀錄時給） */
+  private readonly globalHistory: ChatOut[] = [];
+  private nextChatId = 1;
 
   onCreate(options: WorldRoomOptions = {}): void {
     this.state.instanceId = options.instanceId ?? 'main';
@@ -74,6 +89,8 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     this.onMessage(ClientMessage.warp, (client: Client, raw: unknown) => this.handleMove(client, raw, true));
     this.onMessage(ClientMessage.action, (client: Client, raw: unknown) => this.handleAction(client, raw));
     this.onMessage(ClientMessage.equip, (client: Client, raw: unknown) => this.handleEquip(client, raw));
+    this.onMessage(ClientMessage.chat, (client: Client, raw: unknown) => this.handleChat(client, raw));
+    this.onMessage(ClientMessage.chatHistory, (client: Client) => this.handleChatHistory(client));
     // 不認得的訊息一律忽略（不讓客戶端觸發未定義的行為）
     this.onMessage('*', (client: Client, type: string | number) => {
       console.warn(`[world] 忽略未知訊息 ${String(type)}（${client.sessionId}）`);
@@ -99,7 +116,8 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     const number = nextPlayerNumber++;
     const player = new PlayerState();
     player.playerId = `p${number}-${client.sessionId.slice(0, 4)}`;
-    player.name = sanitizeName(options.name, `旅人${number}`);
+    // 名字也過濾髒話（名字會出現在名牌與聊天裡）
+    player.name = CHAT_FILTER.mask(sanitizeName(options.name, `旅人${number}`));
     player.health = 100;
     player.online = true;
     player.weapon = options.weapon && WEAPONS.weapons.has(options.weapon as never) ? options.weapon : DEFAULT_WEAPON;
@@ -123,8 +141,15 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       lastCorrectionAt: 0,
       rate: { windowStart: this.now(), count: 0 },
       actionRate: { windowStart: this.now(), count: 0 },
+      chatRate: { windowStart: this.now(), count: 0 },
+      chatTimes: [],
+      lastGlobalAt: -Infinity,
+      lastChat: null,
+      historySent: false,
       rejected: 0,
     });
+    // 加入的人自己還沒註冊訊息 handler，系統訊息只送給其他人
+    this.system('chat.sys.joined', { name: player.name }, { except: client });
     // 被指派出生點時，客戶端從初始狀態讀到自己的位置後移過去（加入當下送訊息會比客戶端註冊 handler 早到）
     console.info(`[world] 加入 ${player.name}（${client.sessionId}），目前 ${this.clients.length} 人`);
   }
@@ -157,6 +182,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     const player = this.state.players.get(client.sessionId);
     this.state.players.delete(client.sessionId);
     this.tracks.delete(client.sessionId);
+    if (player) this.system('chat.sys.left', { name: player.name });
     console.info(`[world] 離開 ${player?.name ?? client.sessionId}，目前 ${this.clients.length} 人`);
   }
 
@@ -214,6 +240,97 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       return;
     }
     player.weapon = parsed.data.weapon;
+  }
+
+  /**
+   * 聊天（任務 11F）：格式 → 頻率（每秒、每 10 秒、全服間隔）→ 清理與遮蔽 → 重複 → 依頻道送出。
+   * 被擋下時回一則系統訊息給說話的人（不默默丟掉，玩家才知道為什麼沒送出）。
+   */
+  private handleChat(client: Client, raw: unknown): void {
+    const player = this.state.players.get(client.sessionId);
+    const track = this.tracks.get(client.sessionId);
+    if (!player || !track || !player.online) return;
+    const now = this.now();
+    if (!acceptRate(track.rate, now, NET.softMessagesPerSecond)) return;
+    const parsed = chatMessageSchema.safeParse(raw);
+    if (!parsed.success) {
+      track.rejected++;
+      return;
+    }
+    const msg = parsed.data;
+    const text = CHAT_FILTER.mask(sanitizeChat(msg.text));
+    if (!text || (msg.channel === 'whisper' && !msg.to)) {
+      track.rejected++;
+      return;
+    }
+    if (!acceptRate(track.chatRate, now, NET.chatPerSecond) || !acceptInWindow(track.chatTimes, now, NET.chatBurstWindowMs, NET.chatBurst)) {
+      track.rejected++;
+      return this.systemTo(client, 'chat.sys.tooFast');
+    }
+    if (track.lastChat && track.lastChat.text === text && now - track.lastChat.at < NET.chatDuplicateMs) {
+      track.rejected++;
+      return this.systemTo(client, 'chat.sys.duplicate');
+    }
+    if (msg.channel === 'global' && now - track.lastGlobalAt < NET.globalCooldownMs) {
+      track.rejected++;
+      return this.systemTo(client, 'chat.sys.globalCooldown', { seconds: String(Math.ceil((NET.globalCooldownMs - (now - track.lastGlobalAt)) / 1000)) });
+    }
+
+    const from = { sessionId: client.sessionId, name: player.name };
+    if (msg.channel === 'whisper') {
+      const targets = [...this.state.players.entries()].filter(([id, p]) => id !== client.sessionId && sameName(p.name, msg.to!));
+      if (targets.length === 0) return this.systemTo(client, 'chat.sys.whisperNotFound', { name: msg.to! });
+      if (targets.length > 1) return this.systemTo(client, 'chat.sys.whisperAmbiguous', { name: msg.to! });
+      const [targetId, target] = targets[0]!;
+      const recipient = this.clients.find((c) => c.sessionId === targetId);
+      if (!recipient || !target.online) return this.systemTo(client, 'chat.sys.whisperNotFound', { name: msg.to! });
+      this.remember(track, text, now);
+      recipient.send(ServerMessage.chat, this.chatOut({ channel: 'whisper', from, text }, now));
+      client.send(ServerMessage.chat, this.chatOut({ channel: 'whisper', from, to: target.name, text }, now));
+      return;
+    }
+
+    this.remember(track, text, now);
+    const out = this.chatOut({ channel: msg.channel, from, text }, now);
+    if (msg.channel === 'global') {
+      track.lastGlobalAt = now;
+      this.globalHistory.push(out);
+      if (this.globalHistory.length > NET.chatHistory) this.globalHistory.shift();
+      this.broadcast(ServerMessage.chat, out);
+      return;
+    }
+    // 附近：同一張地圖、同一個室內（室內的座標另外偏移）、水平距離 chatSayRadius 內，包含自己
+    for (const c of this.clients) {
+      const p = this.state.players.get(c.sessionId);
+      if (!p || !p.online || p.map !== player.map || p.location !== player.location) continue;
+      if (Math.hypot(p.x - player.x, p.z - player.z) <= NET.chatSayRadius) c.send(ServerMessage.chat, out);
+    }
+  }
+
+  /** 剛加入時要全服頻道最近的紀錄：每個連線只給一次 */
+  private handleChatHistory(client: Client): void {
+    const track = this.tracks.get(client.sessionId);
+    if (!track || track.historySent) return;
+    track.historySent = true;
+    client.send(ServerMessage.chatHistory, this.globalHistory);
+  }
+
+  private remember(track: Track, text: string, now: number): void {
+    track.lastChat = { text, at: now };
+  }
+
+  private chatOut(fields: Omit<ChatOut, 'id' | 't'>, now: number): ChatOut {
+    return { id: this.nextChatId++, t: now, ...fields };
+  }
+
+  /** 系統訊息給所有人（加入 / 離開） */
+  private system(key: string, vars: Record<string, string>, options?: { except: Client }): void {
+    this.broadcast(ServerMessage.chat, this.chatOut({ channel: 'system', key, vars }, this.now()), options);
+  }
+
+  /** 系統訊息只給一個人（說話太快、找不到密語對象等） */
+  private systemTo(client: Client, key: string, vars?: Record<string, string>): void {
+    client.send(ServerMessage.chat, this.chatOut({ channel: 'system', key, ...(vars ? { vars } : {}) }, this.now()));
   }
 
   private accept(player: PlayerState, track: Track, msg: MoveMessage, zone: { map: string; location: string }, now: number): void {

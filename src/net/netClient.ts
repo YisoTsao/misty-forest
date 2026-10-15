@@ -2,6 +2,7 @@
 // 連線 / 中斷 / 重新連線、把房間狀態整理成遠端玩家清單、每 50 ms 回報本機位置、套用伺服器的位置修正。
 // 斷線續玩（11C）：網路短暫中斷時 SDK 自動重連回同一個座位（伺服器保留 20 秒）；座位沒了（伺服器重啟、
 // 休眠喚醒、保留逾時）時自動重新加入，最多嘗試 3 分鐘，之後才顯示「重新連線」按鈕。
+// 聊天（任務 11F）：送出輸入列的內容（指令在本機解析）、收聊天與全服紀錄。
 // 只有這個檔案 import Colyseus SDK；其他模組透過 netStore 與這裡的函式使用。
 import { Client, type Room } from '@colyseus/sdk';
 import {
@@ -12,17 +13,20 @@ import {
   ROOM_NAME,
   sanitizeName,
   ServerMessage,
+  type ChatOut,
   type CorrectionMessage,
   type MoveMessage,
   type NetAnim,
   type RemoteActionMessage,
   type RemotePlayerView,
 } from '@/game-core/net/protocol';
+import { parseChatInput } from '@/game-core/net/chat';
 import { authority } from '@/game/authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
 import { t } from '@/game/i18n';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useUiStore } from '@/game/state/uiStore';
+import { clearBubbles, localNotice, mute, receiveChat, unmute, useChatStore } from './chatStore';
 import { rememberName, savedName, serverUrl } from './config';
 import { createRemoteEntry, initialNetState, remoteRuntime, useNetStore, type NetMember } from './netStore';
 
@@ -95,11 +99,19 @@ async function join(): Promise<boolean> {
   joined.onStateChange((state: WorldStateLike) => syncState(state));
   joined.onMessage(ServerMessage.correction, (msg: CorrectionMessage) => applyCorrection(msg));
   joined.onMessage(ServerMessage.action, (msg: RemoteActionMessage) => receiveAction(msg));
+  joined.onMessage(ServerMessage.chat, (msg: ChatOut) => receiveChat(msg));
+  joined.onMessage(ServerMessage.chatHistory, (list: ChatOut[]) => {
+    // 重新加入時紀錄可能已經在本機了：只補上沒看過的
+    const seen = new Set(useChatStore.getState().lines.map((l) => l.id));
+    for (const msg of list) if (!seen.has(msg.id)) receiveChat(msg, { history: true });
+  });
   joined.onError((code, message) => console.warn(`[net] 房間錯誤 ${code}：${message ?? ''}`));
   joined.onDrop((code) => onDropped(code));
   joined.onReconnect(() => onReconnected());
   joined.onLeave((code, reason) => onLeft(code, reason));
   startSending(warpSeqAtJoin);
+  // handler 註冊好之後才要全服頻道的紀錄（加入當下伺服器送的訊息會比 handler 早到）
+  joined.send(ClientMessage.chatHistory, {});
   return true;
 }
 
@@ -287,6 +299,7 @@ function receiveAction(msg: RemoteActionMessage): void {
 
 function clearRemotes(): void {
   remoteRuntime.players.clear();
+  clearBubbles();
 }
 
 // --- 回報本機位置 ---
@@ -365,6 +378,31 @@ function applyCorrection(msg: CorrectionMessage): void {
   remoteRuntime.lastCorrection = msg;
   pendingCorrection = true;
   playerRuntime.teleportRequest = { x: msg.x, z: msg.z, feetY: msg.y - FOOT_OFFSET };
+}
+
+/**
+ * 聊天輸入列送出（任務 11F）：/mute、/unmute 在本機處理；其他送給伺服器（清理、過濾、頻率由伺服器負責）。
+ * 回傳 false 表示沒有送出（沒連線、空白），輸入列保留內容。
+ */
+export function submitChat(raw: string): boolean {
+  const input = parseChatInput(raw, useChatStore.getState().channel);
+  switch (input.type) {
+    case 'empty':
+      return false;
+    case 'error':
+      localNotice(input.key);
+      return true;
+    case 'mute':
+      mute(input.name);
+      return true;
+    case 'unmute':
+      unmute(input.name);
+      return true;
+    case 'send':
+      if (!room || useNetStore.getState().status !== 'connected') return false;
+      room.send(ClientMessage.chat, { channel: input.channel, text: input.text, ...(input.to ? { to: input.to } : {}) });
+      return true;
+  }
 }
 
 /** 除錯 / 測試：送任意訊息（驗證伺服器會拒絕不合法的內容） */

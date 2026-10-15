@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { t } from '@/game/i18n';
 import { useUiStore, type Toast } from '@/game/state/uiStore';
 import { worldDataResult } from '@/game/worldData';
+import { useNetStore } from '@/net/netStore';
 import { ItemIcon } from './ItemIcon';
 
 /** 通知停留時間（毫秒） */
@@ -10,8 +11,10 @@ const TOAST_MS = 2600;
 /** 畫面左側的短暫通知：取得物品、背包已滿等（規格 6.2：更新世界與 UI）。 */
 export function Toasts() {
   const toasts = useUiStore((s) => s.toasts);
+  // 多人連線時左下角是聊天紀錄（任務 11F），通知往上移
+  const chat = useNetStore((s) => s.status !== 'offline');
   return (
-    <div className="pointer-events-none absolute bottom-40 left-6 flex flex-col items-start gap-2" data-testid="toasts">
+    <div className={`pointer-events-none absolute left-6 flex flex-col items-start gap-2 ${chat ? 'bottom-[20rem]' : 'bottom-40'}`} data-testid="toasts">
       {toasts.map((toast) => (
         <ToastRow key={toast.id} toast={toast} />
       ))}

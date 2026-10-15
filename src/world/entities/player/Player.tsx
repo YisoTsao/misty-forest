@@ -17,6 +17,7 @@ import { currentScreen } from '@/game/state/gameStore';
 import { isModalOpen } from '@/game/state/uiStore';
 import { AssetBoundary } from '../../AssetBoundary';
 import { CharacterModel } from './CharacterModel';
+import { LocalChatBubble } from './ChatBubble';
 
 const MAX_DT = 1 / 20;
 /** 低於此高度視為掉出地圖 */
@@ -191,6 +192,8 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
         <AssetBoundary name={`character:${def.id}`}>
           <CharacterModel def={def} />
         </AssetBoundary>
+        {/* 多人連線時自己說的話（任務 11F） */}
+        <LocalChatBubble />
       </group>
     </>
   );

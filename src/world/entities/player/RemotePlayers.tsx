@@ -15,6 +15,7 @@ import { AssetBoundary } from '../../AssetBoundary';
 import { WeaponTrail } from '../../combat/MeleeEffects';
 import { remoteSpell } from '../../combat/PlayerSpells';
 import { attachWeapons, prepareModel, SWORD_SOURCE, TRAIL_LIFE, WAND_SOURCE, type HeldId } from './CharacterModel';
+import { BUBBLE_CLASS, updateBubble } from './ChatBubble';
 
 const def = getCharacterDef(PLAYER_CHARACTER_ID);
 const FOOT_OFFSET = def.capsule.halfHeight + def.capsule.radius;
@@ -39,6 +40,7 @@ let nextActionKey = 1;
  * 對方斷線、伺服器保留座位時停在原地，名牌變淡並標示「連線不穩」（任務 11C）。
  * 攻擊與施法（任務 11E）：手上顯示對方的武器；動作在呈現到它發生的那一刻才播放（與位置對齊），
  * 近戰播放招式動畫與揮砍拖尾，施法拿魔杖並在對方位置畫出魔法特效（只是表現，不命中本機的敵人）。
+ * 聊天（任務 11F）：附近與全服的話顯示在名牌上方的泡泡。
  */
 export function RemotePlayers() {
   const members = useNetStore((s) => s.members);
@@ -63,6 +65,7 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
   useEffect(() => () => weaponModels.materials.forEach((m) => m.dispose()), [weaponModels]);
   const groupRef = useRef<THREE.Group>(null);
   const labelRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<THREE.Group>(null);
   const { actions } = useAnimations(gltf.animations, modelRef);
   const playing = useRef<{ clip: string; key: number } | null>(null);
@@ -135,6 +138,8 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
     }
     entry.shown = { clip, held };
     recordTrail(act, dt);
+    // 名牌與泡泡只在一定距離內顯示（泡泡在名牌裡面，跟著一起隱藏）
+    updateBubble(bubbleRef.current, sessionId, now);
     if (label) label.style.display = camera.position.distanceTo(group.position) < LABEL_DISTANCE ? '' : 'none';
   });
 
@@ -187,8 +192,9 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
             ref={labelRef}
             data-testid="remote-name"
             data-online={online}
-            className={`whitespace-nowrap rounded-full bg-black/50 px-2 py-0.5 text-xs font-bold shadow ${online ? 'text-white' : 'text-white/50'}`}
+            className={`relative whitespace-nowrap rounded-full bg-black/50 px-2 py-0.5 text-xs font-bold shadow ${online ? 'text-white' : 'text-white/50'}`}
           >
+            <div ref={bubbleRef} data-testid="chat-bubble" className={BUBBLE_CLASS} style={{ display: 'none' }} />
             {online ? name : `${name} ${t('net.remoteUnstable')}`}
           </div>
         </Html>

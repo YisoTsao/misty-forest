@@ -217,6 +217,85 @@ try {
     await b.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers()[0]?.held === 'knife', null, { timeout: 3000 });
   });
 
+  const chat = (c) => c.debug(() => window.__mistwoodDebug.chat());
+  /** 用鍵盤打開聊天、打字、按 Enter 送出（真的走輸入列，不呼叫除錯函式） */
+  const say = async (c, text) => {
+    await focusGame(c.page);
+    await c.page.keyboard.press('Enter');
+    await c.page.waitForFunction(() => window.document.activeElement?.getAttribute('data-testid') === 'chat-input', null, { timeout: 3000 });
+    await c.page.keyboard.type(text);
+    await c.page.keyboard.press('Enter');
+    await c.page.waitForFunction(() => window.__mistwoodDebug.chat().open === false, null, { timeout: 3000 });
+  };
+  const heard = (c, text, channel) =>
+    c.page.waitForFunction(([t, ch]) => window.__mistwoodDebug.chat().lines.some((l) => l.text === t && l.channel === ch), [text, channel], { timeout: 5000 });
+
+  await check('A 按 Enter 說話：B 收到附近頻道的訊息、A 頭上出現對話泡泡（截圖 chat.png）（任務 11F）', async () => {
+    const aId = (await a.net()).sessionId;
+    await say(a, '大家好，我是 A 😀');
+    await heard(b, '大家好，我是 A 😀', 'say');
+    const line = (await chat(b)).lines.find((l) => l.text === '大家好，我是 A 😀');
+    assert.equal(line.name, 'A');
+    assert.ok((await chat(b)).bubbles.some((x) => x.sessionId === aId), 'B 的畫面上 A 有泡泡');
+    const bubble = b.page.locator('[data-testid="chat-bubble"]');
+    await bubble.waitFor({ state: 'visible', timeout: 3000 });
+    assert.equal(await bubble.innerText(), '大家好，我是 A 😀');
+    await b.page.locator('[data-testid="chat-log"]').waitFor({ state: 'visible', timeout: 3000 });
+    await b.page.screenshot({ path: 'docs/screenshots/phase11/chat.png' });
+    // 自己也看得到自己的泡泡與紀錄
+    await heard(a, '大家好，我是 A 😀', 'say');
+    await a.page.locator('[data-testid="chat-bubble-self"]').waitFor({ state: 'visible', timeout: 3000 });
+  });
+
+  await check('B 打字時角色不動、不施法、不換武器；Esc 只關聊天、不開暫停選單，之後可以繼續操作', async () => {
+    const before = await b.state();
+    const castsBefore = (await b.debug(() => window.__mistwoodDebug.magic())).casts;
+    await focusGame(b.page);
+    await b.page.keyboard.press('Enter');
+    await b.page.waitForFunction(() => window.document.activeElement?.getAttribute('data-testid') === 'chat-input', null, { timeout: 3000 });
+    await b.page.keyboard.type('wasd qfc 123 e x');
+    await b.page.keyboard.down('KeyW');
+    await b.page.waitForTimeout(400);
+    await b.page.keyboard.up('KeyW');
+    assert.equal(await b.page.inputValue('[data-testid="chat-input"]'), 'wasd qfc 123 e xw');
+    const after = await b.state();
+    assert.ok(Math.hypot(after.x - before.x, after.z - before.z) < 0.05, `B 移動了 ${Math.hypot(after.x - before.x, after.z - before.z).toFixed(2)} m`);
+    assert.equal((await b.debug(() => window.__mistwoodDebug.magic())).casts, castsBefore, 'B 沒有施法');
+    await b.page.keyboard.press('Escape');
+    await b.page.waitForFunction(() => window.__mistwoodDebug.chat().open === false, null, { timeout: 3000 });
+    await b.page.waitForTimeout(300);
+    assert.equal(await b.page.locator('[data-testid="pause-menu"]').count(), 0, 'Esc 不開暫停選單');
+    assert.ok(!(await chat(a)).lines.some((l) => l.text?.startsWith('wasd')), '取消的訊息沒有送出');
+    // 關掉聊天後可以照常走路
+    await focusGame(b.page);
+    await b.page.keyboard.down('KeyW');
+    await b.page.waitForTimeout(500);
+    await b.page.keyboard.up('KeyW');
+    const moved = await b.state();
+    assert.ok(Math.hypot(moved.x - after.x, moved.z - after.z) > 0.5, 'B 關掉聊天後可以走路');
+  });
+
+  await check('附近頻道 30 m 外聽不到；/g 全服所有人收到；/w 密語只有對方收到', async () => {
+    const home = await a.state();
+    const s = await b.state();
+    await a.debug(([x, z]) => window.__mistwoodDebug.teleport(x, z), [s.x + 60, s.z]);
+    await b.page.waitForFunction((x) => Math.abs(window.__mistwoodDebug.remotePlayers()[0]?.x - x) < 1, s.x + 60, { timeout: 5000 });
+    await say(b, '/s 遠方的人聽得到嗎');
+    await heard(b, '遠方的人聽得到嗎', 'say');
+    await a.page.waitForTimeout(500);
+    assert.ok(!(await chat(a)).lines.some((l) => l.text === '遠方的人聽得到嗎'), 'A 在 60 m 外聽不到附近頻道');
+    await b.page.waitForTimeout(600);
+    await say(b, '/g 全服測試');
+    await heard(a, '全服測試', 'global');
+    await b.page.waitForTimeout(600);
+    await say(b, '/w A 悄悄話');
+    await heard(a, '悄悄話', 'whisper');
+    const echo = (await chat(b)).lines.find((l) => l.text === '悄悄話');
+    assert.equal(echo.to, 'A', 'B 看到「你對 A 說」的回顯');
+    await a.debug(([x, z]) => window.__mistwoodDebug.teleport(x, z), [home.x, home.z]);
+    await b.page.waitForFunction((x) => Math.abs(window.__mistwoodDebug.remotePlayers()[0]?.x - x) < 1, home.x, { timeout: 5000 });
+  });
+
   await check('A 走路時 B 看到 A 平滑地移動，動畫是走或跑', async () => {
     const before = (await b.remotes())[0];
     await focusGame(a.page);
