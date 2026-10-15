@@ -2,7 +2,7 @@
 // 只在改變時 set；遠端玩家每 50 ms 的位置放在可變的 remoteRuntime，由 RemotePlayers 每幀讀取，不觸發 React 重新渲染。
 import { create } from 'zustand';
 import { AdaptiveDelay, ClockSync, SnapshotBuffer, type Pose } from '@/game-core/net/interpolation';
-import { NET, type RemotePlayerView } from '@/game-core/net/protocol';
+import { NET, type RemoteActionMessage, type RemotePlayerView } from '@/game-core/net/protocol';
 
 // reconnecting：斷線後自動重連（同一個座位）或自動重新加入中（任務 11C）
 export const netStatuses = ['offline', 'connecting', 'connected', 'reconnecting', 'error'] as const;
@@ -38,17 +38,45 @@ export const initialNetState: NetState = {
 
 export const useNetStore = create<NetState>(() => ({ ...initialNetState }));
 
-/** 遠端玩家：最新狀態、插值快照（對方的時間軸）、對方與本機的時鐘差、依抖動調整的呈現延遲 */
-export type RemoteEntry = { view: RemotePlayerView; buffer: SnapshotBuffer; clock: ClockSync; delay: AdaptiveDelay };
+/** 遠端玩家：最新狀態、插值快照（對方的時間軸）、對方與本機的時鐘差、依抖動調整的呈現延遲、還沒播放的動作（任務 11E） */
+export type RemoteEntry = {
+  view: RemotePlayerView;
+  buffer: SnapshotBuffer;
+  clock: ClockSync;
+  delay: AdaptiveDelay;
+  actions: RemoteActionMessage[];
+  /** RemotePlayers 目前畫的動畫片段與手上的東西（除錯與測試觀察用） */
+  shown: { clip: string; held: string } | null;
+};
 
 export function createRemoteEntry(view: RemotePlayerView): RemoteEntry {
-  return { view, buffer: new SnapshotBuffer(NET.sendMs), clock: new ClockSync(), delay: new AdaptiveDelay(NET.interpDelayMs, NET.interpDelayMaxMs, NET.sendMs) };
+  return {
+    view,
+    buffer: new SnapshotBuffer(NET.sendMs),
+    clock: new ClockSync(),
+    delay: new AdaptiveDelay(NET.interpDelayMs, NET.interpDelayMaxMs, NET.sendMs),
+    actions: [],
+    shown: null,
+  };
+}
+
+/** 對方時間軸上此刻要呈現的時間（毫秒）；還沒對時就是 null */
+export function remotePresentTime(entry: RemoteEntry, localNow: number): number | null {
+  const remoteNow = entry.clock.toRemote(localNow);
+  return remoteNow === null ? null : remoteNow - entry.delay.current(localNow);
+}
+
+/** 取出呈現時間已到的動作（依時間順序）；太舊的（例如分頁在背景時累積的）直接丟掉 */
+export function takeDueActions(entry: RemoteEntry, presentT: number): RemoteActionMessage[] {
+  const due = entry.actions.filter((a) => a.t <= presentT && presentT - a.t <= NET.actionStaleMs).sort((a, b) => a.t - b.t);
+  entry.actions = entry.actions.filter((a) => a.t > presentT);
+  return due;
 }
 
 /** 本機此刻要畫的姿勢：對方時間軸上「現在 − 呈現延遲」那一刻 */
 export function remotePose(entry: RemoteEntry, localNow: number): Pose | null {
-  const remoteNow = entry.clock.toRemote(localNow);
-  return remoteNow === null ? null : entry.buffer.sample(remoteNow - entry.delay.current(localNow));
+  const t = remotePresentTime(entry, localNow);
+  return t === null ? null : entry.buffer.sample(t);
 }
 
 /** 遠端玩家的最新狀態與插值快照（sessionId → entry） */
@@ -57,6 +85,10 @@ export const remoteRuntime = {
   /** 伺服器拒絕本機位置的次數（除錯與測試觀察用） */
   corrections: 0,
   lastCorrection: null as { x: number; y: number; z: number; reason: string } | null,
+  /** 送出 / 收到 / 播放的動作數（任務 11E，除錯與測試觀察用） */
+  actionsSent: 0,
+  actionsReceived: 0,
+  actionsPlayed: 0,
 };
 
 export function isConnected(): boolean {

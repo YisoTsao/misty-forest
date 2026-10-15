@@ -14,7 +14,7 @@ import { authority, weapons } from '@/game/authority';
 import { bossRetryPoint } from '@/game/combat/bossRuntime';
 import { attackEnemy, enemyHitRadius, combatRuntime, enemyRuntime, pushImpact } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
-import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
+import { cameraRuntime, playerRuntime, queueNetAction } from '@/game/player/localRuntime';
 
 /** 倒下後多久重新站起來（秒） */
 export const RESPAWN_DELAY = 3;
@@ -158,6 +158,7 @@ export function PlayerCombat() {
         lungeTime: move.hitDelay,
       };
       pending.push({ move, weapon: weaponId, delay: move.hitDelay });
+      queueNetAction({ kind: 'melee', t: performance.now(), move: move.id });
       audio.play('swing');
     }
   });

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
-import { ClientMessage, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type CorrectionMessage } from '@/game-core/net/protocol';
+import { ClientMessage, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type CorrectionMessage, type RemoteActionMessage } from '@/game-core/net/protocol';
 import { MAPS, NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { createGameServer } from './app';
 import type { WorldRoom } from './WorldRoom';
@@ -235,5 +235,71 @@ describe('世界房間：斷線續玩（任務 11C）', () => {
     await join(room, { name: 'B', at: at(2, 1, 10) });
     await a.leave(true);
     await until(() => !room.state.players.has(a.sessionId), 500);
+  });
+});
+
+describe('世界房間：攻擊與施法（任務 11E）', () => {
+  /** 收集某個客戶端收到的動作 */
+  function collect(client: Awaited<ReturnType<typeof join>>): RemoteActionMessage[] {
+    const got: RemoteActionMessage[] = [];
+    client.onMessage(ServerMessage.action, (msg: RemoteActionMessage) => got.push(msg));
+    return got;
+  }
+
+  it('招式與法術轉送給其他人（帶上 sessionId），不送回給自己', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'B', at: at(2, 1, 10) });
+    const toA = collect(a);
+    const toB = collect(b);
+    a.send(ClientMessage.action, { kind: 'melee', t: 100, move: 'sword_chop' });
+    a.send(ClientMessage.action, { kind: 'spell', t: 200, spell: 'spell_meteor_shower', phase: 'cast', yaw: 1, tx: 5, tz: 6 });
+    await until(() => toB.length === 2);
+    expect(toB[0]).toEqual({ kind: 'melee', t: 100, move: 'sword_chop', sessionId: a.sessionId });
+    expect(toB[1]).toMatchObject({ kind: 'spell', spell: 'spell_meteor_shower', phase: 'cast', tx: 5, tz: 6, sessionId: a.sessionId });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(toA).toEqual([]);
+  });
+
+  it('資料裡沒有的招式、法術與格式不對的動作都不轉送', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'B', at: at(2, 1, 10) });
+    const toB = collect(b);
+    a.send(ClientMessage.action, { kind: 'melee', t: 100, move: 'one_hit_kill' });
+    a.send(ClientMessage.action, { kind: 'spell', t: 100, spell: 'spell_nuke', phase: 'release', yaw: 0 });
+    a.send(ClientMessage.action, { kind: 'melee', t: 100, move: 'sword_chop', damage: 9999 });
+    a.send(ClientMessage.action, { kind: 'teleport', t: 100 });
+    a.send(ClientMessage.action, { kind: 'melee', t: 100, move: 'fist_punch_a' });
+    await until(() => toB.length === 1);
+    expect(toB[0]!.kind === 'melee' && toB[0]!.move).toBe('fist_punch_a');
+    expect(room.rejectedCount(a.sessionId)).toBe(4);
+  });
+
+  it('每秒最多 8 個動作，多的丟棄', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const clock = manualClock(room);
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const b = await join(room, { name: 'B', at: at(2, 1, 10) });
+    const toB = collect(b);
+    for (let i = 0; i < 12; i++) a.send(ClientMessage.action, { kind: 'melee', t: i, move: 'fist_punch_a' });
+    await until(() => toB.length === NET.actionsPerSecond);
+    clock.advance(1000);
+    a.send(ClientMessage.action, { kind: 'melee', t: 99, move: 'fist_kick' });
+    await until(() => toB.length === NET.actionsPerSecond + 1);
+    expect(toB.at(-1)).toMatchObject({ move: 'fist_kick' });
+  });
+
+  it('加入時帶的武器與換武器寫進狀態；不認得的武器不採用', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', at: at(0, 1, 10), weapon: 'knife' });
+    expect(room.state.players.get(a.sessionId)!.weapon).toBe('knife');
+    a.send(ClientMessage.equip, { weapon: 'fist' });
+    await until(() => room.state.players.get(a.sessionId)!.weapon === 'fist');
+    a.send(ClientMessage.equip, { weapon: 'laser' });
+    await until(() => room.rejectedCount(a.sessionId) === 1);
+    expect(room.state.players.get(a.sessionId)!.weapon).toBe('fist');
+    const b = await join(room, { name: 'B', at: at(2, 1, 10), weapon: 'bazooka' });
+    expect(room.state.players.get(b.sessionId)!.weapon).toBe('sword');
   });
 });

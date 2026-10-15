@@ -16,6 +16,8 @@ export type Projectile = {
   traveled: number;
   /** 追蹤的敵人 id（null 表示直飛） */
   target: string | null;
+  /** 其他玩家施放的（任務 11E）：只畫出來，不命中本機的敵人 */
+  visualOnly?: boolean;
 };
 
 export type MeteorDrop = {
@@ -28,6 +30,8 @@ export type MeteorDrop = {
   final: boolean;
   spell: SpellDef;
   id: number;
+  /** 其他玩家施放的（任務 11E）：只畫出來，不命中本機的敵人 */
+  visualOnly?: boolean;
 };
 
 export const spellRuntime = {

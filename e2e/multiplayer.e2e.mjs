@@ -189,6 +189,34 @@ try {
     await b.page.screenshot({ path: 'docs/screenshots/phase11/multiplayer_two.png' });
   });
 
+  await check('A 換短刀並出招：B 看到 A 手上拿短刀、播放同一招的動畫（任務 11E）', async () => {
+    await a.debug(() => window.__mistwoodDebug.equip('knife'));
+    await b.page.waitForFunction(() => {
+      const r = window.__mistwoodDebug.remotePlayers()[0];
+      return r?.weapon === 'knife' && r.held === 'knife';
+    }, null, { timeout: 5000 });
+    await a.debug(() => window.__mistwoodDebug.tap('Mouse0'));
+    await b.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers()[0]?.clip === '1H_Melee_Attack_Stab', null, { timeout: 3000 });
+    // 招式結束後回到待機動畫
+    await b.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers()[0]?.clip !== '1H_Melee_Attack_Stab', null, { timeout: 3000 });
+    const net = await b.net();
+    assert.ok(net.actionsPlayed >= 1, `B 播放的動作數 ${net.actionsPlayed}`);
+  });
+
+  await check('A 施放星屑飛彈：B 看到 A 拿魔杖、飛彈從 A 身上射出，但不會打到 B 那邊的怪物（截圖 multiplayer_spell.png）', async () => {
+    await a.debug(() => window.__mistwoodDebug.setMp(100));
+    const hitsBefore = (await b.debug(() => window.__mistwoodDebug.magic())).hits;
+    await a.debug(() => window.__mistwoodDebug.tap('KeyF'));
+    await b.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers()[0]?.held === 'wand', null, { timeout: 3000 });
+    await b.page.waitForFunction(() => window.__mistwoodDebug.magic().projectiles > 0, null, { timeout: 3000 });
+    await b.page.screenshot({ path: 'docs/screenshots/phase11/multiplayer_spell.png' });
+    const magic = await b.debug(() => window.__mistwoodDebug.magic());
+    assert.equal(magic.casts, 0, 'B 自己沒有施法');
+    assert.equal(magic.hits, hitsBefore, '其他玩家的飛彈只是表現');
+    // 施法結束後換回短刀
+    await b.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers()[0]?.held === 'knife', null, { timeout: 3000 });
+  });
+
   await check('A 走路時 B 看到 A 平滑地移動，動畫是走或跑', async () => {
     const before = (await b.remotes())[0];
     await focusGame(a.page);

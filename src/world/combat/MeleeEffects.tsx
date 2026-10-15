@@ -1,8 +1,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import type { WeaponId } from '@/game-core/combat/weapons';
 import { authority, weapons } from '@/game/authority';
-import { combatRuntime } from '@/game/combat/combatRuntime';
+import { combatRuntime, type TrailSample } from '@/game/combat/combatRuntime';
 import { sparkTexture } from '@/render/sparkTexture';
 
 /**
@@ -15,7 +16,12 @@ import { sparkTexture } from '@/render/sparkTexture';
 const MAX_SAMPLES = 32;
 const TRAIL_LIFE = 0.14;
 
-function WeaponTrail() {
+/** 拖尾的取樣與武器（決定顏色與寬度）；預設是本機玩家 */
+type TrailSource = () => { samples: readonly TrailSample[]; weapon: WeaponId };
+const localTrail: TrailSource = () => ({ samples: combatRuntime.trail, weapon: authority.getState().player.weapon });
+
+/** 揮砍拖尾；其他玩家（任務 11E）傳入自己的取樣 */
+export function WeaponTrail({ source = localTrail }: { source?: TrailSource }) {
   const mesh = useRef<THREE.Mesh>(null);
   const assets = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
@@ -75,7 +81,7 @@ function WeaponTrail() {
 
   const warm = useRef(3);
   useFrame(() => {
-    const samples = combatRuntime.trail;
+    const { samples, weapon: weaponId } = source();
     const m = mesh.current;
     if (!m) return;
     // 前幾幀以全透明畫一次，shader 在載入時編譯，第一次揮砍不會卡頓
@@ -86,7 +92,7 @@ function WeaponTrail() {
       assets.geometry.attributes.aFade!.needsUpdate = true;
       return;
     }
-    const weapon = weapons.weapons.get(authority.getState().player.weapon);
+    const weapon = weapons.weapons.get(weaponId);
     if (samples.length < 2 || !weapon?.trail) {
       m.visible = false;
       return;

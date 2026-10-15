@@ -18,15 +18,15 @@ const MOVE_FADE = 0.08;
 const ONE_SHOT: readonly ClipKey[] = ['jump', 'land', 'interact', 'attack', 'skill', 'hit', 'death'];
 
 /** 單手劍模型：同系列 Knight 角色手上的武器（GAME_DESIGN 5.3），掛到玩家右手的 handslot */
-const SWORD_SOURCE = 'models/characters/kaykit-adventurers/Knight.glb';
+export const SWORD_SOURCE = 'models/characters/kaykit-adventurers/Knight.glb';
 const SWORD_NODE = '1H_Sword';
 /** 魔杖：施法時拿在右手（GAME_DESIGN 5.4），同系列 Mage 角色的武器 */
-const WAND_SOURCE = 'models/characters/kaykit-adventurers/Mage.glb';
+export const WAND_SOURCE = 'models/characters/kaykit-adventurers/Mage.glb';
 const WAND_NODE = '1H_Wand';
 /** 短刀：玩家模型本身的雙刀（原本隱藏） */
 const KNIFE_NODES = ['Knife', 'Knife_Offhand'] as const;
 /** 揮砍拖尾取樣的時間（秒） */
-const TRAIL_LIFE = 0.14;
+export const TRAIL_LIFE = 0.14;
 
 /** 複製骨架模型、隱藏武器掛件、材質轉 toon。回傳的材質需由呼叫端釋放。 */
 export function prepareModel(source: THREE.Object3D, hidden: readonly string[]) {
@@ -67,9 +67,9 @@ function bladeOf(mesh: THREE.Object3D): { tip: THREE.Vector3; base: THREE.Vector
 }
 
 /** 手上顯示的東西：近戰武器，或施法時的魔杖 */
-type HeldId = WeaponId | 'wand';
+export type HeldId = WeaponId | 'wand';
 
-type WeaponModels = {
+export type WeaponModels = {
   /** 每種武器要顯示的節點 */
   nodes: Record<HeldId, THREE.Object3D[]>;
   /** 拖尾用的主手武器與刀尖位置 */
@@ -99,7 +99,7 @@ function attachFrom(hand: THREE.Object3D | undefined, source: THREE.Object3D, no
 }
 
 /** 找出玩家模型的雙刀、把騎士的單手劍與法師的魔杖複製一份掛到右手 handslot */
-function attachWeapons(root: THREE.Object3D, swordSource: THREE.Object3D, wandSource: THREE.Object3D): WeaponModels {
+export function attachWeapons(root: THREE.Object3D, swordSource: THREE.Object3D, wandSource: THREE.Object3D): WeaponModels {
   const knives = KNIFE_NODES.map((n) => root.getObjectByName(n)).filter((o): o is THREE.Object3D => o !== undefined);
   // GLTFLoader 會移除節點名稱中的「.」（PropertyBinding.sanitizeNodeName），handslot.r 載入後是 handslotr
   const hand = root.getObjectByName('handslotr') ?? root.getObjectByName('handslot.r');

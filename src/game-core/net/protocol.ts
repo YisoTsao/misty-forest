@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 /** 協定版本：伺服器拒絕版本不同的客戶端，避免新舊版本互相送錯格式 */
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 /** 唯一的房間類型：整個世界一個房間，玩家各自帶地圖與室內（決策 T-169） */
 export const ROOM_NAME = 'world';
@@ -40,6 +40,10 @@ export const NET = {
   rejoinDelaysMs: [1000, 2000, 4000, 8000, 10000],
   /** 自動重新加入最久嘗試多久（毫秒）：涵蓋 Render 免費方案從休眠喚醒的時間 */
   rejoinGiveUpMs: 180_000,
+  /** 每個連線每秒最多接受幾則動作（攻擊、施法；任務 11E）：超過的直接丟棄 */
+  actionsPerSecond: 8,
+  /** 接收端：比呈現時間晚這麼久還沒播放的動作就丟掉（毫秒；例如分頁在背景時累積的） */
+  actionStaleMs: 2000,
 } as const;
 
 /** 客戶端 → 伺服器 */
@@ -48,12 +52,18 @@ export const ClientMessage = {
   move: 'move',
   /** 合法的瞬移（地圖出入口、進出室內、落水重生、讀檔）：只檢查頻率與落點範圍 */
   warp: 'warp',
+  /** 一次性動作（近戰招式、施法；任務 11E）：只是表現，傷害仍由各自的客戶端結算 */
+  action: 'action',
+  /** 換手上的武器（任務 11E） */
+  equip: 'equip',
 } as const;
 
 /** 伺服器 → 客戶端 */
 export const ServerMessage = {
   /** 移動沒通過驗證：把本機玩家拉回伺服器上的最後合法位置 */
   correction: 'correction',
+  /** 其他玩家的一次性動作（ActionMessage 加上 sessionId） */
+  action: 'action',
 } as const;
 
 /** 同步的動畫狀態（game-core/character/characterDef.ts 的移動片段） */
@@ -79,11 +89,40 @@ export type MoveMessage = z.infer<typeof moveMessageSchema>;
 export const warpMessageSchema = moveMessageSchema;
 export type WarpMessage = MoveMessage;
 
+const dataId = z.string().min(1).max(64);
+
+/**
+ * 一次性動作（任務 11E）。t 與 move 的 t 同一個時間軸（送出端的 performance.now），接收端在呈現到那一刻時才播放，
+ * 動作與位置對得上。招式與法術 id 由伺服器依資料檢查；細節（動畫片段、速度、時間）由接收端查資料，不在網路上傳。
+ */
+export const actionMessageSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('melee'), t: z.number().min(0).max(1e10), move: dataId }),
+  z.strictObject({
+    kind: z.literal('spell'),
+    t: z.number().min(0).max(1e10),
+    spell: dataId,
+    /** cast：開始蓄力（魔法陣）；release：發動（衝擊波、飛彈、流星） */
+    phase: z.enum(['cast', 'release']),
+    yaw: z.number().min(-1_000).max(1_000),
+    /** 流星雨的落點中心 */
+    tx: coord.optional(),
+    tz: coord.optional(),
+  }),
+]);
+export type ActionMessage = z.infer<typeof actionMessageSchema>;
+/** 伺服器轉送給其他人的動作 */
+export type RemoteActionMessage = ActionMessage & { sessionId: string };
+
+export const equipMessageSchema = z.strictObject({ weapon: dataId });
+export type EquipMessage = z.infer<typeof equipMessageSchema>;
+
 export const joinOptionsSchema = z.object({
   protocol: z.number().int(),
   name: z.string().max(64).optional(),
   /** 加入時所在的位置；在可玩範圍內才採用，否則由伺服器指派出生點 */
   at: moveMessageSchema.optional(),
+  /** 手上的武器（任務 11E）；不認得就用預設 */
+  weapon: dataId.optional(),
 });
 export type JoinOptions = z.infer<typeof joinOptionsSchema>;
 
@@ -104,6 +143,8 @@ export type RemotePlayerView = {
   anim: NetAnim;
   map: string;
   location: string;
+  /** 手上的武器（任務 11E） */
+  weapon: string;
   /** false：對方斷線、伺服器還保留座位等他重連（任務 11C） */
   online: boolean;
 };

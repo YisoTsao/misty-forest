@@ -1,14 +1,14 @@
 # 開發進度
 
 ## 目前階段
-**Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）完成，即文件的 Phase 0–3；11D（部署設定）的程式完成，實際上線進行中（見「下一步」）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
+**Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）、11D（部署：Vercel + Render 上線，2026-10-15 使用者以兩個瀏覽器在正式網址驗收連線成功）、11E（攻擊與施法的同步）完成。正式網址 https://mistwood-blue.vercel.app。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
 **續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
 
 **交接（2026-10-15，多人連線）**：使用者要求先做多人連線，任務 11A–11B 已完成並提交到 `develop`（見「已完成」）。多人連線的執行方式、協定與測試見 `docs/multiplayer/`。
-- 下一步（文件 Phase 4，任務 11D 上線）：程式與設定已完成（`render.yaml`、`vercel.json`、來源允許清單、喚醒提示），步驟見 `docs/multiplayer/deploy.md`。Vercel 專案由 Claude 透過 Vercel 工具建立（帳號 `yisotsao`、團隊 `yisotsaos-projects`）；Render 服務需要使用者在後台用 Blueprint 建立並填 `ALLOWED_ORIGINS`。上線後用兩個瀏覽器在正式網址驗收，並在 PROGRESS 記錄網址。之後 Phase 5 Supabase 登入（只用 Email）與雲端存檔、Phase 6 AOI 與伺服器權威的 RPG 系統（含依資料驗證瞬移落點，T-174）。
-- 上線狀態（2026-10-15）：`main` 已與 `develop` 同步（`0d04faf`）。**Supabase** 專案 `mistwood` 已建立（ref `dnnlmunlmmhiqpgkjbvr`，新加坡 `ap-southeast-1`，空的，Phase 5 才接上）。**Vercel**：透過 Vercel 工具建立專案時回 403（沒有建立專案的權限），本機也沒有 Vercel CLI 登入 → 改由使用者在後台匯入 repo（專案名 `mistwood`），或在本機 `npx vercel login` 後由 Claude 用 CLI 設定。**Render**：等使用者用 Blueprint 建立。
+- **已上線（任務 11D）**：前端 https://mistwood-blue.vercel.app（Vercel 專案 `mistwood`，團隊 `yisotsaos-projects`，`mistwood.vercel.app` 是別人的）、遊戲伺服器 https://mistwood-game-server.onrender.com（Render Free 新加坡，`ALLOWED_ORIGINS=https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://`）、Supabase 專案 `mistwood`（ref `dnnlmunlmmhiqpgkjbvr`，新加坡，還是空的）。`main` push 後 Vercel 與 Render 都自動部署。Vercel 的 MCP 工具建立專案回 403，改用使用者登入的 Vercel CLI（`npx vercel`；本機上傳部署 `vercel deploy` 被自動模式擋下，部署一律走 push `main`）。使用者 2026-10-15 在正式網址以兩個瀏覽器驗收：連線成功；回報攻擊與施法對方看不到 → 任務 11E。
+- **下一步**：Phase 5 Supabase 登入（只用 Email 魔法連結）與雲端存檔（`online-plan.md`）；之後 Phase 6 AOI 與伺服器權威的 RPG 系統（共享怪物與傷害、依資料驗證瞬移落點 T-174）。
 - **上線整體規劃**：`docs/multiplayer/online-plan.md`（Vercel、Render、Supabase 的分工、架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖、環境變數、各階段要使用者提供的帳號）。Phase 4、5 開始前要先拿到使用者的 Vercel、Render 帳號與 Supabase 專案，見該文件 §8 與「待使用者處理」。
 
 **交接（2026-10-15，9F）**：任務 9F 風語草原的地圖與場景完成，`wip/9f-whispermeadow` 已 rebase 到多人連線之後並合回 `develop`（見「已完成」）。下一步可以接 9G（霏與風車聚落的居民、`quest_meadow_001`「風把話吹散了」），或回到多人連線 Phase 3，依使用者指示。
@@ -27,6 +27,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11E：多人連線——攻擊與施法的同步（2026-10-15）
+- 使用者在正式網址試玩回報：拳、刀砍、魔法對方都看不到。協定升到版本 2：`action`（近戰招式、施法的蓄力與發動）與 `equip`（武器）；伺服器檢查格式、資料 id、每秒最多 8 則後轉送給其他人，不結算傷害（T-176）。
+- 遠端玩家：手上顯示對方裝備的武器；出招時播放同一招的動畫與揮砍拖尾；施法時拿魔杖、在對方位置畫出魔法陣、衝擊波、星光彈、流星（只是表現，不命中本機的怪物）。動作依送出時間在呈現到那一刻才播放，與插值後的位置對齊。
+- 測試：Vitest 873 項（`WorldRoom.test.ts` 新增 4 項：轉送與不回送、未知招式 / 法術與多餘欄位被拒、每秒 8 則上限、武器；`netStore.test.ts` 2 項：動作依時間取出、過舊的丟掉）。端對端 `multiplayer` 擴充到 14 項（B 看到 A 拿短刀並播放 `1H_Melee_Attack_Stab`、施放星屑飛彈時拿魔杖且有飛彈但 B 的命中數不變）全過；`melee`、`magic`、`combat` 重跑全過。未跑完整 e2e。
+- 截圖 `docs/screenshots/phase11/multiplayer_spell.png`（已檢視：A 腳下的魔法陣與施法光芒）。
+- 「有時頓頓的」：到 Render 的 TCP 連線約 20 ms，一次 HTTPS 請求 170–220 ms（含 TLS 與轉到新加坡）。遠端玩家的呈現延遲會依抖動在 100–300 ms 之間自動調整（T-173）；免費方案的 CPU 很少，但伺服器只轉送位置、負載很低。另一個可能是瀏覽器本身的 FPS（e2e 截圖的 FPS 面板 26、draw calls 468）。還沒在使用者的瀏覽器量測，見「已知問題」。
+
 ### 任務 11D：多人連線——部署設定（2026-10-15，〈多人連線規劃〉Phase 4，程式部分）
 - `render.yaml`（Render Free 新加坡、`main` 自動部署、`/health`）、`vercel.json`（Vite、`dist`、長效快取）、`docs/multiplayer/deploy.md`（環境變數、第一次部署步驟、Electron 連正式伺服器、本機模擬）；`.env.example` 加上 `ALLOWED_ORIGINS`。
 - 伺服器的連線來源允許清單（`server/origins.ts`）：比對房間（static `onAuth`）、WebSocket 升級、CORS 三處檢查（T-175）。連線等待超過 4 秒時提示伺服器可能在休眠中醒來。
@@ -513,6 +520,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
 
 ## 已知問題
+- 多人連線（任務 11E）：怪物仍是各客戶端各自一份，兩個人看到的怪物位置與血量不同，對方的攻擊與法術只是表現、不會打到自己畫面上的怪物（Phase 6 伺服器權威才共享）。使用者回報正式網址「有時頓頓的」，原因未確認：先分辨是整個畫面卡（瀏覽器 FPS）還是只有對方的角色頓（網路抖動）。
 - 8A 的完整 `pnpm e2e` 連跑時 `magic.e2e` 的星屑飛彈一次沒命中（單獨重跑通過），與下一條同一類。
 - 地圖擴大後，連續跑完整 `pnpm e2e` 時偶爾有一個檔案的遊戲視窗崩潰（7A：`melee.e2e`「Target crashed」；7B：`harvest.e2e` 啟動時視窗關閉）；單獨重跑都通過。`combat.e2e` 的 Q 技能偶爾沒施放（傳送後立刻按鍵），任務 7C 改為等動作結束後按住 60 ms，連跑 3 次通過。當時電腦可用記憶體約 1 GB（16 GB 機器、其他程式佔用），推測是記憶體壓力；需要在空閒機器上連跑確認，並量測大地圖的記憶體（`PERF.md`）。
 - 觀景點書籤在濃霧（迷霧 1.0）時幾乎全灰：攝影機離地面約 90 m，超過濃霧可見距離 75 m。與「濃霧」設定一致，但無法拿來做美術比對；是否要讓濃霧時遠處仍看得到輪廓，待使用者決定。

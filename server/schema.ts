@@ -18,6 +18,8 @@ export const PlayerState = schema(
     /** 由伺服器依位置判斷 */
     map: t.string(),
     location: t.string(),
+    /** 手上的武器（任務 11E，weapons.json 的 id） */
+    weapon: t.string(),
     /** 先保留，第一階段不做戰鬥 */
     health: t.uint8(),
     /** false：斷線中，伺服器保留座位等他重連（任務 11C） */

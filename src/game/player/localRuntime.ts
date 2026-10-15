@@ -2,6 +2,7 @@
 // 每幀由 useFrame 讀寫的可變物件，不放進 React state，也不進存檔
 // （存檔時從這裡取玩家位置的快照）。
 import { initialLocomotionState, type LocomotionState } from '@/game-core/character/locomotion';
+import type { ActionMessage } from '@/game-core/net/protocol';
 import type { SafePointTrail } from '@/game-core/world/safePoints';
 
 export const playerRuntime = {
@@ -25,7 +26,17 @@ export const playerRuntime = {
   positionAt: 0,
   /** 沿途記錄的安全點；Player 掛載時以出生點初始化 */
   safePoints: { points: [], groundedFor: 0 } as SafePointTrail,
+  /** 要告訴其他玩家的一次性動作（攻擊、施法；任務 11E）：多人連線送出時取走，沒連線時清掉 */
+  netActions: [] as ActionMessage[],
 };
+
+/** 記下一個要同步給其他玩家的動作（時間 = 現在，與位置同一個時間軸） */
+export function queueNetAction(action: ActionMessage): void {
+  const list = playerRuntime.netActions;
+  list.push(action);
+  // 沒連線時沒人取走：只留最近幾個
+  if (list.length > 8) list.shift();
+}
 
 /**
  * 一次性動作。近戰招式（GAME_DESIGN 5.3）另外指定動畫片段名稱（clipName）、播放速度，

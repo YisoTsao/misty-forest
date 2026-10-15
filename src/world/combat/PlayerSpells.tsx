@@ -7,7 +7,7 @@ import { authority, spells } from '@/game/authority';
 import { attackEnemy, enemyHitRadius, combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
 import { cooldownOf, spellRuntime, type Projectile } from '@/game/combat/spellRuntime';
 import { input } from '@/game/input/inputManager';
-import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
+import { cameraRuntime, playerRuntime, queueNetAction } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { useSettingsStore } from '@/game/state/settingsStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
@@ -121,6 +121,8 @@ function begin(spell: SpellDef): void {
   }
   locomotion.vx = locomotion.vz = 0;
   playerRuntime.action = { clip: 'skill', clipName: spell.clips.cast, remaining: spell.duration };
+  const target = spellRuntime.casting.target;
+  queueNetAction({ kind: 'spell', t: performance.now(), spell: spell.id, phase: 'cast', yaw: locomotion.facingYaw, ...(target ? { tx: target.x, tz: target.z } : {}) });
   const feet = position.y - 0.76;
   vfx({
     type: 'magicCircle',
@@ -145,6 +147,8 @@ function release(spell: SpellDef): void {
   const feet = position.y - 0.76;
   const color = spell.color as Rgb;
   audio.sparkle();
+  const target = casting?.target;
+  queueNetAction({ kind: 'spell', t: performance.now(), spell: spell.id, phase: 'release', yaw: locomotion.facingYaw, ...(target ? { tx: target.x, tz: target.z } : {}) });
 
   if (spell.kind === 'nova') {
     for (const [id, v] of enemyRuntime) {
@@ -188,6 +192,58 @@ function release(spell: SpellDef): void {
   }
 }
 
+/**
+ * 其他玩家施法（任務 11E）：在對方的位置畫出同樣的特效，不命中本機的敵人、不扣星光值、不震動鏡頭。
+ * cast：腳下魔法陣（流星雨另外在落點畫預警魔法陣）；release：衝擊波、直飛的星光彈、流星。
+ */
+export function remoteSpell(spell: SpellDef, phase: 'cast' | 'release', feet: { x: number; y: number; z: number }, yaw: number, target?: { x: number; z: number }): void {
+  const color = spell.color as Rgb;
+  if (phase === 'cast') {
+    const radius = spell.kind === 'nova' ? 1.7 : spell.kind === 'meteor' ? 1.3 : 1.1;
+    vfx({ type: 'magicCircle', x: feet.x, y: feet.y, z: feet.z, radius, duration: spell.duration + 0.25, color });
+    if (spell.kind === 'meteor' && spell.meteor && target) {
+      const m = spell.meteor;
+      vfx({
+        type: 'magicCircle',
+        x: target.x,
+        y: terrainHeight(target.x, target.z),
+        z: target.z,
+        radius: spell.radius,
+        duration: spell.castTime + m.count * m.interval + m.fallTime + 0.4,
+        color,
+      });
+    }
+    return;
+  }
+  if (spell.kind === 'nova') {
+    vfx({ type: 'shockwave', x: feet.x, y: feet.y, z: feet.z, radius: spell.radius + 0.6, duration: 0.6, color });
+    vfx({ type: 'burst', preset: 'nova', x: feet.x, y: feet.y, z: feet.z, color, scale: spell.radius / 3.6 });
+    vfx({ type: 'flash', x: feet.x, y: feet.y + 1.4, z: feet.z, color, intensity: 9, duration: 0.5, distance: spell.radius * 3 });
+    return;
+  }
+  if (spell.kind === 'meteor') {
+    if (target) launchMeteors(spell, target, true);
+    return;
+  }
+  if (spell.kind === 'bolt' && spell.projectiles) {
+    const p = spell.projectiles;
+    for (const y of spreadYaws(yaw, p.count, p.spreadDeg)) {
+      spellRuntime.projectiles.push({
+        id: spellRuntime.nextId++,
+        spell,
+        x: feet.x + Math.sin(y) * 0.6,
+        y: feet.y + HAND_HEIGHT,
+        z: feet.z + Math.cos(y) * 0.6,
+        yaw: y,
+        traveled: 0,
+        target: null,
+        visualOnly: true,
+      });
+    }
+    vfx({ type: 'flash', x: feet.x, y: feet.y + 1.3, z: feet.z, color, intensity: 4, duration: 0.25, distance: 6 });
+  }
+}
+
 /** 追蹤彈飛行：轉向目標、前進、碰到任何敵人就命中；超過射程消散 */
 function updateProjectiles(dt: number): void {
   const list = spellRuntime.projectiles;
@@ -207,7 +263,7 @@ function updateProjectiles(dt: number): void {
     pr.y += (desiredY - pr.y) * Math.min(1, dt * 6);
     pr.y = Math.max(pr.y, ground + 0.3);
 
-    const hitId = hitEnemy(pr);
+    const hitId = pr.visualOnly ? null : hitEnemy(pr);
     if (hitId) {
       attackEnemy(hitId, pr.spell.id);
       spellRuntime.hits++;

@@ -1,11 +1,16 @@
 // 世界房間（任務 11A / 11B）：玩家加入 / 離開、出生點、位置的驗證與廣播。
 // 只負責「誰在場、在哪、什麼動作」；任務、背包、戰鬥仍是各客戶端自己的 LocalAuthority（決策 T-169）。
+// 攻擊與施法（任務 11E）只轉送給其他人當作表現，不結算傷害（怪物還是各客戶端各自一份）。
 import { Room, ServerError, type AuthContext, type Client } from '@colyseus/core';
 import characters from '@/data/characters.json';
 import interiorsRaw from '@/data/interiors.json';
+import spellsRaw from '@/data/spells.json';
 import weapons from '@/data/weapons.json';
+import { DEFAULT_WEAPON, parseWeapons } from '@/game-core/combat/weapons';
 import {
+  actionMessageSchema,
   ClientMessage,
+  equipMessageSchema,
   joinOptionsSchema,
   moveMessageSchema,
   NET,
@@ -16,6 +21,7 @@ import {
   type CorrectionMessage,
   type CorrectionReason,
   type MoveMessage,
+  type RemoteActionMessage,
 } from '@/game-core/net/protocol';
 import { acceptRate, canWarp, checkMove, maxLungeIn, moveLimitsFor, zoneAt, type InteriorZone, type Vec3 } from '@/game-core/net/moveValidation';
 import { NEW_GAME_SPAWN } from '@/game-core/world/maps';
@@ -27,6 +33,8 @@ const traveler = characters.find((c) => c.id === 'traveler');
 if (!traveler) throw new Error('characters.json 沒有 traveler');
 const LIMITS = moveLimitsFor(traveler.locomotion, maxLungeIn(weapons));
 const FOOT_OFFSET = traveler.capsule.halfHeight + traveler.capsule.radius;
+const WEAPONS = parseWeapons(weapons);
+const SPELL_IDS = new Set(spellsRaw.map((s) => s.id));
 const INTERIORS: InteriorZone[] = interiorsRaw.map((i) => ({ id: i.id, origin: [i.origin[0]!, i.origin[1]!] as const }));
 
 /** 每個連線在伺服器內部的追蹤資料（不同步給客戶端） */
@@ -36,6 +44,8 @@ type Track = {
   lastWarpAt: number | null;
   lastCorrectionAt: number;
   rate: { windowStart: number; count: number };
+  /** 動作（攻擊、施法）另外限制頻率 */
+  actionRate: { windowStart: number; count: number };
   rejected: number;
 };
 
@@ -62,6 +72,8 @@ export class WorldRoom extends Room<{ state: WorldState }> {
 
     this.onMessage(ClientMessage.move, (client: Client, raw: unknown) => this.handleMove(client, raw, false));
     this.onMessage(ClientMessage.warp, (client: Client, raw: unknown) => this.handleMove(client, raw, true));
+    this.onMessage(ClientMessage.action, (client: Client, raw: unknown) => this.handleAction(client, raw));
+    this.onMessage(ClientMessage.equip, (client: Client, raw: unknown) => this.handleEquip(client, raw));
     // 不認得的訊息一律忽略（不讓客戶端觸發未定義的行為）
     this.onMessage('*', (client: Client, type: string | number) => {
       console.warn(`[world] 忽略未知訊息 ${String(type)}（${client.sessionId}）`);
@@ -90,6 +102,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     player.name = sanitizeName(options.name, `旅人${number}`);
     player.health = 100;
     player.online = true;
+    player.weapon = options.weapon && WEAPONS.weapons.has(options.weapon as never) ? options.weapon : DEFAULT_WEAPON;
 
     // 客戶端帶來的位置在可玩範圍內就採用（讀檔後可能在其他地圖）；否則放在出生點附近，彼此錯開
     const at = options.at;
@@ -109,6 +122,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       lastWarpAt: null,
       lastCorrectionAt: 0,
       rate: { windowStart: this.now(), count: 0 },
+      actionRate: { windowStart: this.now(), count: 0 },
       rejected: 0,
     });
     // 被指派出生點時，客戶端從初始狀態讀到自己的位置後移過去（加入當下送訊息會比客戶端註冊 handler 早到）
@@ -168,6 +182,38 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       if (!check.ok) return this.reject(client, player, track, check.reason);
     }
     this.accept(player, track, msg, zone, now);
+  }
+
+  /** 攻擊、施法：檢查格式、頻率與資料中的 id，轉送給其他人（任務 11E） */
+  private handleAction(client: Client, raw: unknown): void {
+    const player = this.state.players.get(client.sessionId);
+    const track = this.tracks.get(client.sessionId);
+    if (!player || !track || !player.online) return;
+    const now = this.now();
+    if (!acceptRate(track.rate, now, NET.softMessagesPerSecond) || !acceptRate(track.actionRate, now, NET.actionsPerSecond)) return;
+    const parsed = actionMessageSchema.safeParse(raw);
+    const msg = parsed.success ? parsed.data : null;
+    const known = msg && (msg.kind === 'melee' ? WEAPONS.moves.has(msg.move) : SPELL_IDS.has(msg.spell));
+    if (!msg || !known) {
+      track.rejected++;
+      return;
+    }
+    const out: RemoteActionMessage = { ...msg, sessionId: client.sessionId };
+    this.broadcast(ServerMessage.action, out, { except: client });
+  }
+
+  /** 換武器：只接受資料中的武器，寫進同步狀態 */
+  private handleEquip(client: Client, raw: unknown): void {
+    const player = this.state.players.get(client.sessionId);
+    const track = this.tracks.get(client.sessionId);
+    if (!player || !track) return;
+    if (!acceptRate(track.rate, this.now(), NET.softMessagesPerSecond)) return;
+    const parsed = equipMessageSchema.safeParse(raw);
+    if (!parsed.success || !WEAPONS.weapons.has(parsed.data.weapon as never)) {
+      track.rejected++;
+      return;
+    }
+    player.weapon = parsed.data.weapon;
   }
 
   private accept(player: PlayerState, track: Track, msg: MoveMessage, zone: { map: string; location: string }, now: number): void {

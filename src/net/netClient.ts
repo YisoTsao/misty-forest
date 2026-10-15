@@ -15,8 +15,10 @@ import {
   type CorrectionMessage,
   type MoveMessage,
   type NetAnim,
+  type RemoteActionMessage,
   type RemotePlayerView,
 } from '@/game-core/net/protocol';
+import { authority } from '@/game/authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
 import { t } from '@/game/i18n';
 import { playerRuntime } from '@/game/player/localRuntime';
@@ -77,7 +79,7 @@ async function join(): Promise<boolean> {
   let joined: Room;
   try {
     const client = new Client(url);
-    joined = await client.joinOrCreate(ROOM_NAME, { protocol: PROTOCOL_VERSION, name, at: localMove() });
+    joined = await client.joinOrCreate(ROOM_NAME, { protocol: PROTOCOL_VERSION, name, at: localMove(), weapon: authority.getState().player.weapon });
   } catch (err) {
     useNetStore.setState({ error: `${t('net.connectFailed')}：${errorText(err)}` });
     return false;
@@ -92,6 +94,7 @@ async function join(): Promise<boolean> {
   useNetStore.setState({ status: 'connected', serverUrl: url, roomId: joined.roomId, sessionId: joined.sessionId, error: null });
   joined.onStateChange((state: WorldStateLike) => syncState(state));
   joined.onMessage(ServerMessage.correction, (msg: CorrectionMessage) => applyCorrection(msg));
+  joined.onMessage(ServerMessage.action, (msg: RemoteActionMessage) => receiveAction(msg));
   joined.onError((code, message) => console.warn(`[net] 房間錯誤 ${code}：${message ?? ''}`));
   joined.onDrop((code) => onDropped(code));
   joined.onReconnect(() => onReconnected());
@@ -230,6 +233,7 @@ function syncState(state: WorldStateLike): void {
       anim: (isNetAnim(p.anim) ? p.anim : 'idle') as NetAnim,
       map: p.map,
       location: p.location,
+      weapon: p.weapon,
       online: p.online !== false,
     };
     let entry = remoteRuntime.players.get(sessionId);
@@ -272,6 +276,15 @@ function updateMembers(count: number, notify: boolean): void {
   useNetStore.setState({ members, playerCount: count });
 }
 
+/** 其他玩家的攻擊、施法：放進對方的動作佇列，RemotePlayers 呈現到那一刻時播放（任務 11E） */
+function receiveAction(msg: RemoteActionMessage): void {
+  const entry = remoteRuntime.players.get(msg.sessionId);
+  if (!entry) return;
+  entry.actions.push(msg);
+  if (entry.actions.length > 16) entry.actions.shift();
+  remoteRuntime.actionsReceived++;
+}
+
 function clearRemotes(): void {
   remoteRuntime.players.clear();
 }
@@ -282,12 +295,15 @@ function clearRemotes(): void {
 let pendingCorrection = false;
 let lastWarpSeq = 0;
 let lastSent: (MoveMessage & { at: number }) | null = null;
+let lastWeapon: string | null = null;
 
 function startSending(warpSeqAtJoin: number): void {
   stopSending();
   lastWarpSeq = warpSeqAtJoin;
   lastSent = null;
+  lastWeapon = authority.getState().player.weapon;
   pendingCorrection = false;
+  playerRuntime.netActions.length = 0;
   sendTimer = window.setInterval(sendTick, NET.sendMs);
 }
 
@@ -299,6 +315,7 @@ function stopSending(): void {
 function sendTick(): void {
   // 重連中不送（SDK 會把訊息排隊，重連後一次送出一堆舊位置）
   if (!room || useNetStore.getState().status !== 'connected') return;
+  sendActions();
   const move = localMove();
   const now = performance.now();
   if (forceWarp) {
@@ -326,6 +343,20 @@ function sendTick(): void {
   if (!moved && lastSent && now - lastSent.at < NET.idleResendMs) return;
   room.send(ClientMessage.move, move);
   lastSent = { ...move, at: now };
+}
+
+/** 攻擊、施法與換武器（任務 11E）：排在位置之前送，接收端依時間對齊 */
+function sendActions(): void {
+  if (!room) return;
+  const weapon = authority.getState().player.weapon;
+  if (weapon !== lastWeapon) {
+    lastWeapon = weapon;
+    room.send(ClientMessage.equip, { weapon });
+  }
+  const actions = playerRuntime.netActions;
+  for (const action of actions) room.send(ClientMessage.action, action);
+  remoteRuntime.actionsSent += actions.length;
+  actions.length = 0;
 }
 
 /** 伺服器不採用本機位置：把本機玩家拉回伺服器上的位置 */
