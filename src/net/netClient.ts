@@ -85,6 +85,7 @@ async function join(): Promise<boolean> {
   // 自動重連回同一個座位：總時間約 15 秒，短於伺服器保留座位的 NET.reconnectSeconds
   joined.reconnection.maxRetries = NET.reconnectRetries;
   joined.reconnection.maxDelay = NET.reconnectMaxDelayMs;
+  joined.reconnection.minUptime = NET.reconnectMinUptimeMs;
   room = joined;
   firstState = true;
   forceWarp = false;

@@ -256,7 +256,12 @@ try {
     assert.equal((await b.net()).playerCount, 2);
   });
 
-  await check('A 的網路中斷 5 秒：A 顯示重新連線中，B 看到 A 留在原地、名牌標示連線不穩，沒有離開通知', async () => {
+  await check('A 剛加入 1.5 秒就網路中斷 5 秒：A 顯示重新連線中，B 看到 A 留在原地、名牌標示連線不穩，沒有離開通知', async () => {
+    // 剛加入不久就斷線也要自動重連回同一個座位（SDK 預設加入不滿 5 秒就放棄，改成 1 秒）
+    await a.debug(() => window.__mistwoodDebug.netReconnect());
+    await a.page.waitForFunction(() => window.__mistwoodDebug.net().status === 'connected', null, { timeout: 10_000 });
+    await b.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers().length === 1 && window.__mistwoodDebug.net().playerCount === 2, null, { timeout: 10_000 });
+    await a.page.waitForTimeout(1500);
     const toastsBefore = await toastKeys(b);
     const sessionBefore = (await a.net()).sessionId;
     proxy.cut();
@@ -322,11 +327,16 @@ try {
     proxy.jitter(0);
     const maxDelay = Math.max(...samples.map((s) => s.delayMs));
     assert.ok(maxDelay > 140 && maxDelay <= 300, `呈現延遲最高 ${maxDelay.toFixed(0)} ms`);
-    // 延遲拉長之後（後半段）每一幀都連續
+    // 延遲拉長之後（後半段）幾乎每一幀都連續。代理的延遲會排隊累積，偶爾某一包晚到超過呈現延遲（上限 300 ms），
+    // 畫面停一下再追上：允許最多一次、不超過 1.2 m 的追趕（T-173）
     const late = samples.slice(Math.floor(samples.length / 2));
-    let maxStep = 0;
-    for (let i = 1; i < late.length; i++) maxStep = Math.max(maxStep, Math.hypot(late[i].rx - late[i - 1].rx, late[i].rz - late[i - 1].rz));
-    assert.ok(maxStep < 0.5, `插值位置一幀跳了 ${maxStep.toFixed(2)} m`);
+    const jumps = [];
+    for (let i = 1; i < late.length; i++) {
+      const step = Math.hypot(late[i].rx - late[i - 1].rx, late[i].rz - late[i - 1].rz);
+      if (step >= 0.5) jumps.push({ step: +step.toFixed(2), delayMs: +late[i].delayMs.toFixed(0) });
+    }
+    assert.ok(jumps.length <= 1 && jumps.every((j) => j.step < 1.2), `後半段 ${late.length} 幀的跳動：${JSON.stringify(jumps)}`);
+    if (jumps.length) console.log(`  （抖動時追趕一次：${JSON.stringify(jumps)}）`);
   });
 
   await check('A 走過地圖出入口到螢苔祕林：伺服器接受瞬移，B 不再顯示 A', async () => {
