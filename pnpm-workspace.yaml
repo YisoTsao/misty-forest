@@ -7,3 +7,4 @@ allowBuilds:
   electron: true
   esbuild: true
   electron-winstaller: false
+  msgpackr-extract: false

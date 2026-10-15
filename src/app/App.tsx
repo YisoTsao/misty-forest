@@ -24,6 +24,8 @@ import { ShopPanel } from '@/ui/ShopPanel';
 import { CraftPanel } from '@/ui/CraftPanel';
 import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
+import { MultiplayerPanel } from '@/ui/MultiplayerPanel';
+import { NetStatusBadge } from '@/ui/NetStatusBadge';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
 import { QuestTracker } from '@/ui/QuestTracker';
@@ -70,6 +72,7 @@ export function App() {
       <RegionBanner />
       <QuestTracker />
       <Minimap />
+      <NetStatusBadge />
       <ControlHint />
       {debugEnabled && (
         <>
@@ -89,6 +92,7 @@ export function App() {
       <ShopPanel />
       <CraftPanel />
       <SettingsPanel />
+      <MultiplayerPanel />
       <ErrorOverlay />
     </div>
   );

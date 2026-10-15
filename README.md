@@ -108,12 +108,13 @@ pnpm dev:electron
 | `pnpm dev` | 只啟動網頁版開發伺服器（http://localhost:5173） |
 | `pnpm dev:electron` | 開發模式的桌面版（StrictMode、熱更新） |
 | `pnpm start` | 執行已建置的桌面版（需先 `pnpm build`） |
-| `pnpm typecheck` | 三個 tsconfig 的型別檢查 |
+| `pnpm dev:server` / `pnpm start:server` | 多人連線的遊戲伺服器（Colyseus，`ws://localhost:2567`；開發版改檔自動重啟 / 建置後執行）。遊戲中 Esc →「多人連線」，見 `docs/multiplayer/` |
+| `pnpm typecheck` | 四個 tsconfig 的型別檢查（含遊戲伺服器） |
 | `pnpm lint` | ESLint（含 game-core 的依賴限制） |
 | `pnpm test` | Vitest 單元測試 |
 | `pnpm check` | typecheck + lint + test（任務完成前必過） |
-| `pnpm build` | 建置網頁版與 Electron 程式（不含型別檢查，請先跑 `pnpm check`） |
-| `pnpm e2e` | 建置後執行全部 24 組 Electron 端對端測試（約數分鐘；日常開發改用單一 suite，見 `.claude/skills/mistwood-verify`） |
+| `pnpm build` | 建置網頁版、Electron 程式與遊戲伺服器（不含型別檢查，請先跑 `pnpm check`） |
+| `pnpm e2e` | 建置後執行全部 45 組 Electron 端對端測試（約數分鐘；日常開發改用單一 suite，見 `.claude/skills/mistwood-verify`） |
 | `pnpm e2e:movement` / `e2e:world` / `e2e:dev` | 單一 suite（需先 `pnpm build`） |
 | `pnpm pack` | 產生未壓縮的桌面版目錄（`release/`） |
 | `pnpm dist` | 產生安裝檔：macOS `.dmg`、Windows `.exe`（NSIS） |

@@ -91,6 +91,7 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       playerRuntime.safePoints = createSafePointTrail(at);
       body.setTranslation(at, true);
       Object.assign(playerRuntime.position, at);
+      playerRuntime.warpSeq++;
       return;
     }
 
@@ -162,6 +163,7 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       body.setTranslation(next, true);
       playerRuntime.teleportRequest = null;
       playerRuntime.safePoints.groundedFor = 0;
+      playerRuntime.warpSeq++;
     } else {
       body.setNextKinematicTranslation(next);
       // 水邊（腳底接近湖面）不記錄安全點，避免重生在水裡
@@ -170,6 +172,7 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
 
     playerRuntime.locomotion = state;
     Object.assign(playerRuntime.position, next);
+    playerRuntime.positionAt = performance.now();
 
     const visual = visualRef.current;
     if (visual) {

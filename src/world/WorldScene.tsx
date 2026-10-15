@@ -31,6 +31,7 @@ import { Companion } from './entities/companion/Companion';
 import { Enemies } from './entities/enemy/Enemies';
 import { Npcs } from './entities/npc/Npcs';
 import { Player } from './entities/player/Player';
+import { RemotePlayers } from './entities/player/RemotePlayers';
 import { InputBinder } from './InputBinder';
 import { ChimneySmoke } from './ambient/ChimneySmoke';
 import { Fireflies } from './ambient/Fireflies';
@@ -139,6 +140,7 @@ export function WorldScene({ data }: { data: WorldData }) {
         <MeleeEffects />
         <VfxSystem />
         <Companion />
+        <RemotePlayers />
         <BuildController />
         <ShaderWarmup />
         <SceneReadyProbe />

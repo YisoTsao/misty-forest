@@ -6,3 +6,6 @@ release/
 .DS_Store
 # 截圖產物（本機保留，不進版控）
 docs/screenshots/
+dist-server/
+.env
+.env.local

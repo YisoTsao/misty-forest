@@ -11,6 +11,7 @@ import { installCompanion } from '@/game/companion/companionRuntime';
 import { installEventFeedback } from '@/game/eventFeedback';
 import { loadMainSave } from '@/game/save/saveService';
 import { installAutosave } from '@/game/session';
+import { installNetwork } from '@/net/installNetwork';
 import { loadSettings } from '@/game/state/settingsStore';
 import { t } from '@/game/i18n';
 import { useErrorStore } from '@/game/state/errorStore';
@@ -28,6 +29,7 @@ installCompanion();
 installAudioUnlock();
 installAudioFeedback();
 installAutosave();
+installNetwork();
 // 啟動時檢查存檔（主選單顯示「繼續遊戲」或損壞提示）；讀取失敗不影響啟動
 void loadMainSave();
 void loadSettings();

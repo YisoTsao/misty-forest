@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['dist', 'dist-electron', 'release', 'node_modules', 'docs'] },
+  { ignores: ['dist', 'dist-electron', 'dist-server', 'release', 'node_modules', 'docs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -36,7 +36,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['electron/**/*.ts', 'scripts/**/*.{mjs,ts}', 'e2e/**/*.mjs', '*.config.{ts,js}'],
+    files: ['electron/**/*.ts', 'server/**/*.ts', 'scripts/**/*.{mjs,ts}', 'e2e/**/*.mjs', '*.config.{ts,js}'],
     languageOptions: { globals: globals.node },
   },
 );

@@ -299,7 +299,7 @@ Bible §15 的 `MapDefinition`、`CreatureDefinition`、`ItemDefinition`、`Loot
 | Phase 8 螢苔祕林 | 地圖二場景、地圖切換框架（`MapDefinition`、exits）、三種怪物、苔咚、水道謎題 | — |
 | Phase 9 澄鏡湖、風語草原 | 水鏡光路、風帆滑翔 | — |
 | Phase 10 霜鈴山脈、星根遺跡 | 冰面與保暖、五共鳴柱、裂鐘、諾亞三階段、結局 | — |
-| Phase 11 多人（可選） | Socket.IO、`RemoteAuthority` | — |
+| Phase 11 多人（提前開始，DECISIONS T-166） | Colyseus 0.18 遊戲伺服器（`server/`）、共用客戶端模組（`src/net/`）、在場與移動同步（11A–11B ✅）；之後：斷線續玩、部署（Render / Vercel）、Supabase 登入與存檔、AOI 與伺服器權威的 RPG 系統（`docs/multiplayer/`） | 11A–11B ✅ |
 
 **Phase 6 驗收**：§5.1–5.4 的驗收全部通過；e2e 全綠；`PERF.md` 有日／夜與施法的量測；截圖檢視通過。
 

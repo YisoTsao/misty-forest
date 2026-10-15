@@ -49,6 +49,8 @@ import { vfxStats } from './vfx/vfxQueue';
 import { mistRuntime } from './world/mistRuntime';
 import { mistTargetAt } from './world/mistTarget';
 import { cameraBookmarks } from './worldData';
+import { connect, disconnect, reconnect, sendRaw } from '@/net/netClient';
+import { remotePose, remoteRuntime, useNetStore, type NetStatus } from '@/net/netStore';
 
 export type MistwoodDebugApi = {
   isReady: () => boolean;
@@ -230,6 +232,15 @@ export type MistwoodDebugApi = {
   perf: () => typeof perfStats & { jsHeapMB: number | null };
   /** 送出遊戲流程動作（主選單 / 暫停），回傳切換後的畫面 */
   flow: (action: FlowAction) => GameScreen;
+  /** 多人連線（任務 11A）：連線狀態、人數、被伺服器修正的次數 */
+  net: () => { status: NetStatus; playerCount: number; roomId: string | null; sessionId: string | null; playerId: string | null; error: string | null; corrections: number; lastCorrection: string | null };
+  /** 遠端玩家：伺服器最新位置（x/y/z）、畫面上插值後的位置（rx/ry/rz）、是否顯示在目前的地圖 */
+  remotePlayers: () => { sessionId: string; name: string; x: number; y: number; z: number; rx: number; ry: number; rz: number; anim: string; map: string; location: string; visible: boolean }[];
+  netConnect: (options?: { name?: string; url?: string }) => Promise<boolean>;
+  netDisconnect: () => Promise<void>;
+  netReconnect: () => Promise<boolean>;
+  /** 送任意訊息給伺服器（驗證伺服器會拒絕不合法的內容） */
+  netSendRaw: (type: string, payload: unknown) => boolean;
 };
 
 declare global {
@@ -480,6 +491,45 @@ export function installDebugApi(): void {
       useGameStore.getState().send(action);
       return useGameStore.getState().screen;
     },
+    net: () => {
+      const s = useNetStore.getState();
+      return {
+        status: s.status,
+        playerCount: s.playerCount,
+        roomId: s.roomId,
+        sessionId: s.sessionId,
+        playerId: s.playerId,
+        error: s.error,
+        corrections: remoteRuntime.corrections,
+        lastCorrection: remoteRuntime.lastCorrection?.reason ?? null,
+      };
+    },
+    remotePlayers: () => {
+      const loc = useLocationStore.getState();
+      const now = performance.now();
+      return [...remoteRuntime.players.values()].map((entry) => {
+        const view = entry.view;
+        const pose = remotePose(entry, now) ?? view;
+        return {
+          sessionId: view.sessionId,
+          name: view.name,
+          x: view.x,
+          y: view.y,
+          z: view.z,
+          rx: pose.x,
+          ry: pose.y,
+          rz: pose.z,
+          anim: view.anim,
+          map: view.map,
+          location: view.location,
+          visible: view.map === loc.map && view.location === loc.location,
+        };
+      });
+    },
+    netConnect: (options) => connect(options),
+    netDisconnect: () => disconnect(),
+    netReconnect: () => reconnect(),
+    netSendRaw: (type, payload) => sendRaw(type, payload),
   };
 }
 

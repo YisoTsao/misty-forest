@@ -19,6 +19,10 @@ export const playerRuntime = {
   action: null as PlayerAction | null,
   /** 掉落重置次數（測試與除錯觀察用） */
   respawnCount: 0,
+  /** 位置不連續的次數（傳送、讀檔、新遊戲、落水重生；Player 每次跳位置時加一）。多人連線據此送 warp 而不是一般移動 */
+  warpSeq: 0,
+  /** position 是哪一幀算出來的（performance.now 毫秒）：多人連線以此作為位置的時間，不用送出時的時間 */
+  positionAt: 0,
   /** 沿途記錄的安全點；Player 掛載時以出生點初始化 */
   safePoints: { points: [], groundedFor: 0 } as SafePointTrail,
 };

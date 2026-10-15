@@ -96,6 +96,14 @@ export function PauseMenu() {
         </button>
         <button
           type="button"
+          data-testid="pause-multiplayer"
+          onClick={() => useUiStore.getState().setMultiplayerOpen(true)}
+          className="rounded-full bg-white/15 py-2 hover:bg-white/25"
+        >
+          {t('pause.multiplayer')}
+        </button>
+        <button
+          type="button"
           data-testid="pause-settings"
           onClick={() => useUiStore.getState().setSettingsOpen(true)}
           className="rounded-full bg-white/15 py-2 hover:bg-white/25"
