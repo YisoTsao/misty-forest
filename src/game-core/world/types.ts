@@ -27,6 +27,12 @@ export const regionIds = [
   'reed_isle',
   'mirror_ruins',
   'mirror_temple',
+  // 風語草原（任務 9F，Bible §8.2）：起伏草原（預設）、風車聚落、浮石山脊、風向塔台地、風之巨偶競技場
+  'windy_hills',
+  'windmill_hamlet',
+  'floatstone_ridge',
+  'wind_tower',
+  'golem_arena',
 ] as const;
 export type RegionId = (typeof regionIds)[number];
 

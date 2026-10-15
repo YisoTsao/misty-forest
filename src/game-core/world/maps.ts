@@ -2,11 +2,12 @@
 // 地形、邊界、區域、探索紀錄都依世界座標判斷所在地圖。玩家位置本來就存檔，讀檔後自然回到原本的地圖。
 import { boundaryDistance, clampInsideBounds, type PlayBounds } from './bounds';
 import { GLOWMOSS_ARRIVAL, GLOWMOSS_ORIGIN, GLOWMOSS_SIZE, isInGlowmoss } from './glowmossTerrain.ts';
+import { isInMeadow, MEADOW_ARRIVAL, MEADOW_ORIGIN, MEADOW_SIZE } from './meadowTerrain.ts';
 import { isInMirrorlake, MIRRORLAKE_ARRIVAL, MIRRORLAKE_ORIGIN, MIRRORLAKE_SIZE } from './mirrorlakeTerrain.ts';
 import { SPAWN_POINT, TERRAIN_SIZE } from './terrain';
 import type { RegionId } from './types';
 
-export const mapIds = ['dawnvale', 'glowmoss', 'mirrorlake'] as const;
+export const mapIds = ['dawnvale', 'glowmoss', 'mirrorlake', 'whispermeadow'] as const;
 export type MapId = (typeof mapIds)[number];
 
 export type MapDef = {
@@ -56,6 +57,16 @@ export const MAPS: Readonly<Record<MapId, MapDef>> = {
     defaultRegion: 'lake_shore',
     respawn: { x: MIRRORLAKE_ORIGIN.x + MIRRORLAKE_ARRIVAL.x, z: MIRRORLAKE_ORIGIN.z + MIRRORLAKE_ARRIVAL.z + 4 },
   },
+  // 風語草原（任務 9F，Bible §8）
+  whispermeadow: {
+    id: 'whispermeadow',
+    nameKey: 'map.whispermeadow',
+    origin: { ...MEADOW_ORIGIN },
+    size: MEADOW_SIZE,
+    bounds: PLAY_BOUNDS_148,
+    defaultRegion: 'windy_hills',
+    respawn: { x: MEADOW_ORIGIN.x + MEADOW_ARRIVAL.x + 4, z: MEADOW_ORIGIN.z + MEADOW_ARRIVAL.z },
+  },
 };
 
 export function isMapId(id: string): id is MapId {
@@ -69,6 +80,7 @@ export const NEW_GAME_SPAWN = { x: SPAWN_POINT.x, z: SPAWN_POINT.z } as const;
 export function mapIdAt(x: number, z: number): MapId {
   if (isInGlowmoss(x, z)) return 'glowmoss';
   if (isInMirrorlake(x, z)) return 'mirrorlake';
+  if (isInMeadow(x, z)) return 'whispermeadow';
   return 'dawnvale';
 }
 

@@ -33,5 +33,13 @@
   {"id": "mirrorlake_bell", "position": [3944, 5, 30], "target": [3964, 3, 44]},
   {"id": "mirrorlake_overview", "position": [3980, 70, 130], "target": [4000, 0, 0]},
   {"id": "mirrorlake_eve", "position": [3900.2, 1.6, 5.2], "target": [3897, 1, 4]},
-  {"id": "mirrorlake_reflection", "position": [3923, 2.2, -5], "target": [3930, -0.2, -3]}
+  {"id": "mirrorlake_reflection", "position": [3923, 2.2, -5], "target": [3930, -0.2, -3]},
+  {"id": "meadow_entry", "position": [5878, 6, 20], "target": [5860, 3.5, 10]},
+  {"id": "meadow_hamlet", "position": [5930, 20, 98], "target": [5972, 3, 52]},
+  {"id": "meadow_ridge", "position": [5980, 10, -36], "target": [5980, 9, -85]},
+  {"id": "meadow_tower", "position": [6064, 12, 34], "target": [6096, 10, 12]},
+  {"id": "meadow_arena", "position": [6104, 16, -18], "target": [6104, 5, -52]},
+  {"id": "meadow_arch", "position": [5898, 6, -2], "target": [5916, 5, -22]},
+  {"id": "meadow_overview", "position": [5980, 80, 150], "target": [6000, 0, 0]},
+  {"id": "mirrorlake_sail", "position": [4114, 4, 8], "target": [4128, 3, -2]}
 ]

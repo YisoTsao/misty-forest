@@ -80,10 +80,14 @@ export function WorldScene({ data }: { data: WorldData }) {
           <MapOnly map="mirrorlake">
             <Terrain map="mirrorlake" />
           </MapOnly>
+          <MapOnly map="whispermeadow">
+            <Terrain map="whispermeadow" />
+          </MapOnly>
           <EnvironmentColliders index={index} />
           <BoundaryColliders map="dawnvale" />
           <BoundaryColliders map="glowmoss" />
           <BoundaryColliders map="mirrorlake" />
+          <BoundaryColliders map="whispermeadow" />
           <Player def={playerDef} colliderRef={playerCollider} />
           <OutdoorOnly>
             <Flocks />
@@ -121,6 +125,10 @@ export function WorldScene({ data }: { data: WorldData }) {
             <MirrorPuzzle />
           </AssetBoundary>
           <MistWall map="mirrorlake" />
+        </MapOnly>
+        <MapOnly map="whispermeadow">
+          <GrassField index={index} map="whispermeadow" />
+          <MistWall map="whispermeadow" />
         </MapOnly>
         <OutdoorOnly>
           <AssetBoundary name="backdrop">

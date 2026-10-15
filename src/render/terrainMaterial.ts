@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CHANNEL_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
+import { MEADOW_TRAIL_HALF_WIDTH } from '@/game-core/world/meadowTerrain';
 import { MIRRORLAKE_TRAIL_HALF_WIDTH } from '@/game-core/world/mirrorlakeTerrain';
 import type { MapId } from '@/game-core/world/maps';
 import { PATH_HALF_WIDTH, WATER_LEVEL } from '@/game-core/world/terrain';
@@ -87,6 +88,19 @@ const GROUND: Readonly<Record<MapId, GroundPalette>> = {
     lakeBed: '#9c9a7c',
     waterLevel: WATER_LEVEL,
     pathHalf: MIRRORLAKE_TRAIL_HALF_WIDTH,
+  },
+  // 風語草原（任務 9F，Bible §8.3）：嫩草綠、金黃的草尖、明亮的土路；山脊與台地邊緣露出暖灰的岩石
+  whispermeadow: {
+    grassLight: '#a8d86a',
+    grassDark: '#6fae4a',
+    grassSun: '#e6e08a',
+    dirt: '#d9b77e',
+    dirtDark: '#b8925a',
+    rock: '#b5aa96',
+    sand: '#e8d6a0',
+    lakeBed: '#9c9a7c',
+    waterLevel: WATER_LEVEL - 2,
+    pathHalf: MEADOW_TRAIL_HALF_WIDTH,
   },
 };
 

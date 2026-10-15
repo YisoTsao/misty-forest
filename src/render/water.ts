@@ -48,6 +48,7 @@ const WATER_COLORS: Readonly<Record<MapId, { deep: string; shallow: string }>> =
   dawnvale: { deep: palette.waterDeep, shallow: palette.waterShallow },
   glowmoss: { deep: palette.waterDeep, shallow: palette.waterShallow },
   mirrorlake: { deep: '#3f93b8', shallow: '#77c9df' },
+  whispermeadow: { deep: palette.waterDeep, shallow: palette.waterShallow },
 };
 
 export function createWaterMaterial(depthTexture: THREE.Texture, map: MapId = 'dawnvale'): THREE.MeshToonMaterial {

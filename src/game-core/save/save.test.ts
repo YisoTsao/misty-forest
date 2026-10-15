@@ -350,6 +350,23 @@ describe('版本遷移', () => {
     expect(exploredRatio(loaded.state.explored, 'mirrorlake')).toBe(0);
   });
 
+  it('v15 存檔升到 v16：補上風語草原的區域迷霧，三張地圖的探索紀錄保留、風語草原從空白開始（任務 9F）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const old = new Uint8Array((MAP_CELLS / 8) * 3);
+    old[0] = 0b1; // 晨曦谷地第 0 格
+    old[(MAP_CELLS / 8) * 2] = 0b100; // 澄鏡湖第 2 格
+    const meadowRegions = ['windy_hills', 'windmill_hamlet', 'floatstone_ridge', 'wind_tower', 'golem_arena'];
+    const mist = Object.fromEntries(Object.entries(current.mist).filter(([id]) => !meadowRegions.includes(id)));
+    const loaded = fromSaveData({ ...current, version: 15, mist: { ...mist, mirror_temple: 'clear' }, map: { explored: encodeExplored(old) } }, ctx);
+    expect(loaded.warnings).toEqual([]);
+    expect(loaded.state.mist.mirror_temple).toBe('clear');
+    expect(loaded.state.mist.windy_hills).toBe('light');
+    expect(loaded.state.mist.golem_arena).toBe('dense');
+    expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
+    expect(isCellExplored(loaded.state.explored, MAP_CELLS * 2 + 2)).toBe(true);
+    expect(exploredRatio(loaded.state.explored, 'whispermeadow')).toBe(0);
+  });
+
   it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {
     const current = toSaveData(initialGameState(), player, new Date());
     const v13 = { ...current, version: 13, combat: { ...current.combat, defeatedBosses: undefined } };

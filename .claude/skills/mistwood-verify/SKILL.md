@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），39 個全跑要好幾分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑約 50 分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -51,6 +51,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），39 個全跑
 | 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `forestmobs`、`monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |
 | 澄鏡湖的任務（伊芙、`quest_lake_001` 倒影、`activate.message` 啟動時的訊息） | `lakequest`（改到奧林時加 `cellar`；改到 `activate` 或動物居民時加 `forestquest`、`npc`） | `mirrorlake_eve`、`mirrorlake_reflection` 書籤 |
 | 水鏡光路（`lightPath.ts`、`lightPaths.json`、`MirrorPuzzle.tsx`、`turn.quest`、水行護符的涉水深度） | `lightpuzzle`（改到 `turn` 時加 `forestquest`、`puffking`；改到落水時加 `lake`、`movement`） | `--lightpuzzle`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_entry --lightpuzzle`） |
+| 風語草原（`meadowTerrain`、`meadowModels.ts`、`gen-meadow.ts`、古風帆出入口） | `meadow`（改到共用的地圖切換或存檔遷移時加 `mirrorlake`、`map`、`save`） | `meadow_*`、`mirrorlake_sail` 書籤（例如 `node scripts/screenshot.mjs phase9 meadow_hamlet`） |
 | 璃漪頭目戰與戰後（`LiyiKoi.tsx`、頭目資料的 `veil`、神殿兩側的水鏡、`quest_lake_003`、潮之共鳴裝置、戰後的璃漪、`unlock.completed` 的建造配方） | `liyi`（改到共用的頭目 AI 或 `bossRuntime` 時加 `boss`、`puffking`） | `--liyi`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple --liyi`） |
 | 螢苔祕林的任務與水道（琳娜、奇奇、`activate` / `turn` 機關、`waterway.ts`、`Waterway.tsx`、`flowWater`） | `forestquest`（改到共用的互動或修理時加 `lake`、`world`） | `--waterway`（例如 `node scripts/screenshot.mjs phase8 glowmoss_wheel --waterway`） |
 | 頭目戰（`bossAi.ts`、`bossRuntime.ts`、`MossThump`、`BossArena`、`BossBar`、頭目資料） | `boss`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`、`forestmobs`） | `--boss`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --boss`） |

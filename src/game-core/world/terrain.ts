@@ -9,6 +9,7 @@
 // 西南的望星丘、東南的古樹遺跡，以及外圍的起伏丘陵。
 
 import { GLOWMOSS_ORIGIN, glowmossHeight, glowmossPathDistance, isInGlowmoss } from './glowmossTerrain.ts';
+import { isInMeadow, MEADOW_ORIGIN, meadowHeight, meadowPathDistance } from './meadowTerrain.ts';
 import { isInMirrorlake, MIRRORLAKE_ORIGIN, mirrorlakeHeight, mirrorlakePathDistance } from './mirrorlakeTerrain.ts';
 
 export const TERRAIN_SIZE = 320;
@@ -171,6 +172,7 @@ export function distanceToMainRoad(x: number, z: number): number {
 export function distanceToPath(x: number, z: number): number {
   if (isInGlowmoss(x, z)) return glowmossPathDistance(x - GLOWMOSS_ORIGIN.x, z - GLOWMOSS_ORIGIN.z);
   if (isInMirrorlake(x, z)) return mirrorlakePathDistance(x - MIRRORLAKE_ORIGIN.x, z - MIRRORLAKE_ORIGIN.z);
+  if (isInMeadow(x, z)) return meadowPathDistance(x - MEADOW_ORIGIN.x, z - MEADOW_ORIGIN.z);
   return dawnvalePathDistance(x, z);
 }
 
@@ -210,6 +212,7 @@ export function highlandWeight(x: number, z: number): number {
 export function terrainHeight(x: number, z: number): number {
   if (isInGlowmoss(x, z)) return glowmossHeight(x - GLOWMOSS_ORIGIN.x, z - GLOWMOSS_ORIGIN.z);
   if (isInMirrorlake(x, z)) return mirrorlakeHeight(x - MIRRORLAKE_ORIGIN.x, z - MIRRORLAKE_ORIGIN.z);
+  if (isInMeadow(x, z)) return meadowHeight(x - MEADOW_ORIGIN.x, z - MEADOW_ORIGIN.z);
   return dawnvaleHeight(x, z);
 }
 

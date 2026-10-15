@@ -17,5 +17,10 @@
   {"id": "lake_camp", "nameKey": "region.lake_camp", "area": {"center": [3888, 8], "radius": 24, "blend": 8}},
   {"id": "reed_isle", "nameKey": "region.reed_isle", "area": {"center": [3998, -20], "radius": 16, "blend": 6}},
   {"id": "mirror_ruins", "nameKey": "region.mirror_ruins", "area": {"center": [4018, 78], "radius": 20, "blend": 8}},
-  {"id": "mirror_temple", "nameKey": "region.mirror_temple", "area": {"center": [4046, 18], "radius": 22, "blend": 8}}
+  {"id": "mirror_temple", "nameKey": "region.mirror_temple", "area": {"center": [4046, 18], "radius": 22, "blend": 8}},
+  {"id": "windy_hills", "nameKey": "region.windy_hills", "area": {"center": [6000, 0], "radius": 230, "blend": 20}},
+  {"id": "windmill_hamlet", "nameKey": "region.windmill_hamlet", "area": {"center": [5972, 52], "radius": 34, "blend": 10}},
+  {"id": "floatstone_ridge", "nameKey": "region.floatstone_ridge", "area": {"center": [5980, -85], "path": [[5908, -86], [6052, -84]], "radius": 18, "blend": 6}},
+  {"id": "wind_tower", "nameKey": "region.wind_tower", "area": {"center": [6096, 12], "radius": 28, "blend": 8}},
+  {"id": "golem_arena", "nameKey": "region.golem_arena", "area": {"center": [6104, -52], "radius": 24, "blend": 8}}
 ]

@@ -1,20 +1,16 @@
 # 開發進度
 
 ## 目前階段
-**Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）完成，即文件的 Phase 0–2；下一步是文件的 Phase 3（斷線續玩與網路中斷），見「下一步」。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
+**Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）完成，即文件的 Phase 0–2；下一步是文件的 Phase 3（斷線續玩與網路中斷），見「下一步」。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
 **續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
 
 **交接（2026-10-15，多人連線）**：使用者要求先做多人連線，任務 11A–11B 已完成並提交到 `develop`（見「已完成」）。多人連線的執行方式、協定與測試見 `docs/multiplayer/`。
 - 下一步（文件 Phase 3）：斷線續玩（伺服器 `onDrop` + `allowReconnection`、SDK 的 reconnection）、伺服器重啟時的處理、依抖動調整的呈現延遲、依出入口資料驗證 warp 落點。之後依序：Phase 4 部署（Render Free + Vercel、來源允許清單）、Phase 5 Supabase 登入與存檔、Phase 6 AOI 與伺服器權威的 RPG 系統。
-- **9F 風語草原的進行中分支找不到**：下面說的 `wip/9f-whispermeadow`（commit 7228ec2）在這台機器與 remote（`git branch -a`、`git cat-file`）都不存在，可能還在另一台電腦沒有 push。要繼續 9F 時先確認那份進度在哪裡。
+- **上線整體規劃**：`docs/multiplayer/online-plan.md`（Vercel、Render、Supabase 的分工、架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖、環境變數、各階段要使用者提供的帳號）。Phase 4、5 開始前要先拿到使用者的 Vercel、Render 帳號與 Supabase 專案，見該文件 §8 與「待使用者處理」。
 
-**交接（2026-10-15，9F 之前）**：`develop` 停在任務 9E-2 完成、完整 e2e 全過（44 個 suite）。下一個任務 **9F 風語草原（地圖四）** 已開始但未完成，進行中的程式放在分支 `wip/9f-whispermeadow`（commit 7228ec2，**測試未全過，不要直接合進 develop**）：
-- 已寫好：`src/game-core/world/meadowTerrain.ts`（地形：入口、風車聚落、浮石山脊、風向塔台地、競技場、小徑）與 `meadowTerrain.test.ts`（5 項全過）；`maps.ts` 註冊 `whispermeadow`（原點 (6000, 0)）、`terrain.ts` 分派、`types.ts` 新增 5 個 regionId（`windy_hills` 預設、`windmill_hamlet`、`floatstone_ridge`、`wind_tower`、`golem_arena`）、`regions.ts` 初始迷霧、`migrate.ts` 的 v15 → v16 遷移；地面 / 世界地圖色票、光線色調（`timeLook` 的 `tintMeadow`）、`WorldScene` 的 `MapOnly`、`GrassField` 野花密度；`src/render/meadowModels.ts`（風訊號旗與倒下的旗、風向塔、風帆平台、彎月石拱、受風傾斜的樹、浮石、古風帆、競技場外圈，已註冊到 `proceduralModels`）；`scripts/gen-meadow.ts`（placement 產生腳本，含澄鏡湖東岸的古風帆 `mirrorlake_gate_meadow`）；`e2e/meadow.e2e.mjs`（草稿，還沒跑過）。
-- 目前 `pnpm check` 失敗 2 項（`regions.json` 還沒有新區域、`maps.test.ts` 仍假設 3 張地圖），都是下面待辦的一部分。
-- 還要做：① `schema.ts` 的 `SAVE_VERSION` 改 16、`save.test.ts` 補 v15 → v16 測試；② `regions.json` 加 5 個區域範圍（世界座標 = 局部 + (6000, 0)）；③ `prefabs.json`：`gate_to_meadow`（model `procedural:sail_gate`，`enter.to: whispermeadow`、`arriveAt: meadow_gate_mirrorlake`、`requires.questCompleted: quest_lake_003`、`lockedKey: gate.meadow.locked`）、`gate_to_mirrorlake_sail`（回澄鏡湖，`arriveAt: mirrorlake_gate_meadow`）、`meadow_windmill` / `meadow_windmill_blue`（沿用 KayKit 風車但不加 `animate`＝停擺，之後的任務讓它轉）、`wind_tower`、`windsail_platform`、`float_stone`、`crescent_arch`、`windbent_tree`、`arena_ring`、路標 `signpost_meadow`、`signpost_meadow_hamlet`、`signpost_meadow_tower`；④ `gen-placements.ts` 呼叫 `addMeadow`，`pnpm data:placements`；⑤ i18n（`map.whispermeadow`、5 個 `region.*`、物件名、路標、`gate.meadow.locked`、書籤名）、`landmarks.json`、`cameraBookmarks.json`（`meadow_*`）；⑥ `maps.test.ts` 改成 4 張地圖、出入口清單加上兩個古風帆；⑦ build、跑 `meadow` e2e 並修正、截圖檢視、`package.json` 的 `e2e:all` 加 `meadow`、CLAUDE.md 的 suite 數改 45、skill 對照表、DECISIONS T-165（地圖沿用 320 m，不用 Bible 建議的 450 × 350）。
-- 續作方式：`git fetch && git checkout wip/9f-whispermeadow`，完成上面的項目、驗證後合回 `develop`。
+**交接（2026-10-15，9F）**：任務 9F 風語草原的地圖與場景完成，`wip/9f-whispermeadow` 已 rebase 到多人連線之後並合回 `develop`（見「已完成」）。下一步可以接 9G（霏與風車聚落的居民、`quest_meadow_001`「風把話吹散了」），或回到多人連線 Phase 3，依使用者指示。
 
 **環境注意**：這台機器的 `pnpm` 預設會用到 Node 12（`~/Library/pnpm/node`），執行前先 `export PATH=~/.nvm/versions/node/v24.13.0/bin:$PATH`。若 `pnpm test` 出現 rolldown「Cannot find native binding」，執行 `pnpm install --force`。
 
@@ -30,6 +26,16 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 9F：風語草原——地圖與場景（2026-10-15，Bible §8）
+- 第四張地圖（世界座標 (6000, 0)，沿用 320 m，T-165）：西側入口的古風帆、起伏草原與野花坡、風車聚落（三座停擺的風車、農舍、穀倉、水井、農田）、北邊陡峭的浮石山脊（頂上的浮石，走不上去）、東側台地上的舊風向塔與風帆平台（從西側緩坡走上去）、北端的風之巨偶競技場、彎月石拱、受風傾斜的樹；5 個新區域與迷霧；存檔 v16。
+- 澄鏡湖東岸的古風帆：完成 `quest_lake_003`（喚醒潮之共鳴）才能通過，世界地圖的地標也在那之後出現；草原西側的古風帆回澄鏡湖。
+- 散佈物與邊界樹的 placement id 用 `wm_` 前綴（原本的 `meadow_tree` 等和晨曦谷地的草原衝突，產生腳本會報 id 重複）。既有的 placement 都沒變，只移除澄鏡湖東岸與古風帆重疊的 1 顆石頭。
+- 測試：Vitest 852 項（`maps.test.ts` 改成 4 張地圖、古風帆的出入口與條件、草原 placement 的地形與區域；`save.test.ts` v15 → v16）。端對端新增 `meadow`（10 項：古風帆上鎖與說明、轉場與抵達點、地圖與區域名稱、沿小徑跑、風車聚落、從緩坡走上台地、山脊爬不上去、存檔、讀檔、回澄鏡湖）；mirrorlake、map、save 重跑全過；未跑完整 e2e。多人連線的伺服器依 `mapIdAt` 判斷地圖，草原自動支援（`protocol.md` 已更新）。
+- 截圖 `docs/screenshots/phase9/meadow_*.png`、`mirrorlake_sail.png`（已檢視；修正：競技場外圈的石墩擋在小徑入口 → 南側留缺口；彎月石拱右腳懸空 → 曲線延伸到地面；風帆平台的木梯方向反了 → 越靠近平台越高，碰撞一致；風車聚落書籤的鏡頭在山坡裡 → 拉高）。
+
+### 文件：雙人連線整體規劃（2026-10-15）
+- `docs/multiplayer/online-plan.md`：服務與技術總表、系統架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖（Mermaid）、環境變數、Phase 3–6 路線圖與驗收、安全與限制、待決定事項。`LAUNCH_PLAN.md` 的多人部分改指向這份。
+
 ### 任務 11A–11B：多人連線——Colyseus 伺服器、在場玩家與移動同步（2026-10-15，〈3D RPG 多人連線技術規劃〉Phase 0–2）
 - 伺服器 `server/`（Colyseus 0.18，獨立 Node 程序，`pnpm dev:server` / `start:server`，`/health`）：單一世界房間 `world`、玩家 id 與出生點、加入時帶目前位置、離開移除；每則移動以 zod 檢查格式、每秒 30 則上限、伺服器時鐘驗證速度與可玩範圍，不通過就送 `correction` 拉回；合法瞬移（換地圖、室內、重生、讀檔）走 `warp`（T-166–T-169）。
 - 共用協定 `src/game-core/net/`（協定、移動驗證、插值與時鐘同步，純函式）；客戶端 `src/net/`（Web 與 Electron 同一份，唯一 import Colyseus SDK 的地方）：連線 / 中斷 / 重新連線、每 50 ms 回報位置、套用修正。`Player.tsx` 新增 `warpSeq`、`positionAt`。
@@ -488,6 +494,8 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 0. **效能重測（Phase 6、7、8A）**：在無人操作、關閉 Chrome 時執行 `node scripts/perf.mjs` 與 `node scripts/perf.mjs --magic`，補進 `PERF.md`（6E 與 Phase 7 的量測都受到干擾；Phase 7 的每幀時間約為 Phase 6 的 2 倍，需確認是否為環境因素）。
 1. **風格判定（規格 4.8）**：把參考圖放進 `docs/art/reference/`，與 `docs/screenshots/phase1/`、`phase2/` 並排比對。
 2. **B 級機器量測**：在 M1 / Iris Xe 8 GB 等級的機器執行 `node scripts/perf.mjs`，補進 `PERF.md`。
+3. **多人連線上線用的帳號（Phase 4–5 才需要，Phase 3 不需要）**：Vercel、Render 帳號與 GitHub repo 授權；Supabase 專案（URL、publishable key；secret key 由使用者自己貼進 Render 的環境變數）；`online-plan.md` §8 的待決定事項。
+4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
 
 ## 已知問題
 - 8A 的完整 `pnpm e2e` 連跑時 `magic.e2e` 的星屑飛彈一次沒命中（單獨重跑通過），與下一條同一類。

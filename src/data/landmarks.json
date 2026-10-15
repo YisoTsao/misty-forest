@@ -28,5 +28,12 @@
   {"id": "reed_isle", "nameKey": "landmark.reedIsle", "icon": "forest", "position": [3998, -18]},
   {"id": "sunken_bell", "nameKey": "landmark.sunkenBell", "icon": "ruins", "position": [3964, 44]},
   {"id": "mirror_ruins", "nameKey": "landmark.mirrorRuins", "icon": "ruins", "position": [4018, 78]},
-  {"id": "mirror_temple", "nameKey": "landmark.mirrorTemple", "icon": "water", "position": [4046, 18]}
+  {"id": "mirror_temple", "nameKey": "landmark.mirrorTemple", "icon": "water", "position": [4046, 18]},
+  {"id": "meadow_entry", "nameKey": "landmark.meadowEntry", "icon": "gate", "position": [5860, 10]},
+  {"id": "windmill_hamlet", "nameKey": "landmark.windmillHamlet", "icon": "windmill", "position": [5972, 52]},
+  {"id": "floatstone_ridge", "nameKey": "landmark.floatstoneRidge", "icon": "peak", "position": [5980, -85]},
+  {"id": "wind_tower", "nameKey": "landmark.windTower", "icon": "lighthouse", "position": [6096, 12]},
+  {"id": "golem_arena", "nameKey": "landmark.golemArena", "icon": "stones", "position": [6104, -52]},
+  {"id": "crescent_arch", "nameKey": "landmark.crescentArch", "icon": "moon", "position": [5916, -22]},
+  {"id": "mirrorlake_sail", "nameKey": "landmark.mirrorlakeSail", "icon": "gate", "position": [4128, -2], "requires": {"questCompleted": "quest_lake_003"}}
 ]

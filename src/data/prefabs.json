@@ -4750,5 +4750,490 @@
     "model": "procedural:mirror_lamp",
     "collider": "none",
     "persists": false
+  },
+  {
+    "id": "gate_to_meadow",
+    "model": "procedural:sail_gate",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.3,
+        "height": 6,
+        "offset": [
+          -2.4,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.3,
+        "height": 6,
+        "offset": [
+          2.4,
+          0,
+          0
+        ]
+      }
+    ],
+    "interaction": "enter",
+    "nameKey": "object.gateMeadow",
+    "verbKey": "interact.travel",
+    "interactRadius": 2.6,
+    "enter": {
+      "to": "whispermeadow",
+      "arriveAt": "meadow_gate_mirrorlake",
+      "arriveDistance": 4,
+      "requires": {
+        "questCompleted": "quest_lake_003"
+      },
+      "lockedKey": "gate.meadow.locked"
+    },
+    "persists": false
+  },
+  {
+    "id": "gate_to_mirrorlake_sail",
+    "model": "procedural:sail_gate",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.3,
+        "height": 6,
+        "offset": [
+          -2.4,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.3,
+        "height": 6,
+        "offset": [
+          2.4,
+          0,
+          0
+        ]
+      }
+    ],
+    "interaction": "enter",
+    "nameKey": "object.gateMirrorlakeSail",
+    "verbKey": "interact.travel",
+    "interactRadius": 2.6,
+    "enter": {
+      "to": "mirrorlake",
+      "arriveAt": "mirrorlake_gate_meadow",
+      "arriveDistance": 4
+    },
+    "persists": false
+  },
+  {
+    "id": "meadow_windmill",
+    "model": "models/kaykit-hexagon/building_windmill_red.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.6,
+        1.4,
+        0.6
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "meadow_windmill_blue",
+    "model": "models/kaykit-hexagon/building_windmill_blue.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.6,
+        1.4,
+        0.6
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "wind_tower",
+    "model": "procedural:wind_tower",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 3.8,
+        "height": 0.8
+      },
+      {
+        "shape": "cylinder",
+        "radius": 3,
+        "height": 10
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "windsail_platform",
+    "model": "procedural:windsail_platform",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "box",
+        "size": [
+          6,
+          1.05,
+          6
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.6,
+          0.25,
+          1.2
+        ],
+        "offset": [
+          -5.1,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.6,
+          0.5,
+          1.2
+        ],
+        "offset": [
+          -4.5,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.6,
+          0.75,
+          1.2
+        ],
+        "offset": [
+          -3.9,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.6,
+          1,
+          1.2
+        ],
+        "offset": [
+          -3.3,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.16,
+        "height": 6.5,
+        "offset": [
+          1.8,
+          1.05,
+          -1.8
+        ]
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "float_stone",
+    "model": "procedural:float_stone",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.95,
+      "height": 1.35,
+      "offset": [
+        0,
+        1.85,
+        0
+      ]
+    },
+    "persists": false
+  },
+  {
+    "id": "crescent_arch",
+    "model": "procedural:crescent_arch",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 1.3,
+        "height": 2.5,
+        "offset": [
+          -4,
+          0,
+          0
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "radius": 1.1,
+        "height": 1.2,
+        "offset": [
+          4.6,
+          0,
+          0
+        ]
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "windbent_tree",
+    "model": "procedural:windbent_tree",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.3,
+      "height": 2,
+      "cameraIgnore": true
+    },
+    "persists": false
+  },
+  {
+    "id": "arena_ring",
+    "model": "procedural:arena_ring",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.7,
+        "offset": [
+          19,
+          0,
+          0
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.95,
+        "offset": [
+          17.55,
+          0,
+          7.27
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 1.2,
+        "offset": [
+          13.44,
+          0,
+          13.44
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.7,
+        "offset": [
+          7.27,
+          0,
+          17.55
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 1.2,
+        "offset": [
+          -7.27,
+          0,
+          17.55
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.7,
+        "offset": [
+          -13.44,
+          0,
+          13.44
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.95,
+        "offset": [
+          -17.55,
+          0,
+          7.27
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 1.2,
+        "offset": [
+          -19,
+          0,
+          0
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.7,
+        "offset": [
+          -17.55,
+          0,
+          -7.27
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.95,
+        "offset": [
+          -13.44,
+          0,
+          -13.44
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 1.2,
+        "offset": [
+          -7.27,
+          0,
+          -17.55
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.7,
+        "offset": [
+          0,
+          0,
+          -19
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.95,
+        "offset": [
+          7.27,
+          0,
+          -17.55
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 1.2,
+        "offset": [
+          13.44,
+          0,
+          -13.44
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 0.7,
+        "offset": [
+          17.55,
+          0,
+          -7.27
+        ],
+        "cameraIgnore": true
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "signpost_meadow",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.meadowEntry.title",
+      "bodyKey": "sign.meadowEntry.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_meadow_hamlet",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.meadowHamlet.title",
+      "bodyKey": "sign.meadowHamlet.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "signpost_meadow_tower",
+    "model": "procedural:signpost",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 2.2
+    },
+    "interaction": "read",
+    "nameKey": "object.signpost",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.meadowTower.title",
+      "bodyKey": "sign.meadowTower.body"
+    },
+    "persists": false
   }
 ]

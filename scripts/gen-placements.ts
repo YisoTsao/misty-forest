@@ -17,6 +17,7 @@ import {
 import { mulberry32 } from '../src/game-core/util/random.ts';
 import { addDawnvaleExpansion } from './gen-dawnvale.ts';
 import { addGlowmoss } from './gen-glowmoss.ts';
+import { addMeadow } from './gen-meadow.ts';
 import { addMirrorlake } from './gen-mirrorlake.ts';
 
 const rand = mulberry32(20261012);
@@ -342,6 +343,9 @@ addGlowmoss(placements);
 
 // 任務 9A：澄鏡湖（地圖三，世界座標 x = 4000 附近）與螢苔祕林這一側的水道入口。
 addMirrorlake(placements);
+
+// 任務 9F：風語草原（地圖四，世界座標 x = 6000 附近）與澄鏡湖東岸的古風帆。
+addMeadow(placements);
 
 writeFileSync('src/data/placements.json', JSON.stringify(placements, null, 2) + '\n');
 console.log(`wrote ${placements.length} placements`);

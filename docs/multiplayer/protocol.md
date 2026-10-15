@@ -27,7 +27,7 @@ PlayerState { playerId, t: float64, name, x/y/z: float32, yaw: float32, anim, ma
 - `x/y/z`：膠囊中心的世界座標（腳底 = y − 0.78）。
 - `t`：送出端算出這個位置的時間（送出端的 `performance.now()`，毫秒），接收端依此插值。
 - `anim`：`idle | walk | run | jump | fall | land`。
-- `map` / `location`：由伺服器依位置判斷（`dawnvale | glowmoss | mirrorlake`；`overworld` 或室內 id）。
+- `map` / `location`：由伺服器依位置判斷（`dawnvale | glowmoss | mirrorlake | whispermeadow`；`overworld` 或室內 id）。
 - `health`：先保留，第一階段固定 100。
 
 ## 客戶端 → 伺服器

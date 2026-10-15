@@ -104,8 +104,9 @@ describe('螢苔祕林地形', () => {
 
 describe('地圖的探索紀錄', () => {
   it('每張地圖各一段格子；格子中心換算回同一張地圖', () => {
-    expect(EXPLORE_CELLS).toBe(MAP_CELLS * 3);
+    expect(EXPLORE_CELLS).toBe(MAP_CELLS * 4);
     expect(cellIndexAt(4000, 0)! - mapCellOffset('mirrorlake')).toBe(cellIndexAt(0, 0));
+    expect(cellIndexAt(6000, 0)! - mapCellOffset('whispermeadow')).toBe(cellIndexAt(0, 0));
     const a = cellIndexAt(0, 0)!;
     const b = cellIndexAt(G.x, G.z)!;
     expect(a).toBeLessThan(MAP_CELLS);
@@ -135,7 +136,7 @@ describe('地圖出入口', () => {
   const gates = placements.filter((p) => prefabs.get(p.prefabId)?.enter?.arriveAt);
 
   it('相鄰地圖之間各有一對出入口，抵達點在目的地圖的可玩區內、離出入口與邊界都夠遠', () => {
-    expect(gates.map((g) => prefabs.get(g.prefabId)!.enter!.to).sort()).toEqual(['dawnvale', 'glowmoss', 'glowmoss', 'mirrorlake']);
+    expect(gates.map((g) => prefabs.get(g.prefabId)!.enter!.to).sort()).toEqual(['dawnvale', 'glowmoss', 'glowmoss', 'mirrorlake', 'mirrorlake', 'whispermeadow']);
     for (const gate of gates) {
       const enter = prefabs.get(gate.prefabId)!.enter!;
       const target = placements.find((p) => p.id === enter.arriveAt)!;
@@ -156,6 +157,14 @@ describe('地圖出入口', () => {
     expect(isGateOpen(prefabs.get('gate_to_glowmoss_lake')!.enter!, {})).toBe(true);
   });
 
+  it('通往風語草原要先喚醒潮之共鳴（任務 9F）', () => {
+    const enter = prefabs.get('gate_to_meadow')!.enter!;
+    expect(isGateOpen(enter, { quest_lake_002: { status: 'completed' } })).toBe(false);
+    expect(isGateOpen(enter, { quest_lake_003: { status: 'active' } })).toBe(false);
+    expect(isGateOpen(enter, { quest_lake_003: { status: 'completed' } })).toBe(true);
+    expect(isGateOpen(prefabs.get('gate_to_mirrorlake_sail')!.enter!, {})).toBe(true);
+  });
+
   it('通往螢苔祕林要先點亮燈塔（T-144）', () => {
     const enter = prefabs.get('gate_to_glowmoss')!.enter!;
     expect(isGateOpen(enter, {})).toBe(false);
@@ -171,6 +180,15 @@ describe('地圖出入口', () => {
     for (const p of lake) {
       expect(isOnMapTerrain(MAPS.mirrorlake, p.position[0], p.position[2]), p.id).toBe(true);
       if (!p.id.startsWith('mirrorlake_edge_tree')) expect(regionAt(regions, p.position[0], p.position[2]), p.id).toBe(p.regionId);
+    }
+  });
+
+  it('風語草原的 placement 都在地形範圍內，且標記的區域與位置一致（任務 9F）', () => {
+    const meadow = placements.filter((p) => mapIdAt(p.position[0], p.position[2]) === 'whispermeadow');
+    expect(meadow.length).toBeGreaterThan(1000);
+    for (const p of meadow) {
+      expect(isOnMapTerrain(MAPS.whispermeadow, p.position[0], p.position[2]), p.id).toBe(true);
+      if (!p.id.startsWith('wm_edge_tree')) expect(regionAt(regions, p.position[0], p.position[2]), p.id).toBe(p.regionId);
     }
   });
 
