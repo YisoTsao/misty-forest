@@ -2,7 +2,7 @@
 
 > 範圍：把已完成的區域連線（任務 11A–11B，Colyseus 在場層）推到「兩個人各自在網頁或桌面版登入，連到線上伺服器一起玩」。
 > 本文件取代 `docs/LAUNCH_PLAN.md` §3–§4.3、§8–§10 的多人部分（那份草案原本建議 Supabase Realtime → Cloudflare Durable Objects；實作已改用 Colyseus，見 DECISIONS T-166）。網頁上線、資產壓縮、桌面簽章仍以 `LAUNCH_PLAN.md` 為準。
-> 已完成部分的細節：`architecture.md`（元件與決策）、`protocol.md`（訊息格式）、`testing.md`（執行與測試）。
+> 已完成部分的細節：`architecture.md`（元件與決策）、`protocol.md`（訊息格式）、`testing.md`（執行與測試）、`deploy.md`（部署設定與步驟）。
 > 各服務的免費額度與條款會變動，下面的數字查於 2026-10，**開帳號前再看一次官方頁面**。
 
 ---
@@ -211,7 +211,7 @@ flowchart TD
 |---|---|---|---|
 | ✅ 0–2（任務 11A–11B） | Colyseus 伺服器、在場玩家、移動同步、伺服器驗證 | — | `multiplayer` e2e 9 項 |
 | ✅ 3 斷線續玩（任務 11C） | `onDrop` + `allowReconnection(20 s)`、SDK 自動重連、伺服器重啟後自動重新加入、依抖動調整的呈現延遲（依出入口資料驗證 `warp` 落點延到 Phase 6，T-174） | 不需要 | e2e：切斷網路 5 秒後恢復，對方看到同一個人回來（不是離開再加入）；伺服器重啟後自動回來 |
-| **4 部署** | `render.yaml`、`vercel.json`、`packageManager`、來源允許清單、CSP、`/health` 健康檢查、Render 休眠時的「伺服器喚醒中」提示 | Vercel、Render | 正式網址兩個瀏覽器互相看到；Electron 安裝檔連到同一台伺服器；`/health` 正常 |
+| **4 部署（任務 11D）** | `render.yaml`、`vercel.json`、來源允許清單、CSP、`/health` 健康檢查、Render 休眠時的「伺服器喚醒中」提示（設定與步驟見 `deploy.md`） | Vercel、Render | 正式網址兩個瀏覽器互相看到；Electron 安裝檔連到同一台伺服器；`/health` 正常 |
 | **5 登入與雲端存檔** | Supabase Auth（Email 魔法連結，選用 Google）、`profiles`、`saves`＋RLS、伺服器驗證 JWT、Electron 的 `mistwood://` 回呼、存檔同步與衝突處理 | Supabase（選用 Google Cloud） | 網頁存檔 → 桌面讀到同一份；RLS 測試讀不到別人的存檔；沒有 token 不能加入房間 |
 | 6 AOI 與權威 RPG 系統 | 興趣範圍、`RemoteAuthority`、敵人 AI 與傷害 / 掉落 / 任務進度改由伺服器判定（`LAUNCH_PLAN.md` M2–M5） | 同上 | 兩人一起打同一隻怪，血量與掉落一致 |
 
@@ -219,7 +219,7 @@ flowchart TD
 
 ## 7. 安全與限制
 
-- **來源允許清單**：Colyseus 預設接受任何來源；Phase 4 只允許正式網址、`*-yisotsao.vercel.app` 預覽網址與 Electron（`file://` 的 Origin 是 `null`，以 JWT 為主要防線）。
+- **來源允許清單**（任務 11D）：伺服器的 `ALLOWED_ORIGINS` 只允許正式網址、`<專案>-*-yisotsaos-projects.vercel.app` 預覽網址與 Electron（`null`、`file://`）；Phase 5 以 JWT 為主要防線。
 - **CSP**：`index.html` 的 `connect-src` 已會加入 `VITE_GAME_SERVER_URL`；Phase 5 再加 Supabase 網址。
 - **伺服器權威**：移動驗證已在伺服器（T-168）；Phase 6 前任務、背包、戰鬥仍在各自本機，雙人時各自的進度不互相影響。
 - **Render Free 休眠**：沒人連線 15 分鐘就休眠，第一個人連線要等 30–60 秒。封閉測試可接受；公開後改 Starter。不建議用外部定時請求硬撐不休眠（違反免費方案的用意，且每月 750 小時額度）。

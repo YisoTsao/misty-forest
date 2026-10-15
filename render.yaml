@@ -1,0 +1,24 @@
+# Render Blueprint（任務 11D）：遊戲伺服器（Colyseus，dist-server/server.mjs）。
+# 在 Render 後台 New → Blueprint，選這個 repo 就會照這份建立服務；之後 push 到 main 自動部署。
+# 說明見 docs/multiplayer/deploy.md。
+services:
+  - type: web
+    name: mistwood-game-server
+    runtime: node
+    region: singapore
+    plan: free
+    branch: main
+    autoDeploy: true
+    # pnpm 版本與本機一致（pnpm-workspace.yaml 的 allowBuilds 需要 pnpm 11 以上）；不下載 Electron 執行檔
+    buildCommand: npm install -g pnpm@12.11.2 && pnpm install --frozen-lockfile && pnpm build:server
+    startCommand: pnpm start:server
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: ELECTRON_SKIP_BINARY_DOWNLOAD
+        value: "1"
+      # 連線來源允許清單（逗號分隔，支援 *）：Vercel 正式網址、預覽網址、Electron（null、file://）。
+      # 建立時在後台填入，例如 https://mistwood.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://
+      - key: ALLOWED_ORIGINS
+        sync: false

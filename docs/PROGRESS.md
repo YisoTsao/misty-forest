@@ -1,13 +1,13 @@
 # 開發進度
 
 ## 目前階段
-**Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）完成，即文件的 Phase 0–3；下一步是文件的 Phase 4（部署），見「下一步」。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
+**Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）完成，即文件的 Phase 0–3；11D（部署設定）的程式完成，實際上線進行中（見「下一步」）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
 **續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
 
 **交接（2026-10-15，多人連線）**：使用者要求先做多人連線，任務 11A–11B 已完成並提交到 `develop`（見「已完成」）。多人連線的執行方式、協定與測試見 `docs/multiplayer/`。
-- 下一步（文件 Phase 4，任務 11D）：部署——`render.yaml`、`vercel.json`、`packageManager`、來源允許清單、CSP、Render 休眠喚醒時的提示；使用者已決定（`online-plan.md` §8）：上限 16 人、只用 Email 登入、`main` 上線、Vercel / Render / Supabase 都用免費方案、不自訂網域。實際部署要等使用者提供 Vercel、Render 帳號。之後 Phase 5 Supabase 登入與存檔、Phase 6 AOI 與伺服器權威的 RPG 系統（含依資料驗證瞬移落點，T-174）。
+- 下一步（文件 Phase 4，任務 11D 上線）：程式與設定已完成（`render.yaml`、`vercel.json`、來源允許清單、喚醒提示），步驟見 `docs/multiplayer/deploy.md`。Vercel 專案由 Claude 透過 Vercel 工具建立（帳號 `yisotsao`、團隊 `yisotsaos-projects`）；Render 服務需要使用者在後台用 Blueprint 建立並填 `ALLOWED_ORIGINS`。上線後用兩個瀏覽器在正式網址驗收，並在 PROGRESS 記錄網址。之後 Phase 5 Supabase 登入（只用 Email）與雲端存檔、Phase 6 AOI 與伺服器權威的 RPG 系統（含依資料驗證瞬移落點，T-174）。
 - **上線整體規劃**：`docs/multiplayer/online-plan.md`（Vercel、Render、Supabase 的分工、架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖、環境變數、各階段要使用者提供的帳號）。Phase 4、5 開始前要先拿到使用者的 Vercel、Render 帳號與 Supabase 專案，見該文件 §8 與「待使用者處理」。
 
 **交接（2026-10-15，9F）**：任務 9F 風語草原的地圖與場景完成，`wip/9f-whispermeadow` 已 rebase 到多人連線之後並合回 `develop`（見「已完成」）。下一步可以接 9G（霏與風車聚落的居民、`quest_meadow_001`「風把話吹散了」），或回到多人連線 Phase 3，依使用者指示。
@@ -26,6 +26,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11D：多人連線——部署設定（2026-10-15，〈多人連線規劃〉Phase 4，程式部分）
+- `render.yaml`（Render Free 新加坡、`main` 自動部署、`/health`）、`vercel.json`（Vite、`dist`、長效快取）、`docs/multiplayer/deploy.md`（環境變數、第一次部署步驟、Electron 連正式伺服器、本機模擬）；`.env.example` 加上 `ALLOWED_ORIGINS`。
+- 伺服器的連線來源允許清單（`server/origins.ts`）：比對房間（static `onAuth`）、WebSocket 升級、CORS 三處檢查（T-175）。連線等待超過 4 秒時提示伺服器可能在休眠中醒來。
+- 測試：Vitest 新增來源清單 4 項、實際請求 4 項。乾淨目錄模擬 Render 的安裝 / 建置 / 以 `PORT`、`ALLOWED_ORIGINS` 啟動：`/health` 正常、允許的來源 200、其他網站 403、Electron 的 `null` 200；模擬 Vercel 建置：CSP 加入 `wss://` 與 `https://` 的伺服器網址。`multiplayer` e2e 改用正式的來源設定（只允許 Vercel 網址與 Electron 的 `null`、`file://`）、加上喚醒提示的檢查：12 項全過；`multiplayer-web` 2 項全過。`pnpm check` 867 項全過。未跑完整 e2e。
+- 尚未上線：需要建立 Vercel 專案與 Render 服務，見「下一步」。
+
 ### 任務 11C：多人連線——斷線續玩（2026-10-15，〈多人連線規劃〉Phase 3）
 - 伺服器：非自願斷線 `onDrop` 保留座位 20 秒、狀態 `online: false`；`onReconnect` 恢復並允許下一則 warp；逾時才移除（T-172）。
 - 客戶端：SDK 自動重連（約 15 秒內）回同一個 session；座位沒了（伺服器重啟、休眠喚醒）自動重新加入，最多 3 分鐘後才顯示「重新連線」；狀態「重新連線中…」；重連中不送位置；關閉視窗時主動離開。遠端玩家斷線時停在原地、名牌變淡並標示「（連線不穩）」，多人連線面板的名單也標示。

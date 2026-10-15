@@ -29,6 +29,7 @@ pnpm dev:electron      # Electron（另開終端機）
 | 層級 | 指令 | 內容 |
 |---|---|---|
 | 單元 | `pnpm vitest run src/game-core/net` | 訊息格式、名稱、速度 / 垂直 / 範圍 / 頻率驗證、插值、時鐘同步、停下再走的快照 |
+| 來源允許清單 | `pnpm vitest run server/origins` | 清單解析與萬用字元（`origins.test.ts`）；以實際的 HTTP 請求確認其他網站的比對房間被拒、CORS 不回允許標頭、WebSocket 升級 403，Electron（`null`）與沒有 Origin 的請求可以（`originsServer.test.ts`，埠 2596） |
 | 房間 | `pnpm vitest run server` | `@colyseus/testing` 在測試程序內啟動伺服器：加入、離開、出生點、其他地圖、協定版本、移動、瞬移、可玩區外、warp 間隔、格式錯誤、頻率限制；斷線續玩（以關閉代碼 4010 模擬斷線：保留座位與離線標記、重連回同一個人、重連後允許一次 warp、逾時移除、主動離開馬上移除） |
 | Electron 端對端 | `pnpm build && pnpm e2e:multiplayer` | 啟動 dist-server（2599 埠）與兩個 Electron 視窗，見下 |
 | Web 端對端 | `pnpm build && pnpm e2e:multiplayer-web` | `vite preview` + 同一個 Chromium 的兩個分頁（需要 `npx playwright install chromium`，不在 `e2e:all` 內） |

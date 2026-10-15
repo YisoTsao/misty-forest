@@ -1013,6 +1013,7 @@
   "net.unstable": "連線中斷了，正在重新連線…",
   "net.restored": "已重新連上伺服器",
   "net.remoteUnstable": "（連線不穩）",
+  "net.wakeHint": "伺服器可能正在從休眠中醒來，第一次連線最多要等約 1 分鐘。",
   "map.whispermeadow": "風語草原",
   "region.windy_hills": "起伏草原",
   "region.windmill_hamlet": "風車聚落",

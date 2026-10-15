@@ -8,7 +8,8 @@ import type { WorldRoom } from './WorldRoom';
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await boot(createGameServer(), 2598);
+  // 傳入已建立的 Server 時 boot 一律用 2568 埠（第二個參數沒有作用）
+  colyseus = await boot(createGameServer());
 });
 afterAll(async () => {
   await colyseus.shutdown();

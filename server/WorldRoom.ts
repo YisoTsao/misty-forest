@@ -1,6 +1,6 @@
 // 世界房間（任務 11A / 11B）：玩家加入 / 離開、出生點、位置的驗證與廣播。
 // 只負責「誰在場、在哪、什麼動作」；任務、背包、戰鬥仍是各客戶端自己的 LocalAuthority（決策 T-169）。
-import { Room, type Client } from '@colyseus/core';
+import { Room, ServerError, type AuthContext, type Client } from '@colyseus/core';
 import characters from '@/data/characters.json';
 import interiorsRaw from '@/data/interiors.json';
 import weapons from '@/data/weapons.json';
@@ -20,6 +20,7 @@ import {
 import { acceptRate, canWarp, checkMove, maxLungeIn, moveLimitsFor, zoneAt, type InteriorZone, type Vec3 } from '@/game-core/net/moveValidation';
 import { NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
+import { isAllowedOrigin, type OriginRule } from './origins';
 import { PlayerState, WorldState } from './schema';
 
 const traveler = characters.find((c) => c.id === 'traveler');
@@ -43,6 +44,8 @@ export type WorldRoomOptions = { instanceId?: string };
 let nextPlayerNumber = 1;
 
 export class WorldRoom extends Room<{ state: WorldState }> {
+  /** 連線來源允許清單（createGameServer 設定；空的 = 全部允許，任務 11D） */
+  static originRules: OriginRule[] = [];
   maxClients = NET.maxClients;
   maxMessagesPerSecond = NET.hardMessagesPerSecond;
   state = new WorldState();
@@ -63,6 +66,16 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     this.onMessage('*', (client: Client, type: string | number) => {
       console.warn(`[world] 忽略未知訊息 ${String(type)}（${client.sessionId}）`);
     });
+  }
+
+  /** 比對房間的 HTTP 請求（static：在保留座位之前執行）：來源不在允許清單內就拒絕。WebSocket 升級另外在 transport 的 beforeUpgrade 檢查 */
+  static async onAuth(_token: string, _options: unknown, context: AuthContext): Promise<boolean> {
+    const origin = context.headers.get('origin');
+    if (!isAllowedOrigin(origin, WorldRoom.originRules)) {
+      console.warn(`[world] 拒絕來源 ${origin} 加入`);
+      throw new ServerError(403, 'origin not allowed');
+    }
+    return true;
   }
 
   onJoin(client: Client, rawOptions?: unknown): void {

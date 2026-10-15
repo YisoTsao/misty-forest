@@ -63,5 +63,5 @@ flowchart LR
 - 同一台電腦同時開兩個 Electron 視窗與伺服器、機器很忙時，遠端玩家偶爾會停約 0.1 秒再追上；任務 11C 改成依抖動自動調整的呈現延遲（100–300 ms，T-173）。
 - 遠端玩家和本機玩家同一個造型（沒有外觀同步）、不同步攻擊與施法動作。
 - 新遊戲的玩家都出生在同一點，會疊在一起（沒有玩家之間的碰撞）。
-- Colyseus 預設接受任何來源（Electron 的 `file://` Origin 是 `null`）；Phase 4 部署時再設定來源允許清單。
+- 連線來源以 `ALLOWED_ORIGINS` 限制（任務 11D，T-175；沒設定時全部允許）；部署見 `deploy.md`。
 - `?server=` 只能指向 localhost 或建置時 `VITE_GAME_SERVER_URL` 的位址（CSP 限制）；區域網路試玩要用 `VITE_GAME_SERVER_URL=ws://<區網 IP>:2567 pnpm build` 建置。

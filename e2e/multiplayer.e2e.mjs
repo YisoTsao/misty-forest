@@ -34,7 +34,9 @@ async function check(name, fn) {
 }
 
 function startServer() {
-  const child = spawn(process.execPath, ['dist-server/server.mjs'], { env: { ...process.env, GAME_SERVER_PORT: String(PORT) }, stdio: ['ignore', 'pipe', 'pipe'] });
+  // 用正式部署的來源設定（任務 11D）：只允許 Vercel 的網址與 Electron（file:// 頁面的 Origin 是 null 或 file://）
+  const env = { ...process.env, GAME_SERVER_PORT: String(PORT), ALLOWED_ORIGINS: 'https://mistwood.vercel.app,null,file://' };
+  const child = spawn(process.execPath, ['dist-server/server.mjs'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
   child.stderr.on('data', (d) => process.stderr.write(`[server] ${d}`));
   // 加入 / 斷線 / 重新連線 / 離開的紀錄（失敗時對照用）
   child.stdout.on('data', (d) => {
@@ -348,11 +350,14 @@ try {
     assert.ok(toasts.includes('net.left'), `通知 ${toasts.join(', ')}`);
   });
 
-  await check('伺服器停止：B 顯示重新連線中，遊戲沒有卡住', async () => {
+  await check('伺服器停止：B 顯示重新連線中與喚醒提示，遊戲沒有卡住', async () => {
     await stopServer(server);
     await b.page.waitForFunction(() => window.__mistwoodDebug.net().status === 'reconnecting', null, { timeout: 15_000 });
     assert.match(await b.page.locator('[data-testid="net-status"]').innerText(), /重新連線中/);
     assert.equal(await b.page.locator('[data-testid="net-reconnect"]').count(), 0);
+    // 等了 4 秒以上：提示伺服器可能在休眠中醒來（Render 免費方案）
+    await b.page.locator('[data-testid="net-wake-hint"]').waitFor({ timeout: 8000 });
+    assert.match(await b.page.locator('[data-testid="net-wake-hint"]').innerText(), /休眠/);
     // 還能走動
     const before = await b.state();
     await focusGame(b.page);
