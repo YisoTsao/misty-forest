@@ -57,6 +57,12 @@ export const initialMistStages: MistStages = {
   reed_isle: 'dense',
   mirror_ruins: 'dense',
   mirror_temple: 'dense',
+  // 風語草原：草原與聚落淡霧（開闊、看得遠），山脊、風向塔與競技場濃霧（第四章要逐步恢復）
+  windy_hills: 'light',
+  windmill_hamlet: 'light',
+  floatstone_ridge: 'dense',
+  wind_tower: 'dense',
+  golem_arena: 'dense',
 };
 
 export function parseRegions(raw: unknown): RegionDef[] {

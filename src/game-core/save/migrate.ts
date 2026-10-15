@@ -61,6 +61,16 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
       map: { ...map, explored: encodeExplored(old ?? createExplored()) },
     };
   },
+  // v15 → v16：加入風語草原（任務 9F）的區域迷霧；探索紀錄接上第四張地圖的空白格子
+  15: (data) => {
+    const map = data.map as { explored?: unknown } | undefined;
+    const old = typeof map?.explored === 'string' ? decodeExplored(map.explored) : null;
+    return {
+      ...data,
+      mist: { ...initialMistStages, ...(data.mist as Record<string, unknown>) },
+      map: { ...map, explored: encodeExplored(old ?? createExplored()) },
+    };
+  },
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

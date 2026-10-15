@@ -92,8 +92,8 @@ export function GrassField({ index, map = 'dawnvale' }: { index: WorldIndex; map
     const accept = (x: number, z: number) => heightAt(x, z) >= WATER_LEVEL + 0.25 && !index.isOccupied(x, z);
     const colors: readonly string[] = map === 'glowmoss' ? forestFlowerColors : flowerColors;
     const palette = colors.map((c) => new THREE.Color(c));
-    // 林下比草原暗：花少一些
-    const flowerDensity = preset.flowerDensity * (map === 'glowmoss' ? 0.35 : 1);
+    // 林下比草原暗：花少一些；風語草原是大片野花坡（Bible §8.2）
+    const flowerDensity = preset.flowerDensity * (map === 'glowmoss' ? 0.35 : map === 'whispermeadow' ? 1.6 : 1);
     return (c: Chunk): THREE.InstancedMesh[] => {
       const grass = scatterChunk(c.x0, c.z0, c.size, { density: preset.grassDensity, seed: 1, accept, scale: [0.8, 1.35], heightAt, pathDistAt });
       const flowers = scatterChunk(c.x0, c.z0, c.size, {

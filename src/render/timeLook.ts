@@ -239,6 +239,14 @@ const LAKE = {
   horizon: new THREE.Color('#d9f1f4'),
 };
 
+/** 風語草原（任務 9F，Bible §8.3）：遠景必須開闊——霧推得更遠、天空更藍、陽光更暖 */
+function tintMeadow(look: TimeLook): TimeLook {
+  look.fogNear *= 1.35;
+  look.fogFar *= 1.4;
+  look.lightIntensity *= 1.06;
+  return look;
+}
+
 /** 澄鏡湖（任務 9A，Bible §7.3）：開闊的湖面，薄霧偏白藍（#D9F1F4），天光較亮、看得遠 */
 function tintLake(look: TimeLook): TimeLook {
   look.fog.lerp(LAKE.fog, 0.3);
@@ -253,6 +261,7 @@ function tintLake(look: TimeLook): TimeLook {
  */
 export function tintTimeLookForMap(map: MapId, look: TimeLook = currentTimeLook): TimeLook {
   if (map === 'mirrorlake') return tintLake(look);
+  if (map === 'whispermeadow') return tintMeadow(look);
   if (map !== 'glowmoss') return look;
   look.fog.lerp(FOREST.fog, 0.35);
   look.horizon.lerp(FOREST.horizon, 0.3);
