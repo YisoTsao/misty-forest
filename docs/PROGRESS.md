@@ -6,6 +6,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 
 **續作從這裡開始**：讀完本檔「下一步」與「已知問題」。
 
+**交接（2026-10-15）**：`develop` 停在任務 9E-2 完成、完整 e2e 全過（44 個 suite）。下一個任務 **9F 風語草原（地圖四）** 已開始但未完成，進行中的程式放在分支 `wip/9f-whispermeadow`（commit 7228ec2，**測試未全過，不要直接合進 develop**）：
+- 已寫好：`src/game-core/world/meadowTerrain.ts`（地形：入口、風車聚落、浮石山脊、風向塔台地、競技場、小徑）與 `meadowTerrain.test.ts`（5 項全過）；`maps.ts` 註冊 `whispermeadow`（原點 (6000, 0)）、`terrain.ts` 分派、`types.ts` 新增 5 個 regionId（`windy_hills` 預設、`windmill_hamlet`、`floatstone_ridge`、`wind_tower`、`golem_arena`）、`regions.ts` 初始迷霧、`migrate.ts` 的 v15 → v16 遷移；地面 / 世界地圖色票、光線色調（`timeLook` 的 `tintMeadow`）、`WorldScene` 的 `MapOnly`、`GrassField` 野花密度；`src/render/meadowModels.ts`（風訊號旗與倒下的旗、風向塔、風帆平台、彎月石拱、受風傾斜的樹、浮石、古風帆、競技場外圈，已註冊到 `proceduralModels`）；`scripts/gen-meadow.ts`（placement 產生腳本，含澄鏡湖東岸的古風帆 `mirrorlake_gate_meadow`）；`e2e/meadow.e2e.mjs`（草稿，還沒跑過）。
+- 目前 `pnpm check` 失敗 2 項（`regions.json` 還沒有新區域、`maps.test.ts` 仍假設 3 張地圖），都是下面待辦的一部分。
+- 還要做：① `schema.ts` 的 `SAVE_VERSION` 改 16、`save.test.ts` 補 v15 → v16 測試；② `regions.json` 加 5 個區域範圍（世界座標 = 局部 + (6000, 0)）；③ `prefabs.json`：`gate_to_meadow`（model `procedural:sail_gate`，`enter.to: whispermeadow`、`arriveAt: meadow_gate_mirrorlake`、`requires.questCompleted: quest_lake_003`、`lockedKey: gate.meadow.locked`）、`gate_to_mirrorlake_sail`（回澄鏡湖，`arriveAt: mirrorlake_gate_meadow`）、`meadow_windmill` / `meadow_windmill_blue`（沿用 KayKit 風車但不加 `animate`＝停擺，之後的任務讓它轉）、`wind_tower`、`windsail_platform`、`float_stone`、`crescent_arch`、`windbent_tree`、`arena_ring`、路標 `signpost_meadow`、`signpost_meadow_hamlet`、`signpost_meadow_tower`；④ `gen-placements.ts` 呼叫 `addMeadow`，`pnpm data:placements`；⑤ i18n（`map.whispermeadow`、5 個 `region.*`、物件名、路標、`gate.meadow.locked`、書籤名）、`landmarks.json`、`cameraBookmarks.json`（`meadow_*`）；⑥ `maps.test.ts` 改成 4 張地圖、出入口清單加上兩個古風帆；⑦ build、跑 `meadow` e2e 並修正、截圖檢視、`package.json` 的 `e2e:all` 加 `meadow`、CLAUDE.md 的 suite 數改 45、skill 對照表、DECISIONS T-165（地圖沿用 320 m，不用 Bible 建議的 450 × 350）。
+- 續作方式：`git fetch && git checkout wip/9f-whispermeadow`，完成上面的項目、驗證後合回 `develop`。
+
 **環境注意**：這台機器的 `pnpm` 預設會用到 Node 12（`~/Library/pnpm/node`），執行前先 `export PATH=~/.nvm/versions/node/v24.13.0/bin:$PATH`。若 `pnpm test` 出現 rolldown「Cannot find native binding」，執行 `pnpm install --force`。
 
 **背景執行**：`pnpm e2e` 與 `scripts/screenshot.mjs` 的遊戲視窗預設在背景（不搶焦點、排在所有視窗後面，T-85）；需要前景（實測滑鼠鎖定）時加 `MISTWOOD_FOREGROUND=1`。`scripts/perf.mjs` 仍在前景。
@@ -13,13 +19,16 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 ## 在另一台電腦續作
 1. `git clone https://github.com/YisoTsao/misty-forest.git && cd misty-forest`
 2. 需要 Node 24、pnpm 12（`corepack enable` 或 `npm i -g pnpm`）。`pnpm install`（會下載 Electron 執行檔；`pnpm-workspace.yaml` 已允許 electron / esbuild 的 install script）。
-3. 確認環境：`pnpm check`，再 `pnpm build`。e2e 只跑改動範圍的 suite（對照表見 `.claude/skills/mistwood-verify`）；要跑完整 `pnpm e2e` 會開約 24 個 Electron 視窗，執行時不要操作電腦。
+3. 確認環境：`pnpm check`，再 `pnpm build`。e2e 只跑改動範圍的 suite（對照表見 `.claude/skills/mistwood-verify`）；要跑完整 `pnpm e2e` 會依序開 44 個 suite 的 Electron 視窗（約 50 分鐘），執行時不要操作電腦。
 4. 試玩：`pnpm dev:electron`。
 5. 未納入版本控制、需要時重新產生：`node_modules/`、`dist/`、`dist-electron/`、`release/`（`pnpm build`、`pnpm run pack`）。
 6. AI 續作需要的文件：`CLAUDE.md`、`GAME_DESIGN.md`（規格 v3，優先依此）、`Mistwood_World_Bible_v2.md`（世界觀與內容）、本檔、`DECISIONS.md`。原始需求 `mistwood_game_spec.md` 與 skill `r3f-game-dev-spec` 不在 repo 內；最終規格書已涵蓋其內容。
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 完整 e2e（2026-10-15，任務 9E-2 之後）
+- `pnpm e2e`：44 個 suite 全過（348 項檢查、0 失敗）。
+
 ### 任務 9E-2：潮之共鳴與戰後的璃漪（2026-10-15，Bible §7.4、§7.5）
 - 擊敗璃漪後喚醒神殿中央的潮之共鳴裝置（取得潮之共鳴）；戰後的璃漪（Bible 戰後台詞）；回報伊芙後解鎖湖泊家園裝飾（蘆葦盆栽、鏡殼燈）（T-164）。Phase 9 澄鏡湖的主線 `quest_lake_001`–`003` 完成。
 - 測試：Vitest 806 項（`liyi.test.ts` 擴充到 6 項）。端對端 `liyi` 擴充到 9 項（戰後的璃漪、喚醒裝置、回報與建造選單）；forestguard、garden、build、boss 重跑全過；未跑完整 e2e。
@@ -452,7 +461,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 8. Phase 7 晨曦谷地完整 MVP（§9）。
 
 ## 使用者新指示（2026-10-14，優先於上方順序）：擴大第一章地圖、建立第二章，另加世界地圖、小地圖、場景豐富化、多樣怪物
-進度：7A、7B、7C、8A、8B、8C、8D-1、8D-2 完成（Phase 8 螢苔祕林完成）。接著回到 Phase 7 晨曦谷地 MVP（GAME_DESIGN §9）：7D「燈塔的最後一盞光」完成（T-141–T-144）；7E 霧團噗啾王完成（T-145–T-147）；7F 任務日誌完成（T-148）；7G 郵袋裡的三封信完成（T-149）；7H 米菈的雜貨補給完成（T-150）；7I 使用消耗品完成（T-151）；7J 琳娜的草藥桌完成（T-152）；7K 花園第一顆種子完成（T-153）；7L 河邊的腳印完成（T-154）；7M 燈塔下的影子完成（T-155）。Phase 7 晨曦谷地 MVP 剩下：`quest_dawn_001`「找到回家的路」（序章已有對應的教學，需要對照 Bible 補齊）、波木木工坊、NPC 動物模型替換、村屋窗燈；之後 Phase 9 澄鏡湖。7N 村屋窗燈完成（T-156）；7O 找到回家的路完成（T-157）。7P 動物居民完成（T-158）。Phase 7 晨曦谷地 MVP 只剩波木木工坊（與家具配方一起，屬於 Bible §26 的製作延伸），列為之後再做。9A 澄鏡湖的地圖與場景完成（T-159）。9B 湖區怪物完成（T-160）。9C 伊芙與「湖面不肯忘記」完成（T-161）。9D 水鏡光路謎題完成（T-162）。9E-1 頭目璃漪完成（T-163）。9E-2 潮之共鳴完成（T-164），Phase 9 澄鏡湖主線完成。下一步：收尾跑一次完整 `pnpm e2e`；之後是 Phase 9 的支線（伊芙的燈船、沒有寄出的信、沉沒鐘樓的寶箱，Bible §7.9、§22）或 Phase 10 風語草原（Bible §8），依 GAME_DESIGN 的順序決定。
+進度：7A、7B、7C、8A、8B、8C、8D-1、8D-2 完成（Phase 8 螢苔祕林完成）。接著回到 Phase 7 晨曦谷地 MVP（GAME_DESIGN §9）：7D「燈塔的最後一盞光」完成（T-141–T-144）；7E 霧團噗啾王完成（T-145–T-147）；7F 任務日誌完成（T-148）；7G 郵袋裡的三封信完成（T-149）；7H 米菈的雜貨補給完成（T-150）；7I 使用消耗品完成（T-151）；7J 琳娜的草藥桌完成（T-152）；7K 花園第一顆種子完成（T-153）；7L 河邊的腳印完成（T-154）；7M 燈塔下的影子完成（T-155）。Phase 7 晨曦谷地 MVP 剩下：`quest_dawn_001`「找到回家的路」（序章已有對應的教學，需要對照 Bible 補齊）、波木木工坊、NPC 動物模型替換、村屋窗燈；之後 Phase 9 澄鏡湖。7N 村屋窗燈完成（T-156）；7O 找到回家的路完成（T-157）。7P 動物居民完成（T-158）。Phase 7 晨曦谷地 MVP 只剩波木木工坊（與家具配方一起，屬於 Bible §26 的製作延伸），列為之後再做。9A 澄鏡湖的地圖與場景完成（T-159）。9B 湖區怪物完成（T-160）。9C 伊芙與「湖面不肯忘記」完成（T-161）。9D 水鏡光路謎題完成（T-162）。9E-1 頭目璃漪完成（T-163）。9E-2 潮之共鳴完成（T-164），Phase 9 澄鏡湖主線完成。完整 e2e 全過（44 個 suite）。GAME_DESIGN §2.2 / §9 把風語草原也列在 Phase 9，下一步是 9F 風語草原地圖（進行中，見檔首「交接」），之後 9G 草原怪物（風絮團 `mob_windfluff` 已在 7C 用 GreenBlob 做過，比照 9B 水泡精升級成 Bible 版本）、9H 霏與 `quest_meadow_001`（風訊號旗、上升氣流）、9I 三座風車 `quest_meadow_002`（風流滑行）、9J 頭目呼咻 `quest_meadow_003`。澄鏡湖的支線（伊芙的燈船、沒有寄出的信、沉沒鐘樓的寶箱，Bible §7.9、§22）之後再補。
 原規劃（7A 實作時的差異見 DECISIONS T-103–T-109：北方是 -Z，所以高地在 z < -100）：
 已完成調查，規劃如下（單次一個任務；驗證依 `mistwood-verify` 分層執行）：
 - **任務 7A 晨曦谷地擴大**：`TERRAIN_SIZE` 160 → 320（Bible §5.2），可玩區 ±148、圓角 18；地形網格 320 段。既有中心內容（出生點、村莊、湖、森林）座標不變，`gen-placements.ts` 舊散佈保留原 `half = 74` 以維持 id/位置，舊邊界樹移除、新邊界重新產生。
