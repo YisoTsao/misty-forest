@@ -19,6 +19,6 @@ services:
       - key: ELECTRON_SKIP_BINARY_DOWNLOAD
         value: "1"
       # 連線來源允許清單（逗號分隔，支援 *）：Vercel 正式網址、預覽網址、Electron（null、file://）。
-      # 建立時在後台填入，例如 https://mistwood.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://
+      # 建立時在後台填入，例如 https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://
       - key: ALLOWED_ORIGINS
         sync: false
