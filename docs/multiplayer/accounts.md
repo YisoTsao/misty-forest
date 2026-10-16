@@ -43,7 +43,7 @@ Email 驗證碼登入（6 位數，不用魔法連結）與主存檔的雲端同
 
 5. **Authentication → Rate Limits**：自訂 SMTP 後可以把「Emails sent per hour」調高（內建寄信只有很少的額度，改成 Resend 後才需要調）。依測試人數設定，例如 30。
 
-6. **Authentication → Email Templates → Magic Link**：內容一定要包含 `{{ .Token }}`（6 位數驗證碼），否則信件只有連結、玩家輸入不了。範例見下方。Confirm signup 範本也建議一起改成相同內容。
+6. **Authentication → Email Templates**：**Magic Link 與 Confirm signup 兩份都要改**，內容一定要包含 `{{ .Token }}`（6 位數驗證碼），否則信件只有連結、玩家輸入不了。第一次登入的信箱（帳號還不存在）Supabase 寄的是 **Confirm signup**，之後的登入才寄 **Magic Link**；只改 Magic Link 時，新玩家收到的會是預設的「Confirm your email」連結信（2026-10-16 使用者實際收到的信）。兩份用同樣的內容：
 
    ```html
    <h2>迷霧之森 登入驗證碼</h2>
@@ -64,7 +64,8 @@ Email 驗證碼登入（6 位數，不用魔法連結）與主存檔的雲端同
 
 - 信件沒有寄出、Resend 沒有紀錄：SMTP 的 Host、Port、Username（必須是 `resend`）或 API key 有誤。
 - 寄件者被拒絕：寄件網域還沒在 Resend 驗證，或寄件者不是該網域的地址。
-- 收到信但沒有數字：Magic Link 範本還沒加 `{{ .Token }}`。
+- 收到信但沒有數字：Magic Link 或 Confirm signup 範本還沒加 `{{ .Token }}`。第一次登入的信箱用的是 Confirm signup。
+- 收到的是「Confirm your email」連結信：不要點連結（遊戲只用驗證碼），改好 Confirm signup 範本後在帳號面板按「換一個信箱」重新寄送（同一信箱 60 秒內只能寄一次）。
 - 測試時寄到非註冊信箱失敗：仍在用 `onboarding@resend.dev`，改用已驗證的網域。
 
 ## Vercel 環境變數（已設定）

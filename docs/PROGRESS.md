@@ -533,7 +533,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
 
 ## 已知問題
-- 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link 範本改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
+- 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。
 - 聊天（任務 11F）：名字沒有帳號驗證、不唯一，任何人都能取別人的名字；靜音只在本機，換電腦或清除瀏覽器資料就沒了。髒話詞表是基本版，待使用者過目補充。這些在 11G 登入後改成帳號層級。
 - 多人連線（任務 11E）：怪物仍是各客戶端各自一份，兩個人看到的怪物位置與血量不同，對方的攻擊與法術只是表現、不會打到自己畫面上的怪物（Phase 6 伺服器權威才共享）。使用者回報正式網址「有時頓頓的」，原因未確認：先分辨是整個畫面卡（瀏覽器 FPS）還是只有對方的角色頓（網路抖動）。
