@@ -1017,7 +1017,7 @@
   "account.open": "帳號",
   "account.title": "帳號",
   "account.disabled": "這個版本沒有設定帳號服務，只能使用本機存檔。",
-  "account.intro": "輸入信箱，我們會寄一組 6 位數的驗證碼給你。第一次使用會自動建立帳號。登入後存檔會同步到雲端。",
+  "account.intro": "輸入信箱，我們會寄一組數字驗證碼給你。第一次使用會自動建立帳號。登入後存檔會同步到雲端。",
   "account.email": "信箱",
   "account.sendCode": "寄送驗證碼",
   "account.signInFromTitle": "要登入請從標題畫面進行，遊戲中登入會和正在進行的進度衝突。",

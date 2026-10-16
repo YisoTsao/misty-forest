@@ -52,6 +52,7 @@ Email 驗證碼登入（6 位數，不用魔法連結）與主存檔的雲端同
    <p>驗證碼 10 分鐘內有效。如果不是你要求的，可以忽略這封信。</p>
    ```
 
+7a. **Authentication → Sign In / Providers → Email → Email OTP Length**：預設可能是 8 位。程式已接受 6 到 8 位（以 Supabase 實際寄出的為準），所以不改也能用；若想統一成 6 位，改成 6 並按 Save。改了之後舊信件的驗證碼就失效，要重新寄送。
 7. **Authentication → URL Configuration → Site URL**：設為 `https://mistwood-blue.vercel.app`。
 
 ### C. 測試

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { NET } from '@/game-core/net/protocol';
 import { backToEmail, sendCode, signOut, useAccountStore, verifyCode } from '@/account/accountStore';
 import { reconcileSave, resolveConflict } from '@/account/sync';
 import { t } from '@/game/i18n';
 import { useGameStore } from '@/game/state/gameStore';
 import { useUiStore } from '@/game/state/uiStore';
+
+/** 驗證碼位數：Supabase 後台的 Email OTP Length 可能是 6 或 8，兩種都接受，實際正確與否由 Supabase 判斷 */
+const CODE_MIN = 6;
+const CODE_MAX = 8;
 
 /**
  * 帳號面板（任務 11G）：Email 驗證碼登入、登出。登入只在標題畫面進行。
@@ -82,9 +85,9 @@ function AccountWindow() {
             <p data-testid="account-code-sent" className="text-xs opacity-80">{t('account.codeSent', { email: pendingEmail ?? '' })}</p>
             <label className="flex flex-col gap-1">
               <span className="opacity-80">{t('account.code')}</span>
-              <input data-testid="account-code" inputMode="numeric" autoComplete="one-time-code" maxLength={NET.nameMaxLength} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} disabled={busy} className="rounded-lg bg-white/10 px-3 py-2 text-center text-lg tracking-[0.4em] outline-none focus:bg-white/20" />
+              <input data-testid="account-code" inputMode="numeric" autoComplete="one-time-code" maxLength={CODE_MAX} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, CODE_MAX))} disabled={busy} className="rounded-lg bg-white/10 px-3 py-2 text-center text-lg tracking-[0.4em] outline-none focus:bg-white/20" />
             </label>
-            <button type="submit" data-testid="account-verify" disabled={busy || code.length !== 6} className="rounded-full bg-amber-400 py-2 font-bold text-amber-950 disabled:opacity-40">
+            <button type="submit" data-testid="account-verify" disabled={busy || code.length < CODE_MIN} className="rounded-full bg-amber-400 py-2 font-bold text-amber-950 disabled:opacity-40">
               {t('account.verify')}
             </button>
             <button type="button" onClick={backToEmail} disabled={busy} className="text-xs underline opacity-80">
