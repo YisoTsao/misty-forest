@@ -102,6 +102,9 @@ export function PauseMenu() {
         >
           {t('pause.multiplayer')}
         </button>
+        <button type="button" data-testid="pause-account" onClick={() => useUiStore.getState().setAccountOpen(true)} className="rounded-full bg-white/15 py-2 hover:bg-white/25">
+          {t('account.open')}
+        </button>
         <button
           type="button"
           data-testid="pause-settings"

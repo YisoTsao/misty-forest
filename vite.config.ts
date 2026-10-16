@@ -18,10 +18,16 @@ function gameServerCsp(url: string | undefined): Plugin {
   return { name: 'mistwood-game-server-csp', transformIndexHtml: (html) => html.replace('%GAME_SERVER_ORIGINS%', origins) };
 }
 
+/** 帳號（任務 11G）：Supabase 專案的 https 來源加進 connect-src（登入與存檔的 REST 請求）。沒有設定時留空。 */
+function supabaseCsp(url: string | undefined): Plugin {
+  const origin = url ? ` ${new URL(url).origin}` : '';
+  return { name: 'mistwood-supabase-csp', transformIndexHtml: (html) => html.replace('%SUPABASE_ORIGIN%', origin.trim()) };
+}
+
 export default defineConfig(({ mode }) => ({
   // Electron 正式版以 file:// 載入，資源路徑需為相對路徑
   base: './',
-  plugins: [react(), tailwindcss(), gameServerCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_GAME_SERVER_URL)],
+  plugins: [react(), tailwindcss(), gameServerCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_GAME_SERVER_URL), supabaseCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL)],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

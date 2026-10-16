@@ -7,6 +7,7 @@ import { savePosition } from '../location';
 import { useSaveStore, type MainSaveInfo } from '../state/saveStore';
 import { worldDataResult } from '../worldData';
 import { saveStorage } from './storages';
+import { mirrorToCloud } from '@/account/cloudSave';
 
 // 存檔服務（規格 6.8）：讀檔（主檔 → 備份）、寫檔（依序排隊、非阻塞）、匯出。
 
@@ -48,6 +49,8 @@ export function saveGame(): Promise<boolean> {
     useSaveStore.setState({ saving: true });
     try {
       await saveStorage.write(MAIN_SLOT, data);
+      // 登入中：同一份內容同步上傳到雲端（失敗不影響本機存檔，見 cloudSave.ts）
+      mirrorToCloud(data);
       useSaveStore.setState({
         saving: false,
         lastSavedAt: data.savedAt,
