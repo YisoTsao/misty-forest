@@ -290,6 +290,8 @@ try {
     await b.page.waitForTimeout(600);
     await say(b, '/w A 悄悄話');
     await heard(a, '悄悄話', 'whisper');
+    // 回顯與對方收到的是兩條獨立的連線，等 B 的紀錄出現再讀（不能假設同時到）
+    await heard(b, '悄悄話', 'whisper');
     const echo = (await chat(b)).lines.find((l) => l.text === '悄悄話');
     assert.equal(echo.to, 'A', 'B 看到「你對 A 說」的回顯');
     await a.debug(([x, z]) => window.__mistwoodDebug.teleport(x, z), [home.x, home.z]);
