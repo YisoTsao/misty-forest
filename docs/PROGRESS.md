@@ -8,7 +8,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 
 **交接（2026-10-15，多人連線）**：使用者要求先做多人連線，任務 11A–11B 已完成並提交到 `develop`（見「已完成」）。多人連線的執行方式、協定與測試見 `docs/multiplayer/`。
 - **已上線（任務 11D）**：前端 https://mistwood-blue.vercel.app（Vercel 專案 `mistwood`，團隊 `yisotsaos-projects`，`mistwood.vercel.app` 是別人的）、遊戲伺服器 https://mistwood-game-server.onrender.com（Render Free 新加坡，`ALLOWED_ORIGINS=https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://`）、Supabase 專案 `mistwood`（ref `dnnlmunlmmhiqpgkjbvr`，新加坡，還是空的）。`main` push 後 Vercel 與 Render 都自動部署。Vercel 的 MCP 工具建立專案回 403，改用使用者登入的 Vercel CLI（`npx vercel`；本機上傳部署 `vercel deploy` 被自動模式擋下，部署一律走 push `main`）。使用者 2026-10-15 在正式網址以兩個瀏覽器驗收：連線成功；回報攻擊與施法對方看不到 → 任務 11E。
-- **下一步**（使用者 2026-10-16 決定的順序）：11G Supabase 登入（Email **6 位數驗證碼**，不用魔法連結；寄信用使用者已有的 Resend 當 Supabase 自訂 SMTP，開工時再跟使用者要設定）與雲端存檔 → 11H 共享日光（先決定多人時暫停、睡覺、迷霧怎麼處理）→ 11I 共享採集點與寶箱 → 11J 共享怪物與傷害 → 11K 頭目戰 → 手機版（先做「能玩」：虛擬搖桿、拖曳轉視角、螢幕按鈕、自動低畫質，真機量過再決定完整版）。各項的難度與要先決定的事見 `docs/multiplayer/online-plan.md` §9。
+- **下一步**（使用者 2026-10-16 決定的順序）：11G Supabase 登入（Email **6 位數驗證碼**，不用魔法連結；寄信用使用者已有的 Resend 當 Supabase 自訂 SMTP，設定步驟見 `docs/multiplayer/accounts.md`）與雲端存檔 → 11H 共享日光（先決定多人時暫停、睡覺、迷霧怎麼處理）→ 11I 共享採集點與寶箱 → 11J 共享怪物與傷害 → 11K 頭目戰 → 手機版（先做「能玩」：虛擬搖桿、拖曳轉視角、螢幕按鈕、自動低畫質，真機量過再決定完整版）。各項的難度與要先決定的事見 `docs/multiplayer/online-plan.md` §9。
 - **上線整體規劃**：`docs/multiplayer/online-plan.md`（Vercel、Render、Supabase 的分工、架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖、環境變數、各階段要使用者提供的帳號）。Phase 4、5 開始前要先拿到使用者的 Vercel、Render 帳號與 Supabase 專案，見該文件 §8 與「待使用者處理」。
 
 **交接（2026-10-15，9F）**：任務 9F 風語草原的地圖與場景完成，`wip/9f-whispermeadow` 已 rebase 到多人連線之後並合回 `develop`（見「已完成」）。下一步可以接 9G（霏與風車聚落的居民、`quest_meadow_001`「風把話吹散了」），或回到多人連線 Phase 3，依使用者指示。
@@ -533,7 +533,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
 
 ## 已知問題
-- 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link 範本改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信目前用 Supabase 內建額度，之後接 Resend。
+- 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link 範本改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。
 - 聊天（任務 11F）：名字沒有帳號驗證、不唯一，任何人都能取別人的名字；靜音只在本機，換電腦或清除瀏覽器資料就沒了。髒話詞表是基本版，待使用者過目補充。這些在 11G 登入後改成帳號層級。
 - 多人連線（任務 11E）：怪物仍是各客戶端各自一份，兩個人看到的怪物位置與血量不同，對方的攻擊與法術只是表現、不會打到自己畫面上的怪物（Phase 6 伺服器權威才共享）。使用者回報正式網址「有時頓頓的」，原因未確認：先分辨是整個畫面卡（瀏覽器 FPS）還是只有對方的角色頓（網路抖動）。

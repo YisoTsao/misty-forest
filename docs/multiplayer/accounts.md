@@ -15,18 +15,57 @@ Email 驗證碼登入（6 位數，不用魔法連結）與主存檔的雲端同
 - 登入中，每次本機存檔後同一份內容會上傳到雲端（依序排隊；失敗只顯示「同步失敗」，本機存檔不受影響，下次存檔會再試）。
 - 沒有設定 `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` 時帳號功能停用（e2e 建置就是這樣），單機完全不受影響。
 
-## 設定（一次性，需要在 Supabase 後台做）
+## 設定（一次性）
 
-1. **驗證碼信件要包含 `{{ .Token }}`**：Authentication → Email Templates → **Magic Link**（與 Confirm signup 也建議一起改）。預設範本只有 `{{ .ConfirmationURL }}`（連結），沒有數字碼，玩家收不到可以輸入的驗證碼。範例內容：
+寄信使用 **Resend**（SMTP），由 Supabase 後台設定；程式碼不需要改，也不會碰到 Resend 的 API key。
+
+### A. Resend（resend.com）
+
+1. 註冊／登入 Resend，建立一個專案（或使用現有的）。
+2. **Domains → Add Domain**：輸入你的網域（例如 `mistwood.example`）。Resend 會給出幾筆 DNS 記錄（SPF、DKIM，有的還有 MX），到網域的 DNS 管理處新增，然後在 Resend 按 **Verify**，狀態變成 Verified 才能寄出。
+   - 還沒有網域可以先用 Resend 提供的測試寄件者 `onboarding@resend.dev`，但它**只能寄到你註冊 Resend 的那個信箱**，正式上線前要換成自己的網域。
+3. **API Keys → Create API Key**：權限選 **Sending access**，可以限定網域。建立後會只顯示一次，複製起來。**這把 key 只貼到 Supabase 後台的密碼欄位，不要貼到對話、程式碼或文件裡。**
+
+### B. Supabase 後台（dashboard.supabase.com → 專案 mistwood）
+
+4. **Authentication → SMTP Settings**，開啟 **Enable Custom SMTP**，填入：
+
+   | 欄位 | 值 |
+   |---|---|
+   | Sender email | 已驗證網域的寄件者，例如 `noreply@mistwood.example`（測試時 `onboarding@resend.dev`） |
+   | Sender name | `迷霧之森` |
+   | Host | `smtp.resend.com` |
+   | Port | `465` |
+   | Username | `resend` |
+   | Password | 第 3 步的 API key |
+
+   按 **Save**。
+
+5. **Authentication → Rate Limits**：自訂 SMTP 後可以把「Emails sent per hour」調高（內建寄信只有很少的額度，改成 Resend 後才需要調）。依測試人數設定，例如 30。
+
+6. **Authentication → Email Templates → Magic Link**：內容一定要包含 `{{ .Token }}`（6 位數驗證碼），否則信件只有連結、玩家輸入不了。範例見下方。Confirm signup 範本也建議一起改成相同內容。
+
    ```html
    <h2>迷霧之森 登入驗證碼</h2>
    <p>你的 6 位數驗證碼：</p>
    <p style="font-size:24px;font-weight:bold;letter-spacing:4px">{{ .Token }}</p>
    <p>驗證碼 10 分鐘內有效。如果不是你要求的，可以忽略這封信。</p>
    ```
-2. **Authentication → URL Configuration → Site URL** 設為 `https://mistwood-blue.vercel.app`（OTP 不跳轉，但之後的連結類信件需要）。
-3. **寄信**：目前用 Supabase 內建寄信（每小時寄送數量有限，兩三個人測試足夠）。之後改用 Resend：Authentication → SMTP Settings 填 Resend 的 SMTP 資料（host `smtp.resend.com`、port 465、user `resend`、password 為 Resend 的 API key），寄件網域需先在 Resend 驗證。**API key 只填在 Supabase 後台，不要貼進對話或程式碼。**
-4. 之後若要限制註冊（例如只給邀請的人），在 Authentication → Sign In / Providers → Email 關閉「Allow new users to sign up」，但 `signInWithOtp` 會對新信箱建立帳號，那時要改成 `shouldCreateUser: false` 並先建立帳號。
+
+7. **Authentication → URL Configuration → Site URL**：設為 `https://mistwood-blue.vercel.app`。
+
+### C. 測試
+
+8. 開 https://mistwood-blue.vercel.app → 標題畫面「帳號」→ 輸入信箱 → 寄送驗證碼。
+9. 確認信件寄件者是你設定的網域、內容是 6 位數字；輸入後顯示「已登入」。
+10. 到 Resend 後台 **Emails** 頁面，應該看得到這封信的紀錄；若沒有，表示 SMTP 設定有誤，看 Supabase **Logs → Auth** 的錯誤訊息。
+
+### 常見問題
+
+- 信件沒有寄出、Resend 沒有紀錄：SMTP 的 Host、Port、Username（必須是 `resend`）或 API key 有誤。
+- 寄件者被拒絕：寄件網域還沒在 Resend 驗證，或寄件者不是該網域的地址。
+- 收到信但沒有數字：Magic Link 範本還沒加 `{{ .Token }}`。
+- 測試時寄到非註冊信箱失敗：仍在用 `onboarding@resend.dev`，改用已驗證的網域。
 
 ## Vercel 環境變數（已設定）
 
@@ -45,5 +84,5 @@ Email 驗證碼登入（6 位數，不用魔法連結）與主存檔的雲端同
 ## 已知限制
 
 - 遊戲伺服器還不驗證帳號（Supabase JWT）。帳號目前只用於存檔；聊天的靜音、封鎖與檢舉要改成帳號層級時再接（登入後伺服器驗證 JWT 的工作留到那一步）。
-- 寄信額度有限（內建寄信）。
+- 寄信走 Resend：免費方案每月 3000 封、每日 100 封（依 Resend 目前的方案為準）。
 - 只同步主存檔一格；`saves` 表的結構允許之後加格位，但目前沒有。
