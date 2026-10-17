@@ -1,4 +1,4 @@
-// 日夜循環的本機暫態（GAME_DESIGN 5.2）：權威狀態的遊玩秒數每秒才更新一次，
+// 日夜循環的本機暫態（GAME_DESIGN 5.2）：由共享世界時鐘（game/world/worldClock）每幀換算，
 // 這裡在兩次之間補上經過的時間，讓太陽與月亮平滑移動。由 GameClock 每幀寫入，Lighting / Sky / 環境效果讀取。
 import {
   clockAt,
@@ -15,7 +15,7 @@ import {
 const MIN_LIGHT_ELEVATION = (12 * Math.PI) / 180;
 
 export const timeRuntime = {
-  /** 平滑後的遊玩秒數 */
+  /** 共享世界時鐘（秒，每幀更新） */
   time: 0,
   /** 時鐘（小時，0–24） */
   hour: 8,

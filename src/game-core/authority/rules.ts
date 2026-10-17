@@ -25,6 +25,8 @@ import type { CraftData } from '../craft/craft';
 export type GameState = {
   /** 遊戲時間（秒）：只在遊玩中前進，重生計時以此為準，並隨存檔保存 */
   readonly time: number;
+  /** 共享世界時鐘（秒，timeOfDay 的 worldClockAt）：日夜與「夜裡」之類的條件都看這個；不存檔，遊玩中由 SyncClock 對時 */
+  readonly clock: number;
   readonly objects: ObjectRuntimeMap;
   readonly inventory: Inventory;
   /** 教學引導目前的步驟 */
@@ -57,6 +59,7 @@ export type SpawnerRuntime = { readonly nextSpawnAt: number; readonly counter: n
 export function initialGameState(): GameState {
   return {
     time: 0,
+    clock: 0,
     objects: new Map(),
     inventory: createInventory(),
     tutorial: 'move',
@@ -120,7 +123,8 @@ export type GameCommand =
   /** 在酒館休息（對話選項）：體力回滿 */
   | { type: 'Rest' }
   /** 在酒館睡到指定時刻（對話選項，GAME_DESIGN 5.2）：體力回滿、時間往前推進到 untilHour */
-  | { type: 'Sleep'; untilHour: number }
+  /** 共享世界時鐘對時（GameClock 每秒一次；讀檔或從暫停回來時立刻一次） */
+  | { type: 'SyncClock'; clock: number }
   /** 放置建造物（位置與角度由規則吸附到網格）；確認後才扣材料 */
   | { type: 'PlaceBuilding'; buildable: string; x: number; z: number; yaw: number }
   /** 拆除建造物，退還材料 */
@@ -180,6 +184,7 @@ export type RejectReason =
 
 export type GameEvent =
   | { type: 'TimeAdvanced'; time: number }
+  | { type: 'ClockSynced'; clock: number }
   | { type: 'ObjectHarvested'; placementId: string; respawnAt?: number }
   | { type: 'ObjectRespawned'; placementId: string }
   | { type: 'ChestOpened'; placementId: string }
@@ -332,11 +337,9 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
     case 'Rest':
       if (state.player.defeated) return reject('Rest', 'player-defeated');
       return [{ type: 'PlayerHealed', hp: PLAYER_STATS.maxHp }];
-    case 'Sleep': {
-      if (state.player.defeated) return reject('Sleep', 'player-defeated');
-      if (!validHour(cmd.untilHour)) return reject('Sleep', 'invalid-command');
-      return [...skipToHour(state, cmd.untilHour, ctx), { type: 'PlayerHealed', hp: PLAYER_STATS.maxHp }];
-    }
+    case 'SyncClock':
+      if (!Number.isFinite(cmd.clock)) return reject('SyncClock', 'invalid-command');
+      return cmd.clock === state.clock ? [] : [{ type: 'ClockSynced', clock: cmd.clock }];
     case 'PlaceBuilding':
       return placeBuilding(state, cmd, ctx);
     case 'ExploreArea': {
@@ -833,10 +836,13 @@ function validHour(hour: number): boolean {
   return Number.isFinite(hour) && hour >= 0 && hour < 24;
 }
 
-/** 時間往前推進到下一個 hour 時刻：與一般的時間前進相同（物件重生、回血、生成都照常結算） */
+/**
+ * 除錯：共享時鐘往前推到下一個 hour 時刻，遊玩秒數也前進同樣多（物件重生、回血、生成、花圃成長都照常結算）。
+ * 本機的時鐘來源要一起加上同樣的偏移（game/world/worldClock），否則下一次對時又會拉回來。
+ */
 function skipToHour(state: GameState, hour: number, ctx: RulesContext): GameEvent[] {
-  const dt = secondsUntilHour(state.time, hour);
-  return dt > 0 ? advanceTime(state, { type: 'AdvanceTime', dt }, ctx) : [];
+  const dt = secondsUntilHour(state.clock, hour);
+  return dt > 0 ? [...advanceTime(state, { type: 'AdvanceTime', dt }, ctx), { type: 'ClockSynced', clock: state.clock + dt }] : [];
 }
 
 function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'AdvanceTime' }>, ctx: RulesContext): GameEvent[] {
@@ -864,7 +870,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
+  let { time, clock, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -881,6 +887,9 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
     switch (e.type) {
       case 'TimeAdvanced':
         time = e.time;
+        break;
+      case 'ClockSynced':
+        clock = e.clock;
         break;
       case 'ObjectHarvested':
         patch(e.placementId, { harvested: true, respawnAt: e.respawnAt });
@@ -1003,5 +1012,5 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
+  return { time, clock, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
 }

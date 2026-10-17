@@ -109,6 +109,8 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
   return {
     state: {
       time: data.world.time,
+      // 共享時鐘不存檔：讀檔後第一幀由 GameClock 對時
+      clock: 0,
       objects,
       inventory: { slots },
       tutorial: data.tutorial,

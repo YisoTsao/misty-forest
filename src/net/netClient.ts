@@ -12,6 +12,7 @@ import {
   PROTOCOL_VERSION,
   ROOM_NAME,
   sanitizeName,
+  serverTimeOffset,
   ServerMessage,
   type ChatOut,
   type CorrectionMessage,
@@ -19,6 +20,7 @@ import {
   type NetAnim,
   type RemoteActionMessage,
   type RemotePlayerView,
+  type TimeReply,
 } from '@/game-core/net/protocol';
 import { parseChatInput } from '@/game-core/net/chat';
 import { authority } from '@/game/authority';
@@ -26,6 +28,7 @@ import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/character
 import { t } from '@/game/i18n';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useUiStore } from '@/game/state/uiStore';
+import { syncServerTime } from '@/game/world/worldClock';
 import { clearBubbles, localNotice, mute, receiveChat, unmute, useChatStore } from './chatStore';
 import { rememberName, savedName, serverUrl } from './config';
 import { createRemoteEntry, initialNetState, remoteRuntime, useNetStore, type NetMember } from './netStore';
@@ -100,6 +103,7 @@ async function join(): Promise<boolean> {
   joined.onMessage(ServerMessage.correction, (msg: CorrectionMessage) => applyCorrection(msg));
   joined.onMessage(ServerMessage.action, (msg: RemoteActionMessage) => receiveAction(msg));
   joined.onMessage(ServerMessage.chat, (msg: ChatOut) => receiveChat(msg));
+  joined.onMessage(ServerMessage.time, (reply: TimeReply) => syncServerTime(Date.now() + serverTimeOffset(reply, Date.now())));
   joined.onMessage(ServerMessage.chatHistory, (list: ChatOut[]) => {
     // 重新加入時紀錄可能已經在本機了：只補上沒看過的
     const seen = new Set(useChatStore.getState().lines.map((l) => l.id));
@@ -110,8 +114,9 @@ async function join(): Promise<boolean> {
   joined.onReconnect(() => onReconnected());
   joined.onLeave((code, reason) => onLeft(code, reason));
   startSending(warpSeqAtJoin);
-  // handler 註冊好之後才要全服頻道的紀錄（加入當下伺服器送的訊息會比 handler 早到）
+  // handler 註冊好之後才要全服頻道的紀錄與對時（加入當下伺服器送的訊息會比 handler 早到）
   joined.send(ClientMessage.chatHistory, {});
+  requestTime();
   return true;
 }
 
@@ -148,8 +153,14 @@ function onDropped(code: number): void {
 }
 
 /** 重連回同一個座位：其他人看到的還是同一個人 */
+/** 對時（共享日光）：之後的日夜以伺服器時間換算 */
+function requestTime(): void {
+  room?.send(ClientMessage.time, { t: Date.now() });
+}
+
 function onReconnected(): void {
   console.info('[net] 已重新連線');
+  requestTime();
   forceWarp = true;
   useNetStore.setState({ status: 'connected', error: null });
   useUiStore.getState().pushToast({ textKey: 'net.restored' });

@@ -73,7 +73,7 @@ export function evaluateCondition(condition: Condition | undefined, state: GameS
     case 'hasBuilt':
       return state.buildings.some((b) => condition.buildable === undefined || b.buildable === condition.buildable);
     case 'timeRange':
-      return inTimeRange(clockAt(state.time), condition.from, condition.to);
+      return inTimeRange(clockAt(state.clock), condition.from, condition.to);
     case 'bossDefeated':
       return state.defeatedBosses.includes(condition.boss);
     case 'questTalkDone': {

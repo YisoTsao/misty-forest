@@ -3,7 +3,8 @@ import { countItem, createInventory } from '../inventory/inventory';
 import { testContext } from '../testing/fixtures';
 import { exploredRatio, isExploredAt } from '../map/explore';
 import { canInteract } from '../world/objects';
-import { clockAt, secondsUntilHour } from '../world/timeOfDay';
+import { evaluateCondition } from '../dialogue/conditions';
+import { clockAt, secondsUntilHour, worldClockAt } from '../world/timeOfDay';
 import { applyEvents, handleCommand, initialGameState, RESPAWN_CLEARANCE, type GameCommand, type GameState } from './rules';
 
 const ctx = testContext();
@@ -209,30 +210,36 @@ describe('DebugSetMistStage', () => {
   });
 });
 
-describe('Sleep / DebugSetClock（日夜，GAME_DESIGN 5.2）', () => {
-  it('睡到早上 7 點：時間只往前、體力回滿、經過的時間照常結算重生', () => {
-    const night = { ...initialGameState(), time: secondsUntilHour(0, 22) };
-    const hurt = { ...night, player: { ...night.player, hp: 30 } };
-    const harvested = run(hurt, { type: 'HarvestObject', placementId: 't1' }).state;
-    const { state } = run(harvested, { type: 'Sleep', untilHour: 7 });
-    expect(clockAt(state.time)).toBeCloseTo(7, 5);
-    expect(state.time).toBeGreaterThan(harvested.time);
-    expect(state.player.hp).toBe(100);
-    // 樹的重生時間（100 秒）在睡覺期間經過
-    expect(state.objects.get('t1')?.harvested).toBeUndefined();
+describe('SyncClock / DebugSetClock（共享日夜，GAME_DESIGN 5.2、使用者 2026-10-17）', () => {
+  it('對時只改共享時鐘，不動遊玩秒數；同一個值沒有事件', () => {
+    const clock = worldClockAt(Date.UTC(2026, 9, 17, 8, 0, 0));
+    const { state } = run(initialGameState(), { type: 'SyncClock', clock });
+    expect(state.clock).toBe(clock);
+    expect(state.time).toBe(0);
+    expect(handleCommand(state, { type: 'SyncClock', clock }, ctx)).toEqual([]);
+    expect(rejectReason(initialGameState(), { type: 'SyncClock', clock: Number.NaN })).toBe('invalid-command');
   });
 
-  it('不合法的時刻與倒下時不能睡', () => {
-    expect(rejectReason(initialGameState(), { type: 'Sleep', untilHour: 25 })).toBe('invalid-command');
-    const down = { ...initialGameState(), player: { ...initialGameState().player, hp: 0, defeated: true } };
-    expect(rejectReason(down, { type: 'Sleep', untilHour: 7 })).toBe('player-defeated');
+  it('夜裡的對話條件看共享時鐘，不看各自的遊玩秒數', () => {
+    const nightOnly = { type: 'timeRange', from: 19, to: 5 } as const;
+    const cctx = { quests: ctx.quests };
+    // 遊玩秒數不同、共享時鐘相同的兩個人：判斷一致
+    const a = { ...initialGameState(), time: 0, clock: secondsUntilHour(0, 22) };
+    const b = { ...a, time: 5000 };
+    expect(evaluateCondition(nightOnly, a, cctx)).toBe(true);
+    expect(evaluateCondition(nightOnly, b, cctx)).toBe(true);
+    expect(evaluateCondition(nightOnly, { ...a, clock: secondsUntilHour(0, 12) }, cctx)).toBe(false);
   });
 
-  it('除錯設定時鐘：只在允許除錯指令時接受，已在該時刻則沒有事件', () => {
+  it('除錯設定時鐘：只在允許除錯指令時接受；共享時鐘與遊玩秒數一起往前，經過的時間照常結算重生', () => {
     expect(rejectReason(initialGameState(), { type: 'DebugSetClock', hour: 21 })).toBe('not-allowed');
     const debugCtx = { ...ctx, allowDebugCommands: true };
-    const events = handleCommand(initialGameState(), { type: 'DebugSetClock', hour: 21 }, debugCtx);
-    expect(clockAt(applyEvents(initialGameState(), events, debugCtx).time)).toBeCloseTo(21, 5);
+    const harvested = run(initialGameState(), { type: 'HarvestObject', placementId: 't1' }).state;
+    const events = handleCommand(harvested, { type: 'DebugSetClock', hour: 21 }, debugCtx);
+    const after = applyEvents(harvested, events, debugCtx);
+    expect(clockAt(after.clock)).toBeCloseTo(21, 5);
+    expect(after.time - harvested.time).toBeCloseTo(after.clock - harvested.clock, 5);
+    expect(after.objects.get('t1')?.harvested).toBeUndefined();
     expect(handleCommand(initialGameState(), { type: 'DebugSetClock', hour: 8 }, debugCtx)).toEqual([]);
   });
 });

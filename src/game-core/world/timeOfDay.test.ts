@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  worldClockAt,
   clockAt,
   DAY_REAL_SECONDS,
   dayIndex,
@@ -131,5 +132,14 @@ describe('phases and ranges', () => {
   it('formats the clock', () => {
     expect(formatClock(8)).toBe('08:00');
     expect(formatClock(18.75)).toBe('18:45');
+  });
+
+  it('shared world clock: same instant gives the same hour for everyone, one day per 24 real minutes', () => {
+    const t = Date.UTC(2026, 9, 17, 8, 43, 0);
+    expect(clockAt(worldClockAt(t))).toBeCloseTo(clockAt(worldClockAt(t)), 10);
+    // Unix 紀元正好是日出
+    expect(clockAt(worldClockAt(0))).toBeCloseTo(5.5, 5);
+    expect(clockAt(worldClockAt(t + DAY_REAL_SECONDS * 1000))).toBeCloseTo(clockAt(worldClockAt(t)), 5);
+    expect(dayIndex(worldClockAt(t + DAY_REAL_SECONDS * 1000))).toBe(dayIndex(worldClockAt(t)) + 1);
   });
 });

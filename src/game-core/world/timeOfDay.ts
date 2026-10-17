@@ -31,6 +31,15 @@ function cycleFromHour(hour: number): number {
 
 const START_OFFSET = cycleFromHour(START_HOUR);
 
+/**
+ * 共享世界時鐘（使用者 2026-10-17：所有玩家看到同一個日夜，不能一個白天一個晚上）：
+ * Unix 時間（毫秒）→ clockAt / dayIndex 用的秒數。以 Unix 紀元為某一天的日出，每 24 分鐘一個遊戲日，
+ * 所以不論何時開始玩、玩了多久，同一個時刻算出來的時段都一樣。遊玩秒數（GameState.time）只管重生與成長。
+ */
+export function worldClockAt(epochMs: number): number {
+  return epochMs / 1000 - START_OFFSET;
+}
+
 /** 從日出起算、未取餘數的現實秒數 */
 function cycleSeconds(time: number): number {
   return time + START_OFFSET;

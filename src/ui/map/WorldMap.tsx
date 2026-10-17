@@ -15,7 +15,6 @@ import { useBindings } from '@/game/state/settingsStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { worldDataResult } from '@/game/worldData';
 import { getMapBase } from '@/render/mapImage';
-import { fogFor } from './Minimap';
 import {
   currentQuestMarkers,
   drawChests,
@@ -115,8 +114,7 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
       ctx.fillStyle = '#d6d6e2';
       ctx.fillRect(0, 0, size, size);
       drawLayer(ctx, getMapBase(data, map), view, map);
-      drawLayer(ctx, fogFor(state.explored, map), view, map);
-      drawRegionLabels(ctx, view, state.explored, map);
+      drawRegionLabels(ctx, view, map);
       drawLandmarks(ctx, view, state, true, map);
       drawChests(ctx, view, state);
       drawNpcs(ctx, view, zoom >= 1.6);

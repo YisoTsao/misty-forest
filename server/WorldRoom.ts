@@ -21,12 +21,14 @@ import {
   PROTOCOL_VERSION,
   sanitizeName,
   ServerMessage,
+  timeRequestSchema,
   warpMessageSchema,
   type ChatOut,
   type CorrectionMessage,
   type CorrectionReason,
   type MoveMessage,
   type RemoteActionMessage,
+  type TimeReply,
 } from '@/game-core/net/protocol';
 import { acceptRate, canWarp, checkMove, maxLungeIn, moveLimitsFor, zoneAt, type InteriorZone, type Vec3 } from '@/game-core/net/moveValidation';
 import { NEW_GAME_SPAWN } from '@/game-core/world/maps';
@@ -58,6 +60,8 @@ type Track = {
   lastGlobalAt: number;
   lastChat: { text: string; at: number } | null;
   historySent: boolean;
+  /** 上次回覆對時的時間（毫秒） */
+  lastTimeAt: number;
   rejected: number;
 };
 
@@ -91,6 +95,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     this.onMessage(ClientMessage.equip, (client: Client, raw: unknown) => this.handleEquip(client, raw));
     this.onMessage(ClientMessage.chat, (client: Client, raw: unknown) => this.handleChat(client, raw));
     this.onMessage(ClientMessage.chatHistory, (client: Client) => this.handleChatHistory(client));
+    this.onMessage(ClientMessage.time, (client: Client, raw: unknown) => this.handleTime(client, raw));
     // 不認得的訊息一律忽略（不讓客戶端觸發未定義的行為）
     this.onMessage('*', (client: Client, type: string | number) => {
       console.warn(`[world] 忽略未知訊息 ${String(type)}（${client.sessionId}）`);
@@ -146,6 +151,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       lastGlobalAt: -Infinity,
       lastChat: null,
       historySent: false,
+      lastTimeAt: -Infinity,
       rejected: 0,
     });
     // 加入的人自己還沒註冊訊息 handler，系統訊息只送給其他人
@@ -313,6 +319,17 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     if (!track || track.historySent) return;
     track.historySent = true;
     client.send(ServerMessage.chatHistory, this.globalHistory);
+  }
+
+  /** 對時（共享日光）：每個連線每秒最多回一次，格式不符就忽略 */
+  private handleTime(client: Client, raw: unknown): void {
+    const track = this.tracks.get(client.sessionId);
+    const parsed = timeRequestSchema.safeParse(raw);
+    if (!track || !parsed.success) return;
+    const now = this.now();
+    if (now - track.lastTimeAt < 1000) return;
+    track.lastTimeAt = now;
+    client.send(ServerMessage.time, { t: parsed.data.t, now } satisfies TimeReply);
   }
 
   private remember(track: Track, text: string, now: number): void {

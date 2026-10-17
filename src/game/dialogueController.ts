@@ -39,8 +39,6 @@ function commandFor(effect: Exclude<DialogueEffect, { type: 'openShop' } | { typ
       return { type: 'TurnInQuest', quest: effect.quest };
     case 'rest':
       return { type: 'Rest' };
-    case 'sleep':
-      return { type: 'Sleep', untilHour: effect.untilHour };
   }
 }
 

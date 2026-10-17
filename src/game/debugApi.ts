@@ -44,6 +44,7 @@ import { useSettingsStore } from './state/settingsStore';
 import { useUiStore } from './state/uiStore';
 import { boundaryRuntime } from './world/boundaryRuntime';
 import { timeRuntime, updateTimeRuntime } from './world/timeRuntime';
+import { debugSetClock, resetDebugClock, worldClockNow } from '@/game/world/worldClock';
 import { spellRuntime } from './combat/spellRuntime';
 import { vfxStats } from './vfx/vfxQueue';
 import { mistRuntime } from './world/mistRuntime';
@@ -124,9 +125,10 @@ export type MistwoodDebugApi = {
   setMp: (mp: number) => void;
   /** 清除所有法術冷卻（截圖與測試用） */
   resetSpellCooldowns: () => void;
-  /** 日夜（GAME_DESIGN 5.2）：遊玩秒數、時鐘、第幾天、時段、方向光是否為月亮、強度、日月位置、畫面使用的時段 */
+  /** 日夜（GAME_DESIGN 5.2）：共享世界時鐘（畫面用的平滑值與權威狀態的值）、時刻、第幾天、時段、方向光是否為月亮、強度、日月位置、畫面使用的時段 */
   clock: () => {
     time: number;
+    stateClock: number;
     hour: number;
     day: number;
     phase: TimePhase;
@@ -137,8 +139,10 @@ export type MistwoodDebugApi = {
     lookHour: number;
     night: number;
   };
-  /** 時間往前推進到指定時刻（0–24，經權威層除錯指令；只往前） */
+  /** 共享時鐘在本機往前撥到指定時刻（0–24，只往前），遊玩秒數也前進同樣多（經權威層除錯指令） */
   setClock: (hour: number) => void;
+  /** 取消 setClock 的偏移，回到共享時鐘 */
+  resetClock: () => void;
   /** 地圖邊界：玩家到邊界的距離（界內為正）、是否在提示範圍、提示次數、碰撞體數量 */
   boundary: () => { distance: number; near: boolean; warnings: number; colliders: number };
   /** 目前顯示互動提示的物件 id */
@@ -363,6 +367,7 @@ export function installDebugApi(): void {
       const r = timeRuntime;
       return {
         time: r.time,
+        stateClock: authority.getState().clock,
         hour: r.hour,
         day: r.day,
         phase: timePhase(r.hour),
@@ -375,8 +380,13 @@ export function installDebugApi(): void {
       };
     },
     setClock: (hour) => {
-      authority.send({ type: 'DebugSetClock', hour: ((hour % 24) + 24) % 24 });
-      updateTimeRuntime(authority.getState().time);
+      debugSetClock((c) => authority.send(c), hour);
+      updateTimeRuntime(worldClockNow());
+    },
+    resetClock: () => {
+      resetDebugClock();
+      authority.send({ type: 'SyncClock', clock: worldClockNow() });
+      updateTimeRuntime(worldClockNow());
     },
     boundary: () => ({
       distance: worldBoundaryDistance(playerRuntime.position.x, playerRuntime.position.z),
