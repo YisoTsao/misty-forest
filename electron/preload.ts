@@ -11,6 +11,12 @@ const api = {
     write: (slot: string, data: unknown): Promise<void> => ipcRenderer.invoke('save:write', slot, data),
     readText: (slot: string): Promise<string | null> => ipcRenderer.invoke('save:readText', slot),
   },
+  // OAuth 登入（T-184）：系統瀏覽器登入後導回本機，回傳 code（或錯誤）
+  auth: {
+    redirect: (): Promise<string> => ipcRenderer.invoke('auth:redirect'),
+    start: (url: string): Promise<{ code?: string; error?: string }> => ipcRenderer.invoke('auth:start', url),
+    cancel: (): Promise<void> => ipcRenderer.invoke('auth:cancel'),
+  },
 } as const;
 
 contextBridge.exposeInMainWorld('mistwood', api);

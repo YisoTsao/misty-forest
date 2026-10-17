@@ -63,6 +63,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 多人連線純函式（`src/game-core/net/**`：協定、移動驗證、插值） | 不跑（`pnpm vitest run src/game-core/net server`） | 不拍 |
 | 多人連線（`server/**`、`src/net/**`、`render.yaml`、`vercel.json`、`RemotePlayers`、`NetStatusBadge`、`MultiplayerPanel`、`playerRuntime.warpSeq` / `positionAt` / `netActions`、`remoteSpell`、聊天 `ChatBox` / `chatStore` / `ChatBubble`、`uiStore.chatOpen`） | `multiplayer`（改到 `Player.tsx` 時加 `movement`、`bounds`；改到暫停選單時加 `settings`、`dev`；要驗 Web 版時加 `node e2e/multiplayer-web.e2e.mjs`，需要 Playwright 的 Chromium） | `multiplayer` e2e 會拍 `docs/screenshots/phase11/multiplayer_two.png`、`multiplayer_spell.png`、`chat.png` |
 | `src/render/**`（shader、後處理、植被、迷霧外觀） | 所屬功能的 suite（上表）；純視覺不跑 | 受影響書籤（`--mist` 只在迷霧相關時加） |
+| 帳號登入（`src/account`、`electron/oauthLoopback.ts`、`OnlinePanel`） | `account`（改到主選單時加 `dev`、`settings`）；真正的 Google / LINE 登入手動測（`docs/multiplayer/accounts.md`） | `--menu` |
 | `src/app`、`src/ui`、React effect / 生命週期 | `dev`（StrictMode）＋所屬畫面的 suite | 有改畫面才用 `--menu` |
 | `e2e/**` 本身 | 只跑改到的那個 suite | 不拍 |
 | `electron/**`、`vite.config.ts`、`package.json` 建置設定、`public/` 資產載入 | 完整 `pnpm e2e` | 不拍 |

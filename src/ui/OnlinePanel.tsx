@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { backToEmail, sendCode, signOut, useAccountStore, verifyCode } from '@/account/accountStore';
+import { cancelSignIn, signInWith, signOut, useAccountStore } from '@/account/accountStore';
 import { DISPLAY_NAME_MAX, onlineAccess } from '@/game-core/online/rules';
 import { t } from '@/game/i18n';
 import { enterOnlineWorld } from '@/game/session';
@@ -7,16 +7,12 @@ import { loadOnlineAccount, saveDisplayName, useOnlineStore } from '@/online/onl
 import { ClassPicker } from './ClassPicker';
 import { formatPlayTime, formatSavedAt } from './saveFormat';
 
-/** 驗證碼位數：Supabase 後台的 Email OTP Length 可能是 6 或 8，兩種都接受，實際正確與否由 Supabase 判斷 */
-const CODE_MIN = 6;
-const CODE_MAX = 8;
-
 const primary = 'rounded-full bg-amber-400 py-2.5 text-lg font-bold text-amber-950 shadow hover:bg-amber-300 disabled:opacity-50';
 const field = 'rounded-lg bg-white/10 px-3 py-2 outline-none focus:bg-white/20 focus:ring-2 focus:ring-amber-400 disabled:opacity-60';
 
 /**
  * 主選單的「線上遊玩」（任務 11L-2，DECISIONS T-179）：線上一定要登入，資料只存在資料庫。
- * 依序：輸入信箱 → 輸入驗證碼（通過後直接成為已登入，不需再按任何按鈕）→ 第一次設定顯示名稱 → 進入線上世界。
+ * 依序：用 Google 或 LINE 登入（第一次登入就建立並綁定帳號，T-184）→ 第一次設定顯示名稱 → 進入線上世界。
  */
 export function OnlinePanel() {
   const status = useAccountStore((s) => s.status);
@@ -27,8 +23,8 @@ export function OnlinePanel() {
           {t('online.disabled')}
         </p>
       )}
-      {status === 'signedOut' && <EmailStep />}
-      {status === 'codeSent' && <CodeStep />}
+      {status === 'signedOut' && <LoginStep />}
+      {status === 'signingIn' && <WaitingStep />}
       {status === 'signedIn' && <SignedIn />}
     </div>
   );
@@ -44,67 +40,41 @@ function AccountError() {
   );
 }
 
-function EmailStep() {
+/** 登入方式的按鈕：第一次登入就自動建立並綁定帳號（T-184） */
+function LoginStep() {
   const busy = useAccountStore((s) => s.busy);
-  const [address, setAddress] = useState('');
+  const button = 'flex items-center justify-center gap-2 rounded-full py-2.5 text-base font-bold shadow disabled:opacity-50';
   return (
-    <form
-      className="flex flex-col gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        void sendCode(address);
-      }}
-    >
+    <div className="flex flex-col gap-3">
       <p className="text-sm leading-6 opacity-85">{t('online.intro')}</p>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="opacity-80">{t('account.email')}</span>
-        <input data-testid="online-email" type="email" autoComplete="email" autoFocus value={address} onChange={(e) => setAddress(e.target.value)} disabled={busy} className={field} />
-      </label>
-      <button type="submit" data-testid="online-send" disabled={busy || !address.includes('@')} className={primary}>
-        {t('account.sendCode')}
+      <button type="button" data-testid="online-google" autoFocus disabled={busy} onClick={() => void signInWith('google')} className={`${button} bg-white text-slate-800 hover:bg-slate-100`}>
+        <span aria-hidden className="text-lg font-black text-[#4285f4]">G</span>
+        {t('account.withGoogle')}
+      </button>
+      <button type="button" data-testid="online-line" disabled={busy} onClick={() => void signInWith('line')} className={`${button} bg-[#06c755] text-white hover:bg-[#05b34c]`}>
+        <span aria-hidden className="rounded bg-white px-1 text-xs font-black text-[#06c755]">LINE</span>
+        {t('account.withLine')}
       </button>
       <AccountError />
-    </form>
+    </div>
   );
 }
 
-function CodeStep() {
+/** 等待瀏覽器的登入頁面（桌面版在系統瀏覽器、網頁版正在導向） */
+function WaitingStep() {
   const busy = useAccountStore((s) => s.busy);
-  const pendingEmail = useAccountStore((s) => s.pendingEmail);
-  const [code, setCode] = useState('');
+  const provider = useAccountStore((s) => s.provider);
   return (
-    <form
-      className="flex flex-col gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        void verifyCode(code);
-      }}
-    >
-      <p data-testid="online-code-sent" className="text-sm leading-6 opacity-85">
-        {t('account.codeSent', { email: pendingEmail ?? '' })}
+    <div className="flex flex-col gap-3">
+      <p data-testid="online-waiting" role="status" className="rounded-xl bg-white/10 p-3 text-sm leading-6">
+        {busy ? t('account.finishing') : t('account.waiting', { provider: provider === 'line' ? 'LINE' : 'Google' })}
       </p>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="opacity-80">{t('account.code')}</span>
-        <input
-          data-testid="online-code"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          autoFocus
-          maxLength={CODE_MAX}
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, CODE_MAX))}
-          disabled={busy}
-          className={`${field} text-center text-lg tracking-[0.4em]`}
-        />
-      </label>
-      <button type="submit" data-testid="online-verify" disabled={busy || code.length < CODE_MIN} className={primary}>
-        {t('account.verify')}
-      </button>
-      <button type="button" onClick={backToEmail} disabled={busy} className="text-xs underline opacity-80">
-        {t('account.changeEmail')}
-      </button>
-      <AccountError />
-    </form>
+      {!busy && (
+        <button type="button" data-testid="online-cancel" onClick={cancelSignIn} className="text-xs underline opacity-80">
+          {t('account.cancel')}
+        </button>
+      )}
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, powerSaveBlocker, shell } from 'electron';
 import { execFile } from 'node:child_process';
 import path from 'node:path';
+import { cancelCallback, isAllowedAuthUrl, LOOPBACK_REDIRECT, waitForCallback } from './oauthLoopback';
 import { listSaves, readSave, readSaveText, writeSave } from './saveFiles';
 
 const devServerUrl = process.env.VITE_DEV_SERVER_URL;
@@ -113,8 +114,24 @@ function registerSaveIpc(): void {
   ipcMain.handle('save:readText', (_e, slot: unknown) => readSaveText(saveDir(), slot));
 }
 
+/** OAuth 登入（T-184）：頁面取得 Supabase 的登入網址後交給這裡，用系統瀏覽器打開並等待導回 127.0.0.1 */
+function registerAuthIpc(): void {
+  ipcMain.handle('auth:redirect', () => LOOPBACK_REDIRECT);
+  ipcMain.handle('auth:start', async (event, url: unknown) => {
+    if (typeof url !== 'string' || !isAllowedAuthUrl(url, null)) return { error: 'invalid url' };
+    const result = waitForCallback();
+    await shell.openExternal(url);
+    const done = await result;
+    // 登入完成後把遊戲視窗帶回前景
+    BrowserWindow.fromWebContents(event.sender)?.focus();
+    return done;
+  });
+  ipcMain.handle('auth:cancel', () => cancelCallback());
+}
+
 app.whenReady().then(() => {
   registerSaveIpc();
+  registerAuthIpc();
   // 背景執行時避免 macOS App Nap 降低計時精度
   if (background) powerSaveBlocker.start('prevent-app-suspension');
   createWindow();

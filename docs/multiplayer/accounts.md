@@ -1,86 +1,88 @@
-# 帳號與線上登入（任務 11G、11L-2）
+# 帳號與線上登入（任務 11G、11L-2、T-184）
 
-Email 驗證碼登入（6–8 位數，不用魔法連結），只用於**線上遊玩**。實作：`src/account/`（登入）、`src/online/`（玩家檔案、線上角色、遊玩紀錄）、`src/ui/OnlinePanel.tsx`（主選單的線上頁）。決策見 `docs/DECISIONS.md` T-178（登入方式）、T-179、T-180（單機與線上分開）；畫面流程見 `ui-flow.md`；資料表見 `database.md`。
+**Google 與 LINE 的 OAuth 登入**（2026-10-17 使用者決定，取代 Email 驗證碼），只用於**線上遊玩**。第一次登入就自動建立並綁定帳號，沒有另外的註冊。實作：`src/account/`（登入）、`electron/oauthLoopback.ts`（桌面版回呼）、`src/online/`（玩家檔案、線上角色、遊玩紀錄）、`src/ui/OnlinePanel.tsx`（主選單的線上頁）。決策見 `docs/DECISIONS.md` T-184（登入方式；取代 T-178）、T-179、T-180（單機與線上分開）；畫面流程見 `ui-flow.md`；資料表見 `database.md`。
 
 ## 資料
 
-- 專案：Supabase `mistwood`（ref `dnnlmunlmmhiqpgkjbvr`，新加坡），publishable key 公開，會打包進網頁與 Electron；**沒有** secret key 進客戶端。
+- 專案：Supabase `mistwood`（ref `dnnlmunlmmhiqpgkjbvr`，新加坡），publishable key 公開，會打包進網頁與 Electron；**沒有** secret key 進客戶端。Google、LINE 的 client secret 只填在 Supabase 後台。
 - 線上角色存在 `public.characters`，玩家檔案在 `public.profiles`（說明見 `database.md`）。
 - 舊表 `public.saves`（11G 的本機存檔鏡像）已不再使用，資料已複製成線上角色，之後確認再移除。
 
 ## 行為
 
-- 登入只在主選單的「線上遊玩」頁進行；驗證碼通過後直接成為已登入（不需要再按按鈕），接著讀取玩家檔案與線上角色。
+- 登入只在主選單的「線上遊玩」頁進行，兩個按鈕：「使用 Google 登入」「使用 LINE 登入」。
+  - **網頁版**：整頁導到 Google / LINE，登入後導回同一網址（帶一次性的 `code`，PKCE），遊戲換成登入狀態並把參數從網址拿掉。
+  - **桌面版（Electron）**：用系統瀏覽器打開登入頁，登入後導回 `http://127.0.0.1:53682/auth/callback`，主程序收下 `code` 交給遊戲，遊戲視窗回到前景。等待時可以「取消登入」，5 分鐘沒完成自動取消。
+- **帳號綁定**：Supabase 會把同一個已驗證信箱的登入方式合併成同一個帳號（automatic identity linking）。原本用 Email 驗證碼建立的帳號，用同信箱的 Google 登入就會接上原本的帳號、角色與權限（例如使用者的 `admin`）。LINE 只有在 LINE 提供信箱時才會合併，否則是另一個帳號。
 - 第一次進入線上要先取顯示名稱（2–16 字、不分大小寫不能重複、不能含屏蔽詞）。
 - **單機存檔不會上傳，線上角色不會寫到本機**（取代 11G 的同步與衝突對話框）。
 - 線上的一局每次存檔寫入 `characters`，以 `revision` 檢查：別的分頁或裝置已存過時不覆蓋，提示玩家回到主選單重新進入。
 - 沒有設定 `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` 時線上頁顯示停用提示（e2e 建置就是這樣），單機完全不受影響。
+- LINE 在 Supabase 的識別碼預設 `custom:line`；要換名稱時設定 `VITE_SUPABASE_LINE_PROVIDER`。
 
-## 設定（一次性）
+## 設定（一次性，使用者在各平台後台操作）
 
-寄信使用 **Resend**（SMTP），由 Supabase 後台設定；程式碼不需要改，也不會碰到 Resend 的 API key。
+兩邊的 **Callback URL** 都是 Supabase 的：`https://dnnlmunlmmhiqpgkjbvr.supabase.co/auth/v1/callback`（若之後 Supabase 換自訂網域，改成該網域的 `/auth/v1/callback`）。
 
-### A. Resend（resend.com）
+### A. Google（console.cloud.google.com）
 
-1. 註冊／登入 Resend，建立一個專案（或使用現有的）。
-2. **Domains → Add Domain**：輸入你的網域（例如 `yisoapp.com`）。Resend 會給出幾筆 DNS 記錄（SPF、DKIM，有的還有 MX），到網域的 DNS 管理處新增，然後在 Resend 按 **Verify**，狀態變成 Verified 才能寄出。
-   - 還沒有網域可以先用 Resend 提供的測試寄件者 `onboarding@resend.dev`，但它**只能寄到你註冊 Resend 的那個信箱**，正式上線前要換成自己的網域。
-3. **API Keys → Create API Key**：權限選 **Sending access**，可以限定網域。建立後會只顯示一次，複製起來。**這把 key 只貼到 Supabase 後台的密碼欄位，不要貼到對話、程式碼或文件裡。**
+1. 建立或選一個專案 → **APIs & Services → OAuth consent screen**：User type 選 External，填 App name「迷霧之森」、支援信箱；Scopes 只要 `email`、`profile`、`openid`。測試期間可以停在 Testing 並把測試帳號加入 Test users；要給所有人用時按 **Publish app**。
+2. **Credentials → Create Credentials → OAuth client ID**：Application type 選 **Web application**。
+   - Authorized JavaScript origins：`https://mistwood.yisoapp.com`、`https://mistwood-blue.vercel.app`
+   - Authorized redirect URIs：上面的 Supabase Callback URL
+3. 建立後複製 **Client ID** 與 **Client secret**。
 
-### B. Supabase 後台（dashboard.supabase.com → 專案 mistwood）
+### B. LINE（developers.line.biz）
 
-4. **Authentication → SMTP Settings**，開啟 **Enable Custom SMTP**，填入：
+4. 建立 Provider → **Create a LINE Login channel**：Region 選台灣（或你的地區），App types 勾 **Web app**，填名稱、說明、圖示、隱私權政策網址。
+5. 頻道的 **LINE Login** 分頁 → **Callback URL**：填上面的 Supabase Callback URL。
+6. **Basic settings → OpenID Connect → Email address permission → Apply**：上傳隱私權政策頁面的截圖並同意條款。**要拿到信箱才建得了 Supabase 帳號**，這一步不能跳過。
+7. 複製 **Channel ID** 與 **Channel secret**；頻道狀態從 Developing 改成 **Published**（Developing 時只有頻道管理員能登入）。
 
-   | 欄位 | 值 |
-   |---|---|
-   | Sender email | 已驗證網域的寄件者，例如 `noreply@yisoapp.com`（測試時 `onboarding@resend.dev`） |
-   | Sender name | `迷霧之森` |
-   | Host | `smtp.resend.com` |
-   | Port | `465` |
-   | Username | `resend` |
-   | Password | 第 3 步的 API key |
+### C. Supabase 後台（dashboard.supabase.com → 專案 mistwood）
 
-   按 **Save**。
+8. **Authentication → Sign In / Providers → Google**：開啟，貼上第 3 步的 Client ID、Client secret，Save。
+9. 同一頁 **Custom OAuth Providers → New Provider**：
+   - Configuration method：**Auto-discovery (OIDC)**
+   - Identifier：`custom:line`
+   - Name：`LINE`
+   - Client ID / Client Secret：第 7 步的 Channel ID / Channel secret
+   - Issuer URL：`https://access.line.me`
+   - Scopes：`openid profile email`
+   - 按 **Create and enable provider**。（免費方案最多 3 個自訂提供者。）
+10. **Authentication → URL Configuration**：Site URL `https://mistwood.yisoapp.com`；**Redirect URLs** 加入：
+    - `https://mistwood.yisoapp.com/**`
+    - `https://mistwood-blue.vercel.app/**`
+    - `https://mistwood-*-yisotsaos-projects.vercel.app/**`（Vercel 預覽）
+    - `http://127.0.0.1:53682/auth/callback`（桌面版）
+    - `http://localhost:5173/**`（本機 `pnpm dev`）
+11. 確認 Google 能登入、而且接上原本的帳號後，**Sign In / Providers → Email** 可以關掉（遊戲已經沒有驗證碼的入口；不關也不影響）。原本的 Resend SMTP 設定可以保留或移除。
 
-5. **Authentication → Rate Limits**：自訂 SMTP 後可以把「Emails sent per hour」調高（內建寄信只有很少的額度，改成 Resend 後才需要調）。依測試人數設定，例如 30。
+### D. 測試
 
-6. **Authentication → Email Templates**：**Magic Link 與 Confirm signup 兩份都要改**，內容一定要包含 `{{ .Token }}`（6 位數驗證碼），否則信件只有連結、玩家輸入不了。第一次登入的信箱（帳號還不存在）Supabase 寄的是 **Confirm signup**，之後的登入才寄 **Magic Link**；只改 Magic Link 時，新玩家收到的會是預設的「Confirm your email」連結信（2026-10-16 使用者實際收到的信）。兩份用同樣的內容：
-
-   ```html
-   <h2>迷霧之森 登入驗證碼</h2>
-   <p>你的 6 位數驗證碼：</p>
-   <p style="font-size:24px;font-weight:bold;letter-spacing:4px">{{ .Token }}</p>
-   <p>驗證碼 10 分鐘內有效。如果不是你要求的，可以忽略這封信。</p>
-   ```
-
-7a. **Authentication → Sign In / Providers → Email → Email OTP Length**：預設可能是 8 位。程式已接受 6 到 8 位（以 Supabase 實際寄出的為準），所以不改也能用；若想統一成 6 位，改成 6 並按 Save。改了之後舊信件的驗證碼就失效，要重新寄送。
-7. **Authentication → URL Configuration → Site URL**：設為 `https://mistwood.yisoapp.com`；Redirect URLs 也加入同一網址。
-
-### C. 測試
-
-8. 開 https://mistwood.yisoapp.com → 主選單「線上遊玩」→ 輸入信箱 → 寄送驗證碼。
-9. 確認信件寄件者是你設定的網域、內容是 6 位數字；輸入後顯示「已登入」。
-10. 到 Resend 後台 **Emails** 頁面，應該看得到這封信的紀錄；若沒有，表示 SMTP 設定有誤，看 Supabase **Logs → Auth** 的錯誤訊息。
+12. 開正式網址 → 主選單「線上遊玩」→「使用 Google 登入」→ 選帳號 → 回到遊戲，顯示「已登入：名稱」。用原本的信箱登入時應該是原本的名稱與角色。
+13. 「登出」→「使用 LINE 登入」→ LINE 授權頁同意 → 回到遊戲；第一次會要求取名。
+14. 桌面版（`pnpm dev:electron` 或打包版）：按登入後系統瀏覽器開啟，完成後瀏覽器顯示「登入完成」、遊戲回到前景並已登入。
+15. 失敗時看 Supabase **Logs → Auth**：`redirect_to` 不在 Redirect URLs、Callback URL 不一致、LINE 沒有信箱權限是最常見的原因。
 
 ### 常見問題
 
-- 信件沒有寄出、Resend 沒有紀錄：SMTP 的 Host、Port、Username（必須是 `resend`）或 API key 有誤。
-- 寄件者被拒絕：寄件網域還沒在 Resend 驗證，或寄件者不是該網域的地址。
-- 收到信但沒有數字：Magic Link 或 Confirm signup 範本還沒加 `{{ .Token }}`。第一次登入的信箱用的是 Confirm signup。
-- 收到的是「Confirm your email」連結信：不要點連結（遊戲只用驗證碼），改好 Confirm signup 範本後在線上頁按「換一個信箱」重新寄送（同一信箱 60 秒內只能寄一次）。
-- 測試時寄到非註冊信箱失敗：仍在用 `onboarding@resend.dev`，改用已驗證的網域。
+- 登入後回到遊戲但仍是未登入、出現「登入沒有成功」：Redirect URLs 沒有列出目前的網址（Supabase 會改導回 Site URL，`code` 對不上）。
+- Google 顯示 `redirect_uri_mismatch`：Google 的 Authorized redirect URIs 要填 Supabase 的 Callback URL，不是遊戲網址。
+- LINE 登入後 Supabase 回 `Error getting user email`：LINE 頻道還沒有 Email address permission，或玩家在授權頁沒有同意提供信箱。
+- 桌面版瀏覽器顯示無法連線到 127.0.0.1：遊戲沒有在等待（已取消或逾時），回到遊戲重新按登入；埠號 53682 被其他程式占用時也會失敗。
 
 ## Vercel 環境變數（已設定）
 
 `VITE_SUPABASE_URL`、`VITE_SUPABASE_PUBLISHABLE_KEY`（Production 與 Preview）。CSP 的 `connect-src` 由 `vite.config.ts` 的 `supabaseCsp` 依 `VITE_SUPABASE_URL` 加入。
 
-## 手動測試（需要真的信箱）
+## 手動測試（需要真的 Google / LINE 帳號）
 
-1. 開 https://mistwood.yisoapp.com，主選單切到「線上遊玩」，輸入信箱，按「寄送驗證碼」。
-2. 收信，輸入驗證碼，按「登入」：畫面直接變成「已登入」，並要求取名（第一次）。
+1. 開 https://mistwood.yisoapp.com，主選單切到「線上遊玩」，按「使用 Google 登入」或「使用 LINE 登入」。
+2. 登入後回到遊戲：畫面直接變成「已登入」，並要求取名（第一次）。
 3. 取名後按「進入線上世界」：沒有線上角色時從頭開始，暫停選單顯示「線上遊玩 · 名稱」，右上角連線狀態變成已連線。
 4. 遊玩後存檔（暫停選單「儲存遊戲」或等自動存檔），回到主選單：線上頁顯示線上角色的存檔時間；切到單機頁，「繼續遊戲」仍是本機的進度（沒有被線上覆蓋）。
-5. 換一個瀏覽器登入同一信箱，進入線上世界：接上同一個線上角色。
+5. 換一個瀏覽器用同一個 Google 帳號登入，進入線上世界：接上同一個線上角色。
 6. 兩個分頁同時進入同一帳號、兩邊都存檔：較晚存的那一邊出現「這個線上角色在別的地方存過檔了」，不會覆蓋。
 
 查看線上角色（只讀，SQL）：`select user_id, revision, saved_at, play_time from public.characters;`
@@ -89,5 +91,5 @@ Email 驗證碼登入（6–8 位數，不用魔法連結），只用於**線上
 
 - 遊戲伺服器還不驗證帳號（Supabase JWT）：連線名稱由客戶端帶上；禁言（`profiles.muted_until`）還沒有作用。
 - 線上存檔由客戶端寫入（RLS 只允許本人），防作弊要改成伺服器驗證後代寫。
-- 寄信走 Resend：免費方案每月 3000 封、每日 100 封（依 Resend 目前的方案為準）。
+- 同一個人的 Google 與 LINE 只有信箱相同時才會是同一個帳號；還沒有手動綁定第二種登入方式的畫面。
 - 線上角色目前只有一格（`slot` 1）；資料表預留到 3。

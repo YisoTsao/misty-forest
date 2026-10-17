@@ -29,6 +29,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11L-3：Google / LINE 登入、啟動時對時（2026-10-17）
+- 線上登入改成 Google 與 LINE 的 OAuth（T-184），移除 Email 驗證碼。網頁版整頁導向；桌面版用系統瀏覽器、導回 `127.0.0.1:53682`（`electron/oauthLoopback.ts`）。同信箱的帳號由 Supabase 自動合併。
+- **待使用者**：Google Cloud 建 OAuth client、LINE Developers 建 LINE Login 頻道（要申請 Email 權限）、Supabase 開啟 Google 與自訂 OIDC `custom:line`、Redirect URLs 加入正式 / 預覽 / 桌面版網址。步驟見 `docs/multiplayer/accounts.md`「設定」。
+- 共享日光補強：啟動時向遊戲伺服器 `/health` 對時，單機也用伺服器時間（T-181 補充）。正式站要等這個 PR 合併、Render 重新部署後才會同步。
+- 測試：新增 `electron/oauthLoopback.test.ts`、`src/net/serverTime.test.ts`。`account` e2e 改為檢查停用時沒有登入按鈕。
+
 ### 任務 11H：共享日光、四種初始職業、地圖全開（2026-10-17）
 - 共享日光（T-181）：一天的時刻改由世界時鐘決定（`worldClockAt`，從 2026-10-17 日出起算、一天 24 分鐘真實時間），所有人看到同一個時刻；線上以伺服器的 `time` 訊息校正時差。`GameState.clock` 不存檔；遊玩時間 `time` 仍驅動重生、回復與生長。睡覺不再跳時間，茉莉的床只回復體力。
 - 四種初始職業（T-182，`src/data/classes.json`）：旅人（短刀 / 劍、星光法術）、晨光騎士（雙手劍、聖光法術）、霜語法師（法杖、冰火奧術）、荒原戰士（斧 / 雙手斧、戰吼與地震）。新遊戲與第一次進線上世界時選職業（`ClassPicker`），規則層限制職業的武器與法術；存檔 v17（`loadout.heroClass`）；線上同步職業，其他玩家看到對應模型。

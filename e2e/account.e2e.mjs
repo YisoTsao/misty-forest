@@ -1,7 +1,7 @@
 // 端對端：任務 11L-2 — 主選單的「單機遊玩 / 線上遊玩」。測試建置沒有設定 Supabase（VITE_SUPABASE_URL），線上功能停用：
-// 預設單機、切到線上時顯示停用提示（不顯示信箱欄位、不送出網路請求）、記住上次選的模式；
+// 預設單機、切到線上時顯示停用提示（不顯示 Google / LINE 登入按鈕、不送出網路請求）、記住上次選的模式；
 // 單機的一局在暫停選單顯示「單機遊玩」、可以匯出存檔、沒有帳號入口。
-// 真正的登入、設定名稱與線上角色需要實際信箱與資料庫，由使用者手動測試（見 docs/multiplayer/accounts.md）。
+// 真正的 Google / LINE 登入、設定名稱與線上角色需要實際帳號與資料庫，由使用者手動測試（見 docs/multiplayer/accounts.md）。
 // 用法：pnpm build && node e2e/account.e2e.mjs
 import assert from 'node:assert/strict';
 import { runE2e, tempSaveDir } from './lib.mjs';
@@ -20,11 +20,11 @@ await runE2e('account e2e', { query: 'debug=1', env }, async ({ page, check }) =
     assert.equal(await page.locator('[data-testid="online-panel"]').count(), 0);
   });
 
-  await check('切到「線上遊玩」：沒有設定線上服務時顯示停用提示、不顯示信箱欄位', async () => {
+  await check('切到「線上遊玩」：沒有設定線上服務時顯示停用提示、不顯示登入按鈕', async () => {
     await onlineTab.click();
     assert.equal(await onlineTab.getAttribute('aria-selected'), 'true');
     assert.match(await page.locator('[data-testid="online-disabled"]').innerText(), /只能單機遊玩/);
-    assert.equal(await page.locator('[data-testid="online-email"]').count(), 0, '停用時不顯示信箱欄位');
+    assert.equal(await page.locator('[data-testid="online-google"], [data-testid="online-line"]').count(), 0, '停用時不顯示登入按鈕');
     assert.equal(await page.locator('[data-testid="title-start"]').count(), 0, '線上頁不顯示單機的新遊戲');
     // 設定與離開兩邊都有
     assert.equal(await page.locator('[data-testid="title-settings"]').count(), 1);
