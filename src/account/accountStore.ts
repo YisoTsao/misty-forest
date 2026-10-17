@@ -1,7 +1,7 @@
-// 帳號狀態（任務 11G）：Email 驗證碼登入、登出、登入後的存檔同步。
-// 登入只在標題畫面進行：遊戲中下載雲端存檔會與正在進行的進度衝突（見 DECISIONS T-178）。
+// 帳號狀態（任務 11G、11L-2）：Email 驗證碼登入、登出。
+// 登入只用於線上模式（DECISIONS T-179）：線上資料存在資料庫，單機存檔不再同步到雲端。
+// 登入後的玩家檔案與線上角色由 online/installOnline.ts 讀取。
 import { create } from 'zustand';
-import { planSync, type SyncPlan, type SyncSide } from '@/game-core/save/sync';
 import { supabase, accountEnabled } from './supabase';
 
 export type AccountStatus = 'disabled' | 'signedOut' | 'codeSent' | 'signedIn';
@@ -15,10 +15,6 @@ export type AccountState = {
   busy: boolean;
   /** 最後一次錯誤的 i18n key（或伺服器訊息） */
   error: string | null;
-  /** 同步的結果：本機與雲端都有、而且不同版時等玩家選擇 */
-  conflict: Extract<SyncPlan, { kind: 'conflict' }> | null;
-  /** 這次開啟網頁後是否已經同步過（避免每次開標題都比對） */
-  synced: boolean;
 };
 
 export const useAccountStore = create<AccountState>(() => ({
@@ -28,11 +24,9 @@ export const useAccountStore = create<AccountState>(() => ({
   pendingEmail: null,
   busy: false,
   error: null,
-  conflict: null,
-  synced: false,
 }));
 
-/** 監聽 Supabase 的登入狀態（頁面載入時會還原上次的登入） */
+/** 監聽 Supabase 的登入狀態（頁面載入時會還原上次的登入；驗證碼通過時也是由這裡切換成已登入） */
 export function startAccountListener(): void {
   if (!supabase) return;
   supabase.auth.onAuthStateChange((_event, session) => {
@@ -47,7 +41,7 @@ export function startAccountListener(): void {
   });
 }
 
-/** 寄出 6 位數驗證碼。信箱不存在時 Supabase 會自動建立帳號（shouldCreateUser）。 */
+/** 寄出驗證碼。信箱不存在時 Supabase 會自動建立帳號（shouldCreateUser）。 */
 export async function sendCode(email: string): Promise<boolean> {
   if (!supabase) return false;
   const address = email.trim().toLowerCase();
@@ -61,6 +55,7 @@ export async function sendCode(email: string): Promise<boolean> {
   return true;
 }
 
+/** 驗證碼正確時 Supabase 建立登入狀態，onAuthStateChange 會把狀態切成 signedIn（不需要再按任何按鈕） */
 export async function verifyCode(code: string): Promise<boolean> {
   const email = useAccountStore.getState().pendingEmail;
   if (!supabase || !email) return false;
@@ -70,7 +65,7 @@ export async function verifyCode(code: string): Promise<boolean> {
     useAccountStore.setState({ busy: false, error: error.message });
     return false;
   }
-  useAccountStore.setState({ pendingEmail: null, synced: false });
+  useAccountStore.setState({ pendingEmail: null });
   return true;
 }
 
@@ -82,15 +77,5 @@ export function backToEmail(): void {
 export async function signOut(): Promise<void> {
   if (!supabase) return;
   await supabase.auth.signOut();
-  useAccountStore.setState({ status: 'signedOut', email: null, userId: null, conflict: null, synced: false });
+  useAccountStore.setState({ status: 'signedOut', email: null, userId: null, error: null });
 }
-
-/** 把同步計畫套用到本機：上傳本機、下載雲端，或只是記錄為已同步 */
-export function sideOf(raw: unknown): SyncSide {
-  if (!raw || typeof raw !== 'object') return null;
-  const data = raw as { savedAt?: unknown; world?: { time?: unknown } };
-  if (typeof data.savedAt !== 'string') return null;
-  return { savedAt: data.savedAt, playTime: typeof data.world?.time === 'number' ? data.world.time : 0 };
-}
-
-export { planSync };

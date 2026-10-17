@@ -4,8 +4,8 @@
 
 | 部分 | 平台 | 設定檔 | 網址 |
 |---|---|---|---|
-| 網頁版前端（`dist/`） | Vercel（Hobby，團隊 `yisotsaos-projects`） | `vercel.json` | 正式：`https://mistwood-blue.vercel.app`（專案 `mistwood`；`mistwood.vercel.app` 已被別人使用）；預覽：`https://mistwood-<雜湊或 git-分支>-yisotsaos-projects.vercel.app`（Vercel 的部署保護，需登入） |
-| 遊戲伺服器（`dist-server/server.mjs`） | Render（Free，新加坡） | `render.yaml`（Blueprint） | `https://mistwood-game-server.onrender.com`（名稱被用掉時 Render 會加後綴） |
+| 網頁版前端（`dist/`） | Vercel（Hobby，團隊 `yisotsaos-projects`） | `vercel.json` | 正式：`https://mistwood.yisoapp.com`（自訂網域，舊的 `mistwood-blue.vercel.app` 仍可用；專案 `mistwood`；`mistwood.vercel.app` 已被別人使用）；預覽：`https://mistwood-<雜湊或 git-分支>-yisotsaos-projects.vercel.app`（Vercel 的部署保護，需登入） |
+| 遊戲伺服器（`dist-server/server.mjs`） | Render（Free，新加坡） | `render.yaml`（Blueprint） | `https://mistwood-server.yisoapp.com`（自訂網域，DNS 必須是灰雲；原網址 `mistwood-game-server.onrender.com` 仍可用） |
 | 桌面版 | 本機 `pnpm dist` | `electron-builder.yml` | 建置時以 `VITE_GAME_SERVER_URL` 指向同一台伺服器 |
 
 正式上線的分支是 `main`（使用者決定，`online-plan.md` §8）：`develop` 合併到 `main` 後，Vercel 與 Render 都自動部署。
@@ -14,11 +14,11 @@
 
 | 平台 | 變數 | 值 |
 |---|---|---|
-| Vercel（Production 與 Preview） | `VITE_GAME_SERVER_URL` | `wss://mistwood-game-server.onrender.com`（建置時寫進前端與 CSP） |
+| Vercel（Production 與 Preview） | `VITE_GAME_SERVER_URL` | `wss://mistwood-server.yisoapp.com`（建置時寫進前端與 CSP） |
 | Vercel | `ELECTRON_SKIP_BINARY_DOWNLOAD` | `1` |
 | Render | `NODE_VERSION` | `24`（`render.yaml` 已設定） |
 | Render | `ELECTRON_SKIP_BINARY_DOWNLOAD` | `1`（`render.yaml` 已設定） |
-| Render | `ALLOWED_ORIGINS` | `https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://` |
+| Render | `ALLOWED_ORIGINS` | `https://mistwood.yisoapp.com,https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://` |
 | Render | `PORT` | Render 自動提供，伺服器會讀 |
 
 `ALLOWED_ORIGINS`：逗號分隔，`*` 只比對英數與連字號（不跨越 `.` 與 `/`）；`null`、`file://` 是 Electron 正式版（`file://` 頁面送出的 Origin）。沒設定時全部允許。來源檢查只防止別的網站在瀏覽器裡連過來，不是身分驗證（Phase 5 改用 Supabase 的 JWT）。

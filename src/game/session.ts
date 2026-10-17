@@ -1,11 +1,14 @@
+import { fetchOnlineSave, setPlayMode, useOnlineStore } from '@/online/onlineStore';
+import { endOnlineSession, startOnlineSession } from '@/online/onlineSession';
 import { authority } from './authority';
-import { loadMainSave, saveGame } from './save/saveService';
+import { loadedFromSaveData, loadMainSave, saveGame } from './save/saveService';
 import { currentScreen, useGameStore } from './state/gameStore';
 import { useUiStore } from './state/uiStore';
 
 // 一局遊戲的開始與結束（主選單與暫停選單呼叫），以及自動存檔（規格 6.8）。
 
 export function startNewGame(): void {
+  setPlayMode('offline');
   useGameStore.getState().beginSession(null);
 }
 
@@ -13,15 +16,41 @@ export function startNewGame(): void {
 export async function continueGame(): Promise<boolean> {
   const outcome = await loadMainSave();
   if (outcome.status !== 'ok' && outcome.status !== 'restored-from-backup') return false;
+  setPlayMode('offline');
   useGameStore.getState().beginSession(outcome.value);
   if (outcome.status === 'restored-from-backup') useUiStore.getState().pushToast({ textKey: 'save.restoredFromBackup' });
   return true;
 }
 
-/** 回到主選單前先存檔 */
+/**
+ * 進入線上世界（任務 11L-2）：讀取資料庫的線上角色，沒有角色時從新遊戲開始（第一次存檔時建立）。
+ * 連線到遊戲伺服器由 installNetwork 在場景就緒後進行。讀取失敗或存檔格式錯誤時回傳 false，畫面停在主選單。
+ */
+export async function enterOnlineWorld(): Promise<boolean> {
+  useOnlineStore.setState({ busy: true, error: null });
+  try {
+    const remote = await fetchOnlineSave();
+    const loaded = remote ? loadedFromSaveData(remote.save) : null;
+    setPlayMode('online', remote?.meta ?? null);
+    useGameStore.getState().beginSession(loaded);
+    useOnlineStore.setState({ busy: false });
+    void startOnlineSession();
+    return true;
+  } catch (err) {
+    console.error('[online] 進入線上世界失敗：', err);
+    useOnlineStore.setState({ busy: false, error: 'online.enterFailed' });
+    return false;
+  }
+}
+
+/** 回到主選單前先存檔；線上的一局同時結束遊玩紀錄、回到單機模式（主選單的「繼續遊戲」仍是本機存檔） */
 export async function returnToTitle(): Promise<void> {
   await saveGame();
   useGameStore.getState().send('returnToTitle');
+  if (useOnlineStore.getState().mode === 'online') {
+    setPlayMode('offline');
+    await endOnlineSession();
+  }
 }
 
 /** 進入新區域時自動存檔（規格 6.8：區域切換時自動存檔）。區域名稱由 RegionBanner 顯示。 */

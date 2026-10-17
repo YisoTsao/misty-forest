@@ -1,6 +1,8 @@
-// 啟動時安裝一次（main.tsx）：進入遊戲時依 ?mp=1 自動連線，回到主選單時中斷連線，關閉視窗時主動離開。
+// 啟動時安裝一次（main.tsx）：進入遊戲時自動連線，回到主選單時中斷連線，關閉視窗時主動離開。
+// 自動連線的時機：線上模式的一局（任務 11L-2，以帳號的顯示名稱連線），或網址帶 ?mp=1（開發與 e2e 用，不需登入）。
 import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStore } from '@/game/state/gameStore';
+import { onlineDisplayName } from '@/online/onlineStore';
 import { autoConnectFromUrl } from './config';
 import { connect, disconnect, leaveOnPageHide } from './netClient';
 
@@ -19,7 +21,9 @@ export function installNetwork(): void {
   tryAutoConnect();
 
   function tryAutoConnect(): void {
-    if (!auto || useGameStore.getState().screen === 'title' || !useDebugStore.getState().sceneReady) return;
-    void connect(auto);
+    if (useGameStore.getState().screen === 'title' || !useDebugStore.getState().sceneReady) return;
+    const onlineName = onlineDisplayName();
+    const target = onlineName ? { name: onlineName } : auto;
+    if (target) void connect(target);
   }
 }

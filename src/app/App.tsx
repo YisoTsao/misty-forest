@@ -27,8 +27,6 @@ import { MessageDialog } from '@/ui/MessageDialog';
 import { MultiplayerPanel } from '@/ui/MultiplayerPanel';
 import { NetStatusBadge } from '@/ui/NetStatusBadge';
 import { ChatBox } from '@/ui/ChatBox';
-import { AccountPanel } from '@/ui/AccountPanel';
-import { startAccountListener } from '@/account/accountStore';
 import { PauseMenu } from '@/ui/PauseMenu';
 import { PerfPanel } from '@/ui/PerfPanel';
 import { QuestTracker } from '@/ui/QuestTracker';
@@ -41,9 +39,6 @@ import { WorldScene } from '@/world/WorldScene';
 
 export function App() {
   const preset = useQualityPreset();
-  // 帳號（任務 11G）：頁面載入時還原上次的登入
-  useEffect(() => startAccountListener(), []);
-
   useEffect(() => {
     // ?cam=<書籤> 直接以自由視角開啟該書籤
     const cam = initialBookmarkFromUrl();
@@ -100,7 +95,6 @@ export function App() {
       <CraftPanel />
       <SettingsPanel />
       <MultiplayerPanel />
-      <AccountPanel />
       <ErrorOverlay />
     </div>
   );

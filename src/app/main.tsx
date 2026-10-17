@@ -12,6 +12,7 @@ import { installEventFeedback } from '@/game/eventFeedback';
 import { loadMainSave } from '@/game/save/saveService';
 import { installAutosave } from '@/game/session';
 import { installNetwork } from '@/net/installNetwork';
+import { installOnline } from '@/online/installOnline';
 import { loadSettings } from '@/game/state/settingsStore';
 import { t } from '@/game/i18n';
 import { useErrorStore } from '@/game/state/errorStore';
@@ -30,6 +31,8 @@ installAudioUnlock();
 installAudioFeedback();
 installAutosave();
 installNetwork();
+// 帳號與線上模式（任務 11L-2）：還原登入、讀取遊戲設定（維護模式）
+installOnline();
 // 啟動時檢查存檔（主選單顯示「繼續遊戲」或損壞提示）；讀取失敗不影響啟動
 void loadMainSave();
 void loadSettings();

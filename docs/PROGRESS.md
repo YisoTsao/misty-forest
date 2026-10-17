@@ -8,7 +8,9 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 
 **交接（2026-10-15，多人連線）**：使用者要求先做多人連線，任務 11A–11B 已完成並提交到 `develop`（見「已完成」）。多人連線的執行方式、協定與測試見 `docs/multiplayer/`。
 - **已上線（任務 11D）**：前端 https://mistwood-blue.vercel.app（Vercel 專案 `mistwood`，團隊 `yisotsaos-projects`，`mistwood.vercel.app` 是別人的）、遊戲伺服器 https://mistwood-game-server.onrender.com（Render Free 新加坡，`ALLOWED_ORIGINS=https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://`）、Supabase 專案 `mistwood`（ref `dnnlmunlmmhiqpgkjbvr`，新加坡，還是空的）。`main` push 後 Vercel 與 Render 都自動部署。Vercel 的 MCP 工具建立專案回 403，改用使用者登入的 Vercel CLI（`npx vercel`；本機上傳部署 `vercel deploy` 被自動模式擋下，部署一律走 push `main`）。使用者 2026-10-15 在正式網址以兩個瀏覽器驗收：連線成功；回報攻擊與施法對方看不到 → 任務 11E。
-- **下一步**（使用者 2026-10-16 決定的順序）：11G Supabase 登入（Email **6 位數驗證碼**，不用魔法連結；寄信用使用者已有的 Resend 當 Supabase 自訂 SMTP，設定步驟見 `docs/multiplayer/accounts.md`）與雲端存檔 → 11H 共享日光（先決定多人時暫停、睡覺、迷霧怎麼處理）→ 11I 共享採集點與寶箱 → 11J 共享怪物與傷害 → 11K 頭目戰 → 手機版（先做「能玩」：虛擬搖桿、拖曳轉視角、螢幕按鈕、自動低畫質，真機量過再決定完整版）。各項的難度與要先決定的事見 `docs/multiplayer/online-plan.md` §9。
+- **下一步（使用者 2026-10-17 決定，優先）**：完整線上功能。11L-1 線上資料表已完成（T-179、`docs/multiplayer/database.md`）。11L-2 前台線上入口已完成（T-180、`docs/multiplayer/ui-flow.md`）。接著：遊戲中的信箱與公告 → 檢舉 → **簡易後台**（玩家查詢與停權 / 禁言、公告、寄信、檢舉處理、維護模式、稽核紀錄）→ 遊戲伺服器驗證 JWT（禁言、帳號層級的聊天）。使用者的帳號已是 `admin`。
+- **原下一步**（使用者 2026-10-16 決定的順序，排在線上功能之後）：11G Supabase 登入（Email **6 位數驗證碼**，不用魔法連結；寄信用使用者已有的 Resend 當 Supabase 自訂 SMTP，設定步驟見 `docs/multiplayer/accounts.md`）與雲端存檔 → 11H 共享日光（先決定多人時暫停、睡覺、迷霧怎麼處理）→ 11I 共享採集點與寶箱 → 11J 共享怪物與傷害 → 11K 頭目戰 → 手機版（先做「能玩」：虛擬搖桿、拖曳轉視角、螢幕按鈕、自動低畫質，真機量過再決定完整版）。各項的難度與要先決定的事見 `docs/multiplayer/online-plan.md` §9。
+- **平台設定總覽**：`docs/PLATFORMS.md`（Cloudflare DNS、Vercel、Render、Supabase、Resend 的設定值與存放位置；機密只註明位置、不寫值）。2026-10-17 新增，網域改為 `mistwood.yisoapp.com` / `mistwood-server.yisoapp.com`；Resend 寄信（方案 A）與 Render 自訂網域的驗證尚未完成。
 - **上線整體規劃**：`docs/multiplayer/online-plan.md`（Vercel、Render、Supabase 的分工、架構圖、連線 / 斷線續玩 / 部署 / 雲端存檔流程圖、環境變數、各階段要使用者提供的帳號）。Phase 4、5 開始前要先拿到使用者的 Vercel、Render 帳號與 Supabase 專案，見該文件 §8 與「待使用者處理」。
 
 **交接（2026-10-15，9F）**：任務 9F 風語草原的地圖與場景完成，`wip/9f-whispermeadow` 已 rebase 到多人連線之後並合回 `develop`（見「已完成」）。下一步可以接 9G（霏與風車聚落的居民、`quest_meadow_001`「風把話吹散了」），或回到多人連線 Phase 3，依使用者指示。
@@ -27,6 +29,21 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11L-2：主選單分單機 / 線上、線上入口（2026-10-17）
+- 主選單上方切換「單機遊玩 / 線上遊玩」（記住上次的選擇）；線上頁：信箱 → 驗證碼（通過後直接成為已登入）→ 第一次取顯示名稱 → 進入線上世界；停權、維護（gm / admin 不受限）、讀取失敗各有提示；`game_config.motd` 顯示在標題下方。T-180，流程見 `docs/multiplayer/ui-flow.md`。
+- 線上的一局：讀寫 `characters`（`revision` 防止兩處互相覆蓋，衝突時提示並停止存檔）、場景就緒後以顯示名稱自動連線、`player_sessions` 遊玩紀錄（每分鐘更新）；暫停選單顯示目前模式，線上不提供匯出。單機的一局只用本機存檔，沒有連線入口。
+- 移除 11G 的本機 ↔ 雲端同步與帳號視窗。使用者的帳號（yiso05255@gmail.com）已設為 `admin`。
+- 測試：Vitest 898 項（新增 `game-core/online/rules.test.ts` 7 項，移除同步的 4 項）。e2e：`account` 改寫為主選單模式切換（4 項）、`save` 12、`settings` 9、`dev` 9、`multiplayer` 17 全過。截圖 `docs/screenshots/phase11/menu_title.png`、`menu_title_online.png`、`menu_pause.png`。
+- 完整 e2e（改到 `vite.config.ts`）：41 個 suite 全過。`pnpm e2e` 連跑時 `melee` 的「fist 右鍵重擊」一次沒打中（48 → 48），單獨重跑 13 項全過，視為偶發（戰鬥程式這次沒改）；連跑因此中斷，其餘 26 個 suite 另外逐一跑完、全過。
+- 未自動化：真正的登入、取名、線上存檔與兩處衝突需要實際信箱與資料庫，由使用者手動測（步驟見 `accounts.md`「手動測試」）。
+
+### 任務 11L-1：線上資料表（2026-10-17）
+- 使用者決定：線上一定要登入、線上只用資料庫、單機只用本機存檔（T-179，取代 T-178 的同步）；之後要有簡易後台。
+- Supabase 新增 9 張表：`profiles`（註冊自動建立）、`characters`（線上角色，`revision` 樂觀鎖）、`game_config`、`announcements`、`mail`（`claim_mail()` 領附件）、`chat_reports`、`moderation_actions`、`player_sessions`、`admin_audit_log`；角色 player / gm / admin，權限全由 RLS 與觸發器保證，後台不需要 secret key。既有 `saves` 的 2 筆複製成線上角色，`saves` 保留。
+- Migration 進 repo：`supabase/migrations/20261017090000_online_core.sql`、`20261017091000_online_core_tuning.sql`；型別 `src/account/database.types.ts`；說明 `docs/multiplayer/database.md`。
+- 驗證：以 SQL 模擬玩家 A / B、gm、admin、未登入共 42 項權限測試全部符合預期（單一交易、結束後回滾，沒有留下測試資料）；Security advisor 只剩「密碼外洩保護」（只用驗證碼登入，不適用）。
+- 前端在 11L-2 改為線上入口。
+
 ### 任務 11G：帳號與雲端存檔（2026-10-16，進行中：尚未推上線）
 - Email 6 位數驗證碼登入（`signInWithOtp` / `verifyOtp`，只在標題畫面登入）；Supabase 表 `public.saves`（每帳號一列、RLS 只允許本人，anon 無權限，advisor 無警告）；登入後比對本機與雲端（`planSync` 純函式：同版不動、單邊同步、不同版問玩家）；登入中每次存檔上傳雲端。設定與手動測試步驟見 `docs/multiplayer/accounts.md`，決策 T-178。
 - 測試：Vitest 895 項（`game-core/save/sync.test.ts` 4 項）。e2e 新增 `account`（3 項，測試建置沒有設定 Supabase 時面板顯示停用、標題與暫停選單都有入口）；`save`、`settings`、`dev`、`multiplayer` 重跑全過。真實寄信與驗證需要實際信箱，由使用者手動測（未自動化）。
@@ -533,6 +550,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
 
 ## 已知問題
+- `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。
 - 聊天（任務 11F）：名字沒有帳號驗證、不唯一，任何人都能取別人的名字；靜音只在本機，換電腦或清除瀏覽器資料就沒了。髒話詞表是基本版，待使用者過目補充。這些在 11G 登入後改成帳號層級。

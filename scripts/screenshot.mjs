@@ -3,7 +3,7 @@
 //   --anim：另外輸出角色每個必要動畫的定格圖（動畫來源驗證，規格 4.6）
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
-//   --menu：輸出主選單、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E）
+//   --menu：輸出主選單（單機、線上兩頁）、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E、11L-2）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
 //   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
 //   --cellar：燈塔下的影子（任務 7M）：奧林、地窖門、地窖內的石片與石環（放回前後）
@@ -1659,6 +1659,11 @@ try {
     await page.waitForSelector('[data-testid="title-continue"]', { timeout: 5000 });
     await page.waitForTimeout(1500);
     await shot('menu_title');
+    // 任務 11L-2：線上遊玩頁（截圖建置沒有設定線上服務時顯示停用提示）
+    await page.locator('[data-testid="title-mode-online"]').click();
+    await page.waitForTimeout(300);
+    await shot('menu_title_online');
+    await page.locator('[data-testid="title-mode-offline"]').click();
     await page.locator('[data-testid="title-start"]').click();
     await page.waitForTimeout(300);
     await shot('menu_title_confirm_new');

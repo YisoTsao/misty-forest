@@ -9,6 +9,8 @@ import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { setWorldMapOpen } from './map/WorldMap';
 import { setJournalOpen } from './QuestJournal';
+import { accountEnabled } from '@/account/supabase';
+import { useOnlineStore } from '@/online/onlineStore';
 
 /** Esc 造成的「滑鼠鎖定解除」與 keydown 可能同時到達，這段時間內不重複切換 */
 const TOGGLE_GUARD_MS = 300;
@@ -61,6 +63,15 @@ export function PauseMenu() {
     // 按鈕點擊屬於使用者手勢，可直接重新鎖定滑鼠
     input.requestPointerLock();
   };
+  return <PauseWindow resume={resume} />;
+}
+
+/** 暫停選單的內容。線上模式（任務 11L-2）顯示目前的模式與名稱，「線上狀態」開啟連線面板；單機模式沒有連線入口。 */
+function PauseWindow({ resume }: { resume: () => void }) {
+  const mode = useOnlineStore((s) => s.mode);
+  const displayName = useOnlineStore((s) => s.profile?.displayName ?? null);
+  // 沒有設定帳號服務的開發建置：保留手動連線（不需登入），方便本機測試多人
+  const showNet = mode === 'online' || !accountEnabled;
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[2px]">
@@ -73,6 +84,9 @@ export function PauseMenu() {
         <h2 id="pause-title" className="mb-2 text-center text-2xl font-bold">
           {t('pause.title')}
         </h2>
+        <p data-testid="pause-mode" className="-mt-2 mb-1 text-center text-xs opacity-75">
+          {mode === 'online' ? t('pause.modeOnline', { name: displayName ?? '' }) : t('pause.modeOffline')}
+        </p>
         <button
           type="button"
           data-testid="pause-resume"
@@ -82,7 +96,7 @@ export function PauseMenu() {
         >
           {t('pause.resume')}
         </button>
-        <SaveControls />
+        <SaveControls online={mode === 'online'} />
         <button
           type="button"
           data-testid="pause-map"
@@ -94,17 +108,16 @@ export function PauseMenu() {
         <button type="button" data-testid="pause-journal" onClick={() => setJournalOpen(true)} className="rounded-full bg-white/15 py-2 hover:bg-white/25">
           {t('pause.journal')}
         </button>
-        <button
-          type="button"
-          data-testid="pause-multiplayer"
-          onClick={() => useUiStore.getState().setMultiplayerOpen(true)}
-          className="rounded-full bg-white/15 py-2 hover:bg-white/25"
-        >
-          {t('pause.multiplayer')}
-        </button>
-        <button type="button" data-testid="pause-account" onClick={() => useUiStore.getState().setAccountOpen(true)} className="rounded-full bg-white/15 py-2 hover:bg-white/25">
-          {t('account.open')}
-        </button>
+        {showNet && (
+          <button
+            type="button"
+            data-testid="pause-multiplayer"
+            onClick={() => useUiStore.getState().setMultiplayerOpen(true)}
+            className="rounded-full bg-white/15 py-2 hover:bg-white/25"
+          >
+            {t(mode === 'online' ? 'pause.online' : 'pause.multiplayer')}
+          </button>
+        )}
         <button
           type="button"
           data-testid="pause-settings"
@@ -127,8 +140,8 @@ export function PauseMenu() {
   );
 }
 
-/** 手動存檔與匯出，以及最後一次存檔的狀態 */
-function SaveControls() {
+/** 手動存檔與匯出，以及最後一次存檔的狀態。線上角色存在資料庫，不提供匯出。 */
+function SaveControls({ online }: { online: boolean }) {
   const { saving, lastSavedAt, saveError } = useSaveStore();
   const [exportError, setExportError] = useState<string | null>(null);
   const onExport = async () => {
@@ -142,7 +155,7 @@ function SaveControls() {
   const status = saving
     ? t('save.saving')
     : saveError
-      ? `${t('save.failed')}：${saveError}`
+      ? `${t('save.failed')}：${saveError.startsWith('online.') ? t(saveError) : saveError}`
       : lastSavedAt
         ? `${t('save.savedAt')} ${new Date(lastSavedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`
         : '';
@@ -158,15 +171,17 @@ function SaveControls() {
         >
           {t('pause.save')}
         </button>
-        <button
-          type="button"
-          data-testid="pause-export"
-          disabled={saving}
-          onClick={() => void onExport()}
-          className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25 disabled:opacity-60"
-        >
-          {t('pause.export')}
-        </button>
+        {!online && (
+          <button
+            type="button"
+            data-testid="pause-export"
+            disabled={saving}
+            onClick={() => void onExport()}
+            className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25 disabled:opacity-60"
+          >
+            {t('pause.export')}
+          </button>
+        )}
       </div>
       <p data-testid="save-status" className={`min-h-4 text-center text-xs ${saveError || exportError ? 'text-rose-300' : 'opacity-70'}`}>
         {exportError ? `${t('save.exportFailed')}：${exportError}` : status}

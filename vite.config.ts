@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -24,9 +25,13 @@ function supabaseCsp(url: string | undefined): Plugin {
   return { name: 'mistwood-supabase-csp', transformIndexHtml: (html) => html.replace('%SUPABASE_ORIGIN%', origin.trim()) };
 }
 
+/** 遊戲版本（package.json）：線上遊玩紀錄（player_sessions.app_version）用 */
+const appVersion = (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }).version;
+
 export default defineConfig(({ mode }) => ({
   // Electron 正式版以 file:// 載入，資源路徑需為相對路徑
   base: './',
+  define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion) },
   plugins: [react(), tailwindcss(), gameServerCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_GAME_SERVER_URL), supabaseCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL)],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

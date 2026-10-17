@@ -6,10 +6,12 @@ import { useUiStore } from '@/game/state/uiStore';
 import { savedName, serverUrl } from '@/net/config';
 import { connect, connectionName, disconnect, reconnect } from '@/net/netClient';
 import { useNetStore } from '@/net/netStore';
+import { useOnlineStore } from '@/online/onlineStore';
 
 /**
  * 多人連線面板（任務 11A，從暫停選單開啟）：顯示名稱、伺服器位址、連線 / 中斷 / 重新連線、房間內的人。
- * 第一階段不需要登入；伺服器位址由建置設定或網址參數 ?server= 決定，這裡只顯示。
+ * 線上模式（任務 11L-2）用帳號的顯示名稱、不能修改；沒有設定帳號服務的開發建置可以自訂名稱。
+ * 伺服器位址由建置設定或網址參數 ?server= 決定，這裡只顯示。
  */
 export function MultiplayerPanel() {
   const open = useUiStore((s) => s.multiplayerOpen);
@@ -23,7 +25,9 @@ export function MultiplayerPanel() {
 
 function MultiplayerWindow() {
   const { status, members, playerCount, error, serverUrl: connectedUrl } = useNetStore();
-  const [name, setName] = useState(() => savedName() || connectionName());
+  const onlineName = useOnlineStore((s) => (s.mode === 'online' ? (s.profile?.displayName ?? null) : null));
+  const [customName, setName] = useState(() => savedName() || connectionName());
+  const name = onlineName ?? customName;
   const close = () => useUiStore.getState().setMultiplayerOpen(false);
   const busy = status === 'connecting';
 
@@ -56,7 +60,7 @@ function MultiplayerWindow() {
             data-testid="mp-name"
             value={name}
             maxLength={NET.nameMaxLength}
-            disabled={status !== 'offline' && status !== 'error'}
+            disabled={onlineName !== null || (status !== 'offline' && status !== 'error')}
             onChange={(e) => setName(e.target.value)}
             className="rounded-lg bg-white/10 px-3 py-1.5 outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-60"
           />
