@@ -381,8 +381,7 @@
             },
             "effects": [
               {
-                "type": "sleep",
-                "untilHour": 7
+                "type": "rest"
               }
             ]
           },

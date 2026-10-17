@@ -27,8 +27,12 @@ await runE2e('save e2e（1/5 存檔）', { query: 'debug=1', env }, async ({ pag
     assert.equal(await page.locator('[data-testid="title-continue"]').count(), 0);
   });
 
-  await check('新遊戲 → 砍樹、開寶箱 → 改畫質為低 → 暫停選單「儲存遊戲」', async () => {
+  await check('新遊戲 → 選晨光騎士 → 砍樹、開寶箱 → 改畫質為低 → 暫停選單「儲存遊戲」', async () => {
     await page.locator('[data-testid="title-start"]').click();
+    // 選職業（使用者 2026-10-17）：四個職業都列出來
+    assert.equal(await page.locator('[data-testid^="class-option-"]').count(), 4);
+    await page.locator('[data-testid="class-option-knight"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await title(page).waitFor({ state: 'detached', timeout: 3000 });
     await teleport(...standSouthOf(tree, 1.5));
     await page.keyboard.press('KeyE');
@@ -52,6 +56,7 @@ await runE2e('save e2e（1/5 存檔）', { query: 'debug=1', env }, async ({ pag
     assert.equal(file.version, SAVE_VERSION);
     assert.equal(typeof file.tutorial, 'string');
     assert.ok(file.world.objects.some((o) => o.placementId === chest.id && o.open), '存檔內沒有寶箱狀態');
+    assert.deepEqual(file.loadout, { weapon: 'greatsword', heroClass: 'knight' });
   });
 
   await check('匯出存檔內容與存檔檔案相同', async () => {
@@ -77,6 +82,7 @@ await runE2e('save e2e（2/5 讀檔）', { query: 'debug=1', env }, async ({ pag
     assert.equal(await itemCount('starlight_shard'), 1);
     assert.deepEqual(await objectState(tree.id), expected.tree);
     assert.equal((await objectState(chest.id))?.open, true);
+    assert.equal(await page.locator('[data-testid="hud-class"]').getAttribute('data-class'), 'knight');
     const s = await state();
     assert.ok(Math.hypot(s.x - SAVED_AT.x, s.z - SAVED_AT.z) < 0.3, `位置 (${s.x.toFixed(2)}, ${s.z.toFixed(2)})`);
     assert.ok(s.grounded, '讀檔後沒有站在地面上');
@@ -128,6 +134,7 @@ await runE2e('save e2e（4/5 全部損壞）', { query: 'debug=1', env }, async 
 
   await check('可以開始新遊戲，背包是空的', async () => {
     await page.locator('[data-testid="title-start"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await title(page).waitFor({ state: 'detached', timeout: 3000 });
     assert.equal(await itemCount('wood'), 0);
   });
@@ -138,6 +145,7 @@ const idbEnv = { MISTWOOD_SAVE_DIR: tempSaveDir(), MISTWOOD_USER_DATA_DIR: tempS
 await runE2e('save e2e（5/5 IndexedDB）', { query: 'debug=1&storage=indexeddb', env: idbEnv }, async ({ page, check, debug, teleport, itemCount }) => {
   await check('IndexedDB：新遊戲 → 採集 → 回主選單時自動存檔', async () => {
     await page.locator('[data-testid="title-start"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await title(page).waitFor({ state: 'detached', timeout: 3000 });
     await teleport(...standSouthOf(tree, 1.5));
     await page.keyboard.press('KeyE');

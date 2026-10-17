@@ -7,10 +7,17 @@ type ElectronSaves = {
   readText: (slot: string) => Promise<string | null>;
 };
 
+/** 桌面版的 OAuth 登入（electron/oauthLoopback.ts，T-184） */
+type ElectronAuth = {
+  redirect: () => Promise<string>;
+  start: (url: string) => Promise<{ code?: string; error?: string }>;
+  cancel: () => Promise<void>;
+};
+
 declare global {
   interface Window {
     /** electron/preload.ts 暴露的最小 API；純網頁開發模式下不存在 */
-    mistwood?: { platform: string; isElectron: true; saves: ElectronSaves };
+    mistwood?: { platform: string; isElectron: true; saves: ElectronSaves; auth?: ElectronAuth };
   }
 }
 

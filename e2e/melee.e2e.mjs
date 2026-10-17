@@ -62,7 +62,8 @@ await runE2e('melee e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
     assert.equal(await page.locator('[data-testid="weapon-selector"]').getAttribute('data-weapon'), 'sword');
   });
 
-  for (const w of weapons) {
+  // 旅人（預設職業）的三把武器；其他職業的武器由 classes 的單元測試檢查資料
+  for (const w of weapons.filter((x) => x.id in KEY)) {
     await check(`按 ${KEY[w.id].slice(5)} 切換成${w.id}：裝備與手上的武器一起換`, async () => {
       await page.waitForFunction(() => window.__mistwoodDebug.playerState().action === null, null, { timeout: 3000 });
       // 每種武器用一批新的迷霧噗啾（被打過的不會回血、補充要等生成點冷卻）；重設世界會回到預設的單手劍

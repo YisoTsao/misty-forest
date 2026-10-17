@@ -75,6 +75,8 @@ export const ClientMessage = {
   chat: 'chat',
   /** 剛加入時要全服頻道最近的紀錄（每個連線一次） */
   chatHistory: 'chatHistory',
+  /** 對時（共享日光）：加入與重新連線時送一次，伺服器回 ServerMessage.time */
+  time: 'time',
 } as const;
 
 /** 伺服器 → 客戶端 */
@@ -87,6 +89,8 @@ export const ServerMessage = {
   chat: 'chat',
   /** 全服頻道最近的紀錄（ChatOut[]） */
   chatHistory: 'chatHistory',
+  /** 對時的回覆（TimeReply）：所有人的日夜都以伺服器時間換算 */
+  time: 'time',
 } as const;
 
 /** 同步的動畫狀態（game-core/character/characterDef.ts 的移動片段） */
@@ -136,7 +140,8 @@ export type ActionMessage = z.infer<typeof actionMessageSchema>;
 /** 伺服器轉送給其他人的動作 */
 export type RemoteActionMessage = ActionMessage & { sessionId: string };
 
-export const equipMessageSchema = z.strictObject({ weapon: dataId });
+/** 換武器（任務 11E）；heroClass：職業（換了才帶，使用者 2026-10-17） */
+export const equipMessageSchema = z.strictObject({ weapon: dataId, heroClass: dataId.optional() });
 export type EquipMessage = z.infer<typeof equipMessageSchema>;
 
 export const chatChannels = ['say', 'global', 'whisper'] as const;
@@ -174,8 +179,20 @@ export const joinOptionsSchema = z.object({
   at: moveMessageSchema.optional(),
   /** 手上的武器（任務 11E）；不認得就用預設 */
   weapon: dataId.optional(),
+  /** 職業（決定外型）；不認得就是旅人 */
+  heroClass: dataId.optional(),
 });
 export type JoinOptions = z.infer<typeof joinOptionsSchema>;
+
+/** 對時：客戶端送出時自己的 Unix 時間（毫秒），伺服器原樣帶回並附上自己的時間 */
+export const timeRequestSchema = z.strictObject({ t: z.number().min(0).max(1e14) });
+export type TimeRequest = z.infer<typeof timeRequestSchema>;
+export type TimeReply = { t: number; now: number };
+
+/** 對時的結果：伺服器時間 − 本機時間（毫秒）。假設來回時間各半，用收到回覆時的本機時間換算 */
+export function serverTimeOffset(reply: TimeReply, receivedAt: number): number {
+  return reply.now - (reply.t + Math.max(0, receivedAt - reply.t) / 2);
+}
 
 export type CorrectionReason = 'speed' | 'vertical' | 'bounds' | 'warp';
 export type CorrectionMessage = { x: number; y: number; z: number; reason: CorrectionReason };
@@ -196,6 +213,8 @@ export type RemotePlayerView = {
   location: string;
   /** 手上的武器（任務 11E） */
   weapon: string;
+  /** 職業（外型；舊版伺服器沒有這個欄位時是旅人） */
+  heroClass: string;
   /** false：對方斷線、伺服器還保留座位等他重連（任務 11C） */
   online: boolean;
 };

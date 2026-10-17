@@ -20,6 +20,8 @@ export const PlayerState = schema(
     location: t.string(),
     /** 手上的武器（任務 11E，weapons.json 的 id） */
     weapon: t.string(),
+    /** 職業（data/classes.json 的 id，決定外型） */
+    heroClass: t.string(),
     /** 先保留，第一階段不做戰鬥 */
     health: t.uint8(),
     /** false：斷線中，伺服器保留座位等他重連（任務 11C） */

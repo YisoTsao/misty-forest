@@ -6,6 +6,7 @@ import { moveClips, weaponIds, type WeaponId } from '@/game-core/combat/weapons'
 import type { RemoteActionMessage } from '@/game-core/net/protocol';
 import { spells, weapons } from '@/game/authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
+import { classCharacter } from '@/game/character/currentClass';
 import type { TrailSample } from '@/game/combat/combatRuntime';
 import { t } from '@/game/i18n';
 import { useLocationStore } from '@/game/location';
@@ -14,9 +15,10 @@ import { remotePose, remotePresentTime, remoteRuntime, takeDueActions, useNetSto
 import { AssetBoundary } from '../../AssetBoundary';
 import { WeaponTrail } from '../../combat/MeleeEffects';
 import { remoteSpell } from '../../combat/PlayerSpells';
-import { attachWeapons, prepareModel, SWORD_SOURCE, TRAIL_LIFE, WAND_SOURCE, type HeldId } from './CharacterModel';
+import { attachWeapons, castHeld, prepareModel, TRAIL_LIFE, useWeaponSources, type HeldId } from './CharacterModel';
 import { BUBBLE_CLASS, updateBubble } from './ChatBubble';
 
+/** 所有職業的角色共用骨架、動畫片段與膠囊大小（characters.json），腳底高度與動畫名稱用旅人的即可 */
 const def = getCharacterDef(PLAYER_CHARACTER_ID);
 const FOOT_OFFSET = def.capsule.halfHeight + def.capsule.radius;
 const FADE = 0.15;
@@ -48,19 +50,20 @@ export function RemotePlayers() {
     <>
       {members.map((m) => (
         <AssetBoundary key={m.sessionId} name={`remote-player:${m.sessionId}`}>
-          <RemotePlayer sessionId={m.sessionId} name={m.name} online={m.online} />
+          {/* 職業換了就換模型（key 含職業） */}
+          <RemotePlayer key={m.heroClass} sessionId={m.sessionId} name={m.name} online={m.online} heroClass={m.heroClass} />
         </AssetBoundary>
       ))}
     </>
   );
 }
 
-function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: string; online: boolean }) {
-  const gltf = useGLTF(assetUrl(def.model));
-  const swordGltf = useGLTF(assetUrl(SWORD_SOURCE));
-  const wandGltf = useGLTF(assetUrl(WAND_SOURCE));
-  const { root, materials } = useMemo(() => prepareModel(gltf.scene, def.hiddenNodes), [gltf.scene]);
-  const weaponModels = useMemo(() => attachWeapons(root, swordGltf.scene, wandGltf.scene), [root, swordGltf.scene, wandGltf.scene]);
+function RemotePlayer({ sessionId, name, online, heroClass }: { sessionId: string; name: string; online: boolean; heroClass: string }) {
+  const look = classCharacter(heroClass);
+  const gltf = useGLTF(assetUrl(look.model));
+  const sources = useWeaponSources();
+  const { root, materials } = useMemo(() => prepareModel(gltf.scene, look.hiddenNodes), [gltf.scene, look.hiddenNodes]);
+  const weaponModels = useMemo(() => attachWeapons(root, sources), [root, sources]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
   useEffect(() => () => weaponModels.materials.forEach((m) => m.dispose()), [weaponModels]);
   const groupRef = useRef<THREE.Group>(null);
@@ -114,7 +117,7 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
     group.rotation.y = pose.yaw;
 
     // 手上：施法時拿魔杖、出招時拿那一招的武器，否則是對方裝備的武器
-    const equipped = (weaponIds as readonly string[]).includes(entry.view.weapon) ? (entry.view.weapon as WeaponId) : 'fist';
+    const equipped = equippedOf();
     const held: HeldId = act?.held ?? equipped;
     if (shown.current !== held) {
       for (const list of Object.values(weaponModels.nodes)) for (const o of list) o.visible = false;
@@ -143,6 +146,12 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
     if (label) label.style.display = camera.position.distanceTo(group.position) < LABEL_DISTANCE ? '' : 'none';
   });
 
+  /** 對方裝備的武器（不認得的當作徒手） */
+  function equippedOf(): WeaponId {
+    const w = remoteRuntime.players.get(sessionId)?.view.weapon;
+    return w !== undefined && (weaponIds as readonly string[]).includes(w) ? (w as WeaponId) : 'fist';
+  }
+
   /** 開始一個動作；feet 為 null 表示對方不在畫面上（不畫特效） */
   function startAction(msg: RemoteActionMessage, feet: { x: number; y: number; z: number } | null): void {
     if (msg.kind === 'melee') {
@@ -156,12 +165,12 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
     if (!spell) return;
     const target = msg.tx !== undefined && msg.tz !== undefined ? { x: msg.tx, z: msg.tz } : undefined;
     if (msg.phase === 'cast') {
-      active.current = { key: nextActionKey++, clip: spell.clips.cast, speed: 1, endT: msg.t + spell.duration * 1000, held: 'wand', melee: null, spell: spell.id };
+      active.current = { key: nextActionKey++, clip: spell.clips.cast, speed: 1, endT: msg.t + spell.duration * 1000, held: castHeld(equippedOf()), melee: null, spell: spell.id };
     } else {
       // 發動：接在蓄力之後換成發動動作（漏掉蓄力時從這裡開始）
       const castingThis = active.current?.spell === spell.id;
       const endT = castingThis ? active.current!.endT : msg.t + (spell.duration - spell.castTime) * 1000;
-      active.current = { key: nextActionKey++, clip: spell.clips.release, speed: 1, endT, held: 'wand', melee: null, spell: spell.id };
+      active.current = { key: nextActionKey++, clip: spell.clips.release, speed: 1, endT, held: castHeld(equippedOf()), melee: null, spell: spell.id };
     }
     if (feet) remoteSpell(spell, msg.phase, feet, msg.yaw, target);
   }
@@ -184,7 +193,7 @@ function RemotePlayer({ sessionId, name, online }: { sessionId: string; name: st
   return (
     <>
       <group ref={groupRef} visible={false} userData={{ remotePlayer: sessionId }}>
-        <group ref={modelRef} scale={def.scale}>
+        <group ref={modelRef} scale={look.scale}>
           <primitive object={root} />
         </group>
         <Html position={[0, 1.75, 0]} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>

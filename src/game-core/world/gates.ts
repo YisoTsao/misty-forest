@@ -8,13 +8,13 @@ type Enter = NonNullable<Prefab['enter']>;
 /** 夜裡（任務 7M：地窖只有夜裡燈塔亮著時打得開）：19 點到隔天 5 點 */
 export const NIGHT = { from: 19, to: 5 } as const;
 
-/** 出入口目前能不能通過（沒有條件的一律可以）；time 為遊戲時間（夜裡的條件用） */
-export function isGateOpen(enter: Enter, quests: Readonly<Record<string, QuestRecord>>, time = 0): boolean {
+/** 出入口目前能不能通過（沒有條件的一律可以）；clock 為共享世界時鐘（GameState.clock，夜裡的條件用） */
+export function isGateOpen(enter: Enter, quests: Readonly<Record<string, QuestRecord>>, clock = 0): boolean {
   const r = enter.requires;
   if (!r) return true;
   if (r.questCompleted && quests[r.questCompleted]?.status !== 'completed') return false;
   if (r.questActive && quests[r.questActive]?.status !== 'active') return false;
-  if (r.night && !inTimeRange(clockAt(time), NIGHT.from, NIGHT.to)) return false;
+  if (r.night && !inTimeRange(clockAt(clock), NIGHT.from, NIGHT.to)) return false;
   return true;
 }
 

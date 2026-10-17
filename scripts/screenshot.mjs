@@ -411,6 +411,8 @@ try {
   if (withMelee) {
     // 近戰（任務 6C）：每一招在命中瞬間的定格（武器在手上、動作不變形），拼成一張總覽；再拍實際打中迷霧生物的拖尾與衝擊
     const weaponsData = JSON.parse(readFileSync('src/data/weapons.json', 'utf8'));
+    // 職業（使用者 2026-10-17）：每把武器由會用它的職業拿（模型也跟著換）
+    const classesData = JSON.parse(readFileSync('src/data/classes.json', 'utf8'));
     await page.evaluate(() => {
       const d = window.__mistwoodDebug;
       d.resetWorld();
@@ -420,7 +422,11 @@ try {
     await page.waitForTimeout(1200);
     const frames = [];
     for (const w of weaponsData) {
-      await page.evaluate((id) => window.__mistwoodDebug.equip(id), w.id);
+      const owner = classesData.find((c) => c.weapons.includes(w.id))?.id ?? 'traveler';
+      await page.evaluate(([cls, id]) => {
+        window.__mistwoodDebug.send({ type: 'ChooseClass', heroClass: cls });
+        window.__mistwoodDebug.equip(id);
+      }, [owner, w.id]);
       await page.waitForTimeout(400);
       for (const m of [...w.light, w.heavy]) {
         // 命中瞬間在動畫中的位置：hitDelay × 播放速度（片段長度約 1 秒，取 0.25–0.7 之間）
@@ -1668,6 +1674,12 @@ try {
     await page.waitForTimeout(300);
     await shot('menu_title_confirm_new');
     await page.locator('[data-testid="title-confirm-new-yes"]').click();
+    // 選職業（使用者 2026-10-17）
+    await page.locator('[data-testid="class-option-mage"]').click();
+    await page.waitForTimeout(300);
+    await shot('menu_class_picker');
+    await page.locator('[data-testid="class-option-traveler"]').click();
+    await page.locator('[data-testid="class-start"]').click();
   }
 
   if (withAnim) {

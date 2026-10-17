@@ -1,28 +1,19 @@
 import { useEffect, useRef } from 'react';
-import type { Explored } from '@/game-core/map/explore';
 import { authority } from '@/game/authority';
 import { debugEnabled } from '@/game/debugApi';
 import { t } from '@/game/i18n';
-import type { MapId } from '@/game-core/world/maps';
 import { currentInterior, currentMap } from '@/game/location';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { worldDataResult } from '@/game/worldData';
 import { getMapBase } from '@/render/mapImage';
-import { currentQuestMarkers, drawChests, drawEnemies, drawLandmarks, drawLayer, drawNpcs, drawPlayer, drawQuestMarkers, paintFog, type MapView } from './mapDraw';
+import { currentQuestMarkers, drawChests, drawEnemies, drawLandmarks, drawLayer, drawNpcs, drawPlayer, drawQuestMarkers, type MapView } from './mapDraw';
 
 /** 小地圖的直徑（CSS 像素）與顯示範圍（半徑，公尺） */
 const SIZE = 176;
 const RANGE_M = 44;
 const FRAME_MS = 1000 / 20;
-
-let fogCache: { explored: Explored; map: MapId; canvas: HTMLCanvasElement } | null = null;
-/** 探索霧罩：探索紀錄或地圖換了才重畫（世界地圖與小地圖共用） */
-export function fogFor(explored: Explored, map: MapId): HTMLCanvasElement {
-  if (fogCache?.explored !== explored || fogCache.map !== map) fogCache = { explored, map, canvas: paintFog(explored, map, fogCache?.canvas) };
-  return fogCache.canvas;
-}
 
 /**
  * 小地圖（任務 7B）：畫面右上角的圓形地圖，北方朝上，顯示玩家附近 44 m。
@@ -71,7 +62,6 @@ export function Minimap() {
       ctx.fillRect(0, 0, SIZE, SIZE);
       const map = currentMap();
       drawLayer(ctx, getMapBase(data, map), view, map);
-      drawLayer(ctx, fogFor(state.explored, map), view, map);
       drawLandmarks(ctx, view, state, false, map);
       drawChests(ctx, view, state);
       drawNpcs(ctx, view, false);

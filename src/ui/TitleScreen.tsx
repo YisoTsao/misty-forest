@@ -5,6 +5,7 @@ import { useGameStore } from '@/game/state/gameStore';
 import { useSaveStore } from '@/game/state/saveStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { useOnlineStore } from '@/online/onlineStore';
+import { ClassPicker } from './ClassPicker';
 import { OnlinePanel } from './OnlinePanel';
 import { formatPlayTime, formatSavedAt } from './saveFormat';
 
@@ -100,6 +101,7 @@ function TitleMenu() {
 function OfflineMenu() {
   const save = useSaveStore((s) => s.mainSave);
   const [confirmNew, setConfirmNew] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasSave = save.status === 'ok' || save.status === 'restored-from-backup';
 
@@ -109,10 +111,13 @@ function OfflineMenu() {
     // 成功時主選單已卸載；失敗時存檔狀態已更新為損壞，畫面會顯示原因
     if (!ok) setLoading(false);
   };
+  // 新遊戲：有存檔時先確認，再選職業
   const onNew = () => {
     if (hasSave && !confirmNew) setConfirmNew(true);
-    else startNewGame();
+    else setPicking(true);
   };
+
+  if (picking) return <ClassPicker onStart={startNewGame} onBack={() => setPicking(false)} />;
 
   return (
     <div data-testid="offline-panel" className="flex flex-col gap-3">
@@ -138,7 +143,7 @@ function OfflineMenu() {
             <button
               type="button"
               data-testid="title-confirm-new-yes"
-              onClick={startNewGame}
+              onClick={() => setPicking(true)}
               className="flex-1 rounded-full bg-rose-400 py-1.5 font-bold text-rose-950 hover:bg-rose-300"
             >
               {t('title.confirmNewYes')}

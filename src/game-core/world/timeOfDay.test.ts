@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  WORLD_EPOCH_MS,
+  worldClockAt,
   clockAt,
   DAY_REAL_SECONDS,
   dayIndex,
@@ -131,5 +133,15 @@ describe('phases and ranges', () => {
   it('formats the clock', () => {
     expect(formatClock(8)).toBe('08:00');
     expect(formatClock(18.75)).toBe('18:45');
+  });
+
+  it('shared world clock: same instant gives the same hour for everyone, one day per 24 real minutes', () => {
+    const t = Date.UTC(2026, 9, 17, 8, 43, 0);
+    expect(clockAt(worldClockAt(t))).toBeCloseTo(clockAt(worldClockAt(t)), 10);
+    // 起點正好是第 1 天（dayIndex 0）的日出
+    expect(clockAt(worldClockAt(WORLD_EPOCH_MS))).toBeCloseTo(5.5, 5);
+    expect(dayIndex(worldClockAt(WORLD_EPOCH_MS))).toBe(0);
+    expect(clockAt(worldClockAt(t + DAY_REAL_SECONDS * 1000))).toBeCloseTo(clockAt(worldClockAt(t)), 5);
+    expect(dayIndex(worldClockAt(t + DAY_REAL_SECONDS * 1000))).toBe(dayIndex(worldClockAt(t)) + 1);
   });
 });

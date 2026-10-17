@@ -1,8 +1,8 @@
-// 世界地圖與小地圖共用的繪製（任務 7B）：底圖、探索霧罩、地標、任務標記、NPC、寶箱、玩家箭頭。
+// 世界地圖與小地圖共用的繪製（任務 7B）：底圖、地標、任務標記、NPC、寶箱、玩家箭頭。
+// 地圖全開（使用者 2026-10-17）：不再畫探索霧罩，區域名稱、地標與寶箱不論是否走過都顯示；探索紀錄只用來算探索度。
 // 只讀狀態（權威狀態、本機暫態），不修改任何東西；每次呼叫畫一整幀。
 import type { GameState } from '@/game-core/authority/rules';
 import { BUILD_AREA } from '@/game-core/build/build';
-import { EXPLORE_CELL, EXPLORE_GRID, isCellExplored, isExploredAt, mapCellOffset, type Explored } from '@/game-core/map/explore';
 import { isOnMapTerrain, mapAt, mapIdAt, mapIds, MAPS, type MapId } from '@/game-core/world/maps';
 import { landmarkShown, questMarkers, type LandmarkIcon, type QuestMarker } from '@/game-core/map/markers';
 import { TERRAIN_SIZE } from '@/game-core/world/terrain';
@@ -20,46 +20,7 @@ export function worldToScreen(view: MapView, x: number, z: number): { sx: number
   return { sx: view.width / 2 + (x - view.cx) * view.pxPerM, sy: view.height / 2 + (z - view.cz) * view.pxPerM };
 }
 
-/** 未探索區域的霧罩：已探索的格子挖空，邊緣模糊（低細節霧罩，不是全黑，Bible §31.3） */
-export function paintFog(explored: Explored, map: MapId = 'dawnvale', canvas: HTMLCanvasElement = document.createElement('canvas')): HTMLCanvasElement {
-  const offset = mapCellOffset(map);
-  canvas.width = MAP_SIZE_PX;
-  canvas.height = MAP_SIZE_PX;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
-  ctx.clearRect(0, 0, MAP_SIZE_PX, MAP_SIZE_PX);
-  // 霧：淡紫灰底色 ＋ 雲紋
-  ctx.fillStyle = 'rgba(214, 214, 226, 0.9)';
-  ctx.fillRect(0, 0, MAP_SIZE_PX, MAP_SIZE_PX);
-  ctx.fillStyle = 'rgba(190, 194, 214, 0.55)';
-  for (let i = 0; i < 160; i++) {
-    const u = ((i * 97) % 160) / 160;
-    const v = ((i * 61 + 13) % 157) / 157;
-    ctx.beginPath();
-    ctx.arc(u * MAP_SIZE_PX, v * MAP_SIZE_PX, 14 + ((i * 7) % 22), 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // 挖空已探索的格子（模糊邊緣）。所有格子合成一條路徑只填一次：帶 filter 的每次繪製都是一次 GPU 模糊，
-  // 逐格 fillRect 會讓重畫的成本隨探索格數增加（跑遠後每進一格卡 100 ms 以上）
-  const holes = new Path2D();
-  const cell = EXPLORE_CELL * MAP_PX_PER_M;
-  for (let j = 0; j < EXPLORE_GRID; j++) {
-    for (let i = 0; i < EXPLORE_GRID; i++) {
-      if (!isCellExplored(explored, offset + j * EXPLORE_GRID + i)) continue;
-      holes.rect(i * cell - 3, j * cell - 3, cell + 6, cell + 6);
-    }
-  }
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.filter = 'blur(10px)';
-  ctx.fillStyle = '#000';
-  // 相鄰格子的矩形互相重疊，nonzero 會把聯集整個填滿
-  ctx.fill(holes);
-  ctx.filter = 'none';
-  ctx.globalCompositeOperation = 'source-over';
-  return canvas;
-}
-
-/** 把底圖（或霧罩）依視窗畫到畫面上 */
+/** 把底圖依視窗畫到畫面上 */
 export function drawLayer(ctx: CanvasRenderingContext2D, layer: CanvasImageSource, view: MapView, map: MapId = 'dawnvale'): void {
   const scale = view.pxPerM / MAP_PX_PER_M;
   const o = MAPS[map].origin;
@@ -107,25 +68,22 @@ function regionNames(): Set<string> {
   return cachedRegionNames;
 }
 
-/** 區域名稱（已探索的區域中心；範圍很小的家園不標，避免與湖重疊） */
-export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, explored: Explored, map: MapId = 'dawnvale'): void {
+/** 區域名稱（區域中心；範圍很小的家園不標，避免與湖重疊） */
+export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, map: MapId = 'dawnvale'): void {
   for (const r of regions) {
     if (!r.area || r.area.radius < 10) continue;
     const [x, z] = r.area.center;
     if (mapIdAt(x, z) !== map) continue;
-    if (!isExploredAt(explored, x, z)) continue;
     const { sx, sy } = worldToScreen(view, x, z);
     label(ctx, t(r.nameKey), sx, sy - 18, Math.max(12, Math.min(18, view.pxPerM * 7)), '#5a3d1e');
   }
 }
 
-/** 地標圖示與名稱（已探索的地標） */
-export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, state: Pick<GameState, 'explored' | 'quests'>, withNames: boolean, map: MapId = 'dawnvale'): void {
-  const { explored } = state;
+/** 地標圖示與名稱 */
+export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, state: Pick<GameState, 'quests'>, withNames: boolean, map: MapId = 'dawnvale'): void {
   const size = Math.max(14, Math.min(24, view.pxPerM * 9));
   for (const l of landmarks) {
     if (mapIdAt(l.position[0], l.position[1]) !== map || !landmarkShown(l, state.quests)) continue;
-    if (!isExploredAt(explored, l.position[0], l.position[1])) continue;
     const { sx, sy } = worldToScreen(view, l.position[0], l.position[1]);
     ctx.fillStyle = 'rgba(255, 248, 225, 0.92)';
     ctx.strokeStyle = '#8a6a3a';
@@ -143,7 +101,7 @@ export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, stat
   }
 }
 
-/** 還沒打開、在已探索範圍內的寶箱 */
+/** 還沒打開的寶箱 */
 export function drawChests(ctx: CanvasRenderingContext2D, view: MapView, state: GameState): void {
   if (!worldDataResult.ok) return;
   const s = Math.max(5, Math.min(9, view.pxPerM * 3));
@@ -151,7 +109,7 @@ export function drawChests(ctx: CanvasRenderingContext2D, view: MapView, state: 
     if (worldDataResult.data.prefabs.get(p.prefabId)?.entity !== 'chest') continue;
     const [x, , z] = p.position;
     if (!isOnMapTerrain(mapAt(x, z), x, z)) continue; // 室內子場景
-    if (state.objects.get(p.id)?.open || !isExploredAt(state.explored, x, z)) continue;
+    if (state.objects.get(p.id)?.open) continue;
     const { sx, sy } = worldToScreen(view, x, z);
     ctx.fillStyle = '#c98a2c';
     ctx.strokeStyle = '#5a3a14';

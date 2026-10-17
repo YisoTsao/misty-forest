@@ -6,17 +6,13 @@ import { mulberry32 } from '../util/random';
 const spells = parseSpells(spellsData);
 
 describe('spells data', () => {
-  it('Q 是星光衝擊、F 是星屑飛彈、C 是流星雨', () => {
-    const byAction = new Map([...spells.values()].map((s) => [s.action, s.id]));
-    expect(byAction.get('skill')).toBe('spell_starlight_burst');
-    expect(byAction.get('spell2')).toBe('spell_star_bolt');
-    expect(byAction.get('spell3')).toBe('spell_meteor_shower');
+  it('原本的三個星光法術還在（旅人用 Q / F / C 施放）', () => {
+    expect(spells.get('spell_starlight_burst')?.action).toBe('skill');
+    expect(spells.get('spell_star_bolt')?.action).toBe('spell2');
+    expect(spells.get('spell_meteor_shower')?.action).toBe('spell3');
   });
 
-  it('拒絕重複的按鍵動作與缺少彈體設定的 bolt', () => {
-    const dup = structuredClone(spellsData);
-    dup[1]!.action = 'skill';
-    expect(() => parseSpells(dup)).toThrow(/同一個按鍵動作/);
+  it('拒絕缺少彈體設定的 bolt', () => {
     const noProjectile = structuredClone(spellsData) as Record<string, unknown>[];
     delete noProjectile[1]!.projectiles;
     expect(() => parseSpells(noProjectile)).toThrow(/缺少 projectiles/);

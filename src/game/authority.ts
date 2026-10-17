@@ -16,6 +16,9 @@ import type { Landmark } from '@/game-core/map/markers';
 import type { LightPathDef } from '@/game-core/world/lightPath';
 import type { WaterwayDef } from '@/game-core/world/waterway';
 import { initialGameState } from '@/game-core/authority/rules';
+import { parseHeroClasses, type HeroClassCatalog } from '@/game-core/character/heroClass';
+import classesRaw from '@/data/classes.json';
+import { characterIds } from './character/characters';
 import { WorldIndex } from './world/worldIndex';
 import { worldDataResult } from './worldData';
 
@@ -57,6 +60,10 @@ export const buildables: BuildableCatalog = data.buildables;
 export const weapons: WeaponCatalog = data.weapons;
 /** 魔法（GAME_DESIGN 5.4） */
 export const spells: SpellCatalog = data.spells;
+/** 職業（使用者 2026-10-17）：資料讀不到時是空的（畫面會顯示資料錯誤） */
+export const heroClasses: HeroClassCatalog = worldDataResult.ok
+  ? parseHeroClasses(classesRaw, { weapons: data.weapons, spells: data.spells, characters: new Set(characterIds()) })
+  : new Map();
 export const interiors: ReadonlyMap<string, InteriorDef> = data.interiors;
 /** 羊群的牧草地（環境動畫） */
 export const flocks: readonly FlockDef[] = data.flocks;
@@ -92,6 +99,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   combat: data.combat,
   weapons: data.weapons,
   spells: data.spells,
+  heroClasses,
   buildables: data.buildables,
   waterways: data.waterways,
   lightPaths: data.lightPaths,

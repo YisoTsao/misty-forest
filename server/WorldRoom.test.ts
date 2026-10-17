@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
-import { ClientMessage, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type ChatOut, type CorrectionMessage, type RemoteActionMessage } from '@/game-core/net/protocol';
+import { ClientMessage, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type ChatOut, type CorrectionMessage, type RemoteActionMessage, type TimeReply } from '@/game-core/net/protocol';
 import { MAPS, NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { createGameServer } from './app';
 import type { WorldRoom } from './WorldRoom';
@@ -355,6 +355,24 @@ describe('世界房間：聊天（任務 11F）', () => {
     await settle();
     expect(history).toHaveLength(1);
     expect(history[0]!.map((m) => m.text)).toEqual(['第一則', '第二則']);
+  });
+
+  it('對時（共享日光）：回傳伺服器時間並帶回客戶端的 t；每秒最多一次、格式不符忽略', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const clock = manualClock(room);
+    const a = await join(room, { name: 'A', at: at(0, 1, 10) });
+    const replies: TimeReply[] = [];
+    a.onMessage(ServerMessage.time, (r: TimeReply) => replies.push(r));
+    a.send(ClientMessage.time, { t: 123 });
+    a.send(ClientMessage.time, { t: 124 });
+    a.send(ClientMessage.time, { t: 'x' });
+    await until(() => replies.length === 1);
+    await settle();
+    expect(replies).toEqual([{ t: 123, now: room.now() }]);
+    clock.advance(1000);
+    a.send(ClientMessage.time, { t: 200 });
+    await until(() => replies.length === 2);
+    expect(replies[1]).toEqual({ t: 200, now: room.now() });
   });
 
   it('密語：只有對方收到、自己收到回顯；找不到或同名時告知', async () => {

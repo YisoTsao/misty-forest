@@ -7,10 +7,10 @@ const sword = catalog.weapons.get('sword')!;
 const fist = catalog.weapons.get('fist')!;
 
 describe('weapons data', () => {
-  it('has fist, knife and sword, each with a light combo and a heavy attack', () => {
+  it('every weapon (fist, knife, sword and the class weapons) has a light combo and a heavy attack', () => {
     for (const id of weaponIds) {
       const w = catalog.weapons.get(id)!;
-      expect(w.light.length).toBeGreaterThanOrEqual(3);
+      expect(w.light.length).toBeGreaterThanOrEqual(2);
       expect(w.heavy.cooldown).toBeGreaterThan(0);
       for (const m of [...w.light, w.heavy]) expect(m.hitDelay).toBeLessThan(m.duration);
     }

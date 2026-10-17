@@ -17,14 +17,44 @@ const MOVE_FADE = 0.08;
 /** 只播一次並停在最後一格的動畫 */
 const ONE_SHOT: readonly ClipKey[] = ['jump', 'land', 'interact', 'attack', 'skill', 'hit', 'death'];
 
-/** 單手劍模型：同系列 Knight 角色手上的武器（GAME_DESIGN 5.3），掛到玩家右手的 handslot */
-export const SWORD_SOURCE = 'models/characters/kaykit-adventurers/Knight.glb';
-const SWORD_NODE = '1H_Sword';
-/** 魔杖：施法時拿在右手（GAME_DESIGN 5.4），同系列 Mage 角色的武器 */
-export const WAND_SOURCE = 'models/characters/kaykit-adventurers/Mage.glb';
-const WAND_NODE = '1H_Wand';
-/** 短刀：玩家模型本身的雙刀（原本隱藏） */
-const KNIFE_NODES = ['Knife', 'Knife_Offhand'] as const;
+/**
+ * 手上拿的東西都是同系列（KayKit Adventurers）角色模型裡的武器節點（GAME_DESIGN 5.3）：
+ * 角色模型本身有的（旅人的雙刀、騎士的劍、法師的法杖、戰士的斧頭）直接顯示原本隱藏的節點；
+ * 沒有的從其他角色模型複製第一個節點掛到右手 handslot（例如旅人拿騎士的單手劍、施法時拿法師的魔杖）。
+ */
+export const WEAPON_SOURCES = {
+  knight: 'models/characters/kaykit-adventurers/Knight.glb',
+  mage: 'models/characters/kaykit-adventurers/Mage.glb',
+  barbarian: 'models/characters/kaykit-adventurers/Barbarian.glb',
+} as const;
+type WeaponSource = keyof typeof WEAPON_SOURCES;
+const HELD_NODES: Record<HeldId, { nodes: readonly string[]; source?: WeaponSource }> = {
+  fist: { nodes: [] },
+  knife: { nodes: ['Knife', 'Knife_Offhand'] },
+  sword: { nodes: ['1H_Sword'], source: 'knight' },
+  greatsword: { nodes: ['2H_Sword'], source: 'knight' },
+  staff: { nodes: ['2H_Staff'], source: 'mage' },
+  axe: { nodes: ['1H_Axe', '1H_Axe_Offhand'], source: 'barbarian' },
+  greataxe: { nodes: ['2H_Axe'], source: 'barbarian' },
+  /** 魔杖：施法時拿在右手（GAME_DESIGN 5.4） */
+  wand: { nodes: ['1H_Wand'], source: 'mage' },
+};
+
+/** 武器來源模型（已由 useGLTF 載入的場景） */
+export type WeaponSourceScenes = Record<WeaponSource, THREE.Object3D>;
+
+/** 載入全部武器來源模型（三個 GLB 與村莊 NPC 共用快取） */
+export function useWeaponSources(): WeaponSourceScenes {
+  const knight = useGLTF(assetUrl(WEAPON_SOURCES.knight)).scene;
+  const mage = useGLTF(assetUrl(WEAPON_SOURCES.mage)).scene;
+  const barbarian = useGLTF(assetUrl(WEAPON_SOURCES.barbarian)).scene;
+  return useMemo(() => ({ knight, mage, barbarian }), [knight, mage, barbarian]);
+}
+
+/** 施法時手上拿的東西：拿著法杖就用法杖施法，其他武器換成魔杖 */
+export function castHeld(weapon: WeaponId): HeldId {
+  return weapon === 'staff' ? 'staff' : 'wand';
+}
 /** 揮砍拖尾取樣的時間（秒） */
 export const TRAIL_LIFE = 0.14;
 
@@ -98,22 +128,20 @@ function attachFrom(hand: THREE.Object3D | undefined, source: THREE.Object3D, no
   return copy;
 }
 
-/** 找出玩家模型的雙刀、把騎士的單手劍與法師的魔杖複製一份掛到右手 handslot */
-export function attachWeapons(root: THREE.Object3D, swordSource: THREE.Object3D, wandSource: THREE.Object3D): WeaponModels {
-  const knives = KNIFE_NODES.map((n) => root.getObjectByName(n)).filter((o): o is THREE.Object3D => o !== undefined);
+/** 每種手持物：角色模型本身有就用自己的節點，沒有就從來源模型複製一份掛到右手 handslot；刀刃類記錄拖尾用的刀尖 */
+export function attachWeapons(root: THREE.Object3D, sources: WeaponSourceScenes): WeaponModels {
   // GLTFLoader 會移除節點名稱中的「.」（PropertyBinding.sanitizeNodeName），handslot.r 載入後是 handslotr
   const hand = root.getObjectByName('handslotr') ?? root.getObjectByName('handslot.r');
   const materials: THREE.Material[] = [];
-  const nodes: Record<HeldId, THREE.Object3D[]> = { fist: [], knife: knives, sword: [], wand: [] };
+  const nodes = {} as Record<HeldId, THREE.Object3D[]>;
   const blade: WeaponModels['blade'] = {};
-  const sword = attachFrom(hand, swordSource, SWORD_NODE, materials);
-  if (sword) {
-    nodes.sword = [sword];
-    blade.sword = { object: sword, ...bladeOf(sword) };
+  for (const [id, spec] of Object.entries(HELD_NODES) as [HeldId, (typeof HELD_NODES)[HeldId]][]) {
+    const own = spec.nodes.map((n) => root.getObjectByName(n)).filter((o): o is THREE.Object3D => o !== undefined);
+    const copy = own.length === 0 && spec.source && spec.nodes[0] ? attachFrom(hand, sources[spec.source], spec.nodes[0], materials) : null;
+    nodes[id] = own.length > 0 ? own : copy ? [copy] : [];
+    const main = nodes[id][0];
+    if (main && id !== 'fist' && id !== 'wand') blade[id] = { object: main, ...bladeOf(main) };
   }
-  const wand = attachFrom(hand, wandSource, WAND_NODE, materials);
-  if (wand) nodes.wand = [wand];
-  if (knives[0]) blade.knife = { object: knives[0], ...bladeOf(knives[0]) };
   return { nodes, blade, materials };
 }
 
@@ -127,10 +155,9 @@ const tmpBase = new THREE.Vector3();
  */
 export function CharacterModel({ def }: { def: CharacterDef }) {
   const gltf = useGLTF(assetUrl(def.model));
-  const swordGltf = useGLTF(assetUrl(SWORD_SOURCE));
-  const wandGltf = useGLTF(assetUrl(WAND_SOURCE));
+  const sources = useWeaponSources();
   const { root, materials } = useMemo(() => prepareModel(gltf.scene, def.hiddenNodes), [gltf.scene, def.hiddenNodes]);
-  const weaponModels = useMemo(() => attachWeapons(root, swordGltf.scene, wandGltf.scene), [root, swordGltf.scene, wandGltf.scene]);
+  const weaponModels = useMemo(() => attachWeapons(root, sources), [root, sources]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
   useEffect(() => () => weaponModels.materials.forEach((m) => m.dispose()), [weaponModels]);
 
@@ -156,9 +183,9 @@ export function CharacterModel({ def }: { def: CharacterDef }) {
     // 命中停頓：動畫暫停一小段時間（打擊感）
     mixer.timeScale = melee.hitStop > 0 ? 0 : 1;
 
-    // 手上顯示：施法時拿魔杖，否則依權威狀態的裝備；切換時從小放大出現
+    // 手上顯示：施法時拿魔杖（法杖就用法杖），否則依權威狀態的裝備；切換時從小放大出現
     const weapon = authority.getState().player.weapon;
-    const held: HeldId = playerRuntime.action?.clip === 'skill' ? 'wand' : weapon;
+    const held: HeldId = playerRuntime.action?.clip === 'skill' ? castHeld(weapon) : weapon;
     if (shown.current !== held) {
       for (const list of Object.values(weaponModels.nodes)) for (const o of list) o.visible = false;
       for (const o of weaponModels.nodes[held]) o.visible = true;
@@ -227,5 +254,4 @@ export function CharacterModel({ def }: { def: CharacterDef }) {
   );
 }
 
-useGLTF.preload(assetUrl(SWORD_SOURCE));
-useGLTF.preload(assetUrl(WAND_SOURCE));
+for (const path of Object.values(WEAPON_SOURCES)) useGLTF.preload(assetUrl(path));

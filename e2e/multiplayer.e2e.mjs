@@ -122,11 +122,11 @@ function startProxy(listenPort, targetPort) {
   };
 }
 
-async function launch(name, url = SERVER) {
+async function launch(name, url = SERVER, extra = '') {
   const app = await electron.launch({
     args: ['.'],
     env: appEnv({
-      MISTWOOD_START_QUERY: `debug=1&play=1&peaceful=1&mp=1&server=${encodeURIComponent(url)}&mpName=${name}`,
+      MISTWOOD_START_QUERY: `debug=1&play=1&peaceful=1&mp=1&server=${encodeURIComponent(url)}&mpName=${name}${extra}`,
       MISTWOOD_SAVE_DIR: tempSaveDir(),
       MISTWOOD_USER_DATA_DIR: tempSaveDir(),
     }),
@@ -156,7 +156,8 @@ const toastKeys = async (c) => c.debug(() => window.__mistwoodDebug.toasts().map
 const count = (keys, key) => keys.filter((k) => k === key).length;
 try {
   await waitForHealth();
-  [a, b] = await Promise.all([launch('A', VIA_PROXY), launch('B')]);
+  // B 以法師開始（使用者 2026-10-17：四種職業）
+  [a, b] = await Promise.all([launch('A', VIA_PROXY), launch('B', SERVER, '&class=mage')]);
 
   await check('兩個視窗都連上同一個房間，人數 2、看得到對方', async () => {
     for (const c of [a, b]) {
@@ -170,6 +171,15 @@ try {
     assert.match(await b.page.locator('[data-testid="net-status"]').innerText(), /已連線\s*2 人/);
     const health = await (await fetch(`http://localhost:${PORT}/health`)).json();
     assert.equal(health.players, 2);
+  });
+
+  await check('職業與共享日光：A 看到 B 是法師（拿法杖）；兩邊的時刻相同', async () => {
+    await a.page.waitForFunction(() => window.__mistwoodDebug.remotePlayers()[0]?.heroClass === 'mage', null, { timeout: 5000 });
+    assert.equal((await a.remotes())[0].weapon, 'staff');
+    assert.equal((await b.remotes())[0].heroClass, 'traveler');
+    const [ha, hb] = await Promise.all([a, b].map((c) => c.debug(() => window.__mistwoodDebug.clock().hour)));
+    const diff = Math.min(Math.abs(ha - hb), 24 - Math.abs(ha - hb));
+    assert.ok(diff < 0.05, `A ${ha}、B ${hb}`);
   });
 
   await check('A 站到 B 的前方：B 的畫面上看得到 A 的模型與名牌（截圖 docs/screenshots/phase11/multiplayer_two.png）', async () => {

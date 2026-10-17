@@ -50,7 +50,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     },
     companion: { ...state.companion },
     build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
-    loadout: { weapon: state.player.weapon },
+    loadout: { weapon: state.player.weapon, heroClass: state.player.heroClass },
     map: { explored: encodeExplored(state.explored) },
   };
 }
@@ -109,6 +109,8 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
   return {
     state: {
       time: data.world.time,
+      // 共享時鐘不存檔：讀檔後第一幀由 GameClock 對時
+      clock: 0,
       objects,
       inventory: { slots },
       tutorial: data.tutorial,
@@ -120,6 +122,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
         defeated: false,
         weapon: data.loadout.weapon,
         mp: Math.min(MAX_MP, data.combat.mp),
+        heroClass: data.loadout.heroClass,
       },
       enemies,
       spawners: data.combat.spawners,

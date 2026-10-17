@@ -7,6 +7,7 @@ import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
 import { timeRuntime } from '@/game/world/timeRuntime';
+import { debugSetClock } from '@/game/world/worldClock';
 import { cameraBookmarks } from '@/game/worldData';
 import { QualitySelector } from './QualitySelector';
 
@@ -117,7 +118,7 @@ function ClockControl() {
         value={Math.floor(hour * 4) / 4}
         onChange={(e) => {
           const h = Number(e.target.value);
-          authority.send({ type: 'DebugSetClock', hour: h });
+          debugSetClock((c) => authority.send(c), h);
           setHour(h);
         }}
         className="mx-1 accent-amber-300"

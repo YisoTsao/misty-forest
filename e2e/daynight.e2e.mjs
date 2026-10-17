@@ -1,12 +1,12 @@
-// 端對端：任務 6B — 日夜與日月光照（GAME_DESIGN 5.2）：新遊戲從 08:00 開始、時鐘隨遊玩前進；
-// 夜晚方向光換成月亮、畫面變暗但仍看得清楚；室內不受日夜影響；茉莉可以讓玩家睡到早上；
-// 存檔記錄的遊玩秒數換算回同一個時刻。天空、星星、螢火蟲的外觀以截圖檢查（--daynight）。
+// 端對端：任務 6B — 日夜與日月光照（GAME_DESIGN 5.2）：時刻由共享世界時鐘決定（使用者 2026-10-17：所有人同一個日夜）、
+// 時鐘平滑前進；夜晚方向光換成月亮、畫面變暗但仍看得清楚；室內不受日夜影響；夜裡茉莉讓玩家借床休息（不跳時間）；
+// 讀檔不改變時刻。天空、星星、螢火蟲的外觀以截圖檢查（--daynight）。
 // 用法：pnpm build && node e2e/daynight.e2e.mjs
 /* global window, document */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { clockAt } from '../src/game-core/world/timeOfDay.ts';
+import { clockAt, worldClockAt } from '../src/game-core/world/timeOfDay.ts';
 import { runE2e, tempSaveDir } from './lib.mjs';
 
 const saveDir = tempSaveDir();
@@ -52,20 +52,21 @@ await runE2e(
       await page.waitForTimeout(900);
     };
 
-    await check('新遊戲從早上 8 點開始，方向光是太陽', async () => {
+    await check('時刻由共享世界時鐘決定：和用現在的 UTC 時間換算的一樣（不是從 8 點開始），權威狀態也對時', async () => {
       const c = await clock();
-      assert.ok(hourDiff(c.hour, 8) < 0.2, `hour=${c.hour}`);
-      assert.equal(c.moonLight, false);
-      assert.equal(c.phase, 'day');
+      const expected = clockAt(worldClockAt(Date.now()));
+      assert.ok(hourDiff(c.hour, expected) < 0.05, `hour=${c.hour}，共享時鐘 ${expected}`);
+      assert.ok(Math.abs(c.stateClock - worldClockAt(Date.now())) < 3, `權威狀態 ${c.stateClock}`);
+      assert.equal(c.moonLight, expected >= 18.5 || expected < 5.5);
     });
 
-    await check('時鐘隨遊玩前進（約 1 秒 = 0.81 遊戲分鐘），而且平滑', async () => {
+    await check('時鐘隨時間前進（約 1 秒 = 0.81 遊戲分鐘），而且平滑', async () => {
       const a = await clock();
       await page.waitForTimeout(4000);
       const b = await clock();
       const dt = b.time - a.time;
       assert.ok(dt > 3 && dt < 5.5, `經過 ${dt} 秒`);
-      assert.ok(b.hour > a.hour && b.hour - a.hour < 0.1, `${a.hour} → ${b.hour}`);
+      assert.ok(hourDiff(b.hour, a.hour) > 0 && hourDiff(b.hour, a.hour) < 0.1, `${a.hour} → ${b.hour}`);
     });
 
     let day;
@@ -119,32 +120,32 @@ await runE2e(
       assert.equal(inside.lookHour, 12, `室內使用的時段 ${inside.lookHour}`);
     });
 
-    await check('夜晚和茉莉說話：可以「睡到早上」，醒來是 07:00、體力全滿', async () => {
+    await check('夜晚和茉莉說話：可以借床休息，體力全滿，但時刻不變（大家共用同一片夜空）', async () => {
       await teleport(interior.origin[0] - 3.2, interior.origin[1] - 1.3, 300);
       await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [interior.origin[0] - 3.2, interior.origin[1] - 3.6]);
       await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'npc:molly', null, { timeout: 3000 });
       await page.keyboard.press('KeyE');
       await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'greet', null, { timeout: 3000 });
       const options = await page.locator('[data-testid="dialogue-option"]').allInnerTexts();
-      const index = options.findIndex((t) => /睡到早上/.test(t));
+      const index = options.findIndex((t) => /借張床/.test(t));
       assert.ok(index >= 0, `選項：${JSON.stringify(options)}`);
+      await debug(() => window.__mistwoodDebug.send({ type: 'DebugSetHp', hp: 40 }));
       const before = await clock();
       await page.keyboard.press(`Digit${index + 1}`);
       await page.waitForTimeout(300);
       const after = await clock();
-      assert.ok(hourDiff(after.hour, 7) < 0.05, `醒來 ${after.hour}`);
-      assert.ok(after.day === before.day + 1 || before.hour < 7, `day ${before.day} → ${after.day}`);
+      assert.ok(hourDiff(after.hour, before.hour) < 0.05, `${before.hour} → ${after.hour}`);
       assert.equal((await debug(() => window.__mistwoodDebug.combatState())).hp, 100);
       await page.keyboard.press('Escape');
     });
 
-    await check('白天和茉莉說話：沒有「睡到早上」', async () => {
+    await check('白天和茉莉說話：沒有「借張床」', async () => {
       await page.waitForFunction(() => window.__mistwoodDebug.dialogue() === null, null, { timeout: 3000 });
       await setClock(12);
       await page.keyboard.press('KeyE');
       await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'greet', null, { timeout: 3000 });
       const options = await page.locator('[data-testid="dialogue-option"]').allInnerTexts();
-      assert.ok(!options.some((t) => /睡到早上/.test(t)), JSON.stringify(options));
+      assert.ok(!options.some((t) => /借張床/.test(t)), JSON.stringify(options));
       await page.keyboard.press('Escape');
     });
 
@@ -161,12 +162,15 @@ await runE2e(
       assert.ok(night.patched > 0 && night.compiled > 0, JSON.stringify(night));
     });
 
-    await check('存檔的遊玩秒數換算回同一個時刻（讀檔後時段一致）', async () => {
-      await setClock(21.5);
+    await check('取消除錯撥時間後回到共享時鐘；存檔只記遊玩秒數，不記時刻', async () => {
+      await debug(() => window.__mistwoodDebug.resetClock());
+      await page.waitForTimeout(300);
+      const c = await clock();
+      assert.ok(hourDiff(c.hour, clockAt(worldClockAt(Date.now()))) < 0.05, `hour=${c.hour}`);
       assert.equal(await debug(() => window.__mistwoodDebug.saveNow()), true);
-      const now = await clock();
       const file = JSON.parse(readFileSync(path.join(saveDir, 'slot1.json'), 'utf8'));
-      assert.ok(hourDiff(clockAt(file.world.time), now.hour) < 0.05, `存檔 ${clockAt(file.world.time)}，目前 ${now.hour}`);
+      assert.equal(file.world.clock, undefined);
+      assert.ok(file.world.time > 0);
     });
   },
 );

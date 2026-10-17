@@ -47,6 +47,7 @@ await runE2e('settings e2e（1/2）', { query: 'debug=1', env }, async ({ page, 
 
   await check('新遊戲：提示文字與互動提示顯示 F，按 F 開寶箱、按 E 沒有作用', async () => {
     await page.locator('[data-testid="title-start"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await page.locator('[data-testid="title-screen"]').waitFor({ state: 'detached', timeout: 3000 });
     assert.match(await page.locator('[data-testid="tutorial"]').innerText(), /W A S D/);
     await teleport(chest.position[0] + 0.5, chest.position[2] + 1.4);

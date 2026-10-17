@@ -109,7 +109,7 @@ describe('玩家攻擊', () => {
   });
 
   it('倒下後重新站起來仍保留裝備', () => {
-    const down = { ...initialGameState(), player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'knife' as const, mp: 50 } };
+    const down = { ...initialGameState(), player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'knife' as const, mp: 50, heroClass: 'traveler' as const } };
     expect(run(down, { type: 'RespawnPlayer' }).state.player).toMatchObject({ defeated: false, weapon: 'knife' });
   });
 

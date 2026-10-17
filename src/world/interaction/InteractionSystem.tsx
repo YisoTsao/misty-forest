@@ -180,7 +180,7 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
       ui.setInteractTarget(null);
       // 條件未達成時說明原因（Bible §3.2：不用看不出原因的封鎖）；地圖出入口（任務 8A）與室內（任務 7M 燈塔地窖）都一樣
       const gameState = authority.getState();
-      if (!isGateOpen(enter, gameState.quests, gameState.time)) {
+      if (!isGateOpen(enter, gameState.quests, gameState.clock)) {
         if (document.pointerLockElement) document.exitPointerLock();
         ui.showMessage({ titleKey: target.spec.prefab.nameKey ?? 'object.gateGlowmoss', bodyKey: enter.lockedKey ?? 'gate.locked' });
         audio.play('reject');

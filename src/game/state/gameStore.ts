@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { initialGameState } from '@/game-core/authority/rules';
+import { isHeroClassId } from '@/game-core/character/heroClass';
 import { nextScreen, type FlowAction, type GameScreen } from '@/game-core/flow/gameFlow';
 import type { LoadedSave } from '@/game-core/save/convert';
 import { authority } from '../authority';
@@ -55,6 +56,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ screen: next, session: session + 1 });
   },
 }));
+
+// ?play=1&class=mage：直接以指定職業開始（端對端測試與截圖用）
+{
+  const autoClass = new URLSearchParams(window.location.search).get('class');
+  if (initialScreen() === 'playing' && isHeroClassId(autoClass)) authority.send({ type: 'ChooseClass', heroClass: autoClass });
+}
 
 export function currentScreen(): GameScreen {
   return useGameStore.getState().screen;

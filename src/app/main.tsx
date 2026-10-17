@@ -12,6 +12,7 @@ import { installEventFeedback } from '@/game/eventFeedback';
 import { loadMainSave } from '@/game/save/saveService';
 import { installAutosave } from '@/game/session';
 import { installNetwork } from '@/net/installNetwork';
+import { syncClockFromServer } from '@/net/serverTime';
 import { installOnline } from '@/online/installOnline';
 import { loadSettings } from '@/game/state/settingsStore';
 import { t } from '@/game/i18n';
@@ -31,6 +32,8 @@ installAudioUnlock();
 installAudioFeedback();
 installAutosave();
 installNetwork();
+// 共享日光（T-181）：單機也向遊戲伺服器對時
+void syncClockFromServer();
 // 帳號與線上模式（任務 11L-2）：還原登入、讀取遊戲設定（維護模式）
 installOnline();
 // 啟動時檢查存檔（主選單顯示「繼續遊戲」或損壞提示）；讀取失敗不影響啟動

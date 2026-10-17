@@ -46,6 +46,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 送信（`quest_dawn_004`、`talk` 目標 / `QuestTalk`、`questTalk*` 條件、尼可、乾布） | `letters`（改到對話或條件時加 `npc`、`quest`） | `--letters` |
 | 任務日誌（`QuestJournal`、`TrackQuest`、任務分類、追蹤列篩選） | `journal`（改到追蹤列時加 `quest`） | `--journal` |
 | 小地圖、世界地圖 | `map` | `--map` |
+| 職業（`classes.json`、`heroClass.ts`、`currentClass.ts`、`ClassPicker`、`ChooseClass`、各職業的武器 / 法術） | `save`、`melee`、`magic`（改到主選單或線上入口時加 `dev`、`settings`、`account`；改到連線時加 `multiplayer`） | `--melee`、`menu_class_picker` 書籤 |
 | 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |
 | 澄鏡湖（`mirrorlakeTerrain`、`lakeModels.ts`、`gen-mirrorlake.ts`、各地圖的水面 `Water map=`、水道入口） | `mirrorlake`（改到共用的地圖切換或存檔遷移時加 `glowmoss`、`map`、`save`；改到水面或落水時加 `lake`） | `mirrorlake_*` 書籤（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple`） |
 | 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `forestmobs`、`monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |
@@ -62,6 +63,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 多人連線純函式（`src/game-core/net/**`：協定、移動驗證、插值） | 不跑（`pnpm vitest run src/game-core/net server`） | 不拍 |
 | 多人連線（`server/**`、`src/net/**`、`render.yaml`、`vercel.json`、`RemotePlayers`、`NetStatusBadge`、`MultiplayerPanel`、`playerRuntime.warpSeq` / `positionAt` / `netActions`、`remoteSpell`、聊天 `ChatBox` / `chatStore` / `ChatBubble`、`uiStore.chatOpen`） | `multiplayer`（改到 `Player.tsx` 時加 `movement`、`bounds`；改到暫停選單時加 `settings`、`dev`；要驗 Web 版時加 `node e2e/multiplayer-web.e2e.mjs`，需要 Playwright 的 Chromium） | `multiplayer` e2e 會拍 `docs/screenshots/phase11/multiplayer_two.png`、`multiplayer_spell.png`、`chat.png` |
 | `src/render/**`（shader、後處理、植被、迷霧外觀） | 所屬功能的 suite（上表）；純視覺不跑 | 受影響書籤（`--mist` 只在迷霧相關時加） |
+| 帳號登入（`src/account`、`electron/oauthLoopback.ts`、`OnlinePanel`） | `account`（改到主選單時加 `dev`、`settings`）；真正的 Google / LINE 登入手動測（`docs/multiplayer/accounts.md`） | `--menu` |
 | `src/app`、`src/ui`、React effect / 生命週期 | `dev`（StrictMode）＋所屬畫面的 suite | 有改畫面才用 `--menu` |
 | `e2e/**` 本身 | 只跑改到的那個 suite | 不拍 |
 | `electron/**`、`vite.config.ts`、`package.json` 建置設定、`public/` 資產載入 | 完整 `pnpm e2e` | 不拍 |

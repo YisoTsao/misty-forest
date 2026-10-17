@@ -161,7 +161,7 @@ describe('版本遷移', () => {
       quests: { mend: { status: 'completed' } },
     };
     const loaded = fromSaveData(v4, ctx);
-    expect(loaded.state.player).toEqual({ weapon: 'sword', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false });
+    expect(loaded.state.player).toEqual({ weapon: 'sword', heroClass: 'traveler', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false });
     expect(loaded.state.enemies.size).toBe(0);
     expect(loaded.state.objects.get('b1')?.repaired).toBe(true);
   });
@@ -171,7 +171,7 @@ describe('版本遷移', () => {
     const state: GameState = {
       ...base,
       quests: { hunt: { status: 'active', progress: [2] } },
-      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42 },
+      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42, heroClass: 'traveler' },
       enemies: new Map([['sp#1', { id: 'sp#1', kind: 'wisp', spawner: 'sp', hp: 20 }]]),
       spawners: { sp: { nextSpawnAt: 12, counter: 1 } },
     };
@@ -182,7 +182,7 @@ describe('版本遷移', () => {
     expect(loaded.spawners.sp).toEqual({ nextSpawnAt: 12, counter: 1 });
     expect(loaded.player.weapon).toBe('knife');
     expect(loaded.player.mp).toBe(42);
-    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10 } }, player, new Date())).state;
+    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10, heroClass: 'traveler' } }, player, new Date())).state;
     expect(downed.player).toMatchObject({ hp: 100, defeated: false, weapon: 'fist' });
   });
 
@@ -365,6 +365,16 @@ describe('版本遷移', () => {
     expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
     expect(isCellExplored(loaded.state.explored, MAP_CELLS * 2 + 2)).toBe(true);
     expect(exploredRatio(loaded.state.explored, 'whispermeadow')).toBe(0);
+  });
+
+  it('v16 存檔升到 v17：補上職業（原本唯一的星光旅人），武器不變；職業寫入存檔並讀回', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const loaded = fromSaveData({ ...current, version: 16, loadout: { weapon: 'knife' } }, ctx);
+    expect(loaded.warnings).toEqual([]);
+    expect(loaded.state.player.heroClass).toBe('traveler');
+    expect(loaded.state.player.weapon).toBe('knife');
+    const mage = { ...initialGameState(), player: { ...initialGameState().player, heroClass: 'mage' as const, weapon: 'staff' as const } };
+    expect(roundTrip(toSaveData(mage, player, new Date())).state.player).toMatchObject({ heroClass: 'mage', weapon: 'staff' });
   });
 
   it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {

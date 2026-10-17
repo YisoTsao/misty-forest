@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { chooseQuickHeal } from '@/game-core/items/consumables';
 import { worldDataResult } from '@/game/worldData';
 import { useMemo } from 'react';
-import { assistFacing, isInMoveArea, startHeavy, startLight, weaponIds, type MoveDef, type WeaponId } from '@/game-core/combat/weapons';
+import { assistFacing, isInMoveArea, startHeavy, startLight, type MoveDef, type WeaponId } from '@/game-core/combat/weapons';
 import { mapAt } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { currentScreen } from '@/game/state/gameStore';
@@ -11,6 +11,7 @@ import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { PLAYER_STATS } from '@/game-core/combat/combat';
 import { audio } from '@/game/audio/audioEngine';
 import { authority, weapons } from '@/game/authority';
+import { currentWeapons } from '@/game/character/currentClass';
 import { bossRetryPoint } from '@/game/combat/bossRuntime';
 import { attackEnemy, enemyHitRadius, combatRuntime, enemyRuntime, pushImpact } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
@@ -28,18 +29,20 @@ const SHAKE_PER_HITSTOP = 1.6;
 type PendingHit = { move: MoveDef; weapon: WeaponId; delay: number };
 
 /** 本幀被按下的武器切換（1 / 2 / 3 或依序切換）；沒有則為 null */
+/** 「武器 1–3」對應目前職業的第 1–3 把武器（職業沒有的欄位不動作） */
 function pressedWeapon(current: WeaponId): WeaponId | null {
+  const owned = currentWeapons();
   let chosen: WeaponId | null = null;
-  if (input.consumePressed('weapon1')) chosen = 'fist';
-  if (input.consumePressed('weapon2')) chosen = 'knife';
-  if (input.consumePressed('weapon3')) chosen = 'sword';
-  if (input.consumePressed('cycleWeapon')) chosen = weaponIds[(weaponIds.indexOf(current) + 1) % weaponIds.length]!;
+  (['weapon1', 'weapon2', 'weapon3'] as const).forEach((action, i) => {
+    if (input.consumePressed(action) && owned[i]) chosen = owned[i];
+  });
+  if (input.consumePressed('cycleWeapon')) chosen = owned[(owned.indexOf(current) + 1) % owned.length] ?? null;
   return chosen;
 }
 
 /**
  * 玩家戰鬥（規格 6.6、GAME_DESIGN 5.3）：
- * - 左鍵輕擊連段、右鍵重擊；1 / 2 / 3 切換徒手（拳、踢）/ 短刀 / 單手劍（全部可重新配置）。魔法在 PlayerSpells。
+ * - 左鍵輕擊連段、右鍵重擊；1 / 2 / 3 切換目前職業的武器（旅人：徒手 / 短刀 / 單手劍；全部可重新配置）。魔法在 PlayerSpells。
  * - 出招時輕度鎖定前方最近的敵人；招式資料決定動畫、命中時間、範圍、往前衝與停頓。
  * - 揮下的瞬間以招式範圍判定命中的敵人，送出指令由權威層結算傷害；冷卻與連段在本機計算。
  * - 倒下後過一段時間重新站起來。

@@ -12,6 +12,7 @@ import {
   PROTOCOL_VERSION,
   ROOM_NAME,
   sanitizeName,
+  serverTimeOffset,
   ServerMessage,
   type ChatOut,
   type CorrectionMessage,
@@ -19,6 +20,7 @@ import {
   type NetAnim,
   type RemoteActionMessage,
   type RemotePlayerView,
+  type TimeReply,
 } from '@/game-core/net/protocol';
 import { parseChatInput } from '@/game-core/net/chat';
 import { authority } from '@/game/authority';
@@ -26,6 +28,7 @@ import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/character
 import { t } from '@/game/i18n';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useUiStore } from '@/game/state/uiStore';
+import { syncServerTime } from '@/game/world/worldClock';
 import { clearBubbles, localNotice, mute, receiveChat, unmute, useChatStore } from './chatStore';
 import { rememberName, savedName, serverUrl } from './config';
 import { createRemoteEntry, initialNetState, remoteRuntime, useNetStore, type NetMember } from './netStore';
@@ -83,7 +86,13 @@ async function join(): Promise<boolean> {
   let joined: Room;
   try {
     const client = new Client(url);
-    joined = await client.joinOrCreate(ROOM_NAME, { protocol: PROTOCOL_VERSION, name, at: localMove(), weapon: authority.getState().player.weapon });
+    joined = await client.joinOrCreate(ROOM_NAME, {
+      protocol: PROTOCOL_VERSION,
+      name,
+      at: localMove(),
+      weapon: authority.getState().player.weapon,
+      heroClass: authority.getState().player.heroClass,
+    });
   } catch (err) {
     useNetStore.setState({ error: `${t('net.connectFailed')}：${errorText(err)}` });
     return false;
@@ -100,6 +109,7 @@ async function join(): Promise<boolean> {
   joined.onMessage(ServerMessage.correction, (msg: CorrectionMessage) => applyCorrection(msg));
   joined.onMessage(ServerMessage.action, (msg: RemoteActionMessage) => receiveAction(msg));
   joined.onMessage(ServerMessage.chat, (msg: ChatOut) => receiveChat(msg));
+  joined.onMessage(ServerMessage.time, (reply: TimeReply) => syncServerTime(Date.now() + serverTimeOffset(reply, Date.now())));
   joined.onMessage(ServerMessage.chatHistory, (list: ChatOut[]) => {
     // 重新加入時紀錄可能已經在本機了：只補上沒看過的
     const seen = new Set(useChatStore.getState().lines.map((l) => l.id));
@@ -110,8 +120,9 @@ async function join(): Promise<boolean> {
   joined.onReconnect(() => onReconnected());
   joined.onLeave((code, reason) => onLeft(code, reason));
   startSending(warpSeqAtJoin);
-  // handler 註冊好之後才要全服頻道的紀錄（加入當下伺服器送的訊息會比 handler 早到）
+  // handler 註冊好之後才要全服頻道的紀錄與對時（加入當下伺服器送的訊息會比 handler 早到）
   joined.send(ClientMessage.chatHistory, {});
+  requestTime();
   return true;
 }
 
@@ -148,8 +159,14 @@ function onDropped(code: number): void {
 }
 
 /** 重連回同一個座位：其他人看到的還是同一個人 */
+/** 對時（共享日光）：之後的日夜以伺服器時間換算 */
+function requestTime(): void {
+  room?.send(ClientMessage.time, { t: Date.now() });
+}
+
 function onReconnected(): void {
   console.info('[net] 已重新連線');
+  requestTime();
   forceWarp = true;
   useNetStore.setState({ status: 'connected', error: null });
   useUiStore.getState().pushToast({ textKey: 'net.restored' });
@@ -246,6 +263,7 @@ function syncState(state: WorldStateLike): void {
       map: p.map,
       location: p.location,
       weapon: p.weapon,
+      heroClass: p.heroClass || 'traveler',
       online: p.online !== false,
     };
     let entry = remoteRuntime.players.get(sessionId);
@@ -275,9 +293,14 @@ function syncState(state: WorldStateLike): void {
 
 function updateMembers(count: number, notify: boolean): void {
   const store = useNetStore.getState();
-  const members: NetMember[] = [...remoteRuntime.players.values()].map((e) => ({ sessionId: e.view.sessionId, name: e.view.name, online: e.view.online }));
+  const members: NetMember[] = [...remoteRuntime.players.values()].map((e) => ({ sessionId: e.view.sessionId, name: e.view.name, online: e.view.online, heroClass: e.view.heroClass }));
   const before = new Map(store.members.map((m) => [m.sessionId, m]));
-  const changed = members.length !== before.size || members.some((m) => before.get(m.sessionId)?.name !== m.name || before.get(m.sessionId)?.online !== m.online);
+  const changed =
+    members.length !== before.size ||
+    members.some((m) => {
+      const b = before.get(m.sessionId);
+      return b?.name !== m.name || b.online !== m.online || b.heroClass !== m.heroClass;
+    });
   if (!changed && store.playerCount === count) return;
   // 加入 / 離開的通知（剛連上時的既有玩家不通知）
   if (notify) {
@@ -309,12 +332,14 @@ let pendingCorrection = false;
 let lastWarpSeq = 0;
 let lastSent: (MoveMessage & { at: number }) | null = null;
 let lastWeapon: string | null = null;
+let lastClass: string | null = null;
 
 function startSending(warpSeqAtJoin: number): void {
   stopSending();
   lastWarpSeq = warpSeqAtJoin;
   lastSent = null;
   lastWeapon = authority.getState().player.weapon;
+  lastClass = authority.getState().player.heroClass;
   pendingCorrection = false;
   playerRuntime.netActions.length = 0;
   sendTimer = window.setInterval(sendTick, NET.sendMs);
@@ -361,10 +386,11 @@ function sendTick(): void {
 /** 攻擊、施法與換武器（任務 11E）：排在位置之前送，接收端依時間對齊 */
 function sendActions(): void {
   if (!room) return;
-  const weapon = authority.getState().player.weapon;
-  if (weapon !== lastWeapon) {
+  const { weapon, heroClass } = authority.getState().player;
+  if (weapon !== lastWeapon || heroClass !== lastClass) {
+    room.send(ClientMessage.equip, heroClass !== lastClass ? { weapon, heroClass } : { weapon });
     lastWeapon = weapon;
-    room.send(ClientMessage.equip, { weapon });
+    lastClass = heroClass;
   }
   const actions = playerRuntime.netActions;
   for (const action of actions) room.send(ClientMessage.action, action);
