@@ -1,0 +1,77 @@
+[
+  {
+    "id": "traveler",
+    "nameKey": "class.traveler",
+    "roleKey": "class.traveler.role",
+    "descKey": "class.traveler.desc",
+    "icon": "✦",
+    "character": "traveler",
+    "weapons": [
+      "fist",
+      "knife",
+      "sword"
+    ],
+    "defaultWeapon": "sword",
+    "spells": [
+      "spell_starlight_burst",
+      "spell_star_bolt",
+      "spell_meteor_shower"
+    ]
+  },
+  {
+    "id": "knight",
+    "nameKey": "class.knight",
+    "roleKey": "class.knight.role",
+    "descKey": "class.knight.desc",
+    "icon": "🛡",
+    "character": "knight",
+    "weapons": [
+      "fist",
+      "sword",
+      "greatsword"
+    ],
+    "defaultWeapon": "greatsword",
+    "spells": [
+      "spell_holy_shockwave",
+      "spell_light_lance",
+      "spell_judgement"
+    ]
+  },
+  {
+    "id": "mage",
+    "nameKey": "class.mage",
+    "roleKey": "class.mage.role",
+    "descKey": "class.mage.desc",
+    "icon": "🔮",
+    "character": "mage",
+    "weapons": [
+      "fist",
+      "staff"
+    ],
+    "defaultWeapon": "staff",
+    "spells": [
+      "spell_frost_nova",
+      "spell_arcane_missiles",
+      "spell_fire_storm"
+    ]
+  },
+  {
+    "id": "barbarian",
+    "nameKey": "class.barbarian",
+    "roleKey": "class.barbarian.role",
+    "descKey": "class.barbarian.desc",
+    "icon": "🪓",
+    "character": "barbarian",
+    "weapons": [
+      "fist",
+      "axe",
+      "greataxe"
+    ],
+    "defaultWeapon": "greataxe",
+    "spells": [
+      "spell_war_cry",
+      "spell_throwing_axes",
+      "spell_earthquake"
+    ]
+  }
+]

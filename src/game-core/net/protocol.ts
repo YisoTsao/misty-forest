@@ -140,7 +140,8 @@ export type ActionMessage = z.infer<typeof actionMessageSchema>;
 /** 伺服器轉送給其他人的動作 */
 export type RemoteActionMessage = ActionMessage & { sessionId: string };
 
-export const equipMessageSchema = z.strictObject({ weapon: dataId });
+/** 換武器（任務 11E）；heroClass：職業（換了才帶，使用者 2026-10-17） */
+export const equipMessageSchema = z.strictObject({ weapon: dataId, heroClass: dataId.optional() });
 export type EquipMessage = z.infer<typeof equipMessageSchema>;
 
 export const chatChannels = ['say', 'global', 'whisper'] as const;
@@ -178,6 +179,8 @@ export const joinOptionsSchema = z.object({
   at: moveMessageSchema.optional(),
   /** 手上的武器（任務 11E）；不認得就用預設 */
   weapon: dataId.optional(),
+  /** 職業（決定外型）；不認得就是旅人 */
+  heroClass: dataId.optional(),
 });
 export type JoinOptions = z.infer<typeof joinOptionsSchema>;
 
@@ -210,6 +213,8 @@ export type RemotePlayerView = {
   location: string;
   /** 手上的武器（任務 11E） */
   weapon: string;
+  /** 職業（外型；舊版伺服器沒有這個欄位時是旅人） */
+  heroClass: string;
   /** false：對方斷線、伺服器還保留座位等他重連（任務 11C） */
   online: boolean;
 };

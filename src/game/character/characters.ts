@@ -9,4 +9,9 @@ export function getCharacterDef(id: string): CharacterDef {
   return def;
 }
 
+export function characterIds(): string[] {
+  return [...defs.keys()];
+}
+
+/** 原本唯一的角色（舊存檔、沒有職業資料時） */
 export const PLAYER_CHARACTER_ID = 'traveler';

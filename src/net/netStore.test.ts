@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { NET, type RemoteActionMessage, type RemotePlayerView } from '@/game-core/net/protocol';
 import { createRemoteEntry, takeDueActions } from './netStore';
 
-const view: RemotePlayerView = { sessionId: 's', t: 0, playerId: 'p', name: 'A', x: 0, y: 0, z: 0, yaw: 0, anim: 'idle', map: 'dawnvale', location: 'overworld', weapon: 'sword', online: true };
+const view: RemotePlayerView = { sessionId: 's', t: 0, playerId: 'p', name: 'A', x: 0, y: 0, z: 0, yaw: 0, anim: 'idle', map: 'dawnvale', location: 'overworld', weapon: 'sword', heroClass: 'traveler', online: true };
 const melee = (t: number, move = 'sword_chop'): RemoteActionMessage => ({ kind: 'melee', t, move, sessionId: 's' });
 
 describe('遠端玩家的動作佇列（任務 11E）', () => {

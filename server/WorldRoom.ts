@@ -9,6 +9,7 @@ import interiorsRaw from '@/data/interiors.json';
 import spellsRaw from '@/data/spells.json';
 import weapons from '@/data/weapons.json';
 import { DEFAULT_WEAPON, parseWeapons } from '@/game-core/combat/weapons';
+import { DEFAULT_HERO_CLASS, isHeroClassId } from '@/game-core/character/heroClass';
 import { acceptInWindow, ChatFilter, sameName, sanitizeChat } from '@/game-core/net/chat';
 import {
   actionMessageSchema,
@@ -126,6 +127,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     player.health = 100;
     player.online = true;
     player.weapon = options.weapon && WEAPONS.weapons.has(options.weapon as never) ? options.weapon : DEFAULT_WEAPON;
+    player.heroClass = isHeroClassId(options.heroClass) ? options.heroClass : DEFAULT_HERO_CLASS;
 
     // 客戶端帶來的位置在可玩範圍內就採用（讀檔後可能在其他地圖）；否則放在出生點附近，彼此錯開
     const at = options.at;
@@ -246,6 +248,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       return;
     }
     player.weapon = parsed.data.weapon;
+    if (isHeroClassId(parsed.data.heroClass)) player.heroClass = parsed.data.heroClass;
   }
 
   /**

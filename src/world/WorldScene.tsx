@@ -1,7 +1,8 @@
 import { Physics, type RapierCollider } from '@react-three/rapier';
 import { Suspense, useRef } from 'react';
 import type { WorldData } from '@/game-core/world/worldData';
-import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
+import { classCharacter } from '@/game/character/currentClass';
+import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStore } from '@/game/state/gameStore';
 import { worldIndex as index } from '@/game/authority';
@@ -52,13 +53,15 @@ import { Waterway } from './water/Waterway';
 import { GrassField } from './vegetation/GrassField';
 import { WorldPlacements } from './vegetation/WorldPlacements';
 
-const playerDef = getCharacterDef(PLAYER_CHARACTER_ID);
 
 /** 開放世界場景組合：每個系統為獨立元件（規格 3-5）。 */
 export function WorldScene({ data }: { data: WorldData }) {
   const cameraMode = useDebugStore((s) => s.cameraMode);
   const onTitle = useGameStore((s) => s.screen === 'title');
   const playerCollider = useRef<RapierCollider>(null);
+  // 職業（使用者 2026-10-17）決定外型；所有職業的膠囊與移動參數相同，換職業只換模型
+  const heroClass = useGameStateStore((s) => s.state.player.heroClass);
+  const playerDef = classCharacter(heroClass);
 
   return (
     <>

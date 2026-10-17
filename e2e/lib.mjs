@@ -38,7 +38,8 @@ export function tempSaveDir() {
  */
 export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {}, body) {
   const app = await electron.launch({
-    args: ['.'],
+    // MISTWOOD_E2E_ARGS：額外的 Chromium 參數（例如沒有 GPU 的雲端機器用 --use-angle=swiftshader --enable-unsafe-swiftshader）
+    args: ['.', ...(process.env.MISTWOOD_E2E_ARGS?.split(' ').filter(Boolean) ?? [])],
     env: appEnv({ MISTWOOD_START_QUERY: query, MISTWOOD_SAVE_DIR: tempSaveDir(), MISTWOOD_USER_DATA_DIR: tempSaveDir(), ...env }),
   });
   const results = [];

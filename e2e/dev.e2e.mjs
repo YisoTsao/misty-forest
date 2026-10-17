@@ -73,6 +73,7 @@ try {
 
   await check('按「開始遊戲」進入遊戲', async () => {
     await page.locator('[data-testid="title-start"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await title.waitFor({ state: 'detached', timeout: 3000 });
   });
 
@@ -183,6 +184,7 @@ try {
     await title.waitFor({ timeout: 3000 });
     await page.locator('[data-testid="title-start"]').click();
     await page.locator('[data-testid="title-confirm-new-yes"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await title.waitFor({ state: 'detached', timeout: 3000 });
     // 新遊戲的位置在下一幀才寫入（整組連跑、機器忙時可能超過 400 ms），等到位置穩定再比
     await page

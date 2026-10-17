@@ -86,7 +86,13 @@ async function join(): Promise<boolean> {
   let joined: Room;
   try {
     const client = new Client(url);
-    joined = await client.joinOrCreate(ROOM_NAME, { protocol: PROTOCOL_VERSION, name, at: localMove(), weapon: authority.getState().player.weapon });
+    joined = await client.joinOrCreate(ROOM_NAME, {
+      protocol: PROTOCOL_VERSION,
+      name,
+      at: localMove(),
+      weapon: authority.getState().player.weapon,
+      heroClass: authority.getState().player.heroClass,
+    });
   } catch (err) {
     useNetStore.setState({ error: `${t('net.connectFailed')}：${errorText(err)}` });
     return false;
@@ -257,6 +263,7 @@ function syncState(state: WorldStateLike): void {
       map: p.map,
       location: p.location,
       weapon: p.weapon,
+      heroClass: p.heroClass || 'traveler',
       online: p.online !== false,
     };
     let entry = remoteRuntime.players.get(sessionId);
@@ -286,9 +293,14 @@ function syncState(state: WorldStateLike): void {
 
 function updateMembers(count: number, notify: boolean): void {
   const store = useNetStore.getState();
-  const members: NetMember[] = [...remoteRuntime.players.values()].map((e) => ({ sessionId: e.view.sessionId, name: e.view.name, online: e.view.online }));
+  const members: NetMember[] = [...remoteRuntime.players.values()].map((e) => ({ sessionId: e.view.sessionId, name: e.view.name, online: e.view.online, heroClass: e.view.heroClass }));
   const before = new Map(store.members.map((m) => [m.sessionId, m]));
-  const changed = members.length !== before.size || members.some((m) => before.get(m.sessionId)?.name !== m.name || before.get(m.sessionId)?.online !== m.online);
+  const changed =
+    members.length !== before.size ||
+    members.some((m) => {
+      const b = before.get(m.sessionId);
+      return b?.name !== m.name || b.online !== m.online || b.heroClass !== m.heroClass;
+    });
   if (!changed && store.playerCount === count) return;
   // 加入 / 離開的通知（剛連上時的既有玩家不通知）
   if (notify) {
@@ -320,12 +332,14 @@ let pendingCorrection = false;
 let lastWarpSeq = 0;
 let lastSent: (MoveMessage & { at: number }) | null = null;
 let lastWeapon: string | null = null;
+let lastClass: string | null = null;
 
 function startSending(warpSeqAtJoin: number): void {
   stopSending();
   lastWarpSeq = warpSeqAtJoin;
   lastSent = null;
   lastWeapon = authority.getState().player.weapon;
+  lastClass = authority.getState().player.heroClass;
   pendingCorrection = false;
   playerRuntime.netActions.length = 0;
   sendTimer = window.setInterval(sendTick, NET.sendMs);
@@ -372,10 +386,11 @@ function sendTick(): void {
 /** 攻擊、施法與換武器（任務 11E）：排在位置之前送，接收端依時間對齊 */
 function sendActions(): void {
   if (!room) return;
-  const weapon = authority.getState().player.weapon;
-  if (weapon !== lastWeapon) {
+  const { weapon, heroClass } = authority.getState().player;
+  if (weapon !== lastWeapon || heroClass !== lastClass) {
+    room.send(ClientMessage.equip, heroClass !== lastClass ? { weapon, heroClass } : { weapon });
     lastWeapon = weapon;
-    room.send(ClientMessage.equip, { weapon });
+    lastClass = heroClass;
   }
   const actions = playerRuntime.netActions;
   for (const action of actions) room.send(ClientMessage.action, action);

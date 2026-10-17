@@ -65,14 +65,11 @@ export type SpellCatalog = ReadonlyMap<string, SpellDef>;
 export function parseSpells(raw: unknown): SpellCatalog {
   const list = z.array(spellSchema).parse(raw);
   const map = new Map<string, SpellDef>();
-  const actions = new Set<string>();
   for (const s of list) {
     if (map.has(s.id)) throw new Error(`法術 id 重複：${s.id}`);
-    if (actions.has(s.action)) throw new Error(`兩個法術使用同一個按鍵動作：${s.action}`);
     if (s.castTime >= s.duration) throw new Error(`法術 ${s.id} 的蓄力時間必須短於動作時間`);
     if (s.kind === 'bolt' && !s.projectiles) throw new Error(`法術 ${s.id}（bolt）缺少 projectiles`);
     if (s.kind === 'meteor' && !s.meteor) throw new Error(`法術 ${s.id}（meteor）缺少 meteor`);
-    actions.add(s.action);
     map.set(s.id, s);
   }
   return map;

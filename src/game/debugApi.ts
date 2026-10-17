@@ -240,7 +240,7 @@ export type MistwoodDebugApi = {
   /** 多人連線（任務 11A）：連線狀態、人數、被伺服器修正的次數 */
   net: () => { status: NetStatus; playerCount: number; roomId: string | null; sessionId: string | null; playerId: string | null; error: string | null; corrections: number; lastCorrection: string | null; actionsSent: number; actionsReceived: number; actionsPlayed: number };
   /** 遠端玩家：伺服器最新位置（x/y/z）、畫面上插值後的位置（rx/ry/rz）、是否顯示在目前的地圖、是否在線（斷線中為 false）、目前的呈現延遲（毫秒） */
-  remotePlayers: () => { sessionId: string; name: string; x: number; y: number; z: number; rx: number; ry: number; rz: number; anim: string; map: string; location: string; visible: boolean; online: boolean; delayMs: number; weapon: string; clip: string | null; held: string | null }[];
+  remotePlayers: () => { sessionId: string; name: string; x: number; y: number; z: number; rx: number; ry: number; rz: number; anim: string; map: string; location: string; visible: boolean; online: boolean; delayMs: number; weapon: string; heroClass: string; clip: string | null; held: string | null }[];
   netConnect: (options?: { name?: string; url?: string }) => Promise<boolean>;
   netDisconnect: () => Promise<void>;
   netReconnect: () => Promise<boolean>;
@@ -547,6 +547,7 @@ export function installDebugApi(): void {
           online: view.online,
           delayMs: entry.delay.current(now),
           weapon: view.weapon,
+          heroClass: view.heroClass,
           clip: entry.shown?.clip ?? null,
           held: entry.shown?.held ?? null,
         };

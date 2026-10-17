@@ -82,5 +82,257 @@
       1.5,
       0.6
     ]
+  },
+  {
+    "id": "spell_holy_shockwave",
+    "nameKey": "spell.holy_shockwave",
+    "icon": "🛡",
+    "action": "skill",
+    "kind": "nova",
+    "mpCost": 30,
+    "cooldown": 7,
+    "castTime": 0.3,
+    "duration": 0.8,
+    "damage": 46,
+    "radius": 4.4,
+    "knockback": 12,
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      2.8,
+      2.5,
+      1.4
+    ]
+  },
+  {
+    "id": "spell_light_lance",
+    "nameKey": "spell.light_lance",
+    "icon": "✴",
+    "action": "spell2",
+    "kind": "bolt",
+    "mpCost": 20,
+    "cooldown": 2.5,
+    "castTime": 0.25,
+    "duration": 0.6,
+    "damage": 42,
+    "radius": 0.8,
+    "knockback": 8,
+    "projectiles": {
+      "count": 1,
+      "speed": 22,
+      "range": 20,
+      "turnRate": 3,
+      "spreadDeg": 0,
+      "seekDeg": 40
+    },
+    "clips": {
+      "cast": "Spellcasting",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      2.8,
+      2.6,
+      1.8
+    ]
+  },
+  {
+    "id": "spell_judgement",
+    "nameKey": "spell.judgement",
+    "icon": "⚡",
+    "action": "spell3",
+    "kind": "meteor",
+    "mpCost": 65,
+    "cooldown": 32,
+    "castTime": 0.9,
+    "duration": 1.6,
+    "damage": 48,
+    "radius": 4.2,
+    "knockback": 10,
+    "meteor": {
+      "count": 3,
+      "distance": 6,
+      "interval": 0.3,
+      "fallTime": 0.45,
+      "impactRadius": 2.6
+    },
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Long"
+    },
+    "color": [
+      3.0,
+      2.6,
+      1.2
+    ]
+  },
+  {
+    "id": "spell_frost_nova",
+    "nameKey": "spell.frost_nova",
+    "icon": "❄",
+    "action": "skill",
+    "kind": "nova",
+    "mpCost": 20,
+    "cooldown": 5,
+    "castTime": 0.35,
+    "duration": 0.85,
+    "damage": 32,
+    "radius": 5.0,
+    "knockback": 6,
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      1.0,
+      2.0,
+      3.0
+    ]
+  },
+  {
+    "id": "spell_arcane_missiles",
+    "nameKey": "spell.arcane_missiles",
+    "icon": "🔮",
+    "action": "spell2",
+    "kind": "bolt",
+    "mpCost": 14,
+    "cooldown": 1.0,
+    "castTime": 0.2,
+    "duration": 0.55,
+    "damage": 11,
+    "radius": 0.6,
+    "knockback": 2,
+    "projectiles": {
+      "count": 5,
+      "speed": 13,
+      "range": 18,
+      "turnRate": 9,
+      "spreadDeg": 40,
+      "seekDeg": 120
+    },
+    "clips": {
+      "cast": "Spellcasting",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      2.2,
+      1.2,
+      2.8
+    ]
+  },
+  {
+    "id": "spell_fire_storm",
+    "nameKey": "spell.fire_storm",
+    "icon": "🔥",
+    "action": "spell3",
+    "kind": "meteor",
+    "mpCost": 55,
+    "cooldown": 26,
+    "castTime": 0.8,
+    "duration": 1.6,
+    "damage": 26,
+    "radius": 5.5,
+    "knockback": 6,
+    "meteor": {
+      "count": 12,
+      "distance": 8,
+      "interval": 0.11,
+      "fallTime": 0.5,
+      "impactRadius": 1.6
+    },
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Long"
+    },
+    "color": [
+      3.0,
+      1.4,
+      0.5
+    ]
+  },
+  {
+    "id": "spell_war_cry",
+    "nameKey": "spell.war_cry",
+    "icon": "📣",
+    "action": "skill",
+    "kind": "nova",
+    "mpCost": 25,
+    "cooldown": 6,
+    "castTime": 0.25,
+    "duration": 0.75,
+    "damage": 38,
+    "radius": 3.2,
+    "knockback": 14,
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Shoot"
+    },
+    "color": [
+      2.8,
+      1.0,
+      0.6
+    ]
+  },
+  {
+    "id": "spell_throwing_axes",
+    "nameKey": "spell.throwing_axes",
+    "icon": "🪓",
+    "action": "spell2",
+    "kind": "bolt",
+    "mpCost": 18,
+    "cooldown": 1.8,
+    "castTime": 0.2,
+    "duration": 0.6,
+    "damage": 24,
+    "radius": 0.8,
+    "knockback": 6,
+    "projectiles": {
+      "count": 2,
+      "speed": 16,
+      "range": 14,
+      "turnRate": 4,
+      "spreadDeg": 16,
+      "seekDeg": 70
+    },
+    "clips": {
+      "cast": "Throw",
+      "release": "Throw"
+    },
+    "color": [
+      2.6,
+      1.6,
+      0.9
+    ]
+  },
+  {
+    "id": "spell_earthquake",
+    "nameKey": "spell.earthquake",
+    "icon": "⛰",
+    "action": "spell3",
+    "kind": "meteor",
+    "mpCost": 60,
+    "cooldown": 28,
+    "castTime": 0.7,
+    "duration": 1.5,
+    "damage": 36,
+    "radius": 4.0,
+    "knockback": 12,
+    "meteor": {
+      "count": 6,
+      "distance": 4,
+      "interval": 0.15,
+      "fallTime": 0.35,
+      "impactRadius": 2.0
+    },
+    "clips": {
+      "cast": "Spellcast_Raise",
+      "release": "Spellcast_Long"
+    },
+    "color": [
+      1.9,
+      1.3,
+      0.7
+    ]
   }
 ]

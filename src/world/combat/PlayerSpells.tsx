@@ -3,7 +3,8 @@ import { isInBlast, pickSeekTarget, spreadYaws, steerYaw, type SpellDef } from '
 import { assistFacing } from '@/game-core/combat/weapons';
 import { terrainHeight } from '@/game-core/world/terrain';
 import { audio } from '@/game/audio/audioEngine';
-import { authority, spells } from '@/game/authority';
+import { authority } from '@/game/authority';
+import { currentSpells } from '@/game/character/currentClass';
 import { attackEnemy, enemyHitRadius, combatRuntime, enemyRuntime } from '@/game/combat/combatRuntime';
 import { cooldownOf, spellRuntime, type Projectile } from '@/game/combat/spellRuntime';
 import { input } from '@/game/input/inputManager';
@@ -22,7 +23,7 @@ const BODY_HEIGHT = 0.8;
 const NO_MP_TOAST_GAP = 1.2;
 
 /**
- * 玩家的魔法（GAME_DESIGN 5.4）：Q 星光衝擊、F 星屑飛彈、C 流星雨（可重新配置）。
+ * 玩家的魔法（GAME_DESIGN 5.4）：Q / F / C 施放目前職業的三個法術（旅人：星光衝擊、星屑飛彈、流星雨；可重新配置）。
  * 施法：檢查星光值與冷卻 → 權威層扣除星光值 → 腳下魔法陣蓄力 → 發動。
  * - 範圍法術（nova）：發動瞬間以範圍判定命中，衝擊波 + 星點螺旋上升 + 地面光閃。
  * - 追蹤彈（bolt）：多枚星光彈飛向前方最近的敵人，本機模擬飛行，碰到敵人時送出攻擊指令。
@@ -35,12 +36,17 @@ export function PlayerSpells() {
     const screen = currentScreen();
     if (screen === 'paused') return;
     for (const [id, cd] of spellRuntime.cooldowns) spellRuntime.cooldowns.set(id, Math.max(0, cd - dt));
-    // 舊的 HUD 與測試讀取的技能冷卻 = 星光衝擊的冷卻
-    const skill = [...spells.values()].find((s) => s.action === 'skill');
+    // 舊的 HUD 與測試讀取的技能冷卻 = 目前職業第一個法術（Q）的冷卻
+    const owned = currentSpells();
+    const skill = owned.find((s) => s.action === 'skill');
     combatRuntime.skillCooldown = skill ? cooldownOf(skill.id) : 0;
 
     const pressed = new Map<string, boolean>();
-    for (const s of spells.values()) pressed.set(s.id, input.consumePressed(s.action));
+    for (const action of ['skill', 'spell2', 'spell3'] as const) {
+      const down = input.consumePressed(action);
+      const spell = owned.find((s) => s.action === action);
+      if (spell) pressed.set(spell.id, down);
+    }
     updateProjectiles(dt);
     updateMeteors(dt);
     if (useUiStore.getState().build || screen !== 'playing') {
@@ -62,7 +68,7 @@ export function PlayerSpells() {
     }
 
     if (isModalOpen() || playerRuntime.action || !playerRuntime.locomotion.grounded) return;
-    for (const spell of spells.values()) {
+    for (const spell of owned) {
       if (!pressed.get(spell.id) || cooldownOf(spell.id) > 0) continue;
       if (state.player.mp < spell.mpCost) {
         notEnoughMp();

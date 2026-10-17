@@ -40,6 +40,7 @@ await runE2e('account e2e', { query: 'debug=1', env }, async ({ page, check }) =
 
   await check('單機的一局：暫停選單顯示「單機遊玩」、可以匯出、沒有帳號入口', async () => {
     await page.locator('[data-testid="title-start"]').click();
+    await page.locator('[data-testid="class-start"]').click();
     await page.locator('[data-testid="title-screen"]').waitFor({ state: 'detached', timeout: 3000 });
     await page.keyboard.press('Escape');
     await page.locator('[data-testid="pause-menu"]').waitFor({ timeout: 3000 });

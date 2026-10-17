@@ -1,6 +1,6 @@
 import { worldDataResult } from '@/game/worldData';
 import { countItem } from '@/game-core/inventory/inventory';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { PLAYER_STATS } from '@/game-core/combat/combat';
 import { nearCampfire } from '@/game-core/authority/rules';
 import { authority } from '@/game/authority';
@@ -11,12 +11,12 @@ import { actionKey } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useBindings } from '@/game/state/settingsStore';
-import { spells, weapons } from '@/game/authority';
+import { weapons } from '@/game/authority';
+import { heroClassDef, spellsOf, weaponsOf } from '@/game/character/currentClass';
 import { cooldownOf } from '@/game/combat/spellRuntime';
 import { MAX_MP } from '@/game-core/combat/spells';
 
-const spellList = [...spells.values()];
-import { weaponIds, type WeaponId } from '@/game-core/combat/weapons';
+import type { WeaponId } from '@/game-core/combat/weapons';
 import { timeRuntime } from '@/game/world/timeRuntime';
 import { formatClock } from '@/game-core/world/timeOfDay';
 
@@ -40,6 +40,10 @@ export function CombatHud() {
   const comboRef = useRef<HTMLDivElement>(null);
   const weaponId = useGameStateStore((s) => s.state.player.weapon);
   const weapon = weapons.weapons.get(weaponId);
+  // 職業（使用者 2026-10-17）：右下的法術欄與武器欄依職業而不同
+  const heroClass = useGameStateStore((s) => s.state.player.heroClass);
+  const spellList = useMemo(() => spellsOf(heroClass), [heroClass]);
+  const classDef = heroClassDef(heroClass);
 
   useEffect(() => {
     if (!playing) return;
@@ -87,7 +91,7 @@ export function CombatHud() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [playing]);
+  }, [playing, spellList]);
 
   if (!playing) return null;
   const ratio = Math.max(0, hp / PLAYER_STATS.maxHp);
@@ -98,6 +102,11 @@ export function CombatHud() {
         <div ref={cozyRef} data-testid="cozy" className="mb-1.5 w-fit rounded-full bg-orange-400/85 px-3 py-0.5 text-xs font-bold text-white shadow" style={{ display: 'none' }}>
           🔥 {t('hud.cozy')}
         </div>
+        {classDef && (
+          <div data-testid="hud-class" data-class={classDef.id} className="mb-0.5 text-xs font-bold whitespace-nowrap text-amber-100 drop-shadow">
+            {classDef.icon} {t('hud.class', { role: t(classDef.roleKey), name: t(classDef.nameKey) })}
+          </div>
+        )}
         <div className="mb-1 flex items-baseline gap-2 text-white drop-shadow">
           <span className="text-sm font-bold">{t('hud.hp')}</span>
           <span className="font-mono text-xs opacity-90">
@@ -125,7 +134,7 @@ export function CombatHud() {
       <div className="pointer-events-none absolute right-6 bottom-6 flex gap-3">
         <div className="flex flex-col items-end gap-2">
           <div ref={comboRef} data-testid="combo" className="h-6 text-lg font-black tracking-wider text-amber-200 italic drop-shadow" />
-          <WeaponSelector current={weaponId} />
+          <WeaponSelector current={weaponId} owned={weaponsOf(heroClass)} />
           <div className="flex gap-3">
             <SkillSlot refEl={attackRef} keyLabel={actionKey(bindings, 'attack')} label={t(weapon?.nameKey ?? 'hud.attack')} icon={weapon?.icon ?? '⚔'} testId="attack-slot" />
             <SkillSlot refEl={heavyRef} keyLabel={actionKey(bindings, 'heavyAttack')} label={t('hud.heavy')} icon="💥" testId="heavy-slot" />
@@ -154,13 +163,14 @@ export function CombatHud() {
   );
 }
 
-/** 三種武器（GAME_DESIGN 5.3）：目前裝備的亮起，旁邊標示切換按鍵 */
-function WeaponSelector({ current }: { current: WeaponId }) {
+const WEAPON_ACTIONS = ['weapon1', 'weapon2', 'weapon3'] as const;
+
+/** 目前職業的武器（GAME_DESIGN 5.3，最多三把）：目前裝備的亮起，旁邊標示切換按鍵 */
+function WeaponSelector({ current, owned }: { current: WeaponId; owned: readonly WeaponId[] }) {
   const bindings = useBindings();
-  const actions = { fist: 'weapon1', knife: 'weapon2', sword: 'weapon3' } as const;
   return (
     <div className="flex gap-1.5" data-testid="weapon-selector" data-weapon={current}>
-      {weaponIds.map((id) => {
+      {owned.map((id, i) => {
         const w = weapons.weapons.get(id);
         const active = id === current;
         return (
@@ -170,7 +180,7 @@ function WeaponSelector({ current }: { current: WeaponId }) {
             className={`relative flex h-9 w-9 items-center justify-center rounded-xl border-2 text-lg transition ${active ? 'scale-110 border-amber-300 bg-amber-400/35' : 'border-white/35 bg-black/40 opacity-70'}`}
           >
             {w?.icon}
-            <kbd className="absolute -right-1 -bottom-1 rounded bg-white/85 px-0.5 text-[9px] font-bold text-slate-800">{actionKey(bindings, actions[id])}</kbd>
+            <kbd className="absolute -right-1 -bottom-1 rounded bg-white/85 px-0.5 text-[9px] font-bold text-slate-800">{actionKey(bindings, WEAPON_ACTIONS[i] ?? 'weapon1')}</kbd>
           </div>
         );
       })}

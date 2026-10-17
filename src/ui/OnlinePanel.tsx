@@ -4,6 +4,7 @@ import { DISPLAY_NAME_MAX, onlineAccess } from '@/game-core/online/rules';
 import { t } from '@/game/i18n';
 import { enterOnlineWorld } from '@/game/session';
 import { loadOnlineAccount, saveDisplayName, useOnlineStore } from '@/online/onlineStore';
+import { ClassPicker } from './ClassPicker';
 import { formatPlayTime, formatSavedAt } from './saveFormat';
 
 /** 驗證碼位數：Supabase 後台的 Email OTP Length 可能是 6 或 8，兩種都接受，實際正確與否由 Supabase 判斷 */
@@ -199,6 +200,9 @@ function NameStep() {
 
 function EnterStep() {
   const { character, busy, error } = useOnlineStore();
+  // 還沒有線上角色：先選職業（使用者 2026-10-17）
+  const [picking, setPicking] = useState(false);
+  if (picking) return <ClassPicker busy={busy} onStart={(heroClass) => void enterOnlineWorld(heroClass)} onBack={() => setPicking(false)} />;
   return (
     <div className="flex flex-col gap-3">
       <p data-testid="online-character" className="text-center text-xs opacity-80">
@@ -206,7 +210,7 @@ function EnterStep() {
           ? t('online.character', { savedAt: formatSavedAt(character.savedAt), playTime: formatPlayTime(character.playTime) })
           : t('online.noCharacter')}
       </p>
-      <button type="button" data-testid="online-enter" autoFocus disabled={busy} onClick={() => void enterOnlineWorld()} className={primary}>
+      <button type="button" data-testid="online-enter" autoFocus disabled={busy} onClick={() => (character ? void enterOnlineWorld() : setPicking(true))} className={primary}>
         {busy ? t('online.entering') : t('online.enter')}
       </button>
       {error === 'online.enterFailed' && (

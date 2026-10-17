@@ -46,6 +46,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 送信（`quest_dawn_004`、`talk` 目標 / `QuestTalk`、`questTalk*` 條件、尼可、乾布） | `letters`（改到對話或條件時加 `npc`、`quest`） | `--letters` |
 | 任務日誌（`QuestJournal`、`TrackQuest`、任務分類、追蹤列篩選） | `journal`（改到追蹤列時加 `quest`） | `--journal` |
 | 小地圖、世界地圖 | `map` | `--map` |
+| 職業（`classes.json`、`heroClass.ts`、`currentClass.ts`、`ClassPicker`、`ChooseClass`、各職業的武器 / 法術） | `save`、`melee`、`magic`（改到主選單或線上入口時加 `dev`、`settings`、`account`；改到連線時加 `multiplayer`） | `--melee`、`menu_class_picker` 書籤 |
 | 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |
 | 澄鏡湖（`mirrorlakeTerrain`、`lakeModels.ts`、`gen-mirrorlake.ts`、各地圖的水面 `Water map=`、水道入口） | `mirrorlake`（改到共用的地圖切換或存檔遷移時加 `glowmoss`、`map`、`save`；改到水面或落水時加 `lake`） | `mirrorlake_*` 書籤（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple`） |
 | 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `forestmobs`、`monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |

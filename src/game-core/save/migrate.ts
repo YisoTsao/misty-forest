@@ -1,6 +1,7 @@
 // 存檔版本遷移：每個舊版本一個函式，把資料升一版，依序套用到最新版。
 import { PLAYER_STATS } from '../combat/combat';
 import { DEFAULT_WEAPON } from '../combat/weapons';
+import { DEFAULT_HERO_CLASS } from '../character/heroClass';
 import { MAX_MP } from '../combat/spells';
 import { createExplored, decodeExplored, encodeExplored } from '../map/explore';
 import { initialMistStages } from '../world/regions';
@@ -71,6 +72,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
       map: { ...map, explored: encodeExplored(old ?? createExplored()) },
     };
   },
+  // v16 → v17：加入職業（使用者 2026-10-17）；舊存檔是原本唯一的角色星光旅人，武器不變
+  16: (data) => ({ ...data, loadout: { ...(data.loadout as Record<string, unknown>), heroClass: DEFAULT_HERO_CLASS } }),
 };
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */

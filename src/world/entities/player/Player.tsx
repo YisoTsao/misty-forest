@@ -190,7 +190,7 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
       <group ref={visualRef} position={[spawn.x, spawn.y - footOffset, spawn.z]} rotation-y={playerRuntime.locomotion.facingYaw}>
         {/* 不另設 Suspense：角色載入完成前場景不標記就緒 */}
         <AssetBoundary name={`character:${def.id}`}>
-          <CharacterModel def={def} />
+          <CharacterModel key={def.id} def={def} />
         </AssetBoundary>
         {/* 多人連線時自己說的話（任務 11F） */}
         <LocalChatBubble />

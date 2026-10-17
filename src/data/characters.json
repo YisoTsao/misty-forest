@@ -39,5 +39,129 @@
       "fallDelay": 0.18,
       "landDuration": 0.3
     }
+  },
+  {
+    "id": "knight",
+    "model": "models/characters/kaykit-adventurers/Knight.glb",
+    "scale": 0.72,
+    "capsule": {
+      "radius": 0.32,
+      "halfHeight": 0.46
+    },
+    "hiddenNodes": [
+      "1H_Sword_Offhand",
+      "Badge_Shield",
+      "Rectangle_Shield",
+      "Round_Shield",
+      "Spike_Shield",
+      "1H_Sword",
+      "2H_Sword"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "run": "Running_A",
+      "jump": "Jump_Start",
+      "fall": "Jump_Idle",
+      "land": "Jump_Land",
+      "attack": "1H_Melee_Attack_Chop",
+      "hit": "Hit_A",
+      "interact": "Interact",
+      "skill": "Spellcast_Shoot",
+      "death": "Death_A"
+    },
+    "locomotion": {
+      "walkSpeed": 3.0,
+      "runSpeed": 6.2,
+      "acceleration": 28,
+      "deceleration": 42,
+      "turnSpeed": 12,
+      "jumpVelocity": 7.2,
+      "gravity": 22,
+      "coyoteTime": 0.12,
+      "fallDelay": 0.18,
+      "landDuration": 0.3
+    }
+  },
+  {
+    "id": "mage",
+    "model": "models/characters/kaykit-adventurers/Mage.glb",
+    "scale": 0.72,
+    "capsule": {
+      "radius": 0.32,
+      "halfHeight": 0.46
+    },
+    "hiddenNodes": [
+      "Spellbook",
+      "Spellbook_open",
+      "1H_Wand",
+      "2H_Staff"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "run": "Running_A",
+      "jump": "Jump_Start",
+      "fall": "Jump_Idle",
+      "land": "Jump_Land",
+      "attack": "1H_Melee_Attack_Chop",
+      "hit": "Hit_A",
+      "interact": "Interact",
+      "skill": "Spellcast_Shoot",
+      "death": "Death_A"
+    },
+    "locomotion": {
+      "walkSpeed": 3.0,
+      "runSpeed": 6.2,
+      "acceleration": 28,
+      "deceleration": 42,
+      "turnSpeed": 12,
+      "jumpVelocity": 7.2,
+      "gravity": 22,
+      "coyoteTime": 0.12,
+      "fallDelay": 0.18,
+      "landDuration": 0.3
+    }
+  },
+  {
+    "id": "barbarian",
+    "model": "models/characters/kaykit-adventurers/Barbarian.glb",
+    "scale": 0.72,
+    "capsule": {
+      "radius": 0.32,
+      "halfHeight": 0.46
+    },
+    "hiddenNodes": [
+      "1H_Axe_Offhand",
+      "Barbarian_Round_Shield",
+      "1H_Axe",
+      "2H_Axe",
+      "Mug"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "run": "Running_A",
+      "jump": "Jump_Start",
+      "fall": "Jump_Idle",
+      "land": "Jump_Land",
+      "attack": "1H_Melee_Attack_Chop",
+      "hit": "Hit_A",
+      "interact": "Interact",
+      "skill": "Spellcast_Shoot",
+      "death": "Death_A"
+    },
+    "locomotion": {
+      "walkSpeed": 3.0,
+      "runSpeed": 6.2,
+      "acceleration": 28,
+      "deceleration": 42,
+      "turnSpeed": 12,
+      "jumpVelocity": 7.2,
+      "gravity": 22,
+      "coyoteTime": 0.12,
+      "fallDelay": 0.18,
+      "landDuration": 0.3
+    }
   }
 ]

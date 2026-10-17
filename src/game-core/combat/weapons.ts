@@ -1,9 +1,10 @@
-// 近戰武器與招式（GAME_DESIGN 5.3、決策 G-06）：徒手（拳、踢）、短刀、單手劍。
+// 近戰武器與招式（GAME_DESIGN 5.3、決策 G-06）：徒手（拳、踢）、短刀、單手劍；職業（使用者 2026-10-17）另外有大劍、法杖、雙手斧、巨斧。
+// 每個職業能用哪些武器由 data/classes.json 決定（game-core/character/heroClass）。
 // 每種武器有一組輕擊連段與一個重擊；招式數值、動畫片段與手感參數都是資料（data/weapons.json）。
 // 命中判定仍由 game-core 依招式範圍計算，不依賴動畫事件（規格 6.6）。
 import { z } from 'zod';
 
-export const weaponIds = ['fist', 'knife', 'sword'] as const;
+export const weaponIds = ['fist', 'knife', 'sword', 'greatsword', 'staff', 'axe', 'greataxe'] as const;
 export type WeaponId = (typeof weaponIds)[number];
 export const DEFAULT_WEAPON: WeaponId = 'sword';
 

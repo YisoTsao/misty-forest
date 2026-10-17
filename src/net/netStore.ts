@@ -9,7 +9,7 @@ export const netStatuses = ['offline', 'connecting', 'connected', 'reconnecting'
 export type NetStatus = (typeof netStatuses)[number];
 
 /** online：false 表示對方斷線、伺服器還保留座位等他重連 */
-export type NetMember = { sessionId: string; name: string; online: boolean };
+export type NetMember = { sessionId: string; name: string; online: boolean; heroClass: string };
 
 type NetState = {
   status: NetStatus;
