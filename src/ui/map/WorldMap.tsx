@@ -156,7 +156,7 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
         data-explored={pct}
         data-pad-scope
         onClick={(e) => e.stopPropagation()}
-        className="flex gap-4 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
+        className="ui-panel flex gap-4 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
       >
         <canvas
           ref={canvasRef}

@@ -59,7 +59,7 @@ function CraftWindow({ station }: { station: StationDef }) {
         data-station={station.id}
         data-pad-scope
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[85vh] w-[min(560px,92vw)] flex-col gap-3 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
+        className="ui-panel flex max-h-[85vh] w-[min(560px,92vw)] flex-col gap-3 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
       >
         <div>
           <h2 id="craft-title" className="text-xl font-bold">

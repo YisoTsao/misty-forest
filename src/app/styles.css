@@ -9,6 +9,20 @@ body,
   background: #cdeefc;
   font-family: 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
   user-select: none;
+  /* 手機版（任務 11M）：不要點擊反白、長按選單、下拉重新整理與雙擊縮放 */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* 手機瀏覽器的網址列會伸縮：用動態高度，畫面不會被擋住或多出一截 */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
 }
 
 @keyframes toast-in {
@@ -69,4 +83,12 @@ body,
   outline: 3px solid #fcd34d;
   outline-offset: 2px;
   box-shadow: 0 0 0 6px rgb(252 211 77 / 0.35);
+}
+
+/* 手機版（任務 11M）：視窗不超出畫面（橫向的手機只有約 390 px 高），太高時在視窗裡捲動 */
+.ui-panel {
+  max-height: calc(100dvh - 1rem);
+  max-width: calc(100vw - 1rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }

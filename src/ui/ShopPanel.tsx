@@ -62,7 +62,7 @@ function ShopWindow({ shop }: { shop: ShopDef }) {
         data-shop={shop.id}
         data-pad-scope
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[85vh] w-[min(560px,92vw)] flex-col gap-3 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
+        className="ui-panel flex max-h-[85vh] w-[min(560px,92vw)] flex-col gap-3 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
       >
         <div className="flex items-center justify-between">
           <div>

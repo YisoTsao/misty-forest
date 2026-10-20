@@ -18,6 +18,7 @@ import { MAX_MP } from '@/game-core/combat/spells';
 
 import type { WeaponId } from '@/game-core/combat/weapons';
 import { timeRuntime } from '@/game/world/timeRuntime';
+import { useTouchUi } from '@/game/input/device';
 import { formatClock } from '@/game-core/world/timeOfDay';
 
 /**
@@ -44,6 +45,8 @@ export function CombatHud() {
   const heroClass = useGameStateStore((s) => s.state.player.heroClass);
   const spellList = useMemo(() => spellsOf(heroClass), [heroClass]);
   const classDef = heroClassDef(heroClass);
+  // 手機版（任務 11M）：血條移到左上（左下是搖桿），右下的技能列換成觸控按鈕（TouchButtons）
+  const touch = useTouchUi();
 
   useEffect(() => {
     if (!playing) return;
@@ -98,7 +101,7 @@ export function CombatHud() {
   return (
     <>
       <div ref={vignetteRef} className="pointer-events-none absolute inset-0" style={{ display: 'none', boxShadow: 'inset 0 0 160px 40px rgba(220, 40, 40, 0.55)' }} />
-      <div className="pointer-events-none absolute bottom-6 left-6 w-60" data-testid="hp-bar" data-hp={Math.round(hp)}>
+      <div className={`pointer-events-none absolute ${touch ? 'top-3 left-3 w-56' : 'bottom-6 left-6 w-60'}`} data-testid="hp-bar" data-hp={Math.round(hp)}>
         <div ref={cozyRef} data-testid="cozy" className="mb-1.5 w-fit rounded-full bg-orange-400/85 px-3 py-0.5 text-xs font-bold text-white shadow" style={{ display: 'none' }}>
           🔥 {t('hud.cozy')}
         </div>
@@ -107,7 +110,7 @@ export function CombatHud() {
             {classDef.icon} {t('hud.class', { role: t(classDef.roleKey), name: t(classDef.nameKey) })}
           </div>
         )}
-        <div className="mb-1 flex items-baseline gap-2 text-white drop-shadow">
+        <div className="mb-1 flex items-baseline gap-2 whitespace-nowrap text-white drop-shadow">
           <span className="text-sm font-bold">{t('hud.hp')}</span>
           <span className="font-mono text-xs opacity-90">
             {Math.ceil(hp)} / {PLAYER_STATS.maxHp}
@@ -131,7 +134,7 @@ export function CombatHud() {
         </div>
         <PotionCount keyLabel={actionKey(bindings, 'quickHeal')} />
       </div>
-      <div className="pointer-events-none absolute right-6 bottom-6 flex gap-3">
+      <div className={`pointer-events-none absolute right-6 bottom-6 flex gap-3 ${touch ? 'hidden' : ''}`}>
         <div className="flex flex-col items-end gap-2">
           <div ref={comboRef} data-testid="combo" className="h-6 text-lg font-black tracking-wider text-amber-200 italic drop-shadow" />
           <WeaponSelector current={weaponId} owned={weaponsOf(heroClass)} />

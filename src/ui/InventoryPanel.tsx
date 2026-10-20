@@ -67,19 +67,19 @@ function InventoryWindow() {
         aria-labelledby="inventory-title"
         data-testid="inventory" data-pad-scope
         onClick={(e) => e.stopPropagation()}
-        className="flex gap-5 rounded-2xl border-4 border-amber-200 bg-amber-50 p-5 text-amber-950 shadow-2xl"
+        className="ui-panel flex gap-5 rounded-2xl border-4 border-amber-200 bg-amber-50 p-5 max-sm:flex-col max-sm:gap-3 max-sm:p-3 text-amber-950 shadow-2xl"
       >
         <div>
           <h2 id="inventory-title" className="mb-3 text-xl font-bold">
             {t('inventory.title')}
           </h2>
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-6 gap-2 max-sm:gap-1.5">
             {slots.map((s, i) => (
               <SlotButton key={i} slot={s} active={i === index && s !== null} onSelect={() => setSelected(i)} />
             ))}
           </div>
         </div>
-        <div className="flex w-56 flex-col" data-testid="inventory-detail">
+        <div className="flex w-56 flex-col max-sm:w-auto" data-testid="inventory-detail">
           {def && slot ? (
             <>
               <ItemIcon icon={def.icon} className="mx-auto mt-8 h-24 w-24" />
@@ -104,7 +104,7 @@ function InventoryWindow() {
           )}
           <div className="mt-auto flex items-center justify-end gap-3 pt-4">
             <span className="text-xs opacity-60">{t('inventory.closeHint', { inventory: inventoryKey })}</span>
-            <button type="button" onClick={close} className="rounded-full bg-amber-500 px-5 py-1.5 font-bold text-white hover:bg-amber-600">
+            <button type="button" data-testid="inventory-close" onClick={close} className="rounded-full bg-amber-500 px-5 py-1.5 font-bold text-white hover:bg-amber-600">
               {t('inventory.close')}
             </button>
           </div>
@@ -125,7 +125,8 @@ function SlotButton({ slot, active, onSelect }: { slot: InventorySlot; active: b
       onClick={onSelect}
       onMouseEnter={slot ? onSelect : undefined}
       title={def ? t(def.nameKey) : undefined}
-      className={`relative h-16 w-16 rounded-xl border-2 ${
+      // 手機版（任務 11M）：直向（寬度不足）或橫向（高度不足）時格子縮小
+      className={`relative h-16 w-16 max-sm:h-12 max-sm:w-12 [@media(max-height:480px)]:h-12 [@media(max-height:480px)]:w-12 rounded-xl border-2 ${
         active ? 'border-amber-500 bg-amber-200' : 'border-amber-200 bg-white/70'
       } ${slot ? 'hover:border-amber-400' : ''}`}
     >

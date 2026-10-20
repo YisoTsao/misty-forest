@@ -4,6 +4,7 @@ import type { GameState } from '@/game-core/authority/rules';
 import { buildables, npcs, quests, worldIndex } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { useGameStore } from '@/game/state/gameStore';
+import { useTouchUi } from '@/game/input/device';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { worldDataResult } from '@/game/worldData';
 import { ItemIcon } from './ItemIcon';
@@ -14,13 +15,15 @@ const items = worldDataResult.ok ? worldDataResult.data.items : new Map();
 export function QuestTracker() {
   const state = useGameStateStore((s) => s.state);
   const playing = useGameStore((s) => s.screen === 'playing');
+  // 手機版（任務 11M）：血條在左上，任務追蹤放在血條下面、窄一點
+  const touch = useTouchUi();
   if (!playing) return null;
   // 任務日誌取消追蹤的不顯示（主線一定顯示，任務 7F）
   const active = [...quests.values()].filter((q) => isQuestTracked(state.quests[q.id], q));
   if (active.length === 0) return null;
 
   return (
-    <div className="pointer-events-none absolute top-36 left-4 flex w-64 flex-col gap-2" data-testid="quest-tracker">
+    <div className={`pointer-events-none absolute flex flex-col gap-2 ${touch ? 'top-[6.5rem] left-3 w-52 portrait:w-44 text-[13px]' : 'top-36 left-4 w-64'}`} data-testid="quest-tracker">
       {active.map((q) => {
         const ready = isQuestReady(state, q);
         const giver = npcs.find((n) => n.id === q.giver);

@@ -14,7 +14,8 @@ import {
   stepNavRepeat,
   stickToMove,
 } from '@/game-core/input/gamepad';
-import { setInputDevice } from './device';
+import { touchCode, type TouchMove } from '@/game-core/input/touch';
+import { setInputDevice, useInputDeviceStore } from './device';
 import { activateFocused, clearPadFocus, focusNext } from './padUi';
 
 /** 手把一幀的狀態（按鈕 0–1、搖桿 -1–1，standard mapping） */
@@ -37,6 +38,8 @@ function readNavigatorPad(): PadSnapshot | null {
  * 遊戲邏輯在 useFrame 內輪詢，不經過 React state。
  * 手把（任務 5C）：每幀輪詢 Gamepad API；遊玩中按鈕對應動作（`data/gamepad.json`）、左搖桿移動、右搖桿視角，
  * 選單開啟時改為選單導覽（十字鍵 / 左搖桿選按鈕、A 確認、B 返回），Start 固定為暫停（等同 Esc）。
+ * 觸控（手機版）：畫面上的虛擬搖桿與按鈕（ui/TouchControls）呼叫 setTouchMove / touchTap / addTouchLook / addTouchZoom；
+ * 按鈕和手把一樣送出一次按鍵事件（代碼 Touch:<動作>），讓以 isBound 判斷的選單也能用。
  */
 class InputManager {
   private lookup = new Map<string, ActionId[]>();
@@ -51,6 +54,7 @@ class InputManager {
   private padHeld = new Set<number>();
   private padMove = { right: 0, forward: 0 };
   private padOverride: PadSnapshot | null = null;
+  private touchMove: TouchMove = { right: 0, forward: 0, run: false };
   private nav = initialNavRepeat();
   private wasUi = false;
   private lastPoll = 0;
@@ -100,6 +104,7 @@ class InputManager {
   /** 這個按鍵代碼（含手把的 Pad<n>）是否綁定到指定動作（UI 以鍵盤事件直接處理的動作使用，例如開關背包）。 */
   isBound(code: string, action: ActionId): boolean {
     if (this.lookup.get(code)?.includes(action)) return true;
+    if (code === touchCode(action)) return true;
     const pad = /^Pad(\d+)$/.exec(code)?.[1];
     return pad !== undefined && this.padLookup.get(Number(pad))?.includes(action) === true;
   }
@@ -111,13 +116,48 @@ class InputManager {
     for (const b of this.padHeld) {
       if (this.padLookup.get(b)?.includes(action)) return true;
     }
+    // 觸控：搖桿推到外圈就是跑步
+    if (action === 'run' && this.touchMove.run) return true;
     return false;
   }
 
-  /** 移動軸：有按方向鍵時用鍵盤（-1 / 0 / 1），否則用左搖桿（類比，輕推慢走） */
+  /** 移動軸：有按方向鍵時用鍵盤（-1 / 0 / 1），否則用手把左搖桿，再否則用觸控搖桿（都是類比，輕推慢走） */
   moveAxes(): { right: number; forward: number } {
     const keys = movementAxes((a) => this.isDown(a));
-    return keys.right !== 0 || keys.forward !== 0 ? keys : { ...this.padMove };
+    if (keys.right !== 0 || keys.forward !== 0) return keys;
+    if (this.padMove.right !== 0 || this.padMove.forward !== 0) return { ...this.padMove };
+    return { right: this.touchMove.right, forward: this.touchMove.forward };
+  }
+
+  /** 觸控搖桿目前的推動（放開時傳 null） */
+  setTouchMove(move: TouchMove | null): void {
+    this.touchMove = move ?? { right: 0, forward: 0, run: false };
+    if (move) setInputDevice('touch');
+  }
+
+  /** 觸控按鈕按下：與手把按鈕相同，算一次按下並送出按鍵事件（代碼 Touch:<動作>） */
+  touchTap(action: ActionId): void {
+    setInputDevice('touch');
+    if (!this.uiMode()) this.pressedSinceConsume.add(action);
+    dispatchKey(touchCode(action));
+  }
+
+  /** 觸控按鈕直接送出一個按鍵（暫停鈕送 Escape、聊天鈕送 Enter） */
+  touchKey(code: string): void {
+    setInputDevice('touch');
+    dispatchKey(code);
+  }
+
+  /** 觸控拖曳轉視角（已換算成滑鼠像素） */
+  addTouchLook(dx: number, dy: number): void {
+    setInputDevice('touch');
+    this.lookDx = Math.max(-LOOK_CAP, Math.min(LOOK_CAP, this.lookDx + dx));
+    this.lookDy = Math.max(-LOOK_CAP, Math.min(LOOK_CAP, this.lookDy + dy));
+  }
+
+  /** 雙指縮放（與滾輪相同的格數） */
+  addTouchZoom(steps: number): void {
+    this.zoom += steps;
   }
 
   /** 選單操作狀態的來源（InputBinder 設定） */
@@ -162,7 +202,8 @@ class InputManager {
   }
 
   requestPointerLock(): void {
-    if (!this.target || this.pointerLocked) return;
+    // 觸控裝置不鎖定（手機瀏覽器沒有滑鼠鎖定，視角改用拖曳）
+    if (!this.target || this.pointerLocked || useInputDeviceStore.getState().device === 'touch') return;
     // 使用者快速連點或視窗未聚焦時瀏覽器會拒絕；屬預期情況，下次點擊再試
     this.target.requestPointerLock().catch((err: unknown) => console.warn('[input] 無法鎖定滑鼠：', err));
   }
@@ -258,6 +299,8 @@ class InputManager {
   };
 
   private onMouseDown = (e: MouseEvent): void => {
+    // 觸控螢幕在點擊後補送的相容滑鼠事件（sourceCapabilities.firesTouchEvents）不算滑鼠操作
+    if ((e as MouseEvent & { sourceCapabilities?: { firesTouchEvents?: boolean } }).sourceCapabilities?.firesTouchEvents) return;
     if (e.isTrusted) setInputDevice('keyboard');
     if (this.pointerLockEnabled && !this.pointerLocked) {
       this.requestPointerLock();
@@ -283,6 +326,7 @@ class InputManager {
   /** 視窗失焦時放開所有按鍵，避免角色卡在持續移動。 */
   private onBlur = (): void => {
     this.downCodes.clear();
+    this.touchMove = { right: 0, forward: 0, run: false };
     this.pressedSinceConsume.clear();
     this.lookDx = 0;
     this.lookDy = 0;

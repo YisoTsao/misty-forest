@@ -3,6 +3,7 @@ import { t } from '@/game/i18n';
 import { useUiStore, type Toast } from '@/game/state/uiStore';
 import { worldDataResult } from '@/game/worldData';
 import { useNetStore } from '@/net/netStore';
+import { useTouchUi } from '@/game/input/device';
 import { ItemIcon } from './ItemIcon';
 
 /** 通知停留時間（毫秒） */
@@ -13,8 +14,10 @@ export function Toasts() {
   const toasts = useUiStore((s) => s.toasts);
   // 多人連線時左下角是聊天紀錄（任務 11F），通知往上移
   const chat = useNetStore((s) => s.status !== 'offline');
+  // 手機版（任務 11M）：左下是搖桿，通知改在畫面中段偏左
+  const touch = useTouchUi();
   return (
-    <div className={`pointer-events-none absolute left-6 flex flex-col items-start gap-2 ${chat ? 'bottom-[20rem]' : 'bottom-40'}`} data-testid="toasts">
+    <div className={`pointer-events-none absolute flex flex-col items-start gap-2 ${touch ? 'portrait:top-[54%] landscape:top-[46%] left-3' : `left-6 ${chat ? 'bottom-[20rem]' : 'bottom-40'}`}`} data-testid="toasts">
       {toasts.map((toast) => (
         <ToastRow key={toast.id} toast={toast} />
       ))}

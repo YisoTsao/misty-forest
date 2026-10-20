@@ -48,7 +48,7 @@ function MultiplayerWindow() {
         aria-labelledby="mp-title"
         data-testid="multiplayer-panel"
         data-pad-scope
-        className="flex w-[min(94vw,24rem)] flex-col gap-3 rounded-2xl bg-slate-900 p-6 text-sm text-white shadow-2xl"
+        className="ui-panel flex w-[min(94vw,24rem)] flex-col gap-3 rounded-2xl bg-slate-900 p-6 text-sm text-white shadow-2xl"
       >
         <h2 id="mp-title" className="text-center text-2xl font-bold">
           {t('net.title')}

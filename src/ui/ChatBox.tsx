@@ -7,6 +7,7 @@ import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { setChatChannel, useChatStore, type ChatLine } from '@/net/chatStore';
 import { submitChat } from '@/net/netClient';
 import { useNetStore } from '@/net/netStore';
+import { useTouchUi } from '@/game/input/device';
 
 /** 沒開輸入列時顯示的則數與停留時間 */
 const IDLE_LINES = 6;
@@ -30,6 +31,8 @@ export function ChatBox() {
   const status = useNetStore((s) => s.status);
   const screen = useGameStore((s) => s.screen);
   const open = useUiStore((s) => s.chatOpen);
+  // 手機版（任務 11M）：左下是搖桿，聊天放在畫面中段偏左；以右上的 💬 鈕打開
+  const touch = useTouchUi();
   const visible = status !== 'offline' && (screen === 'playing' || screen === 'paused');
 
   // 開啟：遊玩中、沒有其他視窗、已連線時按 Enter 或 /
@@ -53,9 +56,9 @@ export function ChatBox() {
 
   if (!visible) return null;
   return (
-    <div className="absolute bottom-36 left-6 flex w-[min(26rem,42vw)] flex-col gap-1 text-[13px]" data-testid="chat">
+    <div className={`absolute flex flex-col gap-1 text-[13px] ${touch ? 'top-[30%] left-3 w-[min(22rem,62vw)]' : 'bottom-36 left-6 w-[min(26rem,42vw)]'}`} data-testid="chat">
       <ChatLog open={open} />
-      {open ? <ChatInput /> : status === 'connected' && <span className="pointer-events-none text-[11px] text-white/55 drop-shadow">{t('chat.openHint')}</span>}
+      {open ? <ChatInput /> : status === 'connected' && !touch && <span className="pointer-events-none text-[11px] text-white/55 drop-shadow">{t('chat.openHint')}</span>}
     </div>
   );
 }

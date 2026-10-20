@@ -6,7 +6,8 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob: ws://localhost:* http://localhost:* ws://127.0.0.1:* http://127.0.0.1:*%GAME_SERVER_ORIGINS% %SUPABASE_ORIGIN%; worker-src 'self' blob:"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 手機版（任務 11M）：不讓瀏覽器縮放整頁（雙指張合給遊戲縮放鏡頭），畫面延伸到瀏海與圓角（以 safe-area 留邊） -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Mistwood</title>
   </head>
   <body>

@@ -6,6 +6,7 @@ import { keyVars } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useBindings } from '@/game/state/settingsStore';
+import { useTouchUi } from '@/game/input/device';
 
 /** 完成全部步驟後，結語顯示多久（毫秒） */
 const OUTRO_MS = 9000;
@@ -17,6 +18,8 @@ export function TutorialPanel() {
   const playing = useGameStore((s) => s.screen === 'playing');
   const session = useGameStore((s) => s.session);
   const bindings = useBindings();
+  // 手機版（任務 11M）：直向放在血條與小地圖下面，橫向放在兩者之間；「移動」那一步換成觸控的說明
+  const touch = useTouchUi();
   /** 結語：記錄是在哪一局完成的，換局（回主選單再開始）後不再顯示 */
   const [outro, setOutro] = useState<{ session: number } | null>(null);
 
@@ -39,11 +42,11 @@ export function TutorialPanel() {
   const index = steps.indexOf(step as (typeof steps)[number]);
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-5 flex justify-center">
+    <div className={`pointer-events-none absolute inset-x-0 flex justify-center ${touch ? 'portrait:top-[16rem] portrait:pr-16 landscape:top-[3.75rem] px-3' : 'top-5'}`}>
       <div
         data-testid="tutorial"
         data-step={step}
-        className="animate-toast max-w-[34rem] rounded-2xl border-2 border-amber-200/80 bg-amber-50/92 px-5 py-3 text-amber-950 shadow-lg"
+        className={`animate-toast rounded-2xl border-2 border-amber-200/80 bg-amber-50/92 text-amber-950 shadow-lg ${touch ? 'max-w-[min(30rem,100%)] px-4 py-2 text-sm landscape:max-w-[calc(100%-28rem)]' : 'max-w-[34rem] px-5 py-3'}`}
       >
         <div className="mb-1 flex items-center gap-2 text-xs font-bold tracking-wide text-amber-700">
           <span>{t(showOutro ? 'tutorial.outroTitle' : 'tutorial.title')}</span>
@@ -55,7 +58,7 @@ export function TutorialPanel() {
             </span>
           )}
         </div>
-        <p className="leading-6 whitespace-pre-line">{t(`tutorial.${step}`, keyVars(bindings))}</p>
+        <p className="leading-6 whitespace-pre-line">{t(touch && step === 'move' ? 'tutorial.moveTouch' : `tutorial.${step}`, keyVars(bindings))}</p>
       </div>
     </div>
   );

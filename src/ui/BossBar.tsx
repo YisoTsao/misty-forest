@@ -2,6 +2,7 @@ import { useBossStore } from '@/game/combat/bossRuntime';
 import { combat } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { useGameStore } from '@/game/state/gameStore';
+import { useTouchUi } from '@/game/input/device';
 
 /**
  * 頭目血條（任務 8D）：名稱、血量、迷霧護盾（三個水槽，注水後點亮）；迷霧還在時提示要去引水。
@@ -10,6 +11,8 @@ import { useGameStore } from '@/game/state/gameStore';
 export function BossBar() {
   const hud = useBossStore((s) => s.hud);
   const playing = useGameStore((s) => s.screen === 'playing');
+  // 手機版（任務 11M）：直向放在血條與小地圖下面
+  const touch = useTouchUi();
   if (!hud || !playing) return null;
   const def = combat.enemies.get(hud.bossId);
   const name = t(def?.nameKey ?? hud.bossId);
@@ -17,8 +20,8 @@ export function BossBar() {
   const ratio = Math.max(0, hud.hp / hud.maxHp);
   const misty = hud.filled < hud.total;
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-6 flex justify-center" data-testid="boss-bar" data-hp={hud.hp} data-filled={hud.filled} data-phase={hud.phase}>
-      <div className="w-[min(560px,80vw)] text-center text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
+    <div className={`pointer-events-none absolute inset-x-0 flex justify-center ${touch ? 'portrait:top-[16rem] portrait:pr-16 landscape:top-[3.75rem] px-3' : 'top-6'}`} data-testid="boss-bar" data-hp={hud.hp} data-filled={hud.filled} data-phase={hud.phase}>
+      <div className={`${touch ? 'w-[min(560px,100%)] landscape:w-[min(560px,calc(100%-28rem))]' : 'w-[min(560px,80vw)]'} text-center text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]`}>
         <div className="mb-1 flex items-end justify-between gap-3 px-1">
           <p className="text-lg font-black tracking-[0.2em]">{name}</p>
           <div className="flex items-center gap-1.5" aria-label={t('boss.mist')}>

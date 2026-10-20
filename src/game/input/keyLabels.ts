@@ -1,7 +1,7 @@
 import padBindingsData from '@/data/gamepad.json';
 import type { ActionId, Bindings } from '@/game-core/input/actions';
 import { parsePadBindings } from '@/game-core/input/gamepad';
-import { t } from '../i18n';
+import { hasText, t } from '../i18n';
 import { useInputDeviceStore } from './device';
 
 const padBindings = parsePadBindings(padBindingsData);
@@ -51,6 +51,8 @@ export function keyLabel(code: string): string {
 
 /** 動作的主要按鍵名稱；最近使用手把時顯示手把按鈕。未設定時回傳「未設定」 */
 export function actionKey(bindings: Bindings, action: ActionId): string {
+  // 手機版（任務 11M）：顯示畫面上的觸控按鈕
+  if (useInputDeviceStore.getState().device === 'touch' && hasText(`touch.key.${action}`)) return t(`touch.key.${action}`);
   const pad = padBindings[action]?.[0];
   if (useInputDeviceStore.getState().device === 'gamepad' && pad !== undefined) return padLabel(pad);
   const code = bindings[action][0];
@@ -61,9 +63,12 @@ export function actionKey(bindings: Bindings, action: ActionId): string {
 export function keyVars(bindings: Bindings): Record<string, string> {
   const dirs = (['moveForward', 'moveLeft', 'moveBack', 'moveRight'] as const).map((a) => actionKey(bindings, a));
   // 四個方向都是單一字母時連在一起（WASD），否則以斜線分隔
+  const device = useInputDeviceStore.getState().device;
   const move =
-    useInputDeviceStore.getState().device === 'gamepad'
+    device === 'gamepad'
       ? t('key.padStick')
+      : device === 'touch'
+        ? t('touch.key.move')
       : dirs.every((d) => d.length === 1)
         ? dirs.join(' ')
         : dirs.join(' / ');
@@ -77,7 +82,7 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     heavy: actionKey(bindings, 'heavyAttack'),
     // 手把以「切換武器」依序切換；鍵盤列出三把武器的按鍵（V 也可依序切換）
     weapons:
-      useInputDeviceStore.getState().device === 'gamepad'
+      device !== 'keyboard'
         ? actionKey(bindings, 'cycleWeapon')
         : (['weapon1', 'weapon2', 'weapon3'] as const).map((a) => actionKey(bindings, a)).join(' '),
     skill: actionKey(bindings, 'skill'),
@@ -89,6 +94,6 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     map: actionKey(bindings, 'map'),
     journal: actionKey(bindings, 'journal'),
     quickHeal: actionKey(bindings, 'quickHeal'),
-    pause: useInputDeviceStore.getState().device === 'gamepad' ? 'Menu' : t('key.escape'),
+    pause: device === 'gamepad' ? 'Menu' : device === 'touch' ? t('touch.key.pause') : t('key.escape'),
   };
 }

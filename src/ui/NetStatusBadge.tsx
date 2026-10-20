@@ -4,6 +4,7 @@ import { debugEnabled } from '@/game/debugApi';
 import { useGameStore } from '@/game/state/gameStore';
 import { reconnect } from '@/net/netClient';
 import { useNetStore } from '@/net/netStore';
+import { useTouchUi } from '@/game/input/device';
 
 /** 連線中超過這麼久就提示伺服器可能在休眠中喚醒（Render 免費方案閒置 15 分鐘會休眠，任務 11D） */
 const WAKE_HINT_MS = 4000;
@@ -19,13 +20,15 @@ const DOT: Record<string, string> = {
 export function NetStatusBadge() {
   const { status, playerCount, error } = useNetStore();
   const onTitle = useGameStore((s) => s.screen === 'title');
+  // 手機版（任務 11M）：右上是小地圖與選單鈕，連線狀態放在畫面上方中央
+  const touch = useTouchUi();
   const waiting = status === 'connecting' || status === 'reconnecting';
   if (status === 'offline' || onTitle) return null;
   return (
     <div
       data-testid="net-status"
       data-status={status}
-      className={`absolute top-[232px] flex max-w-56 flex-col items-end gap-1 text-xs text-white ${debugEnabled ? 'right-48' : 'right-5'}`}
+      className={`absolute flex max-w-56 flex-col gap-1 text-xs text-white ${touch ? 'top-2 left-1/2 -translate-x-1/2 items-center' : `top-[232px] items-end ${debugEnabled ? 'right-48' : 'right-5'}`}`}
     >
       <div className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1 font-bold shadow">
         <span className={`h-2 w-2 rounded-full ${DOT[status] ?? 'bg-white'}`} />

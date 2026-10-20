@@ -15,7 +15,8 @@ export function ControlHint() {
   // 對話、背包、訊息視窗開啟時不顯示，避免與視窗重疊
   const modal = useUiStore((s) => s.dialogue !== null || s.inventoryOpen || s.mapOpen || s.journalOpen || s.shop !== null || s.craft !== null || s.message !== null || s.build !== null);
   // 手把不需要鎖定滑鼠：使用手把時不顯示「點擊畫面開始操作」
-  const gamepad = useInputDeviceStore((s) => s.device === 'gamepad');
+  // 手機版（任務 11M）有自己的觸控按鈕，也不需要鎖定滑鼠
+  const gamepad = useInputDeviceStore((s) => s.device === 'gamepad' || s.device === 'touch');
   const [locked, setLocked] = useState(() => document.pointerLockElement !== null);
 
   useEffect(() => {

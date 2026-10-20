@@ -11,6 +11,8 @@ import { BossBar } from '@/ui/BossBar';
 import { CombatHud } from '@/ui/CombatHud';
 import { CompanionBubble } from '@/ui/CompanionBubble';
 import { ControlHint } from '@/ui/ControlHint';
+import { TouchButtons, TouchSurface } from '@/ui/TouchControls';
+import { useTouchUi } from '@/game/input/device';
 import { DebugPanel } from '@/ui/DebugPanel';
 import { DialogueBox } from '@/ui/DialogueBox';
 import { ErrorOverlay } from '@/ui/ErrorOverlay';
@@ -39,6 +41,8 @@ import { WorldScene } from '@/world/WorldScene';
 
 export function App() {
   const preset = useQualityPreset();
+  // 手機版（任務 11M）：除錯與效能面板會蓋住觸控按鈕，觸控介面下不顯示（除錯 API 照常可用）
+  const touch = useTouchUi();
   useEffect(() => {
     // ?cam=<書籤> 直接以自由視角開啟該書籤
     const cam = initialBookmarkFromUrl();
@@ -63,6 +67,8 @@ export function App() {
       >
         <WorldScene data={worldDataResult.data} />
       </Canvas>
+      {/* 手機版：搖桿與拖曳視角的觸控面在 HUD 底下，按鈕在 HUD 上面（任務 11M） */}
+      <TouchSurface />
       <div id="damage-layer" className="pointer-events-none absolute inset-0 overflow-hidden" />
       <CombatHud />
       <BossBar />
@@ -76,7 +82,8 @@ export function App() {
       <NetStatusBadge />
       <ChatBox />
       <ControlHint />
-      {debugEnabled && (
+      <TouchButtons />
+      {debugEnabled && !touch && (
         <>
           <PerfPanel />
           <DebugPanel />

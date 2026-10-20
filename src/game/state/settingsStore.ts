@@ -5,7 +5,7 @@ import { loadWithFallback } from '@/game-core/save/load';
 import { SETTINGS_SLOT } from '@/game-core/save/schema';
 import { isQualityLevel, qualityPresets, type QualityLevel, type QualityPreset } from '@/game-core/settings/quality';
 import { parseSettings, SETTINGS_VERSION, type SettingsData } from '@/game-core/settings/settingsData';
-import { useInputDeviceStore } from '../input/device';
+import { isTouchPreferred, useInputDeviceStore } from '../input/device';
 import { input } from '../input/inputManager';
 import { saveStorage } from '../save/storages';
 
@@ -45,7 +45,8 @@ function persist(state: SettingsState): void {
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  quality: isQualityLevel(urlQuality) ? urlQuality : 'high',
+  // 手機（觸控為主的裝置）預設低畫質（手機版「先做能玩」；玩家可以在設定裡調高）
+  quality: isQualityLevel(urlQuality) ? urlQuality : isTouchPreferred() ? 'low' : 'high',
   bindings: defaultBindings,
   volumes: defaultVolumes,
   cameraShake: true,

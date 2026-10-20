@@ -31,6 +31,11 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11M：手機版觸控操作（2026-10-21，分支 `feature/mobile`，**進行中、尚未推上 main**）
+- 完成：浮動虛擬搖桿（推到外圈跑步）、右半邊拖曳轉視角、雙指縮放、右下弧形動作鈕（攻擊、重擊、互動、跳、三個法術、換武器、喝藥）與冷卻遮罩、選單鈕（暫停、背包、地圖、任務、芽芽、聊天）、點互動提示即互動；觸控裝置預設低畫質；HUD 觸控排版（直向、橫向）；視窗加 `ui-panel` 不超出畫面；修正觸控按鈕放開後的 click 落到新出現的視窗上（暫停一閃即逝）。`?touch=1` 可在桌機強制開啟。
+- 測試：`pnpm check`（Vitest 989）通過；新增 `e2e/touch.e2e.mjs` 9 項上一輪全過（之後又改了排版，需重跑）。
+- **還沒做**：重跑 `touch` e2e 並檢視直向排版修正後的截圖；主選單在橫向的高度、職業選擇與設定在手機上的版面；受影響的既有 e2e（`world`、`combat`、`settings`、`tutorial`、`gamepad`、`npc`）；完整 `pnpm e2e`；合回 `develop` 並推到 `main`。手機版暫不支援建造模式。
+
 ### 第二章 Phase 0：盤點（2026-10-20）
 - `docs/chapter02/PHASE0_INVENTORY.md`：技術盤點（重用 / 擴充 / 新建）、資產盤點、差距清單、裝備系統規劃、Phase 1 拆成 12A–12E 與檔案變更計畫。
 - 重點：prefab 的 `activate`（可消耗物品）、`turn`、`read`、`harvest` 與任務系統已涵蓋燈柱、水輪、石碑、採集點；`lightPath.ts` 可做星晶反射；史萊姆可用 `spit` ＋ `splitInto`。沒有：翻滾閃避、迷霧持續傷害、可推動石塊與壓力板、圖鑑、裝備層（武器是 7 種固定類型，`water_charm` 效果寫死在 `Player.tsx`）。

@@ -132,7 +132,7 @@ function SettingsWindow() {
         role="dialog"
         aria-labelledby="settings-title"
         data-testid="settings" data-pad-scope
-        className="flex max-h-[92vh] w-[min(94vw,34rem)] flex-col gap-4 overflow-y-auto rounded-2xl bg-slate-900 p-6 text-white shadow-2xl"
+        className="ui-panel flex max-h-[92vh] w-[min(94vw,34rem)] flex-col gap-4 overflow-y-auto rounded-2xl bg-slate-900 p-6 text-white shadow-2xl"
       >
         <h2 id="settings-title" className="text-center text-2xl font-bold">
           {t('settings.title')}
