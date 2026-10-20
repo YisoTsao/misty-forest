@@ -121,7 +121,8 @@ await runE2e('melee e2e', { query: 'debug=1&play=1&peaceful=1', env: { MISTWOOD_
     await page.waitForTimeout(200);
     assert.equal(await debug(() => window.__mistwoodDebug.saveNow()), true);
     const file = JSON.parse(readFileSync(path.join(saveDir, 'slot1.json'), 'utf8'));
-    assert.deepEqual(file.loadout, { weapon: 'knife' });
+    // 存檔 v17 起 loadout 也記職業（T-182）
+    assert.deepEqual(file.loadout, { weapon: 'knife', heroClass: 'traveler' });
   });
 });
 

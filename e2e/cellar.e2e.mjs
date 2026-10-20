@@ -55,6 +55,8 @@ await runE2e('cellar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
   });
 
   await check('白天按 E 地窖門：說明要等夜裡，進不去', async () => {
+    // 日光看共享世界時鐘（T-181）：先固定在中午，實際時刻可能已經是夜裡
+    await debug(() => window.__mistwoodDebug.setClock(12));
     await approach('highland_cellar_hatch', [-1, 0], 1.3);
     await page.keyboard.press('KeyE');
     const dialog = page.locator('[data-testid="message-dialog"]');
