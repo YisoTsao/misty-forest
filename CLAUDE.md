@@ -1,6 +1,7 @@
 # Mistwood 專案指示
 
 - 開發規格：`GAME_DESIGN.md`（v3，優先依此）；世界觀與內容：`Mistwood_World_Bible_v2.md`；舊整合規格 `mistwood_dev_spec_final.md` 僅作歷史參考
+- 第二章（螢苔祕林）規格書：`docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md`（內容已整理進 Bible §6；測試、開發階段與技術規則以規格書為準）；參考圖 `docs/art/reference/螢苔祕林/`（不進版控）
 - 技術做法：skill `r3f-game-dev-spec`
 - 進度與續作：`docs/PROGRESS.md`（每次任務開始先讀、結束時更新）
 - 決策紀錄：`docs/DECISIONS.md`；資產授權：`docs/ASSETS.md`；效能量測：`docs/PERF.md`

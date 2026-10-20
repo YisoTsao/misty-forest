@@ -11,3 +11,4 @@ dist-server/
 .env.local
 # Vercel CLI 的專案連結（本機）
 .vercel
+docs/art/

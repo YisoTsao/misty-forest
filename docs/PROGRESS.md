@@ -1,6 +1,8 @@
 # 開發進度
 
 ## 目前階段
+**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。下一步：規格 Phase 0 程式盤點與檔案變更計畫（先給使用者確認）→ Phase 1 垂直切片。**
+
 **Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）、11D（部署：Vercel + Render 上線，2026-10-15 使用者以兩個瀏覽器在正式網址驗收連線成功）、11E（攻擊與施法的同步）、11F（聊天）完成。正式網址 https://mistwood-blue.vercel.app。路線圖（使用者 2026-10-16 決定）：聊天 → 登入與雲端存檔（11G）→ 日光與資源共享 → 怪物共享 → 手機版（先做能玩）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
 
@@ -29,6 +31,21 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 第二章改版：設計文件（2026-10-20）
+- 使用者提供第二章規格書（`docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md`）與 9 張參考圖（`docs/art/reference/螢苔祕林/`，`docs/art/` 由使用者加入 `.gitignore`），選擇以規格**取代**既有螢苔祕林。
+- Bible §6 重寫：七區 A–G、四位 NPC、主線 `quest_forest_001`–`008`、支線 `009`–`014`、三個謎題、四種怪物＋枯根守衛、三階段頭目根噬者、道具與裝備、章節結尾；舊版內容列在 §6.15。同步改 §3.1 / §3.2（澄鏡湖開放條件）、§14 P2、§16、§22.2（舊支線停用）、§23、§28.2、§29.3、§30.2 與 recipe。
+- GAME_DESIGN：§2.2 地圖表（螢苔祕林標為「設計已改、程式待重做」，澄鏡湖改新條件）、§2.3 角色表（新增四位 NPC，琳娜回第一章、奇奇從第三章登場）、§9 路線圖新增「第二章改版」。
+- DECISIONS：T-185（改版範圍與 ID 慣例）、T-186（澄鏡湖入口與芽之共鳴：淨化根噬者後芽之共鳴在古樹核心中甦醒，完成 `quest_forest_008` 才開放澄鏡湖）。CLAUDE.md 文件清單加入規格書。
+- 旅行商人規格書原名「托托」，與石匠鼴鼠 `npc_toto` 撞名，使用者決定改名為伊索（`npc_iso`）。
+- 只改文件，沒有改程式，所以沒有跑測試。
+- **程式與文件暫時不一致**：Phase 8 的舊實作（苔咚、水道謎題、琳娜 / 奇奇的任務）與澄鏡湖的舊開放條件仍在程式中，依 Bible §6.15 在之後的任務替換。
+
+### 部署與登入檢查（2026-10-20）
+- 正式站曾被 `2f32ad4`（OAuth 之前的版本）的 Production 部署蓋掉；已用 Vercel CLI 把 `0c7e1c2` 的部署（`dpl_2ehjJRyoc4h5AQPhHf8mPkwyBts3`）升回正式版，確認網站有 Google / LINE 按鈕。
+- Google 登入：使用者修正 Google Cloud 的 redirect URI 與 Supabase 的 Client Secret 後可以登入。
+- LINE 登入：仍失敗，Supabase 回 `Error getting user profile from external provider`（在換到 token 之後向 LINE 取使用者資料時失敗）。`auth.custom_oauth_providers` 的 `custom:line` 設定（issuer、discovery、scopes、client id、PKCE）都正確；使用者決定先擱置。
+- 程式問題（未修）：Supabase 把錯誤放在網址的 `#` 後面，`accountStore.ts` 的 `completeWebRedirect` 只讀 `?` 參數，錯誤訊息不會顯示在畫面上。
+
 ### 任務 11L-3：Google / LINE 登入、啟動時對時（2026-10-17）
 - 線上登入改成 Google 與 LINE 的 OAuth（T-184），移除 Email 驗證碼。網頁版整頁導向；桌面版用系統瀏覽器、導回 `127.0.0.1:53682`（`electron/oauthLoopback.ts`）。同信箱的帳號由 Supabase 自動合併。
 - **待使用者**：Google Cloud 建 OAuth client、LINE Developers 建 LINE Login 頻道（要申請 Email 權限）、Supabase 開啟 Google 與自訂 OIDC `custom:line`、Redirect URLs 加入正式 / 預覽 / 桌面版網址。步驟見 `docs/multiplayer/accounts.md`「設定」。
@@ -560,6 +577,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 2. **B 級機器量測**：在 M1 / Iris Xe 8 GB 等級的機器執行 `node scripts/perf.mjs`，補進 `PERF.md`。
 3. **多人連線上線用的帳號（Phase 4–5 才需要，Phase 3 不需要）**：Vercel、Render 帳號與 GitHub repo 授權；Supabase 專案（URL、publishable key；secret key 由使用者自己貼進 Render 的環境變數）；`online-plan.md` §8 的待決定事項。
 4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
+5. **LINE 登入**：`Error getting user profile from external provider`，請確認 LINE 頻道是 Published、Email address permission 已通過，或換有綁定信箱的 LINE 帳號再試。
 
 ## 已知問題
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
