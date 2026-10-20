@@ -17,7 +17,7 @@ export function Toasts() {
   // 手機版（任務 11M）：左下是搖桿，通知改在畫面中段偏左
   const touch = useTouchUi();
   return (
-    <div className={`pointer-events-none absolute flex flex-col items-start gap-2 ${touch ? 'portrait:top-[54%] landscape:top-[46%] left-3' : `left-6 ${chat ? 'bottom-[20rem]' : 'bottom-40'}`}`} data-testid="toasts">
+    <div className={`pointer-events-none absolute flex flex-col items-start gap-2 ${touch ? 'portrait:top-[54%] landscape:top-[46%] left-3 max-w-[min(22rem,62vw)]' : `left-6 ${chat ? 'bottom-[20rem]' : 'bottom-40'}`}`} data-testid="toasts">
       {toasts.map((toast) => (
         <ToastRow key={toast.id} toast={toast} />
       ))}

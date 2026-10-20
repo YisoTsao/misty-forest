@@ -53,10 +53,10 @@ function TitleMenu() {
   return (
     <div
       data-testid="title-screen" data-pad-scope
-      className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-sky-900/10 via-transparent to-emerald-950/45"
+      className="absolute inset-0 flex flex-col items-center justify-center-safe overflow-y-auto py-3 bg-gradient-to-b from-sky-900/10 via-transparent to-emerald-950/45"
     >
-      <div className="rounded-3xl bg-slate-900/25 px-12 py-6 backdrop-blur-[2px]">
-        <h1 className="text-center text-6xl font-black tracking-wider text-white drop-shadow-[0_4px_12px_rgba(20,60,90,0.55)]">
+      <div className="rounded-3xl bg-slate-900/25 px-12 py-6 backdrop-blur-[2px] max-sm:px-5 [@media(max-height:480px)]:py-2">
+        <h1 className="text-center text-6xl max-sm:text-4xl [@media(max-height:480px)]:text-4xl font-black tracking-wider text-white drop-shadow-[0_4px_12px_rgba(20,60,90,0.55)]">
           {t('app.title')}
         </h1>
         <p className="mt-3 text-center text-lg text-white/90 drop-shadow">{t('title.subtitle')}</p>
@@ -66,7 +66,7 @@ function TitleMenu() {
           </p>
         )}
       </div>
-      <div className="mt-10 flex w-[min(92vw,22rem)] flex-col gap-3 rounded-2xl bg-black/35 p-5 text-white backdrop-blur-sm">
+      <div className="mt-10 [@media(max-height:480px)]:mt-3 flex w-[min(92vw,22rem)] flex-col gap-3 rounded-2xl bg-black/35 p-5 text-white backdrop-blur-sm">
         <div role="tablist" aria-label={t('title.modeLabel')} className="flex gap-1 rounded-full bg-black/30 p-1">
           <button type="button" role="tab" aria-selected={mode === 'offline'} data-testid="title-mode-offline" onClick={() => pick('offline')} className={tab('offline')}>
             {t('title.mode.offline')}

@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑約 50 分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），48 個全跑約 50 分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -28,6 +28,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 星光夥伴 | `companion` | `--companion` |
 | 戰鬥、敵人、掉落（`game/combat`、`world/combat`） | `combat`、`melee` | `--combat` / `--melee` |
 | 魔法（星光衝擊、流星雨） | `magic` | `--magic` |
+| 輸入（`game/input`、`game-core/input`）、HUD 排版、視窗大小、觸控（`ui/TouchControls`、`touch.ts`、`device.ts`） | `touch`（改到鍵盤或手把時加 `movement`、`gamepad`） | `touch` e2e 本身會存 `docs/screenshots/mobile/` |
 | 怪物模型與生成 | `monsters` | `--monsters` |
 | 怪物行為（盤旋、縮殼、吐泥，`enemyAi` 的 behavior）、程式造型怪物（`CritterEnemy`）、泥團 | `forestmobs`（改到共用 AI 時加 `combat`） | `--monsters --enemies=<id>` |
 | 建造（湖心島） | `build` | `--build` |

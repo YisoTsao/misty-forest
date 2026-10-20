@@ -19,7 +19,7 @@ export function ClassPicker({ onStart, onBack, busy = false }: { onStart: (heroC
       data-pad-scope
       role="dialog"
       aria-labelledby="class-picker-title"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-slate-950/70 p-4 text-white backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center-safe gap-4 overflow-y-auto bg-slate-950/70 p-4 text-white backdrop-blur-sm"
     >
       <h2 id="class-picker-title" className="text-3xl font-black tracking-wider drop-shadow">
         {t('classPicker.title')}

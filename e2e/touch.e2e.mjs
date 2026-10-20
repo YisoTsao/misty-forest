@@ -165,7 +165,8 @@ await runE2e('touch e2e', { query: 'debug=1&play=1&peaceful=1&touch=1&quality=lo
   await check('直向（390×844）：HUD 都在畫面內、互不重疊；搖桿一樣能走', async () => {
     await resize(390, 844);
     await page.getByTestId('touch-attack').waitFor({ timeout: 2000 });
-    await assertLayout(HUD.filter((id) => id !== 'tutorial'));
+    // 開完寶箱已經接到任務：任務追蹤、教學也要在畫面內且不重疊
+    await assertLayout([...HUD, 'quest-tracker']);
     await page.screenshot({ path: `${shots}/portrait_hud.png` });
     const before = await state();
     await drag([90, 700], [90, 640], { holdMs: 1000 });
@@ -192,3 +193,41 @@ await runE2e('touch e2e', { query: 'debug=1&play=1&peaceful=1&touch=1&quality=lo
     await menu.waitFor({ state: 'detached', timeout: 2000 });
   });
 });
+
+// 主選單（沒有 play=1）：直向與橫向都看得到「新遊戲」，選職業後用觸控開始冒險
+for (const [name, w, h] of [
+  ['直向', 390, 844],
+  ['橫向', 844, 390],
+]) {
+  await runE2e(`touch e2e（主選單・${name}）`, { query: 'debug=1&touch=1&quality=low' }, async ({ app, page, check }) => {
+    const cdp = await page.context().newCDPSession(page);
+    const tapEl = async (testId) => {
+      const el = page.getByTestId(testId);
+      await el.scrollIntoViewIfNeeded();
+      const box = await el.boundingBox();
+      assert.ok(box, `${testId} 不在畫面上`);
+      const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+      assert.ok(x > 0 && x < w && y > 0 && y < h, `${testId} 在畫面外 (${x}, ${y})`);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 0 }] });
+      await page.waitForTimeout(60);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await page.waitForTimeout(700);
+    };
+    await check(`${name}：主選單的「新遊戲」在畫面內；選職業後開始冒險`, async () => {
+      await app.evaluate(({ BrowserWindow }, [cw, ch]) => BrowserWindow.getAllWindows()[0].setContentSize(cw, ch), [w, h]);
+      await page.waitForFunction(([cw, ch]) => window.innerWidth === cw && window.innerHeight === ch, [w, h], { timeout: 4000 });
+      await page.waitForTimeout(600);
+      const box = await page.getByTestId('title-start').boundingBox();
+      assert.ok(box && box.y >= 0 && box.y + box.height <= h, `新遊戲按鈕 ${JSON.stringify(box)}`);
+      await page.screenshot({ path: `${shots}/${name === '直向' ? 'portrait' : 'landscape'}_title.png` });
+      await tapEl('title-start');
+      await page.getByTestId('class-picker').waitFor({ timeout: 3000 });
+      // 職業清單的最上面捲得到
+      const top = await page.getByTestId('class-option-traveler').boundingBox();
+      await page.getByTestId('class-option-traveler').scrollIntoViewIfNeeded();
+      assert.ok(top, '看不到第一個職業');
+      await tapEl('class-start');
+      await page.getByTestId('touch-attack').waitFor({ timeout: 8000 });
+    });
+  });
+}
