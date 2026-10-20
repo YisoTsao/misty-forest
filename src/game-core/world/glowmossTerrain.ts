@@ -1,12 +1,15 @@
-// 螢苔祕林（Bible §6，任務 8A）的地形高度。純函式、無 import（資料產生腳本以 Node 直接執行）。
+// 螢苔祕林（第二章，Bible §6.3；任務 12B）的地形高度。純函式、無 import（資料產生腳本以 Node 直接執行）。
 //
 // 座標為地圖的局部座標（地圖原點見 GLOWMOSS_ORIGIN），慣例與晨曦谷地相同：-Z 為北、+X 為東。
-// 地圖與晨曦谷地放在同一個物理世界的遠處（決策 T-117），可玩區同為 ±148 m。
-// - 西側「林緣小徑」：從晨曦谷地過來的入口，巨大樹根與採藥點。
-// - 中央「螢苔林地」：發光苔蘚、月牙樹、發光石環。
-// - 東北「根鬚迷宮」：樹根圍成的天然通道。
-// - 東側「苔冠空地」：被一圈山脊圍住的平坦空地，中央是巨大的蘑菇樹（之後的頭目戰場）。
-// - 「斷流小渠」由北往南流過林地，水被根系堵住而乾涸（之後的任務修復）。
+// 地圖與晨曦谷地放在同一個物理世界的遠處（決策 T-117），可玩區同為 ±148 m。七個區域（Bible §6.3 的 A–G）：
+// - A 迷霧入口（西端）：從晨曦谷地過來的林道入口、橫跨小徑的石拱門。
+// - B 螢苔花園（入口往東）：淺淺的盆地，四周一圈巨型蘑菇。
+// - C 倒流溪谷（花園往北）：南北向的谷地，北端是瀑布（星晶祕窟的入口之後藏在瀑布後面）。
+// - D 蘑菇居民聚落（中央）：台地，四周的山脊只在北面開口，從溪谷那一側進去。
+// - E 迷霧深層（東南）：低窪、扭曲樹木的林地。
+// - F 星晶祕窟（北邊）：被山脊完全圍住的窪地（之後從瀑布後的洞穴進去）。
+// - G 古樹祭壇（東邊）：高台與巨型空心古樹，旁邊是往澄鏡湖的出口。
+// 區域之間的封鎖（水輪、濃霧、樹根）在之後的任務加入；12B 只有地形與小徑。
 
 /** 地圖原點（世界座標）：離晨曦谷地 2000 m，離酒館室內子場景（1000, 1000）也夠遠 */
 export const GLOWMOSS_ORIGIN = { x: 2000, z: 0 } as const;
@@ -20,106 +23,131 @@ export function isInGlowmoss(x: number, z: number): boolean {
 
 type P2 = readonly [number, number];
 
-/** 入口（從晨曦谷地過來的地方）：林緣小徑的西端，抵達時面向東方 */
+/** 入口（從晨曦谷地過來的地方）：迷霧入口的西端，抵達時面向東方 */
 export const GLOWMOSS_ARRIVAL = { x: -134, z: 4 } as const;
-/** 月牙樹：林地西北的小丘上 */
-export const CRESCENT_TREE = { x: -34, z: -24 } as const;
-/** 發光石環 */
-export const STONE_RING = { x: 16, z: 44, radius: 8 } as const;
-/** 苔冠空地：中央蘑菇樹，外圍一圈山脊，只有西側有開口 */
-export const MOSS_CROWN = { x: 100, z: 46, radius: 24 } as const;
-/** 苔冠空地開口的方向（弧度，atan2(z, x)：π 為正西） */
-const CROWN_GATE_ANGLE = Math.PI;
-/** 根鬚迷宮的中心與半徑 */
-export const ROOT_MAZE = { x: 76, z: -74, radius: 36 } as const;
+/** A 迷霧入口的石拱門（橫跨小徑） */
+export const MIST_ARCH = { x: -110, z: 2 } as const;
+/** B 螢苔花園的盆地 */
+export const GLOW_GARDEN = { x: -56, z: 6, radius: 26 } as const;
+/** C 倒流溪谷的谷底（由南往北）與北端的瀑布 */
+export const CREEK_PATH: readonly P2[] = [
+  [-38, -46],
+  [-26, -78],
+  [-20, -110],
+  [-26, -136],
+];
+export const CREEK_FALLS = { x: -26, z: -138 } as const;
+/** D 蘑菇居民聚落的台地；山脊只在北面開口 */
+export const MUSHROOM_VILLAGE = { x: 36, z: 6, radius: 22 } as const;
+/** E 迷霧深層的低地 */
+export const DEEP_MIST = { x: 52, z: 92, radius: 30 } as const;
+/** F 星晶祕窟的窪地（山脊沒有開口） */
+export const CRYSTAL_GROTTO = { x: 20, z: -124, radius: 14 } as const;
+/** G 古樹祭壇的高台與古樹 */
+export const ANCIENT_ALTAR = { x: 112, z: 0, radius: 20 } as const;
+/** 往澄鏡湖的出口（祭壇東南，Bible §6.12：quest_forest_008 之後才開；過渡期間見 T-187） */
+export const LAKE_EXIT = { x: 132, z: 52 } as const;
 
-/** 林間小徑（折線）：入口 → 林地中央 → 各區 */
+/** 林間小徑（折線）：入口 → 花園 → 溪谷 → 聚落 → 深層 → 祭壇 → 澄鏡湖出口 */
 export const GLOWMOSS_TRAILS: readonly (readonly P2[])[] = [
-  // 入口 → 中央
+  // A → B：入口穿過石拱門進花園
   [
     [-150, 4],
-    [-112, 0],
-    [-84, 8],
-    [-58, 2],
-    [-30, -8],
-    [0, -4],
+    [GLOWMOSS_ARRIVAL.x, GLOWMOSS_ARRIVAL.z],
+    [MIST_ARCH.x, MIST_ARCH.z],
+    [-90, 4],
+    [-72, 6],
+    [GLOW_GARDEN.x, GLOW_GARDEN.z],
   ],
-  // 中央 → 根鬚迷宮入口
+  // B 花園裡的環狀步道（半徑 16 m 的圓，從西邊的入口接進來）
+  Array.from({ length: 13 }, (_, i): P2 => {
+    const a = Math.PI + (i / 12) * Math.PI * 2;
+    return [Math.round((GLOW_GARDEN.x + Math.cos(a) * 16) * 10) / 10, Math.round((GLOW_GARDEN.z + Math.sin(a) * 16) * 10) / 10];
+  }),
+  // B → C：從環狀步道的北側往北進溪谷，一路到瀑布
   [
-    [0, -4],
-    [22, -26],
-    [40, -46],
-    [52, -58],
+    [GLOW_GARDEN.x, GLOW_GARDEN.z - 16],
+    [-38, -46],
+    [-28, -78],
+    [-22, -110],
+    [-24, -130],
   ],
-  // 中央 → 發光石環 → 苔冠空地
+  // C → D：溪谷中段往東，從北面開口進聚落
   [
-    [0, -4],
-    [12, 18],
-    [STONE_RING.x - 2, STONE_RING.z - 6],
+    [-28, -78],
+    [-2, -58],
+    [22, -38],
+    [MUSHROOM_VILLAGE.x, -20],
+    [MUSHROOM_VILLAGE.x, MUSHROOM_VILLAGE.z],
   ],
+  // D → E：聚落往南（南面山脊之後在任務裡開路；12B 先留一條坡道）
   [
-    [STONE_RING.x + 6, STONE_RING.z],
-    [40, 46],
-    [62, 44],
-    [MOSS_CROWN.x - MOSS_CROWN.radius + 4, MOSS_CROWN.z],
+    [MUSHROOM_VILLAGE.x, MUSHROOM_VILLAGE.z],
+    [40, 38],
+    [48, 68],
+    [DEEP_MIST.x, DEEP_MIST.z],
   ],
-  // 南側環線：石環 → 林地南邊 → 回到小徑
+  // E → G：深層往東北上祭壇
   [
-    [STONE_RING.x - 4, STONE_RING.z + 6],
-    [-10, 76],
-    [-48, 82],
-    [-78, 54],
-    [-84, 8],
+    [DEEP_MIST.x, DEEP_MIST.z],
+    [80, 72],
+    [98, 42],
+    [106, 18],
+    [ANCIENT_ALTAR.x, ANCIENT_ALTAR.z],
   ],
-  // 往月牙樹的小岔路
+  // G → 澄鏡湖出口
   [
-    [-30, -8],
-    [CRESCENT_TREE.x + 2, CRESCENT_TREE.z + 8],
+    [106, 18],
+    [120, 34],
+    [LAKE_EXIT.x - 4, LAKE_EXIT.z - 2],
   ],
 ];
 export const TRAIL_HALF_WIDTH = 1.6;
 
-/** 斷流小渠：由北邊的泉眼往南，水被根系堵住而乾涸 */
-export const CHANNEL_PATH: readonly P2[] = [
-  [34, -150],
-  [30, -108],
-  [14, -66],
-  [10, -32],
-  [-6, 8],
-  [-20, 46],
-  [-12, 92],
-  [6, 130],
-  [10, 170],
-];
-export const CHANNEL_HALF_WIDTH = 2.4;
-/** 渠底高度（乾涸的泥面；之後修復後的水面在 CHANNEL_WATER_LEVEL） */
-const CHANNEL_BED = -1.1;
-export const CHANNEL_WATER_LEVEL = -0.35;
-/** 小徑跨過渠道的地方：渠底墊高成石頭鋪的淺灘，走過去不必跳 */
-export const CHANNEL_CROSSINGS: readonly { x: number; z: number }[] = [
-  { x: -4, z: 2 },
-  { x: -17, z: 78 },
-];
-const CROSSING_BED = -0.3;
+/** 這個高度以下才畫成水邊泥地；12B 的溪谷還沒有水（谷底 −0.5），沒有地方會低於這個高度 */
+export const GLOWMOSS_WATER_LEVEL = -2.4;
 
 /** 小丘（大樹與地標底下的隆起） */
 const MOUNDS: readonly { x: number; z: number; height: number; radius: number }[] = [
-  { x: CRESCENT_TREE.x, z: CRESCENT_TREE.z, height: 2.6, radius: 9 },
   { x: -96, z: -52, height: 6, radius: 18 },
-  { x: -110, z: 70, height: 5, radius: 16 },
-  { x: -40, z: 120, height: 6, radius: 18 },
-  { x: 50, z: 110, height: 7, radius: 18 },
-  { x: 128, z: -20, height: 6, radius: 14 },
-  { x: -60, z: -118, height: 8, radius: 20 },
-  { x: 120, z: 126, height: 7, radius: 16 },
+  { x: -110, z: 64, height: 5, radius: 16 },
+  { x: -80, z: 110, height: 6, radius: 18 },
+  { x: -10, z: 90, height: 5, radius: 16 },
+  { x: -70, z: -110, height: 8, radius: 20 },
+  { x: 128, z: -70, height: 7, radius: 16 },
+  { x: 120, z: 120, height: 6, radius: 14 },
+  { x: 70, z: -60, height: 5, radius: 14 },
 ];
 
-/** 平台：入口、石環、苔冠空地整平 */
+/** 平台：入口、石拱門、花園盆地、聚落台地、深層低地、祕窟窪地、祭壇高台 */
 const PADS: readonly { x: number; z: number; radius: number; falloff: number; height: number }[] = [
   { x: GLOWMOSS_ARRIVAL.x, z: GLOWMOSS_ARRIVAL.z, radius: 7, falloff: 8, height: 1.2 },
-  { x: STONE_RING.x, z: STONE_RING.z, radius: STONE_RING.radius, falloff: 7, height: 1.4 },
-  { x: MOSS_CROWN.x, z: MOSS_CROWN.z, radius: MOSS_CROWN.radius, falloff: 6, height: 1 },
+  { x: MIST_ARCH.x, z: MIST_ARCH.z, radius: 5, falloff: 6, height: 1.3 },
+  { x: GLOW_GARDEN.x, z: GLOW_GARDEN.z, radius: GLOW_GARDEN.radius, falloff: 10, height: 0.5 },
+  { x: MUSHROOM_VILLAGE.x, z: MUSHROOM_VILLAGE.z, radius: MUSHROOM_VILLAGE.radius, falloff: 8, height: 2.4 },
+  { x: DEEP_MIST.x, z: DEEP_MIST.z, radius: DEEP_MIST.radius, falloff: 12, height: -0.3 },
+  { x: CRYSTAL_GROTTO.x, z: CRYSTAL_GROTTO.z, radius: CRYSTAL_GROTTO.radius, falloff: 6, height: 0.4 },
+  { x: ANCIENT_ALTAR.x, z: ANCIENT_ALTAR.z, radius: ANCIENT_ALTAR.radius, falloff: 8, height: 3.2 },
 ];
+
+/** 環狀山脊：圍住聚落、祭壇與祕窟；gates 是開口的方向（弧度，atan2(z, x)） */
+const RINGS: readonly { x: number; z: number; radius: number; width: number; height: number; gates: readonly number[] }[] = [
+  // 聚落：北面開口（從溪谷過來）、南面留一道之後開路的缺口
+  { x: MUSHROOM_VILLAGE.x, z: MUSHROOM_VILLAGE.z, radius: MUSHROOM_VILLAGE.radius + 7, width: 5, height: 6, gates: [-Math.PI / 2, Math.PI / 2] },
+  // 祭壇：西南面向深層的小徑開口
+  { x: ANCIENT_ALTAR.x, z: ANCIENT_ALTAR.z, radius: ANCIENT_ALTAR.radius + 7, width: 5.5, height: 7, gates: [Math.atan2(18, -6)] },
+  // 祕窟：沒有開口（之後從瀑布後的洞穴進去）
+  { x: CRYSTAL_GROTTO.x, z: CRYSTAL_GROTTO.z, radius: CRYSTAL_GROTTO.radius + 6, width: 5, height: 9, gates: [] },
+];
+/** 開口的半寬（弧度） */
+const GATE_HALF = 0.36;
+
+/**
+ * 溪谷：谷底高度與兩側緩坡的寬度。谷底高於共用水位 WATER_LEVEL（−1）+ 0.3：低於那裡會被當成水邊（不長草、不記錄安全點、不生成怪物）；
+ * 溪水在 Phase 2（倒流溪谷）加入時再決定水面
+ */
+const CREEK_BED = -0.5;
+const CREEK_HALF_WIDTH = 7;
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
@@ -150,48 +178,29 @@ export function glowmossPathDistance(x: number, z: number): number {
   return d;
 }
 
-/** 到渠道中心線的距離（局部座標） */
-export function channelDistance(x: number, z: number): number {
-  return lineDistance(x, z, CHANNEL_PATH);
+/** 到溪谷中心線的距離（局部座標） */
+export function creekDistance(x: number, z: number): number {
+  return lineDistance(x, z, CREEK_PATH);
 }
 
-/** 渠道中心線的總長（公尺，從泉眼起算） */
-export const CHANNEL_LENGTH = CHANNEL_PATH.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - CHANNEL_PATH[i]![0], p[1] - CHANNEL_PATH[i]![1]), 0);
-
-/** 某點投影到渠道中心線上、從泉眼起算的沿線距離（任務 8C：水流到哪裡為止） */
-export function channelArc(x: number, z: number): number {
-  let best = Infinity;
-  let arc = 0;
-  let run = 0;
-  for (let i = 0; i + 1 < CHANNEL_PATH.length; i++) {
-    const a = CHANNEL_PATH[i]!;
-    const b = CHANNEL_PATH[i + 1]!;
-    const dx = b[0] - a[0];
-    const dz = b[1] - a[1];
-    const len = Math.hypot(dx, dz);
-    const t = Math.min(1, Math.max(0, ((x - a[0]) * dx + (z - a[1]) * dz) / (len * len)));
-    const d = Math.hypot(x - (a[0] + dx * t), z - (a[1] + dz * t));
-    if (d < best) {
-      best = d;
-      arc = run + t * len;
+/** 環狀山脊在這一點的高度（開口處為 0） */
+function ringHeight(x: number, z: number): number {
+  let h = 0;
+  for (const ring of RINGS) {
+    const dx = x - ring.x;
+    const dz = z - ring.z;
+    const d = Math.hypot(dx, dz);
+    const band = Math.exp(-(((d - ring.radius) / ring.width) ** 2));
+    if (band < 0.01) continue;
+    let open = 1;
+    for (const g of ring.gates) {
+      let a = Math.atan2(dz, dx) - g;
+      a = Math.atan2(Math.sin(a), Math.cos(a));
+      open = Math.min(open, smoothstep(GATE_HALF * 0.55, GATE_HALF, Math.abs(a)));
     }
-    run += len;
+    h += band * open * ring.height;
   }
-  return arc;
-}
-
-/** 苔冠空地外圍山脊的高度（只有西側開口） */
-function crownRidge(x: number, z: number): number {
-  const dx = x - MOSS_CROWN.x;
-  const dz = z - MOSS_CROWN.z;
-  const d = Math.hypot(dx, dz);
-  const ring = Math.exp(-(((d - (MOSS_CROWN.radius + 9)) / 6.5) ** 2));
-  if (ring < 0.01) return 0;
-  // 與開口方向的夾角：開口寬約 ±22°
-  let a = Math.atan2(dz, dx) - CROWN_GATE_ANGLE;
-  a = Math.atan2(Math.sin(a), Math.cos(a));
-  const gate = smoothstep(0.2, 0.42, Math.abs(a));
-  return ring * gate * 8;
+  return h;
 }
 
 /**
@@ -220,22 +229,18 @@ export function glowmossHeight(x: number, z: number): number {
   const edge = Math.max(Math.abs(x), Math.abs(z)) / (GLOWMOSS_SIZE / 2);
   h += smoothstep(0.8, 1, edge) * 14;
 
+  // 溪谷：下切到谷底，兩側緩坡（小徑在谷底，跟著一起降下去）
+  const cd = creekDistance(x, z);
+  if (cd < CREEK_HALF_WIDTH + 8) {
+    const w = 1 - smoothstep(CREEK_HALF_WIDTH * 0.5, CREEK_HALF_WIDTH + 8, cd);
+    h += (CREEK_BED - pathDip * 0.2 - h) * w;
+  }
+
   for (const pad of PADS) {
     const w = 1 - smoothstep(pad.radius, pad.radius + pad.falloff, Math.hypot(x - pad.x, z - pad.z));
     if (w > 0) h += (pad.height - pathDip * 0.2 - h) * w;
   }
-  h += crownRidge(x, z);
-
-  // 斷流小渠：下切到乾涸的渠底，兩岸緩坡；小徑跨越處墊高
-  const cd = channelDistance(x, z);
-  if (cd < CHANNEL_HALF_WIDTH + 6) {
-    let bed = CHANNEL_BED;
-    for (const c of CHANNEL_CROSSINGS) {
-      const cw = 1 - smoothstep(2.5, 6, Math.hypot(x - c.x, z - c.z));
-      bed += (CROSSING_BED - bed) * cw;
-    }
-    const w = 1 - smoothstep(CHANNEL_HALF_WIDTH - 1, CHANNEL_HALF_WIDTH + 4.5, cd);
-    h += (bed - h) * w;
-  }
+  // 山脊不蓋過小徑：小徑經過的地方就是開口
+  h += ringHeight(x, z) * smoothstep(TRAIL_HALF_WIDTH * 1.5, TRAIL_HALF_WIDTH * 4, pathDist);
   return h;
 }

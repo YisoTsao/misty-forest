@@ -5,6 +5,7 @@ import { DEFAULT_HERO_CLASS } from '../character/heroClass';
 import { MAX_MP } from '../combat/spells';
 import { createExplored, decodeExplored, encodeExplored } from '../map/explore';
 import { initialMistStages } from '../world/regions';
+import { GLOWMOSS_ARRIVAL, GLOWMOSS_ORIGIN, glowmossHeight, isInGlowmoss } from '../world/glowmossTerrain';
 import { SAVE_VERSION } from './schema';
 
 export type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
@@ -93,7 +94,34 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
       },
     };
   },
+  // v18 → v19：螢苔祕林換成第二章的新地形與七個區域（任務 12B）。舊的四個區域迷霧拿掉、新區域補上新遊戲的初始值；
+  // 站在祕林裡的玩家移到入口（新地形上原本的位置可能是樹或山脊）
+  18: (data) => {
+    const mist = Object.fromEntries(Object.entries((data.mist ?? {}) as Record<string, unknown>).filter(([id]) => !RETIRED_FOREST_REGIONS.has(id)));
+    const player = data.player as { position?: { x?: unknown; y?: unknown; z?: unknown }; facingYaw?: unknown } | undefined;
+    const pos = player?.position;
+    const inForest = typeof pos?.x === 'number' && typeof pos.z === 'number' && isInGlowmoss(pos.x, pos.z);
+    return {
+      ...data,
+      mist: { ...initialMistStages, ...mist },
+      player: inForest
+        ? {
+            ...player,
+            position: {
+              x: GLOWMOSS_ORIGIN.x + GLOWMOSS_ARRIVAL.x,
+              y: glowmossHeight(GLOWMOSS_ARRIVAL.x, GLOWMOSS_ARRIVAL.z) + 0.1,
+              z: GLOWMOSS_ORIGIN.z + GLOWMOSS_ARRIVAL.z,
+            },
+            // 面向東（走進林子）
+            facingYaw: Math.PI / 2,
+          }
+        : player,
+    };
+  },
 };
+
+/** 任務 12B 換掉的舊版螢苔祕林區域 */
+const RETIRED_FOREST_REGIONS: ReadonlySet<string> = new Set(['moss_trail', 'moss_glade', 'root_maze', 'moss_crown']);
 
 /** 任務 12A 移除的舊版螢苔祕林任務、物件與生成點（Bible §6.15） */
 const RETIRED_FOREST_QUESTS: ReadonlySet<string> = new Set(['quest_forest_001', 'quest_forest_002', 'quest_forest_003']);

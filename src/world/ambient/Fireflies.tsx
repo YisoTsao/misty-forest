@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { mulberry32 } from '@/game-core/util/random';
-import { GLOWMOSS_ORIGIN, MOSS_CROWN, STONE_RING } from '@/game-core/world/glowmossTerrain';
+import { GLOW_GARDEN, GLOWMOSS_ORIGIN, MUSHROOM_VILLAGE } from '@/game-core/world/glowmossTerrain';
 import { worldBoundaryDistance } from '@/game-core/world/maps';
 import { isUnderwater, LAKE, SPAWN_POINT, terrainHeight } from '@/game-core/world/terrain';
 import { useQualityPreset } from '@/game/state/settingsStore';
@@ -42,13 +42,15 @@ const DAWNVALE_FIREFLIES: Swarm = {
   dayOpacity: 0,
 };
 
-/** 螢苔祕林：林地裡低密度飄浮的螢光孢子（Bible §6.7 fx_forest_spore_drift），白天也看得到、夜晚更亮 */
+/**
+ * 螢苔祕林：低密度飄浮的螢光孢子（Bible §6.13 的漂浮孢子），白天也看得到、夜晚更亮。
+ * 集中在螢苔花園（浮空種子）與聚落；迷霧入口的螢火蟲「全部失去光芒」（Bible §6.3），所以那裡不放。
+ */
 const GLOWMOSS_SPORES: Swarm = {
   seed: 6160,
   areas: [
-    { x: GLOWMOSS_ORIGIN.x - 20, z: GLOWMOSS_ORIGIN.z + 10, r: 60, w: 0.6 },
-    { x: GLOWMOSS_ORIGIN.x + STONE_RING.x, z: GLOWMOSS_ORIGIN.z + STONE_RING.z, r: 14, w: 0.2 },
-    { x: GLOWMOSS_ORIGIN.x + MOSS_CROWN.x, z: GLOWMOSS_ORIGIN.z + MOSS_CROWN.z, r: 22, w: 0.2 },
+    { x: GLOWMOSS_ORIGIN.x + GLOW_GARDEN.x, z: GLOWMOSS_ORIGIN.z + GLOW_GARDEN.z, r: GLOW_GARDEN.radius + 6, w: 0.75 },
+    { x: GLOWMOSS_ORIGIN.x + MUSHROOM_VILLAGE.x, z: GLOWMOSS_ORIGIN.z + MUSHROOM_VILLAGE.z, r: MUSHROOM_VILLAGE.radius, w: 0.25 },
   ],
   color: [0.9, 2.1, 1.5],
   dayOpacity: 0.45,

@@ -4,7 +4,18 @@ import prefabsData from '@/data/prefabs.json';
 import regionsData from '@/data/regions.json';
 import { cellCenter, cellIndexAt, cellsToReveal, createExplored, decodeExplored, encodeExplored, EXPLORE_CELLS, exploredRatio, MAP_CELLS, mapCellOffset, withCells } from '../map/explore';
 import { arrivalAt, isGateOpen } from './gates';
-import { CHANNEL_CROSSINGS, CHANNEL_WATER_LEVEL, GLOWMOSS_ARRIVAL, GLOWMOSS_ORIGIN, glowmossHeight, MOSS_CROWN, STONE_RING } from './glowmossTerrain';
+import {
+  ANCIENT_ALTAR,
+  CRYSTAL_GROTTO,
+  GLOW_GARDEN,
+  GLOWMOSS_ARRIVAL,
+  GLOWMOSS_ORIGIN,
+  glowmossHeight,
+  glowmossPathDistance,
+  LAKE_EXIT,
+  MIST_ARCH,
+  MUSHROOM_VILLAGE,
+} from './glowmossTerrain';
 import { clampInsideMap, isOnMapTerrain, MAPS, mapIdAt, worldBoundaryDistance } from './maps';
 import { mistLevelAt, parseRegions, regionAt, initialMistStages } from './regions';
 import { isInsidePlayArea, defaultSafePointOptions } from './safePoints';
@@ -51,39 +62,54 @@ describe('地圖（任務 8A）', () => {
     }
   });
 
-  it('螢苔祕林的區域：預設為螢苔林地，各區有範圍，迷霧依區域混合', () => {
-    expect(regionAt(regions, G.x + GLOWMOSS_ARRIVAL.x + 4, G.z + GLOWMOSS_ARRIVAL.z)).toBe('moss_trail');
-    expect(regionAt(regions, G.x + MOSS_CROWN.x, G.z + MOSS_CROWN.z)).toBe('moss_crown');
-    expect(regionAt(regions, G.x + 76, G.z - 74)).toBe('root_maze');
-    expect(regionAt(regions, G.x + 130, G.z + 130)).toBe('moss_glade');
+  it('螢苔祕林的七個區域（任務 12B，Bible §6.3）：預設為螢苔花園，各區有範圍，迷霧依區域混合', () => {
+    const at = (x: number, z: number) => regionAt(regions, G.x + x, G.z + z);
+    expect(at(GLOWMOSS_ARRIVAL.x + 4, GLOWMOSS_ARRIVAL.z)).toBe('mist_gate');
+    expect(at(MIST_ARCH.x, MIST_ARCH.z)).toBe('mist_gate');
+    expect(at(GLOW_GARDEN.x, GLOW_GARDEN.z)).toBe('glow_garden');
+    expect(at(-26, -100)).toBe('reverse_creek');
+    expect(at(MUSHROOM_VILLAGE.x, MUSHROOM_VILLAGE.z)).toBe('mushroom_village');
+    expect(at(52, 92)).toBe('deep_mist');
+    expect(at(CRYSTAL_GROTTO.x, CRYSTAL_GROTTO.z)).toBe('crystal_grotto');
+    expect(at(ANCIENT_ALTAR.x, ANCIENT_ALTAR.z)).toBe('ancient_altar');
+    expect(at(LAKE_EXIT.x, LAKE_EXIT.z)).toBe('ancient_altar');
+    expect(at(-120, -130)).toBe('glow_garden');
     expect(regionAt(regions, 0, 18)).toBe('meadow');
-    expect(mistLevelAt(regions, initialMistStages, G.x + MOSS_CROWN.x, G.z + MOSS_CROWN.z)).toBeCloseTo(1);
+    // 入口濃霧（點亮星光燈柱後變淡）、花園淡霧
+    expect(mistLevelAt(regions, initialMistStages, G.x + MIST_ARCH.x, G.z + MIST_ARCH.z)).toBeCloseTo(1);
+    expect(mistLevelAt(regions, initialMistStages, G.x + GLOW_GARDEN.x, G.z + GLOW_GARDEN.z)).toBeCloseTo(0.5);
   });
 });
 
 describe('螢苔祕林地形', () => {
-  it('入口、石環、苔冠空地是平坦的平台', () => {
-    for (const p of [GLOWMOSS_ARRIVAL, STONE_RING, MOSS_CROWN]) {
+  it('入口、石拱門、花園、聚落、祭壇是平坦的平台', () => {
+    for (const p of [GLOWMOSS_ARRIVAL, MIST_ARCH, GLOW_GARDEN, MUSHROOM_VILLAGE, ANCIENT_ALTAR]) {
       const h = glowmossHeight(p.x, p.z);
       expect(Math.abs(glowmossHeight(p.x + 3, p.z) - h)).toBeLessThan(0.4);
       expect(Math.abs(glowmossHeight(p.x, p.z + 3) - h)).toBeLessThan(0.4);
     }
   });
 
-  it('苔冠空地外圍是山脊，只有西側開口', () => {
-    const inside = glowmossHeight(MOSS_CROWN.x, MOSS_CROWN.z);
-    const r = MOSS_CROWN.radius + 9;
-    expect(glowmossHeight(MOSS_CROWN.x, MOSS_CROWN.z - r) - inside).toBeGreaterThan(4);
-    expect(glowmossHeight(MOSS_CROWN.x + r, MOSS_CROWN.z) - inside).toBeGreaterThan(4);
-    expect(Math.abs(glowmossHeight(MOSS_CROWN.x - r, MOSS_CROWN.z) - inside)).toBeLessThan(2.5);
+  it('聚落、祭壇、祕窟外圍是山脊；小徑經過的地方是開口，祕窟沒有開口', () => {
+    const ridge = (c: { x: number; z: number; radius: number }, gap: number, angle: number) =>
+      glowmossHeight(c.x + Math.cos(angle) * (c.radius + gap), c.z + Math.sin(angle) * (c.radius + gap)) - glowmossHeight(c.x, c.z);
+    // 聚落：東、西是山脊，北面（溪谷過來）是開口
+    expect(ridge(MUSHROOM_VILLAGE, 7, 0)).toBeGreaterThan(3);
+    expect(ridge(MUSHROOM_VILLAGE, 7, Math.PI)).toBeGreaterThan(3);
+    expect(ridge(MUSHROOM_VILLAGE, 7, -Math.PI / 2)).toBeLessThan(1.5);
+    // 祭壇：東側是山脊
+    expect(ridge(ANCIENT_ALTAR, 7, 0)).toBeGreaterThan(3);
+    // 祕窟：四面都是山脊
+    for (let k = 0; k < 8; k++) expect(ridge(CRYSTAL_GROTTO, 6, (k / 8) * Math.PI * 2), `角度 ${k}`).toBeGreaterThan(3);
+    expect(glowmossPathDistance(CRYSTAL_GROTTO.x, CRYSTAL_GROTTO.z)).toBeGreaterThan(CRYSTAL_GROTTO.radius + 10);
   });
 
-  it('沒有低於水面的地方（渠道乾涸，不會落水）；渠道跨越處墊高', () => {
+  it('沒有低於水面的地方（溪谷還沒有水，不會落水）', () => {
     const grid = getTerrainGrid('glowmoss');
     let min = Infinity;
     for (const h of grid.height) min = Math.min(min, h);
-    expect(min).toBeGreaterThan(WATER_LEVEL - 0.6);
-    for (const c of CHANNEL_CROSSINGS) expect(glowmossHeight(c.x, c.z)).toBeGreaterThan(CHANNEL_WATER_LEVEL - 0.2);
+    // 共用水位 + 0.3 以下會被當成水邊（不長草、不記錄安全點、不生成怪物）
+    expect(min).toBeGreaterThan(WATER_LEVEL + 0.3);
   });
 
   it('小徑沿線的坡度可以走（< 45°）', () => {

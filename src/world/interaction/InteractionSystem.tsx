@@ -71,15 +71,18 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     [],
   );
 
-  // 開箱成功後顯示紙條（等蓋子掀開）
+  // 序章的寶箱（放出星光夥伴的那一個）打開後顯示紙條（等蓋子掀開）；其他寶箱只有取得物品的提示（任務 12B 修正：原本每個寶箱都顯示序章的紙條）
   useEffect(
     () =>
       authority.subscribe((events) => {
-        if (events.some((e) => e.type === 'ChestOpened')) {
-          scratch.pending.push({ kind: 'message', delay: MESSAGE_DELAY_SEC, message: { titleKey: 'chest.opened.title', bodyKey: 'chest.opened.body' } });
-        }
+        const prologue = events.some((e) => {
+          if (e.type !== 'ChestOpened') return false;
+          const placement = index.placement(e.placementId);
+          return placement !== undefined && index.prefab(placement.prefabId)?.contents?.unlocksCompanion === true;
+        });
+        if (prologue) scratch.pending.push({ kind: 'message', delay: MESSAGE_DELAY_SEC, message: { titleKey: 'chest.opened.title', bodyKey: 'chest.opened.body' } });
       }),
-    [scratch],
+    [scratch, index],
   );
 
   const selectTarget = (): Target | null => {

@@ -2946,20 +2946,6 @@
     "persists": false
   },
   {
-    "id": "root_wall",
-    "model": "procedural:root_wall",
-    "collider": "static",
-    "collision": {
-      "shape": "box",
-      "size": [
-        8.2,
-        2.8,
-        1.5
-      ]
-    },
-    "persists": false
-  },
-  {
     "id": "giant_mushroom",
     "model": "procedural:giant_mushroom",
     "collider": "static",
@@ -2967,17 +2953,6 @@
       "shape": "cylinder",
       "radius": 1.8,
       "height": 8
-    },
-    "persists": false
-  },
-  {
-    "id": "crescent_tree",
-    "model": "procedural:crescent_tree",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 1.15,
-      "height": 6.5
     },
     "persists": false
   },
@@ -2991,6 +2966,62 @@
       "height": 2.3
     },
     "persists": false
+  },
+  {
+    "id": "mist_arch",
+    "model": "procedural:mist_arch",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 4.2,
+        "offset": [
+          -2.8,
+          0,
+          0
+        ],
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.6,
+        "height": 4.2,
+        "offset": [
+          2.8,
+          0,
+          0
+        ],
+        "cameraIgnore": true
+      }
+    ],
+    "persists": false
+  },
+  {
+    "id": "signpost_broken",
+    "model": "procedural:signpost_broken",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 1.8
+    },
+    "interaction": "read",
+    "nameKey": "object.signpostBroken",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.mistGate.title",
+      "bodyKey": "sign.mistGate.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "glow_flowers",
+    "model": "procedural:glow_flowers",
+    "collider": "none",
+    "persists": false,
+    "cullDistance": 80,
+    "castShadow": false
   },
   {
     "id": "chest_glowmoss",
@@ -3106,42 +3137,6 @@
     "read": {
       "titleKey": "sign.glowmossGate.title",
       "bodyKey": "sign.glowmossGate.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "signpost_moss_trail",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.mossTrail.title",
-      "bodyKey": "sign.mossTrail.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "signpost_root_maze",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.rootMaze.title",
-      "bodyKey": "sign.rootMaze.body"
     },
     "persists": false
   },

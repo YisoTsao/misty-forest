@@ -44,7 +44,7 @@ export const MAPS: Readonly<Record<MapId, MapDef>> = {
     origin: { ...GLOWMOSS_ORIGIN },
     size: GLOWMOSS_SIZE,
     bounds: PLAY_BOUNDS_148,
-    defaultRegion: 'moss_glade',
+    defaultRegion: 'glow_garden',
     respawn: { x: GLOWMOSS_ORIGIN.x + GLOWMOSS_ARRIVAL.x + 4, z: GLOWMOSS_ORIGIN.z + GLOWMOSS_ARRIVAL.z },
   },
   // 澄鏡湖（任務 9A，Bible §7）

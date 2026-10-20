@@ -1,6 +1,6 @@
 // 世界地圖與小地圖的底圖（任務 7B，Bible §31.3）：由地形取樣格與世界物件畫出手繪風的俯視地圖。
 // 只在第一次開啟地圖或顯示小地圖時畫一次（約數十毫秒），之後重複使用同一張 canvas。
-import { CHANNEL_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
+import { GLOWMOSS_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
 import { MEADOW_TRAIL_HALF_WIDTH } from '@/game-core/world/meadowTerrain';
 import { MIRRORLAKE_TRAIL_HALF_WIDTH } from '@/game-core/world/mirrorlakeTerrain';
 import { isOnMapTerrain, MAPS, type MapId } from '@/game-core/world/maps';
@@ -52,7 +52,7 @@ const STYLES: Readonly<Record<MapId, MapStyle>> = {
     shore: WATER_LEVEL,
     roadHalf: PATH_HALF_WIDTH,
   },
-  // 螢苔祕林：深林綠、林間小徑、乾涸的渠道畫成泥色
+  // 螢苔祕林：深林綠、林間小徑（溪谷還沒有水，任務 12B）
   glowmoss: {
     grassLow: hex('#5f9a6a'),
     grassHigh: hex('#8fbf8a'),
@@ -64,7 +64,7 @@ const STYLES: Readonly<Record<MapId, MapStyle>> = {
     roadEdge: hex('#97764c'),
     contour: hex('#3f6a48'),
     water: null,
-    shore: CHANNEL_WATER_LEVEL - 0.4,
+    shore: GLOWMOSS_WATER_LEVEL,
     roadHalf: TRAIL_HALF_WIDTH,
   },
   // 澄鏡湖：大片湖水藍，沙岸與水草綠的草坡

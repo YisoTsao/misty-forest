@@ -16,11 +16,14 @@ export const regionIds = [
   'highland',
   'farmland',
   'river',
-  // 螢苔祕林（任務 8A，Bible §6.2）
-  'moss_trail',
-  'moss_glade',
-  'root_maze',
-  'moss_crown',
+  // 螢苔祕林（第二章，任務 12B，Bible §6.3）：A 迷霧入口、B 螢苔花園、C 倒流溪谷、D 蘑菇居民聚落、E 迷霧深層、F 星晶祕窟、G 古樹祭壇
+  'mist_gate',
+  'glow_garden',
+  'reverse_creek',
+  'mushroom_village',
+  'deep_mist',
+  'crystal_grotto',
+  'ancient_altar',
   // 澄鏡湖（任務 9A，Bible §7.2）：湖岸（含淺水石徑）、湖畔營地、倒影蘆葦島、水鏡遺構、水鏡神殿
   'lake_shore',
   'lake_camp',

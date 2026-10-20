@@ -304,34 +304,6 @@ function giantMushroom(): ForestModel {
   return { solid: merge(solid, '巨大蘑菇樹'), glow: merge(glow, '巨大蘑菇樹光點') };
 }
 
-/** 月牙樹（林地地標）：粗壯的老樹，樹冠長成一彎新月的形狀，枝頭垂著發光的苔蘚球 */
-function crescentTree(): ForestModel {
-  const rand = mulberry32(817);
-  const solid: THREE.BufferGeometry[] = [cylinder(0.65, 1.15, 6.5, [0, 0, 0], BARK, 10)];
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + 0.4;
-    solid.push(root([[Math.cos(a) * 0.8, 1.2, Math.sin(a) * 0.8], [Math.cos(a) * 1.8, 0.35, Math.sin(a) * 1.8], [Math.cos(a) * 2.7, -0.15, Math.sin(a) * 2.7]], 0.32, BARK_DARK, 0.3, 8));
-  }
-  // 兩根主枝撐起新月形的樹冠
-  solid.push(root([[0, 5.5, 0], [-1.6, 7.2, 0.2], [-2.6, 8.8, 0]], 0.42, BARK, 0.5, 8));
-  solid.push(root([[0, 5.8, 0], [1.5, 7.6, -0.2], [2.4, 9.6, 0]], 0.38, BARK, 0.5, 8));
-  const glow: THREE.BufferGeometry[] = [];
-  // 新月：沿 C 字形弧線排列的葉團，兩端漸細
-  const arcCenter = new THREE.Vector3(0.6, 9.4, 0);
-  for (let i = 0; i <= 14; i++) {
-    const t = i / 14;
-    const a = Math.PI * (0.55 + t * 1.25);
-    const thick = Math.sin(t * Math.PI);
-    const r = 3.6 - thick * 0.6;
-    const x = arcCenter.x + Math.cos(a) * r;
-    const y = arcCenter.y + Math.sin(a) * r * 0.85;
-    const size = 0.7 + thick * 1.3;
-    solid.push(sphere(size, [x, y, (rand() - 0.5) * 0.8], i % 3 === 0 ? MOSS_LIGHT : MOSS, [1, 0.85, 1.1]));
-    if (i % 2 === 0) glow.push(sphere(0.12, [x + (rand() - 0.5) * 0.6, y - size * 0.9 - 0.3, (rand() - 0.5) * 0.9], glowColor(MINT, 1.8), [1, 1.3, 1], 0));
-  }
-  return { solid: merge(solid, '月牙樹'), glow: merge(glow, '月牙樹光點') };
-}
-
 /** 發光石環的立石：苔蘚覆頂，石面刻著一圈會發光的符紋 */
 function glowStone(): ForestModel {
   const rand = mulberry32(818);
@@ -476,7 +448,117 @@ function waterWheelLever(): ForestModel {
   return { solid: merge(solid, '木輪操作桿') };
 }
 
+// ── 任務 12B：第二章 A 迷霧入口、B 螢苔花園（Bible §6.3、§6.13；參考圖 docs/art/reference/螢苔祕林/） ──
+
+const STONE = c('#9a9aa6');
+const STONE_DARK = c('#6f6f7d');
+const CRYSTAL = '#7fc8ff';
+
+/** 迷霧入口的石拱門：兩根疊石柱與一道石塊拱，拱心嵌著一顆藍色晶石，頂上覆著苔蘚；柱心距 5.6 m、高約 5.2 m，沿 X 軸跨過小徑 */
+function mistArch(): ForestModel {
+  const rand = mulberry32(1201);
+  const solid: THREE.BufferGeometry[] = [];
+  const plant: THREE.BufferGeometry[] = [];
+  const glow: THREE.BufferGeometry[] = [];
+  const span = 2.8;
+  for (const side of [-1, 1]) {
+    // 柱基與四段疊石（每段略為錯位，看得出是一塊一塊砌的）
+    const base = new THREE.BoxGeometry(1.25, 0.45, 1.25);
+    base.translate(side * span, 0.22, 0);
+    solid.push(paint(base, STONE_DARK));
+    for (let k = 0; k < 4; k++) {
+      const b = new THREE.BoxGeometry(0.95 - k * 0.03, 0.82, 0.95 - k * 0.03);
+      b.rotateY((rand() - 0.5) * 0.12);
+      b.translate(side * span + (rand() - 0.5) * 0.06, 0.45 + 0.41 + k * 0.84, (rand() - 0.5) * 0.06);
+      solid.push(paint(b, k % 2 ? STONE : STONE_DARK, 0.06, rand));
+    }
+    // 柱腳的苔蘚與小藤
+    plant.push(sphere(0.55, [side * span + side * 0.35, 0.2, 0.45], MOSS, [1.3, 0.35, 1], 1));
+  }
+  // 拱：沿半橢圓（寬 span、高 rise）排 13 塊楔石，每塊沿著拱線的切線擺放（中央那塊是拱心石）
+  const n = 13;
+  const top = 3.8;
+  const rise = 1.3;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const a = Math.PI - t * Math.PI;
+    const x = Math.cos(a) * span;
+    const y = top + Math.sin(a) * rise;
+    // 切線方向：d(x, y)/da = (−span·sin a, rise·cos a)；往右走所以取反
+    const tangent = Math.atan2(-rise * Math.cos(a), span * Math.sin(a));
+    const block = new THREE.BoxGeometry(0.78, 0.66, 0.88);
+    block.rotateZ(tangent);
+    block.translate(x, y, 0);
+    solid.push(paint(block, i === (n - 1) / 2 ? STONE_DARK : STONE, 0.05, rand));
+  }
+  // 拱頂的苔蘚
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI * (0.15 + i * 0.14);
+    plant.push(sphere(0.32 + rand() * 0.12, [Math.cos(a) * span, top + Math.sin(a) * 1.3 + 0.38, (rand() - 0.5) * 0.3], MOSS_LIGHT, [1.4, 0.45, 1.2], 1));
+  }
+  // 拱心的晶石（前後兩面都看得到）
+  const gem = new THREE.OctahedronGeometry(0.34, 0);
+  gem.scale(0.75, 1.15, 0.5);
+  gem.translate(0, top + 1.3, 0);
+  glow.push(paint(gem, glowColor(CRYSTAL, 2.2)));
+  // 柱面的符紋
+  for (const side of [-1, 1]) {
+    for (const face of [-1, 1]) {
+      const rune = new THREE.BoxGeometry(0.18, 0.5, 0.03);
+      rune.translate(side * span, 2.1, face * 0.49);
+      glow.push(paint(rune, glowColor(CRYSTAL, 1.4)));
+    }
+  }
+  return { solid: merge(solid, '石拱門'), plant: merge(plant, '石拱門的苔蘚'), glow: merge(glow, '石拱門的晶石') };
+}
+
+/** 破損的路牌：歪斜的木柱上剩一塊斜掛的牌子，另一塊掉在柱腳（+Z 面是字面） */
+function brokenSignpost(): ForestModel {
+  const wood = c('#8a5f3c');
+  const solid = [cylinder(0.08, 0.1, 1.9, [0, 0, 0], c('#6e4a2e'), 6, [0.12, 0, -0.16])];
+  const hanging = new THREE.BoxGeometry(1.1, 0.32, 0.06);
+  hanging.rotateZ(-0.38);
+  hanging.translate(0.32, 1.42, 0.12);
+  solid.push(paint(hanging, wood));
+  const fallen = new THREE.BoxGeometry(1.0, 0.3, 0.06);
+  fallen.rotateX(-Math.PI / 2 + 0.12);
+  fallen.rotateY(0.6);
+  fallen.translate(-0.45, 0.06, 0.5);
+  solid.push(paint(fallen, c('#7a5236')));
+  const plant = [sphere(0.28, [0.05, 0.08, 0.15], MOSS, [1.6, 0.4, 1.2], 1)];
+  return { solid: merge(solid, '破損的路牌'), plant: merge(plant, '路牌腳的苔蘚') };
+}
+
+/** 螢光花叢：細莖頂著下垂的鈴鐺花，花冠發出青、紫、粉三種光（Bible §6.4：螢苔與星光用青綠、湖水藍與少量的紫） */
+function glowFlowers(): ForestModel {
+  const rand = mulberry32(1203);
+  const plant: THREE.BufferGeometry[] = [];
+  const glow: THREE.BufferGeometry[] = [];
+  const colors = ['#7ff5e0', '#b48cff', '#ff9fd6', '#8fd8ff'];
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + rand() * 0.6;
+    const r = i === 0 ? 0 : 0.1 + rand() * 0.18;
+    const h = 0.32 + rand() * 0.26;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    // 莖往外彎一點
+    const lean = 0.08 + rand() * 0.06;
+    plant.push(cylinder(0.008, 0.012, h, [x, 0, z], MOSS_LIGHT, 4, [Math.sin(a) * lean, 0, -Math.cos(a) * lean]));
+    const bell = new THREE.ConeGeometry(0.05, 0.08, 6, 1, true);
+    bell.rotateX(Math.PI);
+    bell.translate(x + Math.cos(a) * h * lean, h - 0.02, z + Math.sin(a) * h * lean);
+    glow.push(paint(bell, glowColor(colors[i % colors.length]!, 1.5 + rand() * 0.5)));
+  }
+  // 根部的葉子
+  for (let k = 0; k < 5; k++) plant.push(sphere(0.06, [Math.cos(k * 1.3) * 0.12, 0.03, Math.sin(k * 1.3) * 0.12], MOSS, [1.8, 0.3, 0.8], 0));
+  return { plant: merge(plant, '螢光花的莖葉'), glow: merge(glow, '螢光花') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
+  mist_arch: mistArch,
+  signpost_broken: brokenSignpost,
+  glow_flowers: glowFlowers,
   glowmoss_patch: glowmossPatch,
   glowmoss_tuft: glowmossTuft,
   moondew: moondew,
@@ -484,7 +566,6 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   root_arch: rootArch,
   root_wall: rootWall,
   giant_mushroom: giantMushroom,
-  crescent_tree: crescentTree,
   glow_stone: glowStone,
   forest_gate: forestGate,
   trail_lantern: () => trailLantern(false),

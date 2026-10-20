@@ -46,11 +46,14 @@ export const initialMistStages: MistStages = {
   highland: 'light',
   farmland: 'clear',
   river: 'light',
-  // 螢苔祕林：入口的小徑淡霧，林地深處、根鬚迷宮與苔冠空地濃霧（第二章要逐步恢復）
-  moss_trail: 'light',
-  moss_glade: 'light',
-  root_maze: 'dense',
-  moss_crown: 'dense',
+  // 螢苔祕林（第二章）：入口濃霧（點亮星光燈柱後變淡）、花園與聚落淡霧，溪谷、深層、祕窟、祭壇濃霧
+  mist_gate: 'dense',
+  glow_garden: 'light',
+  reverse_creek: 'dense',
+  mushroom_village: 'light',
+  deep_mist: 'dense',
+  crystal_grotto: 'dense',
+  ancient_altar: 'dense',
   // 澄鏡湖：營地與湖岸淡霧（湖面薄霧白），蘆葦島、遺構、神殿濃霧（第三章要逐步恢復）
   lake_shore: 'light',
   lake_camp: 'light',

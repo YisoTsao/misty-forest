@@ -1,5 +1,5 @@
 {
-  "_comment": "任務 12A（T-185）移除的舊版螢苔祕林資料，只給測試用：頭目 AI、頭目戰的戰場物件與護盾、盤旋與縮殼行為仍是共用規則（根噬者、之後的怪物會用到）。內容取自 git 6aa3ab6 的 src/data。",
+  "_comment": "任務 12A（T-185）移除的舊版螢苔祕林資料，只給測試用：頭目 AI、頭目戰的戰場物件與護盾、盤旋與縮殼行為仍是共用規則（根噬者、之後的怪物會用到）。內容取自 git 6aa3ab6 的 src/data；區域 id 在任務 12B 改成新的祕林區域（moss_crown → ancient_altar）。",
   "enemies": [
     {
       "id": "mob_fog_moth",
@@ -147,7 +147,7 @@
   "spawners": [
     {
       "id": "crown_boss",
-      "regionId": "moss_crown",
+      "regionId": "ancient_altar",
       "enemy": "boss_moss_thump",
       "center": [
         2091,
@@ -256,7 +256,7 @@
     {
       "id": "glowmoss_crown_trough_01",
       "prefabId": "crown_trough",
-      "regionId": "moss_crown",
+      "regionId": "ancient_altar",
       "position": [
         2117.97,
         0.97,
@@ -276,7 +276,7 @@
     {
       "id": "glowmoss_crown_trough_02",
       "prefabId": "crown_trough",
-      "regionId": "moss_crown",
+      "regionId": "ancient_altar",
       "position": [
         2101.11,
         0.97,
@@ -296,7 +296,7 @@
     {
       "id": "glowmoss_crown_trough_03",
       "prefabId": "crown_trough",
-      "regionId": "moss_crown",
+      "regionId": "ancient_altar",
       "position": [
         2098.88,
         0.97,

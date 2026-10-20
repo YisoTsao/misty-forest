@@ -9,6 +9,7 @@ import { MemoryStorage } from './memoryStorage';
 import { migrateSave, SaveFormatError, type Migration } from './migrate';
 import { SAVE_VERSION, type SaveData } from './schema';
 import { createExplored, encodeExplored, exploredRatio, isCellExplored, MAP_CELLS, withCells } from '../map/explore';
+import { GLOWMOSS_ARRIVAL, GLOWMOSS_ORIGIN } from '../world/glowmossTerrain';
 
 const ctx = testContext();
 const player = { position: { x: 1.5, y: 0.9, z: -3 }, facingYaw: 0.7 };
@@ -308,8 +309,9 @@ describe('版本遷移', () => {
     const loaded = fromSaveData(v11, ctx);
     expect(loaded.warnings).toEqual([]);
     expect(loaded.state.mist.forest).toBe('clear');
-    expect(loaded.state.mist.moss_glade).toBe(initialGameState().mist.moss_glade);
-    expect(loaded.state.mist.root_maze).toBe('dense');
+    // 螢苔祕林的區域在 v19 換成第二章的七個區域（任務 12B），都補上新遊戲的初始值
+    expect(loaded.state.mist.glow_garden).toBe(initialGameState().mist.glow_garden);
+    expect(loaded.state.mist.reverse_creek).toBe('dense');
     expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
     expect(isCellExplored(loaded.state.explored, 2)).toBe(true);
     expect(exploredRatio(loaded.state.explored, 'glowmoss')).toBe(0);
@@ -340,9 +342,9 @@ describe('版本遷移', () => {
     old[MAP_CELLS / 8] = 0b10; // 螢苔祕林第 1 格
     const lakeRegions = ['lake_shore', 'lake_camp', 'reed_isle', 'mirror_ruins', 'mirror_temple'];
     const mist = Object.fromEntries(Object.entries(current.mist).filter(([id]) => !lakeRegions.includes(id)));
-    const loaded = fromSaveData({ ...current, version: 14, mist: { ...mist, moss_crown: 'clear' }, map: { explored: encodeExplored(old) } }, ctx);
+    const loaded = fromSaveData({ ...current, version: 14, mist: { ...mist, forest: 'clear' }, map: { explored: encodeExplored(old) } }, ctx);
     expect(loaded.warnings).toEqual([]);
-    expect(loaded.state.mist.moss_crown).toBe('clear');
+    expect(loaded.state.mist.forest).toBe('clear');
     expect(loaded.state.mist.mirror_temple).toBe('dense');
     expect(loaded.state.mist.lake_shore).toBe('light');
     expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
@@ -395,6 +397,24 @@ describe('版本遷移', () => {
     expect(migrated.combat.defeatedBosses).toEqual(['boss_dawn_mist_puff']);
     expect(migrated.combat.spawners).toEqual({ deepwood_sprouts: { nextSpawnAt: 9, counter: 1 } });
     expect(fromSaveData(v17, ctx).state.quests.quest_forest_001).toBeUndefined();
+  });
+
+  it('v18 存檔升到 v19：祕林的舊區域迷霧換成七個新區域；站在祕林裡的玩家移到入口，其他地圖的玩家不動（任務 12B）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const newRegions = ['mist_gate', 'glow_garden', 'reverse_creek', 'mushroom_village', 'deep_mist', 'crystal_grotto', 'ancient_altar'];
+    const mist = Object.fromEntries(Object.entries(current.mist).filter(([id]) => !newRegions.includes(id)));
+    const v18 = { ...current, version: 18, mist: { ...mist, moss_glade: 'clear', root_maze: 'light', forest: 'clear' }, player: { position: { x: 2050, y: 3, z: -70 }, facingYaw: 1 } };
+    const migrated = migrateSave(v18) as SaveData;
+    expect(Object.keys(migrated.mist)).not.toContain('moss_glade');
+    expect(migrated.mist.forest).toBe('clear');
+    expect(migrated.mist.glow_garden).toBe(initialGameState().mist.glow_garden);
+    expect(migrated.mist.mist_gate).toBe('dense');
+    expect(migrated.player.position.x).toBeCloseTo(GLOWMOSS_ORIGIN.x + GLOWMOSS_ARRIVAL.x);
+    expect(migrated.player.position.z).toBeCloseTo(GLOWMOSS_ORIGIN.z + GLOWMOSS_ARRIVAL.z);
+    expect(migrated.player.facingYaw).toBeCloseTo(Math.PI / 2);
+    const dawn = migrateSave({ ...v18, player: { position: { x: 5, y: 1, z: 6 }, facingYaw: 1 } }) as SaveData;
+    expect(dawn.player).toEqual({ position: { x: 5, y: 1, z: 6 }, facingYaw: 1 });
+    expect(fromSaveData(v18, ctx).warnings).toEqual([]);
   });
 
   it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {
