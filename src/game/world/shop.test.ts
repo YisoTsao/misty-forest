@@ -47,10 +47,10 @@ describe('商店資料', () => {
     expect(() => parseShops([{ id: 's', nameKey: 'x', npc: 'nobody', stock: [{ itemId: 'wood', price: 1 }], buys: [] }], refs)).toThrow(/NPC/);
   });
 
-  it('庫存依任務進度解鎖：琳娜的任務完成後才進月露藥膏', () => {
+  it('庫存依任務進度解鎖：第一章完成後才進月露藥膏（任務 12A）', () => {
     const before = availableStock(shop, {}).map((s) => s.itemId);
     expect(before).not.toContain('moondew_salve');
-    expect(availableStock(shop, { quest_forest_001: { status: 'completed' } }).map((s) => s.itemId)).toContain('moondew_salve');
+    expect(availableStock(shop, { quest_dawn_003: { status: 'completed' } }).map((s) => s.itemId)).toContain('moondew_salve');
   });
 
   it('米菈的對話有「看看補給品」', () => {

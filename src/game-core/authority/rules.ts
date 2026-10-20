@@ -18,7 +18,6 @@ import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 import { targetsToLight, type LightPathDef } from '../world/lightPath';
-import { outletsToWake, type WaterwayDef } from '../world/waterway';
 import { availableStock, COIN, MAX_TRADE, type ShopCatalog } from '../shop/shop';
 import type { CraftData } from '../craft/craft';
 
@@ -206,7 +205,7 @@ export type GameEvent =
   | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
-  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'water' | 'quest' | 'light' }
+  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'quest' | 'light' }
   | { type: 'ObjectTurned'; placementId: string; turn: number }
   | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
   | { type: 'EnemyDespawned'; enemyId: string }
@@ -256,8 +255,6 @@ export type RulesContext = {
   crafting?: CraftData;
   /** 商店（任務 7H）；省略時沒有商店 */
   shops?: ShopCatalog;
-  /** 水道謎題（任務 8C）；省略時沒有水道 */
-  waterways?: readonly WaterwayDef[];
   /** 水鏡光路（任務 9D） */
   lightPaths?: readonly LightPathDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
@@ -304,11 +301,11 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
     case 'RepairObject':
-      return withWater(state, repairObject(state, cmd.placementId, ctx), ctx);
+      return repairObject(state, cmd.placementId, ctx);
     case 'ActivateObject':
-      return withWater(state, activateObject(state, cmd.placementId, ctx), ctx);
+      return activateObject(state, cmd.placementId, ctx);
     case 'TurnObject':
-      return withLight(state, withWater(state, turnObject(state, cmd.placementId, ctx), ctx), ctx);
+      return withLight(state, turnObject(state, cmd.placementId, ctx), ctx);
     case 'AttackEnemy':
       return attackEnemy(state, cmd.enemyId, cmd.attack, ctx, cmd.stance);
     case 'CastSpell': {
@@ -549,17 +546,6 @@ function turnObject(state: GameState, placementId: string, ctx: RulesContext): G
   if (spec.quest && state.quests[spec.quest]?.status !== 'active') return reject('TurnObject', 'quest-unavailable', placementId);
   const turn = ((state.objects.get(placementId)?.turn ?? 0) + 1) % spec.positions;
   return [{ type: 'ObjectTurned', placementId, turn }];
-}
-
-/**
- * 水道（任務 8C）：機關改變後重新計算水流；水流到還沒喚醒的苔蘚節點時一併送出啟動事件。
- * 指令被拒絕時不加任何事件。
- */
-function withWater(state: GameState, events: GameEvent[], ctx: RulesContext): GameEvent[] {
-  if (!ctx.waterways?.length || events.some((e) => e.type === 'CommandRejected')) return events;
-  const next = applyEvents(state, events, ctx);
-  for (const placementId of outletsToWake(ctx.waterways, next.objects)) events.push({ type: 'ObjectActivated', placementId, source: 'water' });
-  return events;
 }
 
 /** 水鏡光路（任務 9D）：轉動水鏡後重新追光；光照到還沒啟動的終點（湖底閘門）時一併送出啟動事件 */

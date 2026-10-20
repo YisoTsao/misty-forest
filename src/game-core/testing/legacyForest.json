@@ -1,0 +1,317 @@
+{
+  "_comment": "任務 12A（T-185）移除的舊版螢苔祕林資料，只給測試用：頭目 AI、頭目戰的戰場物件與護盾、盤旋與縮殼行為仍是共用規則（根噬者、之後的怪物會用到）。內容取自 git 6aa3ab6 的 src/data。",
+  "enemies": [
+    {
+      "id": "mob_fog_moth",
+      "nameKey": "enemy.mob_fog_moth",
+      "maxHp": 34,
+      "damage": 7,
+      "moveSpeed": 3.6,
+      "aggroRadius": 10,
+      "attackRange": 1.7,
+      "attackWindup": 0.6,
+      "attackCooldown": 1.8,
+      "leashRadius": 18,
+      "lootTableId": "mob_fog_moth_drop",
+      "procedural": "fog_moth",
+      "behavior": {
+        "kind": "orbit",
+        "radius": 3.2,
+        "sec": 2.4,
+        "speed": 4
+      }
+    },
+    {
+      "id": "mob_root_beetle",
+      "nameKey": "enemy.mob_root_beetle",
+      "maxHp": 80,
+      "damage": 13,
+      "moveSpeed": 2.6,
+      "aggroRadius": 8,
+      "attackRange": 2.0,
+      "attackWindup": 0.75,
+      "attackCooldown": 2.2,
+      "leashRadius": 16,
+      "lootTableId": "mob_root_beetle_drop",
+      "lunge": 8,
+      "procedural": "root_beetle",
+      "behavior": {
+        "kind": "shell",
+        "guardSec": 1.6,
+        "guardScale": 0.25,
+        "recoverSec": 1.4,
+        "recoverScale": 1.5
+      }
+    },
+    {
+      "id": "boss_moss_thump",
+      "nameKey": "enemy.boss_moss_thump",
+      "maxHp": 900,
+      "damage": 14,
+      "moveSpeed": 2.4,
+      "aggroRadius": 30,
+      "attackRange": 3,
+      "attackWindup": 1,
+      "attackCooldown": 2,
+      "leashRadius": 30,
+      "lootTableId": "boss_moss_thump_drop",
+      "hitRadius": 1.8,
+      "boss": {
+        "arena": {
+          "center": [
+            2100,
+            46
+          ],
+          "radius": 22,
+          "trigger": 18
+        },
+        "home": [
+          2091,
+          46
+        ],
+        "avoid": {
+          "center": [
+            2100,
+            46
+          ],
+          "radius": 2.2
+        },
+        "requires": {
+          "questActive": "quest_forest_003"
+        },
+        "gate": {
+          "center": [
+            2073,
+            46
+          ],
+          "width": 22,
+          "yaw": 1.5708
+        },
+        "retryAt": [
+          2063,
+          46
+        ],
+        "troughs": [
+          "glowmoss_crown_trough_01",
+          "glowmoss_crown_trough_02",
+          "glowmoss_crown_trough_03"
+        ],
+        "shield": [
+          0.15,
+          0.4,
+          0.7,
+          1
+        ],
+        "introSec": 2.8,
+        "moveSpeed": 2.4,
+        "phase2Below": 0.5,
+        "phase2Cooldown": 0.7,
+        "recoverScale": 1.4,
+        "guard": {
+          "afterHits": 6,
+          "sec": 2.2,
+          "scale": 0.15
+        },
+        "moves": {
+          "spikes": {
+            "windup": 1.1,
+            "damage": 14,
+            "radius": 1.3,
+            "count": 3,
+            "count2": 5,
+            "spread": 3.2,
+            "cooldown": 1.8
+          },
+          "slam": {
+            "windup": 0.8,
+            "air": 0.75,
+            "damage": 20,
+            "radius": 4,
+            "recoverSec": 1.6,
+            "minRange": 6,
+            "cooldown": 2
+          },
+          "spores": {
+            "windup": 1.2,
+            "damage": 6,
+            "range": 7,
+            "arcDeg": 70,
+            "slowSec": 3,
+            "slowScale": 0.5,
+            "cooldown": 2.2
+          }
+        }
+      }
+    }
+  ],
+  "spawners": [
+    {
+      "id": "crown_boss",
+      "regionId": "moss_crown",
+      "enemy": "boss_moss_thump",
+      "center": [
+        2091,
+        46
+      ],
+      "radius": 4,
+      "budget": {
+        "dense": 1,
+        "light": 1,
+        "clear": 1
+      },
+      "respawnSec": 1,
+      "manual": true
+    }
+  ],
+  "lootTables": [
+    {
+      "id": "mob_fog_moth_drop",
+      "drops": [
+        {
+          "itemId": "glow_pollen",
+          "min": 1,
+          "max": 1,
+          "chance": 0.65
+        },
+        {
+          "itemId": "mist_gel",
+          "min": 1,
+          "max": 1,
+          "chance": 0.2
+        }
+      ]
+    },
+    {
+      "id": "mob_root_beetle_drop",
+      "drops": [
+        {
+          "itemId": "root_fiber",
+          "min": 1,
+          "max": 2,
+          "chance": 0.7
+        },
+        {
+          "itemId": "wood",
+          "min": 1,
+          "max": 1,
+          "chance": 0.3
+        }
+      ]
+    },
+    {
+      "id": "boss_moss_thump_drop",
+      "drops": [
+        {
+          "itemId": "moss_cap",
+          "min": 1,
+          "max": 1
+        },
+        {
+          "itemId": "starlight_shard",
+          "min": 4,
+          "max": 5
+        },
+        {
+          "itemId": "glow_pollen",
+          "min": 2,
+          "max": 3
+        }
+      ]
+    }
+  ],
+  "prefabs": [
+    {
+      "id": "crown_trough",
+      "model": "procedural:crown_trough",
+      "collider": "static",
+      "collision": {
+        "shape": "box",
+        "size": [
+          2.4,
+          0.7,
+          1.2
+        ]
+      },
+      "interaction": "activate",
+      "nameKey": "object.crownTrough",
+      "verbKey": "interact.pourWater",
+      "interactRadius": 2.6,
+      "activate": {
+        "model": "procedural:crown_trough_full",
+        "collision": {
+          "shape": "box",
+          "size": [
+            2.4,
+            0.7,
+            1.2
+          ]
+        },
+        "boss": "boss_moss_thump",
+        "anim": "interact"
+      },
+      "persists": true
+    }
+  ],
+  "placements": [
+    {
+      "id": "glowmoss_crown_trough_01",
+      "prefabId": "crown_trough",
+      "regionId": "moss_crown",
+      "position": [
+        2117.97,
+        0.97,
+        44.89
+      ],
+      "rotation": [
+        0,
+        -1.51,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "glowmoss_crown_trough_02",
+      "prefabId": "crown_trough",
+      "regionId": "moss_crown",
+      "position": [
+        2101.11,
+        0.97,
+        63.97
+      ],
+      "rotation": [
+        0,
+        -3.08,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "glowmoss_crown_trough_03",
+      "prefabId": "crown_trough",
+      "regionId": "moss_crown",
+      "position": [
+        2098.88,
+        0.97,
+        28.03
+      ],
+      "rotation": [
+        0,
+        0.06,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ]
+}

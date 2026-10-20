@@ -74,7 +74,62 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
   },
   // v16 → v17：加入職業（使用者 2026-10-17）；舊存檔是原本唯一的角色星光旅人，武器不變
   16: (data) => ({ ...data, loadout: { ...(data.loadout as Record<string, unknown>), heroClass: DEFAULT_HERO_CLASS } }),
+  // v17 → v18：第二章改版（任務 12A，T-185）移除舊版螢苔祕林。任務 id quest_forest_001–003 之後由新主線沿用，
+  // 舊紀錄要清掉，否則新任務一開始就是已完成；芽之共鳴改在新主線取得。機關、苔咚與舊生成點一併清掉（讀檔時本來也會略過）。
+  17: (data) => {
+    const quests = Object.fromEntries(Object.entries((data.quests ?? {}) as Record<string, unknown>).filter(([id]) => !RETIRED_FOREST_QUESTS.has(id)));
+    const world = data.world as { objects?: { placementId?: unknown }[] } | undefined;
+    const inventory = data.inventory as { slots?: ({ itemId?: unknown } | null)[] } | undefined;
+    const combat = data.combat as { defeatedBosses?: unknown[]; spawners?: Record<string, unknown> } | undefined;
+    return {
+      ...data,
+      quests,
+      world: { ...world, objects: (world?.objects ?? []).filter((o) => !RETIRED_FOREST_OBJECTS.has(String(o.placementId))) },
+      inventory: { ...inventory, slots: (inventory?.slots ?? []).map((s) => (s && s.itemId === 'seed_resonance_bud' ? null : s)) },
+      combat: {
+        ...combat,
+        defeatedBosses: (combat?.defeatedBosses ?? []).filter((id) => id !== 'boss_moss_thump'),
+        spawners: Object.fromEntries(Object.entries(combat?.spawners ?? {}).filter(([id]) => !RETIRED_FOREST_SPAWNERS.has(id))),
+      },
+    };
+  },
 };
+
+/** 任務 12A 移除的舊版螢苔祕林任務、物件與生成點（Bible §6.15） */
+const RETIRED_FOREST_QUESTS: ReadonlySet<string> = new Set(['quest_forest_001', 'quest_forest_002', 'quest_forest_003']);
+const RETIRED_FOREST_OBJECTS: ReadonlySet<string> = new Set([
+  'glowmoss_channel_breach',
+  'glowmoss_channel_roots',
+  'glowmoss_crown_roots',
+  'glowmoss_crown_trough_01',
+  'glowmoss_crown_trough_02',
+  'glowmoss_crown_trough_03',
+  'glowmoss_lake_roots',
+  'glowmoss_lake_sign',
+  'glowmoss_lantern_01',
+  'glowmoss_lantern_02',
+  'glowmoss_lantern_03',
+  'glowmoss_moss_node_01',
+  'glowmoss_moss_node_02',
+  'glowmoss_moss_node_03',
+  'glowmoss_root_stone',
+  'glowmoss_signpost_channel',
+  'glowmoss_signpost_crown',
+  'glowmoss_water_gate_01',
+  'glowmoss_water_gate_02',
+  'glowmoss_water_wheel',
+]);
+const RETIRED_FOREST_SPAWNERS: ReadonlySet<string> = new Set([
+  'glade_moths',
+  'ring_moths',
+  'trail_moths',
+  'maze_beetles',
+  'channel_beetles',
+  'glade_sprouts',
+  'maze_sprouts',
+  'crown_boss',
+  'crescent_sprouts',
+]);
 
 /** 序章寶箱（placements.json 的 meadow_chest_001，prefab contents.unlocksCompanion） */
 const COMPANION_CHEST = 'meadow_chest_001';

@@ -368,15 +368,15 @@
   {
     "id": "linna",
     "nameKey": "npc.linna",
-    "regionId": "moss_trail",
+    "regionId": "village",
     "model": "procedural:villager_linna",
     "scale": 1,
     "hiddenNodes": [],
     "position": [
-      1892,
-      -5
+      -10,
+      -29.6
     ],
-    "facingYaw": -1.1,
+    "facingYaw": -1.6,
     "interactRadius": 2.4,
     "talk": [
       {
@@ -445,37 +445,6 @@
         "dialogue": "linna_letter"
       },
       {
-        "when": {
-          "type": "questReady",
-          "quest": "quest_forest_001"
-        },
-        "dialogue": "linna_forest1_turnin"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_001",
-          "is": "active"
-        },
-        "dialogue": "linna_forest1_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_002",
-          "is": "completed"
-        },
-        "dialogue": "linna_after_water"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_001",
-          "is": "completed"
-        },
-        "dialogue": "linna_after_path"
-      },
-      {
         "dialogue": "linna_intro"
       }
     ]
@@ -483,15 +452,15 @@
   {
     "id": "kiki",
     "nameKey": "npc.kiki",
-    "regionId": "moss_glade",
+    "regionId": "lake_camp",
     "model": "procedural:villager_kiki",
     "scale": 1,
     "hiddenNodes": [],
     "position": [
-      2016,
-      -14
+      3897,
+      8
     ],
-    "facingYaw": -1.1,
+    "facingYaw": 3.1,
     "interactRadius": 2.4,
     "talk": [
       {
@@ -526,108 +495,7 @@
         "dialogue": "kiki_after_lake"
       },
       {
-        "when": {
-          "type": "questReady",
-          "quest": "quest_forest_003"
-        },
-        "dialogue": "kiki_guard_turnin"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_003",
-          "is": "active"
-        },
-        "dialogue": "kiki_guard_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_003",
-          "is": "completed"
-        },
-        "dialogue": "kiki_after_guard"
-      },
-      {
-        "when": {
-          "type": "questReady",
-          "quest": "quest_forest_002"
-        },
-        "dialogue": "kiki_water_turnin"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_002",
-          "is": "active"
-        },
-        "dialogue": "kiki_water_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_003",
-          "is": "available"
-        },
-        "dialogue": "kiki_guard_offer"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_002",
-          "is": "completed"
-        },
-        "dialogue": "kiki_after_water"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_002",
-          "is": "available"
-        },
-        "dialogue": "kiki_water_offer"
-      },
-      {
         "dialogue": "kiki_intro"
-      }
-    ]
-  },
-  {
-    "id": "moss_thump",
-    "nameKey": "npc.moss_thump",
-    "regionId": "moss_crown",
-    "model": "procedural:moss_thump",
-    "scale": 0.34,
-    "hiddenNodes": [],
-    "visible": {
-      "type": "bossDefeated",
-      "boss": "boss_moss_thump"
-    },
-    "voice": "bubble",
-    "position": [
-      2094.5,
-      51
-    ],
-    "facingYaw": -1.5708,
-    "interactRadius": 2.6,
-    "talk": [
-      {
-        "when": {
-          "type": "questReady",
-          "quest": "quest_forest_003"
-        },
-        "dialogue": "moss_thump_restored"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_003",
-          "is": "active"
-        },
-        "dialogue": "moss_thump_stone"
-      },
-      {
-        "dialogue": "moss_thump_restored"
       }
     ]
   },
@@ -871,6 +739,14 @@
       {
         "when": {
           "type": "questStatus",
+          "quest": "quest_dawn_007",
+          "is": "available"
+        },
+        "dialogue": "orin_shadow_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
           "quest": "quest_lake_001",
           "is": "available"
         },
@@ -883,14 +759,6 @@
           "is": "completed"
         },
         "dialogue": "orin_after"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_dawn_007",
-          "is": "available"
-        },
-        "dialogue": "orin_shadow_offer"
       },
       {
         "dialogue": "orin_intro"

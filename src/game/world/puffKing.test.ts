@@ -25,7 +25,6 @@ const ctx: RulesContext = {
   weapons: data.weapons,
   spells: data.spells,
   buildables: data.buildables,
-  waterways: data.waterways,
   allowDebugCommands: true,
 };
 const BOSS = 'boss_dawn_mist_puff';

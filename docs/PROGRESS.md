@@ -1,7 +1,7 @@
 # 開發進度
 
 ## 目前階段
-**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行。**
+**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行：**12A 完成**（移除舊版祕林、存檔 v18），下一步 12B 新地形（迷霧入口＋螢苔花園一角）。**
 
 **Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）、11D（部署：Vercel + Render 上線，2026-10-15 使用者以兩個瀏覽器在正式網址驗收連線成功）、11E（攻擊與施法的同步）、11F（聊天）完成。正式網址 https://mistwood-blue.vercel.app。路線圖（使用者 2026-10-16 決定）：聊天 → 登入與雲端存檔（11G）→ 日光與資源共享 → 怪物共享 → 手機版（先做能玩）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
@@ -31,6 +31,15 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 12A：移除舊版螢苔祕林、存檔 v18（2026-10-20，分支 `wip/ch2-glowmoss`）
+- 資料：移除 `quest_forest_001`–`003`、苔咚（`boss_moss_thump`）、霧孢飛蛾、根鬚甲蟲與祕林的 9 個生成點（迷霧芽怪留在晨曦谷地）、13 種舊任務物件的 prefab 與 20 個 placement（`gen-glowmoss.ts` 輸出時濾掉，地形與點綴保留到 12B）、水道（`waterways.json`、`waterway.ts`、`Waterway.tsx`、`waterwayRuntime.ts`）、`MossThump.tsx`、林間水道地標、只屬於舊任務的對話、芽芽提示與 98 個翻譯 key。
+- 琳娜搬回晨曦村（米菈旁），對話一開始就有「借用草藥桌」，送信改在村裡交；奇奇搬到澄鏡湖營地（伊芙旁），接 `quest_lake_002` 的流程不變。月露藥膏的配方與商店改為第一章完成後解鎖。
+- 過渡條件（T-187）：澄鏡湖入口與 `quest_lake_001` 只要求 `quest_dawn_003`；奧林的對話把「燈塔下的影子」排在澄鏡湖委託之前（否則第一章一完成就被推去澄鏡湖）。
+- 存檔 v18：清掉舊森林任務紀錄（新主線會沿用 `quest_forest_001`–`003` 的 id）、芽之共鳴、20 個舊物件、苔咚的擊敗紀錄與舊生成點。
+- 共用規則的測試保留：頭目 AI、戰場物件與護盾、盤旋與縮殼行為改用測試樣本 `src/game-core/testing/legacyForest.{json,ts}`（從 git 取出的舊資料）；刪除 `forestGuard.test`、`forestQuests.test`、`waterway.test`。
+- e2e：刪除 `boss`、`forestguard`、`forestquest`、`forestmobs`（`e2e:all` 剩 42 個）；`craft`、`letters`、`mirrorlake`、`lakequest`、`lightpuzzle`、`liyi`、`puffking` 改前置條件。截圖腳本移除 `--waterway`、`--boss`、`--guardian`。`mistwood-verify` 對照表與 CLAUDE.md 同步。
+- 測試：`pnpm check`（Vitest 940 項）、`pnpm build` 通過。e2e 跑 14 個受影響的 suite：`save`、`craft`、`letters`、`mirrorlake`、`lakequest`、`lightpuzzle`、`liyi`、`puffking`、`cellar`、`glowmoss`、`map`、`monsters`、`npc` 全過；`world` 的「迷霧時畫面去飽和」失敗 1 項（0.822 → 0.871），**改動前的版本在同一時間也失敗**（0.817 → 0.870），見「已知問題」。沒有截圖（12A 只移除內容，12B 換地形時再拍）。
+
 ### 第二章 Phase 0：盤點（2026-10-20）
 - `docs/chapter02/PHASE0_INVENTORY.md`：技術盤點（重用 / 擴充 / 新建）、資產盤點、差距清單、裝備系統規劃、Phase 1 拆成 12A–12E 與檔案變更計畫。
 - 重點：prefab 的 `activate`（可消耗物品）、`turn`、`read`、`harvest` 與任務系統已涵蓋燈柱、水輪、石碑、採集點；`lightPath.ts` 可做星晶反射；史萊姆可用 `spit` ＋ `splitInto`。沒有：翻滾閃避、迷霧持續傷害、可推動石塊與壓力板、圖鑑、裝備層（武器是 7 種固定類型，`water_charm` 效果寫死在 `Player.tsx`）。
@@ -588,6 +597,8 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 5. **LINE 登入**：`Error getting user profile from external provider`，請確認 LINE 頻道是 Published、Email address permission 已通過，或換有綁定信箱的 LINE 帳號再試。
 
 ## 已知問題
+- **`world.e2e`「迷霧滑桿：迷霧時畫面明顯去飽和」與時間有關**（2026-10-20 發現）：日光改看共享世界時鐘（T-181）後，測試沒有固定時刻；在遊戲夜晚執行時迷霧反而讓飽和度變高（0.817 → 0.870），改動前的版本同樣失敗。修法：測試開始時 `setClock` 到白天。
+- **第二章過渡期（12A–12E）**：螢苔祕林目前沒有怪物、沒有任務，只有地形、點綴與採集點；`activate.afterBoss`（擊敗頭目後才能啟動）沒有資料在用、也沒有測試，根噬者用到時補。
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。

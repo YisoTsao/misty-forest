@@ -24,7 +24,7 @@
         "itemId": "moondew_salve",
         "price": 15,
         "requires": {
-          "questCompleted": "quest_forest_001"
+          "questCompleted": "quest_dawn_003"
         }
       },
       {

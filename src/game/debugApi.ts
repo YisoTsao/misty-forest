@@ -19,11 +19,9 @@ import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { audio } from './audio/audioEngine';
-import { authority, buildables, lightPaths, quests, regions, waterways, worldIndex } from './authority';
+import { authority, buildables, lightPaths, quests, regions, worldIndex } from './authority';
 import { traceLight } from '@/game-core/world/lightPath';
 import { lightPathRuntime } from './world/lightPathRuntime';
-import { waterwayFlow } from '@/game-core/world/waterway';
-import { waterwayRuntime } from './world/waterwayRuntime';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
 import { attackEnemy, combatRuntime, enemyRuntime, enemyY } from './combat/combatRuntime';
@@ -195,7 +193,6 @@ export type MistwoodDebugApi = {
   windowGlow: () => { glow: number; patched: number; compiled: number };
   /** 建造物目前的成長階段（任務 7K 花圃；不會長大的為 0） */
   buildingStage: (id: string) => number | null;
-  waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; yaw: number; state: string; hp: number; anim: string | null }[];
   /** 以玩家的招式打敵人（附上敵人目前的姿態，與實際出招相同；任務 8B 甲蟲縮殼） */
@@ -482,11 +479,6 @@ export function installDebugApi(): void {
     slowPlayer: (sec, scale) => {
       combatRuntime.slow.remaining = sec;
       combatRuntime.slow.scale = scale;
-    },
-    waterway: () => {
-      const def = waterways[0];
-      if (!def) return null;
-      return { ...waterwayFlow(def, authority.getState().objects), ...waterwayRuntime, flumeReach: [...waterwayRuntime.flumeReach] };
     },
     setQuestCompleted: (id) => {
       if (!quests.has(id)) throw new Error(`未知的任務：${id}`);

@@ -14,7 +14,6 @@ import { parseInteriors, type InteriorDef } from './interiors';
 import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
 import { parseLightPaths, type LightPathDef } from './lightPath';
-import { parseWaterways, type WaterwayDef } from './waterway';
 import { parseShops, type ShopDef } from '../shop/shop';
 import { parseCraftData, type CraftData } from '../craft/craft';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
@@ -38,8 +37,6 @@ export type GameData = WorldData & {
   spells: SpellCatalog;
   /** 世界地圖的地標（任務 7B） */
   landmarks: readonly Landmark[];
-  /** 水道謎題（任務 8C） */
-  waterways: readonly WaterwayDef[];
   lightPaths: readonly LightPathDef[];
   /** 商店（任務 7H） */
   shops: ReadonlyMap<string, ShopDef>;
@@ -67,8 +64,6 @@ export function parseGameData(raw: {
   spells: unknown;
   /** 省略時沒有地標（測試用的最小資料） */
   landmarks?: unknown;
-  /** 省略時沒有水道（測試用的最小資料） */
-  waterways?: unknown;
   lightPaths?: unknown;
   shops?: unknown;
   crafting?: unknown;
@@ -198,24 +193,6 @@ export function parseGameData(raw: {
       if (questId && !quests.has(questId)) throw new WorldDataError(`頭目 ${e.id} 的開戰條件參照不存在的任務：${questId}`);
     }
   }
-  let waterways: WaterwayDef[];
-  try {
-    waterways = parseWaterways(raw.waterways ?? [], new Set(world.placements.map((p) => p.id)));
-  } catch (err) {
-    throw new WorldDataError(`waterways 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
-  }
-  for (const w of waterways) {
-    const wheel = world.prefabs.get(placementsById.get(w.wheel)?.prefabId ?? '');
-    if (wheel?.turn?.positions !== w.outlets.length) throw new WorldDataError(`水道 ${w.id} 的水輪位置數與節點數不同`);
-    const prefabOf = (id: string) => world.prefabs.get(placementsById.get(id)?.prefabId ?? '');
-    for (const id of w.outlets) {
-      if (!prefabOf(id)?.activate) throw new WorldDataError(`水道 ${w.id} 的節點不是可啟動的物件：${id}`);
-    }
-    for (const id of w.blockers) {
-      const p = prefabOf(id);
-      if (!p?.activate && !p?.repair) throw new WorldDataError(`水道 ${w.id} 的阻擋點不能排除（需要 activate 或 repair）：${id}`);
-    }
-  }
   let lightPaths: LightPathDef[];
   try {
     lightPaths = parseLightPaths(raw.lightPaths ?? [], new Set(world.placements.map((p) => p.id)));
@@ -239,5 +216,5 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`crafting 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways, lightPaths, shops, crafting };
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, lightPaths, shops, crafting };
 }

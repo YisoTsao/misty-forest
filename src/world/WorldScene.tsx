@@ -49,7 +49,6 @@ import { MirrorPuzzle } from './water/MirrorPuzzle';
 import { Water } from './water/Water';
 import { LighthouseBeam } from './dawn/LighthouseBeam';
 import { WindowGlowDriver } from './dawn/WindowGlowDriver';
-import { Waterway } from './water/Waterway';
 import { GrassField } from './vegetation/GrassField';
 import { WorldPlacements } from './vegetation/WorldPlacements';
 
@@ -115,9 +114,6 @@ export function WorldScene({ data }: { data: WorldData }) {
         </MapOnly>
         <MapOnly map="glowmoss">
           <GrassField index={index} map="glowmoss" />
-          <AssetBoundary name="waterway">
-            <Waterway />
-          </AssetBoundary>
           <MistWall map="glowmoss" />
           <Fireflies kind="spores" />
         </MapOnly>

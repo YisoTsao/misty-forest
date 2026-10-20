@@ -14,7 +14,6 @@ import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import type { Landmark } from '@/game-core/map/markers';
 import type { LightPathDef } from '@/game-core/world/lightPath';
-import type { WaterwayDef } from '@/game-core/world/waterway';
 import { initialGameState } from '@/game-core/authority/rules';
 import { parseHeroClasses, type HeroClassCatalog } from '@/game-core/character/heroClass';
 import classesRaw from '@/data/classes.json';
@@ -43,7 +42,6 @@ const data = worldDataResult.ok
       weapons: { weapons: new Map(), moves: new Map() } as WeaponCatalog,
       spells: new Map() as SpellCatalog,
       landmarks: [] as Landmark[],
-      waterways: [] as WaterwayDef[],
       lightPaths: [] as LightPathDef[],
       shops: new Map() as ShopCatalog,
       crafting: { stations: [], recipes: [] } as CraftData,
@@ -71,8 +69,6 @@ export const flocks: readonly FlockDef[] = data.flocks;
 /** 世界地圖的地標（任務 7B） */
 export const landmarks: readonly Landmark[] = data.landmarks;
 
-/** 水道謎題（任務 8C） */
-export const waterways: readonly WaterwayDef[] = data.waterways;
 export const lightPaths: readonly LightPathDef[] = data.lightPaths;
 
 /** 商店（任務 7H） */
@@ -101,7 +97,6 @@ export const authority = new LocalAuthority(initialGameState(), {
   spells: data.spells,
   heroClasses,
   buildables: data.buildables,
-  waterways: data.waterways,
   lightPaths: data.lightPaths,
   shops: data.shops,
   crafting: data.crafting,

@@ -12,7 +12,6 @@ import { playerRuntime } from '@/game/player/localRuntime';
 import { currentScreen } from '@/game/state/gameStore';
 import { assetUrl } from '@/game/worldData';
 import { AssetBoundary } from '../../AssetBoundary';
-import { MossThumpBuddy } from '../enemy/MossThump';
 import { PuffBuddy } from '../enemy/PuffKing';
 import { prepareModel } from '../player/CharacterModel';
 import { AnimalVillager } from './AnimalVillager';
@@ -53,7 +52,6 @@ function NpcBody({ def }: { def: NpcDef }) {
 
 /** 程式造型的 NPC（目前只有苔咚）：固定站位，對話時轉向玩家 */
 const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => boolean) => ReactNode }> = {
-  moss_thump: { radius: 0.55, render: (talking) => <MossThumpBuddy talking={talking} /> },
   puff: { radius: 0.45, render: (talking) => <PuffBuddy talking={talking} /> },
   horn_bunny: { radius: 0.2, render: (talking) => <HornBunny talking={talking} /> },
   owl_scholar: { radius: 0.4, render: (talking) => <OwlScholar talking={talking} /> },

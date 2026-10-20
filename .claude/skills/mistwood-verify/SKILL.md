@@ -4,7 +4,7 @@ description: Mistwood 專案的分層驗證流程。完成任何程式改動、�
 ---
 # 分層驗證
 
-e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑約 50 分鐘，所以只跑改動範圍內的 suite。
+e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），42 個全跑約 45 分鐘，所以只跑改動範圍內的 suite。
 
 ## 每次改動後（L1，秒級）
 `pnpm vitest related <改過的檔案> --run`
@@ -29,7 +29,7 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 戰鬥、敵人、掉落（`game/combat`、`world/combat`） | `combat`、`melee` | `--combat` / `--melee` |
 | 魔法（星光衝擊、流星雨） | `magic` | `--magic` |
 | 怪物模型與生成 | `monsters` | `--monsters` |
-| 怪物行為（盤旋、縮殼、吐泥，`enemyAi` 的 behavior）、程式造型怪物（`CritterEnemy`）、泥團 | `forestmobs`（改到共用 AI 時加 `combat`） | `--monsters --enemies=<id>` |
+| 怪物行為（盤旋、縮殼、吐泥，`enemyAi` 的 behavior）、程式造型怪物（`CritterEnemy`）、泥團 | `monsters`、`lakemobs`（改到共用 AI 時加 `combat`；舊的 `forestmobs` 在任務 12A 移除，12D 螢苔史萊姆時重建） | `--monsters --enemies=<id>` |
 | 建造（湖心島） | `build` | `--build` |
 | 酒館與室內子場景 | `tavern` | `--tavern` |
 | 日夜、天空、光照（`world/sky`、`GameClock`、`render/timeLook`、村屋窗燈 `render/windowGlow`） | `daynight` | `--daynight` |
@@ -38,9 +38,9 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 手把 | `gamepad` | `--gamepad` |
 | 設定、按鍵重新配置 | `settings` | `--menu` |
 | 燈塔地窖（`quest_dawn_007`、奧林、出入口 `requires` 的 `questActive` / `night`、第二個室內子場景、石環） | `cellar`（改到室內或出入口時加 `tavern`、`lighthouse`、`glowmoss`） | `--cellar`（室內要從地窖門走進去，直接傳送不會關掉戶外的霧） |
-| 河邊的腳印（`quest_dawn_006`、沒有發起人的任務與自動完成、`activate` 的 `startsQuest` / `consume` / `after`、角兔幼崽） | `footprints`（改到機關規則時加 `forestquest`、`lighthouse`） | `--footprints` |
+| 河邊的腳印（`quest_dawn_006`、沒有發起人的任務與自動完成、`activate` 的 `startsQuest` / `consume` / `after`、角兔幼崽） | `footprints`（改到機關規則時加 `lighthouse`、`lightpuzzle`） | `--footprints` |
 | 花園（`quest_dawn_005`、桃樂、`build` 目標、建造物 `unlock` / `growth`、花圃、鬆土） | `garden`（改到建造時加 `build`） | `--garden` |
-| 製作（`craft.ts`、`crafting.json`、`Craft`、`CraftPanel`、對話效果 `openCraft`） | `craft`（改到琳娜的對話時加 `forestquest`、`letters`） | `--shop`（含草藥桌） |
+| 製作（`craft.ts`、`crafting.json`、`Craft`、`CraftPanel`、對話效果 `openCraft`） | `craft`（改到琳娜的對話時加 `letters`） | `--shop`（含草藥桌） |
 | 消耗品（`UseItem`、`consumables.ts`、背包的「使用」、快速鍵 X、HUD 回復藥數量） | `potion`（改到戰鬥時加 `combat`） | 不拍 |
 | 商店（`shop.ts`、`shops.json`、`BuyItem` / `SellItem`、`ShopPanel`、對話效果 `openShop`） | `shop`（改到米菈的對話時加 `npc`） | `--shop` |
 | 送信（`quest_dawn_004`、`talk` 目標 / `QuestTalk`、`questTalk*` 條件、尼可、乾布） | `letters`（改到對話或條件時加 `npc`、`quest`） | `--letters` |
@@ -49,16 +49,14 @@ e2e 每個 suite 都會啟動一次 Electron（約 10–20 秒），46 個全跑
 | 職業（`classes.json`、`heroClass.ts`、`currentClass.ts`、`ClassPicker`、`ChooseClass`、各職業的武器 / 法術） | `save`、`melee`、`magic`（改到主選單或線上入口時加 `dev`、`settings`、`account`；改到連線時加 `multiplayer`） | `--melee`、`menu_class_picker` 書籤 |
 | 地圖切換、螢苔祕林（`maps.ts`、`glowmossTerrain`、`location.ts` 的 travelToMap、`MapOnly`） | `glowmoss`（改到地形分派或邊界時加 `bounds`、`movement`） | `glowmoss_*` 書籤 |
 | 澄鏡湖（`mirrorlakeTerrain`、`lakeModels.ts`、`gen-mirrorlake.ts`、各地圖的水面 `Water map=`、水道入口） | `mirrorlake`（改到共用的地圖切換或存檔遷移時加 `glowmoss`、`map`、`save`；改到水面或落水時加 `lake`） | `mirrorlake_*` 書籤（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple`） |
-| 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `forestmobs`、`monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |
-| 澄鏡湖的任務（伊芙、`quest_lake_001` 倒影、`activate.message` 啟動時的訊息） | `lakequest`（改到奧林時加 `cellar`；改到 `activate` 或動物居民時加 `forestquest`、`npc`） | `mirrorlake_eve`、`mirrorlake_reflection` 書籤 |
-| 水鏡光路（`lightPath.ts`、`lightPaths.json`、`MirrorPuzzle.tsx`、`turn.quest`、水行護符的涉水深度） | `lightpuzzle`（改到 `turn` 時加 `forestquest`、`puffking`；改到落水時加 `lake`、`movement`） | `--lightpuzzle`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_entry --lightpuzzle`） |
+| 澄鏡湖的怪物（水泡精分裂 `splitInto`、霧鷺影 `retreat` 瞬移、鏡殼蟹 `carapace` 正面防禦、`LakeCritter.tsx`） | `lakemobs`（改到共用的敵人 AI、姿態或吐泥時加 `monsters`、`combat`） | `--monsters --enemies=mob_bubble_wisp,mob_mist_heron,mob_mirror_crab` |
+| 澄鏡湖的任務（伊芙、`quest_lake_001` 倒影、`activate.message` 啟動時的訊息） | `lakequest`（改到奧林時加 `cellar`；改到 `activate` 或動物居民時加 `footprints`、`npc`） | `mirrorlake_eve`、`mirrorlake_reflection` 書籤 |
+| 水鏡光路（`lightPath.ts`、`lightPaths.json`、`MirrorPuzzle.tsx`、`turn.quest`、水行護符的涉水深度） | `lightpuzzle`（改到 `turn` 時加 `puffking`；改到落水時加 `lake`、`movement`） | `--lightpuzzle`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_entry --lightpuzzle`） |
 | 風語草原（`meadowTerrain`、`meadowModels.ts`、`gen-meadow.ts`、古風帆出入口） | `meadow`（改到共用的地圖切換或存檔遷移時加 `mirrorlake`、`map`、`save`） | `meadow_*`、`mirrorlake_sail` 書籤（例如 `node scripts/screenshot.mjs phase9 meadow_hamlet`） |
-| 璃漪頭目戰與戰後（`LiyiKoi.tsx`、頭目資料的 `veil`、神殿兩側的水鏡、`quest_lake_003`、潮之共鳴裝置、戰後的璃漪、`unlock.completed` 的建造配方） | `liyi`（改到共用的頭目 AI 或 `bossRuntime` 時加 `boss`、`puffking`） | `--liyi`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple --liyi`） |
-| 螢苔祕林的任務與水道（琳娜、奇奇、`activate` / `turn` 機關、`waterway.ts`、`Waterway.tsx`、`flowWater`） | `forestquest`（改到共用的互動或修理時加 `lake`、`world`） | `--waterway`（例如 `node scripts/screenshot.mjs phase8 glowmoss_wheel --waterway`） |
-| 頭目戰（`bossAi.ts`、`bossRuntime.ts`、`MossThump`、`BossArena`、`BossBar`、頭目資料） | `boss`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`、`forestmobs`） | `--boss`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --boss`） |
-| 霧團噗啾王（`PuffKing`、星光鏡、衝撞 / 霧球 / 暈眩、小噗啾 NPC；改到共用的 `bossAi` / `bossRuntime` 時兩個頭目都要跑） | `puffking`（改到共用頭目框架時加 `boss`、`forestguard`） | `--puffking`（例如 `node scripts/screenshot.mjs phase7 highland --puffking`） |
+| 璃漪頭目戰與戰後（`LiyiKoi.tsx`、頭目資料的 `veil`、神殿兩側的水鏡、`quest_lake_003`、潮之共鳴裝置、戰後的璃漪、`unlock.completed` 的建造配方） | `liyi`（改到共用的頭目 AI 或 `bossRuntime` 時加 `puffking`） | `--liyi`（例如 `node scripts/screenshot.mjs phase9 mirrorlake_temple --liyi`） |
+| 頭目戰的共用框架（`bossAi.ts`、`bossRuntime.ts`、`BossArena`、`BossBar`、頭目資料；戰場物件與護盾的規則測試用 `testing/legacyForest`） | `puffking`、`liyi`（改到共用的戰鬥或 `combatRuntime` 時加 `combat`；舊的 `boss`（苔咚）在任務 12A 移除） | `--puffking` / `--liyi` |
+| 霧團噗啾王（`PuffKing`、星光鏡、衝撞 / 霧球 / 暈眩、小噗啾 NPC；改到共用的 `bossAi` / `bossRuntime` 時兩個頭目都要跑） | `puffking`（改到共用頭目框架時加 `liyi`） | `--puffking`（例如 `node scripts/screenshot.mjs phase7 highland --puffking`） |
 | 晨曦燈塔（`quest_dawn_003`、燈罩碎片、迷霧核心、燈籠室、`LighthouseBeam`、`lighthouseRuntime`、林道入口條件） | `lighthouse`（改到林道入口時加 `glowmoss`） | `--lighthouse`（例如 `node scripts/screenshot.mjs phase7 highland --lighthouse`） |
-| 苔冠下的守衛（`quest_forest_003`、根源石、戰後的苔咚 NPC、程式造型 / 有出現條件的 NPC、林間水道） | `forestguard`（改到 NPC 系統時加 `npc`、`quest`） | `--guardian`（例如 `node scripts/screenshot.mjs phase8 glowmoss_crown --guardian`） |
 | 存檔（`game/save`） | `save` | 不拍 |
 | 多人連線純函式（`src/game-core/net/**`：協定、移動驗證、插值） | 不跑（`pnpm vitest run src/game-core/net server`） | 不拍 |
 | 多人連線（`server/**`、`src/net/**`、`render.yaml`、`vercel.json`、`RemotePlayers`、`NetStatusBadge`、`MultiplayerPanel`、`playerRuntime.warpSeq` / `positionAt` / `netActions`、`remoteSpell`、聊天 `ChatBox` / `chatStore` / `ChatBubble`、`uiStore.chatOpen`） | `multiplayer`（改到 `Player.tsx` 時加 `movement`、`bounds`；改到暫停選單時加 `settings`、`dev`；要驗 Web 版時加 `node e2e/multiplayer-web.e2e.mjs`，需要 Playwright 的 Chromium） | `multiplayer` e2e 會拍 `docs/screenshots/phase11/multiplayer_two.png`、`multiplayer_spell.png`、`chat.png` |

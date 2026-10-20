@@ -21,7 +21,6 @@
   {"id": "dry_channel", "nameKey": "landmark.dryChannel", "icon": "water", "position": [2029.4, -100]},
   {"id": "root_maze", "nameKey": "landmark.rootMaze", "icon": "maze", "position": [2076, -74]},
   {"id": "moss_crown", "nameKey": "landmark.mossCrown", "icon": "mushroom", "position": [2100, 46]},
-  {"id": "lake_channel", "nameKey": "landmark.lakeChannel", "icon": "water", "position": [2007, 136], "requires": {"questCompleted": "quest_forest_003"}},
   {"id": "mirrorlake_entry", "nameKey": "landmark.mirrorlakeEntry", "icon": "gate", "position": [3936, -138]},
   {"id": "lake_camp", "nameKey": "landmark.lakeCamp", "icon": "camp", "position": [3888, 8]},
   {"id": "moon_bridge", "nameKey": "landmark.moonBridge", "icon": "bridge", "position": [3998, -38]},

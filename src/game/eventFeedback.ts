@@ -40,8 +40,6 @@ export function installEventFeedback(): void {
       } else if (e.type === 'ObjectRepaired') {
         const nameKey = objectNameKey(e.placementId);
         ui.pushToast(nameKey === 'object.bridge' || !nameKey ? { textKey: 'toast.bridgeRepaired' } : { textKey: 'toast.objectRepaired', vars: { name: t(nameKey) } });
-      } else if (e.type === 'ObjectActivated' && e.source === 'water') {
-        ui.pushToast({ textKey: 'toast.mossAwake' });
       } else if (e.type === 'ObjectActivated' && e.source === 'light') {
         ui.pushToast({ textKey: 'toast.sluiceOpen' });
       } else if (e.type === 'ObjectActivated' && e.source === 'player') {

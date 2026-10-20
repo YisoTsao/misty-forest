@@ -1,12 +1,12 @@
-// 任務 8D：頭目 AI（苔咚）——開場、追擊、三種招式的預兆與命中範圍、縮入菌傘、震地後的破綻、第二階段、不離開戰場。
+// 任務 8D：頭目 AI——開場、追擊、三種招式的預兆與命中範圍、縮入菌傘、震地後的破綻、第二階段、不離開戰場。
+// 苔咚已從遊戲移除（任務 12A），改用測試樣本 testing/legacyForest（璃漪也用根刺、孢子、震地這幾個狀態）。
 import { describe, expect, it } from 'vitest';
-import enemiesJson from '@/data/enemies.json';
 import { BOSS_BODY_RADIUS, bossStance, bossStrikeHits, clampToArena, createBossAi, onBossHit, stepBossAi, type BossAi, type BossInput } from './bossAi';
-import { enemyDefSchema, type BossDef } from './combat';
+import type { BossDef } from './combat';
 import { createEnemyAi, type EnemyAi } from './enemyAi';
+import { LEGACY_BOSS, legacyCombat } from '../testing/legacyForest';
 
-const def = enemyDefSchema.parse((enemiesJson as unknown[]).find((e) => (e as { id: string }).id === 'boss_moss_thump'));
-const boss: BossDef = def.boss!;
+const boss: BossDef = legacyCombat.enemies.get(LEGACY_BOSS)!.boss!;
 const [cx, cz] = boss.arena.center;
 
 function setup(): { ai: EnemyAi; b: BossAi } {

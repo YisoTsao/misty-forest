@@ -420,13 +420,8 @@
   },
   {
     "id": "linna_intro",
-    "start": "greet",
+    "start": "ask",
     "nodes": {
-      "greet": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.greet",
-        "next": "who"
-      },
       "who": {
         "speakerKey": "npc.linna",
         "textKey": "dlg.linna.who",
@@ -437,19 +432,17 @@
         "textKey": "dlg.linna.ask",
         "options": [
           {
-            "textKey": "dlg.linna.opt.help",
-            "next": "accept",
+            "textKey": "dlg.linna.opt.craft",
             "effects": [
               {
-                "type": "acceptQuest",
-                "quest": "quest_forest_001"
+                "type": "openCraft",
+                "station": "linna_herbtable"
               }
-            ],
-            "when": {
-              "type": "questStatus",
-              "quest": "quest_forest_001",
-              "is": "available"
-            }
+            ]
+          },
+          {
+            "textKey": "dlg.linna.opt.who",
+            "next": "who"
           },
           {
             "textKey": "dlg.linna.opt.mist",
@@ -469,107 +462,6 @@
         "speakerKey": "npc.linna",
         "textKey": "dlg.linna.mist2",
         "next": "ask"
-      },
-      "accept": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.accept",
-        "next": "lanterns"
-      },
-      "lanterns": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.lanterns"
-      }
-    }
-  },
-  {
-    "id": "linna_forest1_progress",
-    "start": "remind",
-    "nodes": {
-      "remind": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.remind"
-      }
-    }
-  },
-  {
-    "id": "linna_forest1_turnin",
-    "start": "wow",
-    "nodes": {
-      "wow": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.wow",
-        "options": [
-          {
-            "textKey": "dlg.linna.opt.give",
-            "next": "thanks",
-            "effects": [
-              {
-                "type": "turnInQuest",
-                "quest": "quest_forest_001"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.linna.opt.later"
-          }
-        ]
-      },
-      "thanks": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.thanks",
-        "next": "water"
-      },
-      "water": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.water"
-      }
-    }
-  },
-  {
-    "id": "linna_after_path",
-    "start": "talk",
-    "nodes": {
-      "talk": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.afterPath",
-        "options": [
-          {
-            "textKey": "dlg.linna.opt.craft",
-            "effects": [
-              {
-                "type": "openCraft",
-                "station": "linna_herbtable"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.linna.opt.bye"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": "linna_after_water",
-    "start": "talk",
-    "nodes": {
-      "talk": {
-        "speakerKey": "npc.linna",
-        "textKey": "dlg.linna.afterWater",
-        "options": [
-          {
-            "textKey": "dlg.linna.opt.craft",
-            "effects": [
-              {
-                "type": "openCraft",
-                "station": "linna_herbtable"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.linna.opt.bye"
-          }
-        ]
       }
     }
   },
@@ -585,245 +477,6 @@
       "later": {
         "speakerKey": "npc.kiki",
         "textKey": "dlg.kiki.later"
-      }
-    }
-  },
-  {
-    "id": "kiki_water_offer",
-    "start": "hello",
-    "nodes": {
-      "hello": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.hello",
-        "next": "channel"
-      },
-      "channel": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.channel",
-        "next": "wheel"
-      },
-      "wheel": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.wheel",
-        "options": [
-          {
-            "textKey": "dlg.kiki.opt.help",
-            "next": "accept",
-            "effects": [
-              {
-                "type": "acceptQuest",
-                "quest": "quest_forest_002"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.kiki.opt.why",
-            "next": "why"
-          },
-          {
-            "textKey": "dlg.kiki.opt.bye"
-          }
-        ]
-      },
-      "why": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.why",
-        "next": "wheel"
-      },
-      "accept": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.accept"
-      }
-    }
-  },
-  {
-    "id": "kiki_water_progress",
-    "start": "remind",
-    "nodes": {
-      "remind": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.remind"
-      }
-    }
-  },
-  {
-    "id": "kiki_water_turnin",
-    "start": "listen",
-    "nodes": {
-      "listen": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.listen",
-        "options": [
-          {
-            "textKey": "dlg.kiki.opt.done",
-            "next": "thanks",
-            "effects": [
-              {
-                "type": "turnInQuest",
-                "quest": "quest_forest_002"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.kiki.opt.later"
-          }
-        ]
-      },
-      "thanks": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.thanks",
-        "next": "crown"
-      },
-      "crown": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.crown"
-      }
-    }
-  },
-  {
-    "id": "kiki_after_water",
-    "start": "talk",
-    "nodes": {
-      "talk": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.after"
-      }
-    }
-  },
-  {
-    "id": "kiki_guard_offer",
-    "start": "hello",
-    "nodes": {
-      "hello": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.hello",
-        "next": "stone"
-      },
-      "stone": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.stone",
-        "next": "ask"
-      },
-      "ask": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.ask",
-        "options": [
-          {
-            "textKey": "dlg.kiki.guard.opt.go",
-            "next": "accept",
-            "effects": [
-              {
-                "type": "acceptQuest",
-                "quest": "quest_forest_003"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.kiki.guard.opt.why",
-            "next": "why"
-          },
-          {
-            "textKey": "dlg.kiki.opt.bye"
-          }
-        ]
-      },
-      "why": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.why",
-        "next": "ask"
-      },
-      "accept": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.accept"
-      }
-    }
-  },
-  {
-    "id": "kiki_guard_progress",
-    "start": "remind",
-    "nodes": {
-      "remind": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.remind"
-      }
-    }
-  },
-  {
-    "id": "kiki_guard_turnin",
-    "start": "listen",
-    "nodes": {
-      "listen": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.listen",
-        "options": [
-          {
-            "textKey": "dlg.kiki.guard.opt.done",
-            "next": "guardian",
-            "effects": [
-              {
-                "type": "turnInQuest",
-                "quest": "quest_forest_003"
-              }
-            ]
-          },
-          {
-            "textKey": "dlg.kiki.opt.later"
-          }
-        ]
-      },
-      "guardian": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.guardian",
-        "next": "gift"
-      },
-      "gift": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.gift",
-        "next": "lake"
-      },
-      "lake": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.lake"
-      }
-    }
-  },
-  {
-    "id": "kiki_after_guard",
-    "start": "talk",
-    "nodes": {
-      "talk": {
-        "speakerKey": "npc.kiki",
-        "textKey": "dlg.kiki.guard.after"
-      }
-    }
-  },
-  {
-    "id": "moss_thump_stone",
-    "start": "bubble",
-    "nodes": {
-      "bubble": {
-        "speakerKey": "npc.moss_thump",
-        "textKey": "dlg.mossThump.bubble",
-        "next": "stone"
-      },
-      "stone": {
-        "speakerKey": "npc.moss_thump",
-        "textKey": "dlg.mossThump.stone"
-      }
-    }
-  },
-  {
-    "id": "moss_thump_restored",
-    "start": "bubble",
-    "nodes": {
-      "bubble": {
-        "speakerKey": "npc.moss_thump",
-        "textKey": "dlg.mossThump.happy",
-        "next": "words"
-      },
-      "words": {
-        "speakerKey": "npc.moss_thump",
-        "textKey": "dlg.mossThump.words"
       }
     }
   },

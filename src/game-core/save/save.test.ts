@@ -377,6 +377,26 @@ describe('版本遷移', () => {
     expect(roundTrip(toSaveData(mage, player, new Date())).state.player).toMatchObject({ heroClass: 'mage', weapon: 'staff' });
   });
 
+  it('v17 存檔升到 v18：清掉舊版螢苔祕林的任務、機關、苔咚與芽之共鳴，其他進度不變（任務 12A）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const v17 = {
+      ...current,
+      version: 17,
+      quests: { quest_dawn_003: { status: 'completed' }, quest_forest_001: { status: 'completed' }, quest_forest_003: { status: 'active', progress: [1] }, quest_lake_001: { status: 'completed' } },
+      world: { ...current.world, objects: [{ placementId: 'glowmoss_lantern_01', active: true }, { placementId: 'glowmoss_water_wheel', turn: 2 }, { placementId: 'meadow_chest_001', open: true }] },
+      inventory: { slots: [{ itemId: 'seed_resonance_bud', count: 1 }, { itemId: 'wood', count: 3 }, null] },
+      combat: { ...current.combat, defeatedBosses: ['boss_moss_thump', 'boss_dawn_mist_puff'], spawners: { glade_moths: { nextSpawnAt: 5, counter: 2 }, deepwood_sprouts: { nextSpawnAt: 9, counter: 1 } } },
+    };
+    const migrated = migrateSave(v17) as SaveData;
+    expect(migrated.version).toBe(SAVE_VERSION);
+    expect(migrated.quests).toEqual({ quest_dawn_003: { status: 'completed' }, quest_lake_001: { status: 'completed' } });
+    expect(migrated.world.objects).toEqual([{ placementId: 'meadow_chest_001', open: true }]);
+    expect(migrated.inventory.slots).toEqual([null, { itemId: 'wood', count: 3 }, null]);
+    expect(migrated.combat.defeatedBosses).toEqual(['boss_dawn_mist_puff']);
+    expect(migrated.combat.spawners).toEqual({ deepwood_sprouts: { nextSpawnAt: 9, counter: 1 } });
+    expect(fromSaveData(v17, ctx).state.quests.quest_forest_001).toBeUndefined();
+  });
+
   it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {
     const current = toSaveData(initialGameState(), player, new Date());
     const v13 = { ...current, version: 13, combat: { ...current.combat, defeatedBosses: undefined } };

@@ -150,10 +150,10 @@ describe('地圖出入口', () => {
     }
   });
 
-  it('通往澄鏡湖要先安撫苔冠下的守衛（任務 9A）', () => {
+  it('通往澄鏡湖：過渡期間只要求第一章完成（任務 12A，T-187；第二章做到 quest_forest_008 後改回 T-186）', () => {
     const enter = prefabs.get('gate_to_mirrorlake')!.enter!;
-    expect(isGateOpen(enter, { quest_forest_002: { status: 'completed' } })).toBe(false);
-    expect(isGateOpen(enter, { quest_forest_003: { status: 'completed' } })).toBe(true);
+    expect(isGateOpen(enter, {})).toBe(false);
+    expect(isGateOpen(enter, { quest_dawn_003: { status: 'completed' } })).toBe(true);
     expect(isGateOpen(prefabs.get('gate_to_glowmoss_lake')!.enter!, {})).toBe(true);
   });
 

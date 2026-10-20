@@ -92,7 +92,7 @@
 
    - 武器變體多一個 `base`（原本的武器類型，例如螢晶短劍的 `base` 是 `knife`）。職業不能用這個類型就不能裝備；招式與動畫沿用原本的類型，只改數值與外觀（顏色、拖尾），另外可以有特殊效果（光刃、命中發光植物啟動機關）。
    - 效果種類先定義用得到的：`damageTakenScale`（受到的傷害倍率）、`mistDamageScale`（迷霧持續傷害倍率）、`rareDropBonus`（掉落表中標為 `rare` 的項目機率加成）、`waterBreath`（現有 `water_charm`）；武器的 `starCharge`（光刃）、`plantActivate`（法杖命中發光植物）在做那兩把武器時再加。
-3. **狀態與存檔**：`GameState.player.equipment = { weapon?, armor?, charm? }`，存的是道具 id；裝備中的道具留在背包，但不能賣、不能交給任務。存檔 v18：`loadout.equipment`；遷移時全部空白，背包裡有 `water_charm` 的自動放進飾品欄，舊存檔的行為不變。
+3. **狀態與存檔**：`GameState.player.equipment = { weapon?, armor?, charm? }`，存的是道具 id；裝備中的道具留在背包，但不能賣、不能交給任務。存檔升一版（v18 已由 12A 使用，屆時的下一版）：`loadout.equipment`；遷移時全部空白，背包裡有 `water_charm` 的自動放進飾品欄，舊存檔的行為不變。
 4. **規則**（`authority/rules.ts`）：
    - 新指令 `EquipItem` / `UnequipItem`：檢查擁有、欄位相符、職業可用。
    - 純函式 `equipmentModifiers(state, items)`：把三格的數值與效果合併成一份倍率。
@@ -101,7 +101,7 @@
 5. **介面**：背包加三個裝備格，道具說明顯示數值與效果；在聚落工作台製作（`crafting.json`）。
 6. **外觀**：防具第一版**不會顯示在角色身上**（KayKit 角色沒有護腕可以掛）；武器變體用原本的模型換顏色與拖尾。
 7. **多人**：裝備屬於個人。對方本來就看得到武器（`PlayerState.weapon`），防具看不到，所以協定不用改；伺服器驗證等伺服器權威（T-169）時再做。
-8. **測試**：Vitest 測裝備規則、倍率合併、v17 → v18 遷移、`water_charm` 行為不變；e2e 測「製作 → 裝備 → 受到的傷害下降」。
+8. **測試**：Vitest 測裝備規則、倍率合併、存檔遷移、`water_charm` 行為不變；e2e 測「製作 → 裝備 → 受到的傷害下降」。
 
 ### 時程
 規格 Phase 2「完成基本道具與裝備流程」：做聚落工作台時一起做裝備系統與守林者護腕的減傷、稀有掉落；**迷霧持續傷害到 Phase 3（迷霧深層）才有**，護腕的迷霧效果在那時才看得到作用。

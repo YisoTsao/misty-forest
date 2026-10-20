@@ -599,6 +599,29 @@ export function addGlowmoss(placements: Out[]): void {
     ids.add(o.id);
   }
 
-  placements.push(...kept, ...questOut);
-  console.log(`added ${kept.length + questOut.length} glowmoss placements (${scattered} scattered)`);
+  // 任務 12A（第二章改版，DECISIONS T-185）：舊版的任務物件（路燈、水道、苔冠空地、根源石、林間水道）與相關路標不再產生；
+  // 地形與點綴保留到 12B 重寫本檔。淨空範圍照舊計算，其他物件的 id 與位置不變。
+  const removed = (o: Out) => RETIRED_PREFABS.has(o.prefabId);
+  const result = [...kept, ...questOut].filter((o) => !removed(o));
+  console.log(`task 12A: dropped ${kept.length + questOut.length - result.length} retired glowmoss quest objects`);
+
+  placements.push(...result);
+  console.log(`added ${result.length} glowmoss placements (${scattered} scattered)`);
 }
+
+/** 任務 12A 停用的舊螢苔祕林任務物件（Bible §6.15） */
+const RETIRED_PREFABS: ReadonlySet<string> = new Set([
+  'trail_lantern',
+  'channel_breach',
+  'water_wheel',
+  'moss_node',
+  'crown_roots',
+  'crown_trough',
+  'root_stone',
+  'lake_roots',
+  'signpost_lake_channel',
+  'channel_roots',
+  'water_gate',
+  'signpost_channel',
+  'signpost_moss_crown',
+]);

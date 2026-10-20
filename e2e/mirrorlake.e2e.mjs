@@ -45,22 +45,22 @@ async function runToward(page, debug, tx, tz, ms) {
 await runE2e('mirrorlake e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env }, async ({ page, check, debug, state, teleport, interactTarget }) => {
   const currentMap = () => debug(() => window.__mistwoodDebug.currentMap());
 
-  await check('螢苔祕林小渠南端的水道入口：守衛的事還沒解決前說明原因、不能通過', async () => {
+  await check('螢苔祕林往澄鏡湖的入口：第一章還沒完成前說明原因、不能通過（過渡條件，T-187）', async () => {
     await faceGate(forestGate, { page, debug });
     assert.equal(await interactTarget(), 'glowmoss_gate_mirrorlake');
     assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /前往\s*水道入口：澄鏡湖/);
     await page.keyboard.press('KeyE');
     const dialog = page.locator('[data-testid="message-dialog"]');
     await dialog.waitFor({ timeout: 2000 });
-    assert.match(await dialog.innerText(), /守衛/);
+    assert.match(await dialog.innerText(), /燈塔/);
     await page.keyboard.press('KeyE');
     await dialog.waitFor({ state: 'detached', timeout: 2000 });
     await page.waitForTimeout(900);
     assert.equal((await currentMap()).at, 'glowmoss');
   });
 
-  await check('完成「苔冠下的守衛」後：轉場到澄鏡湖北邊的林間水道出口，站在地面上', async () => {
-    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_003'));
+  await check('第一章完成後：轉場到澄鏡湖北邊的林間水道出口，站在地面上', async () => {
+    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_dawn_003'));
     await faceGate(forestGate, { page, debug });
     await page.keyboard.press('KeyE');
     await page.waitForFunction(() => window.__mistwoodDebug.currentMap().at === 'mirrorlake', null, { timeout: 3000 });
