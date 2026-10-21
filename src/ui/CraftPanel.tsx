@@ -4,6 +4,7 @@ import { countItem } from '@/game-core/inventory/inventory';
 import { authority, crafting, npcs } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { input } from '@/game/input/inputManager';
+import { escCloseHint } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
@@ -72,7 +73,7 @@ function CraftWindow({ station }: { station: StationDef }) {
             <RecipeRow key={r.id} recipe={r} />
           ))}
         </ul>
-        <p className="text-xs text-amber-800">{t('craft.hint')}</p>
+        <p className="text-xs text-amber-800">{t('craft.hint', { close: escCloseHint() })}</p>
       </div>
     </div>
   );

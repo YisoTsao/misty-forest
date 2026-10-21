@@ -119,6 +119,8 @@ export function createMagicCircleMaterial(): THREE.ShaderMaterial {
     vertexShader: planeVertex,
     fragmentShader: circleFragment,
     transparent: true,
+    // 法術特效不被草叢、植被等前景物遮住（使用者 2026-10-21）
+    depthTest: false,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
@@ -137,6 +139,8 @@ export function createShockwaveMaterial(): THREE.ShaderMaterial {
     vertexShader: planeVertex,
     fragmentShader: shockFragment,
     transparent: true,
+    // 法術特效不被草叢、植被等前景物遮住（使用者 2026-10-21）
+    depthTest: false,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,

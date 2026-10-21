@@ -4,6 +4,7 @@ import { isQuestReady, isQuestTracked, MAX_TRACKED_SIDE, objectiveProgress, ques
 import { MAPS, mapIdAt } from '@/game-core/world/maps';
 import { authority, npcs, quests } from '@/game/authority';
 import { t } from '@/game/i18n';
+import { useTouchUi } from '@/game/input/device';
 import { input } from '@/game/input/inputManager';
 import { keyVars } from '@/game/input/keyLabels';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
@@ -72,6 +73,8 @@ function statusTab(status: QuestStatus): Tab | null {
 function JournalWindow({ interactive }: { interactive: boolean }) {
   const state = useGameStateStore((s) => s.state);
   const bindings = useBindings();
+  // 手機版（使用者 2026-10-21）：清單改到上方、横向捲動的版面，標題列加關閉鈕，不顯示鍵盤提示
+  const touch = useTouchUi();
   const byTab = useMemo(() => {
     const out: Record<Tab, QuestDef[]> = { active: [], available: [], completed: [] };
     for (const q of quests.values()) {
@@ -102,15 +105,32 @@ function JournalWindow({ interactive }: { interactive: boolean }) {
         data-testid="quest-journal"
         data-pad-scope
         onClick={(e) => e.stopPropagation()}
-        className="ui-panel flex h-[min(620px,85vh)] w-[min(880px,92vw)] flex-col gap-3 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
+        className={`ui-panel flex flex-col rounded-2xl border-4 border-amber-200 bg-amber-50 text-amber-950 shadow-2xl ${
+          touch ? 'h-[min(88dvh,560px)] w-[min(94vw,560px)] gap-2 p-3' : 'h-[min(620px,85vh)] w-[min(880px,92vw)] gap-3 p-4'
+        }`}
       >
-        <div className="flex items-center justify-between">
-          <h2 id="journal-title" className="text-xl font-bold">
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="journal-title" className={`font-bold ${touch ? 'text-base' : 'text-xl'}`}>
             {t('journal.title')}
           </h2>
-          <p className="text-xs text-amber-800">{t('journal.hint', keyVars(bindings))}</p>
+          {touch ? (
+            <button
+              type="button"
+              data-testid="journal-close"
+              aria-label={t('inventory.close')}
+              onClick={() => {
+                setJournalOpen(false);
+                if (interactive) input.requestPointerLock();
+              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg font-bold text-white hover:bg-amber-600"
+            >
+              ✕
+            </button>
+          ) : (
+            <p className="text-xs text-amber-800">{t('journal.hint', keyVars(bindings))}</p>
+          )}
         </div>
-        <div className="flex gap-2" role="tablist">
+        <div className={`flex gap-2 ${touch ? 'overflow-x-auto' : ''}`} role="tablist">
           {TABS.map((id) => (
             <button
               key={id}
@@ -122,14 +142,17 @@ function JournalWindow({ interactive }: { interactive: boolean }) {
                 setTab(id);
                 setSelected(null);
               }}
-              className={`rounded-full px-4 py-1 text-sm font-bold ${tab === id ? 'bg-amber-500 text-white' : 'bg-amber-200/70 hover:bg-amber-200'}`}
+              className={`shrink-0 rounded-full font-bold ${touch ? 'px-3 py-0.5 text-xs' : 'px-4 py-1 text-sm'} ${tab === id ? 'bg-amber-500 text-white' : 'bg-amber-200/70 hover:bg-amber-200'}`}
             >
               {t(`journal.tab.${id}`)} <span className="opacity-70">{byTab[id].length}</span>
             </button>
           ))}
         </div>
-        <div className="flex min-h-0 flex-1 gap-4">
-          <ul className="flex w-64 flex-col gap-1 overflow-y-auto pr-1" data-testid="journal-list">
+        <div className={`flex min-h-0 flex-1 ${touch ? 'flex-col gap-2' : 'gap-4'}`}>
+          <ul
+            className={`flex flex-col gap-1 overflow-y-auto pr-1 ${touch ? 'max-h-[34%] shrink-0' : 'w-64'}`}
+            data-testid="journal-list"
+          >
             {list.length === 0 && <li className="text-sm text-amber-800">{t(`journal.empty.${tab}`)}</li>}
             {list.map((q, i) => {
               const showHeader = i === 0 || list[i - 1]!.category !== q.category;
@@ -142,7 +165,7 @@ function JournalWindow({ interactive }: { interactive: boolean }) {
                     data-testid="journal-entry"
                     data-quest={q.id}
                     onClick={() => setSelected(q.id)}
-                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm ${current?.id === q.id ? 'bg-amber-300/70 font-bold' : 'hover:bg-amber-200/60'}`}
+                    className={`flex w-full items-center gap-2 rounded-lg px-2 text-left ${touch ? 'py-1 text-xs' : 'py-1.5 text-sm'} ${current?.id === q.id ? 'bg-amber-300/70 font-bold' : 'hover:bg-amber-200/60'}`}
                   >
                     <span className="flex-1">{t(q.nameKey)}</span>
                     {tab === 'active' && isQuestReady(state, q) && <span className="text-xs text-emerald-700">{t('journal.readyShort')}</span>}
@@ -152,7 +175,7 @@ function JournalWindow({ interactive }: { interactive: boolean }) {
               );
             })}
           </ul>
-          <div className="min-w-0 flex-1 overflow-y-auto rounded-xl bg-white/60 p-4" data-testid="journal-detail">
+          <div className={`min-w-0 flex-1 overflow-y-auto rounded-xl bg-white/60 ${touch ? 'p-2.5 text-sm' : 'p-4'}`} data-testid="journal-detail">
             {current ? <QuestDetail quest={current} state={state} tab={tab} /> : null}
           </div>
         </div>

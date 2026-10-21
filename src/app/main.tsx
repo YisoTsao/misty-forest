@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { installDebugApi } from '@/game/debugApi';
+import { startAssetLoading } from '@/game/assets/assetLoader';
 import { installAudioUnlock } from '@/game/audio/audioEngine';
 import { installAudioFeedback } from '@/game/audio/audioFeedback';
 import { installCombatRuntime } from '@/game/combat/combatRuntime';
@@ -23,6 +24,8 @@ import './styles.css';
 
 document.title = t('app.title');
 installDebugApi();
+// 資源包（模型與音效）越早開始下載越好；場景在下載完才開始載入模型
+void startAssetLoading();
 // 手機：擋下雙擊與雙指縮放整頁、觸控介面縮小字級
 installMobileGuards();
 installEventFeedback();

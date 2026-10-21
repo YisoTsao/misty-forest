@@ -62,12 +62,15 @@ await runE2e('audio e2e（1/2）', { env }, async ({ page, check, debug, camera,
   });
 
   await check('晴朗時有鳥叫，迷霧時鳥叫消失', async () => {
+    // 日光看共享世界時鐘（T-181）：夜裡本來就沒有鳥叫，固定在中午
+    await debug(() => window.__mistwoodDebug.setClock(12));
     await page.waitForTimeout(300);
     assert.ok((await audioState()).birds > 0.5);
     await debug(() => window.__mistwoodDebug.setMist(1));
     await page.waitForTimeout(300);
     assert.ok((await audioState()).birds < 0.05);
     await debug(() => window.__mistwoodDebug.setMist(null));
+    await debug(() => window.__mistwoodDebug.resetClock());
   });
 
   await check('暫停時音樂停止，繼續後恢復', async () => {

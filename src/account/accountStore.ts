@@ -1,14 +1,11 @@
-// 帳號狀態（任務 11G、11L-2、T-184）：Google、LINE 的 OAuth 登入、登出。第一次登入就自動建立並綁定帳號，沒有另外的註冊。
+// 帳號狀態（任務 11G、11L-2、T-184）：Google 的 OAuth 登入、登出（LINE 登入已於 2026-10-21 依使用者指示移除，T-188）。第一次登入就自動建立並綁定帳號，沒有另外的註冊。
 // 登入只用於線上模式（DECISIONS T-179）：線上資料存在資料庫，單機存檔不再同步到雲端。
 // 登入後的玩家檔案與線上角色由 online/installOnline.ts 讀取。
 import { create } from 'zustand';
 import { supabase, accountEnabled } from './supabase';
 
 export type AccountStatus = 'disabled' | 'signedOut' | 'signingIn' | 'signedIn';
-export type LoginProvider = 'google' | 'line';
-
-/** LINE 不是 Supabase 內建的登入方式，以自訂 OIDC 提供者設定（docs/multiplayer/accounts.md） */
-const LINE_PROVIDER = (import.meta.env.VITE_SUPABASE_LINE_PROVIDER as string | undefined) ?? 'custom:line';
+export type LoginProvider = 'google';
 
 export type AccountState = {
   status: AccountStatus;
@@ -47,7 +44,7 @@ export function startAccountListener(): void {
   void completeWebRedirect();
 }
 
-/** 網頁版：從 Google / LINE 導回時網址帶著 code（或錯誤），換成登入狀態後把參數從網址拿掉 */
+/** 網頁版：從 Google 導回時網址帶著 code（或錯誤），換成登入狀態後把參數從網址拿掉 */
 async function completeWebRedirect(): Promise<void> {
   if (!supabase || typeof window === 'undefined' || window.mistwood?.isElectron) return;
   const url = new URL(window.location.href);
@@ -74,12 +71,12 @@ async function finish(result: { code?: string; error?: string }): Promise<void> 
 }
 
 /**
- * 用 Google 或 LINE 登入。網頁版直接導到登入頁、登入後導回同一頁；
+ * 用 Google 登入。網頁版直接導到登入頁、登入後導回同一頁；
  * 桌面版用系統瀏覽器登入，導回本機 127.0.0.1 由主程序收下 code（electron/oauthLoopback.ts）。
  */
 export async function signInWith(provider: LoginProvider): Promise<void> {
   if (!supabase) return;
-  const id = provider === 'line' ? (LINE_PROVIDER as `custom:${string}`) : 'google';
+  const id = provider;
   const bridge = window.mistwood?.auth;
   useAccountStore.setState({ status: 'signingIn', provider, busy: true, error: null });
   if (!bridge) {

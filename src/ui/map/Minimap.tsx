@@ -10,6 +10,7 @@ import { useUiStore } from '@/game/state/uiStore';
 import { worldDataResult } from '@/game/worldData';
 import { getMapBase } from '@/render/mapImage';
 import { currentQuestMarkers, drawChests, drawEnemies, drawLandmarks, drawLayer, drawNpcs, drawPlayer, drawQuestMarkers, type MapView } from './mapDraw';
+import { setWorldMapOpen } from './WorldMap';
 
 /** 小地圖的直徑（CSS 像素）與顯示範圍（半徑，公尺） */
 const SIZE = 176;
@@ -20,6 +21,7 @@ const FRAME_MS = 1000 / 20;
 /**
  * 小地圖（任務 7B）：畫面右上角的圓形地圖，北方朝上，顯示玩家附近 44 m。
  * 每秒畫 20 次，直接讀權威狀態與本機暫態，不經過 React 重新渲染。室內、對話、地圖開啟時隱藏。
+ * 點擊小地圖打開世界地圖（使用者 2026-10-21）；暫停時不開（暫停選單開著）。
  */
 export function Minimap() {
   const playing = useGameStore((s) => s.screen === 'playing' || s.screen === 'paused');
@@ -101,11 +103,22 @@ export function Minimap() {
   }, [playing, hidden, size]);
 
   if (!playing || hidden) return null;
+  const openMap = () => {
+    if (currentScreen() === 'playing') setWorldMapOpen(true);
+  };
   return (
     <div
       ref={wrapRef}
       data-testid="minimap"
-      className={`pointer-events-none absolute flex flex-col items-center gap-1 ${touch ? 'top-3 right-3' : `top-4 ${debugEnabled ? 'right-48' : 'right-5'}`}`}
+      role="button"
+      tabIndex={0}
+      aria-label={t('map.title')}
+      title={t('map.title')}
+      onClick={openMap}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') openMap();
+      }}
+      className={`pointer-events-auto absolute flex cursor-pointer flex-col items-center gap-1 ${touch ? 'top-3 right-3' : `top-4 ${debugEnabled ? 'right-48' : 'right-5'}`}`}
     >
       <canvas ref={canvasRef} style={{ width: size, height: size }} className="rounded-full shadow-lg" />
       {/* 手機橫向的矮畫面：地名會壓到右下的按鈕，收起來（進入區域時的大字橫幅仍會顯示） */}

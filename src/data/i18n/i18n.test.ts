@@ -3,6 +3,7 @@ import cameraBookmarks from '@/data/cameraBookmarks.json';
 import { rebindableActions } from '@/game-core/input/actions';
 import { itemCategories } from '@/game-core/items/items';
 import { questCategories } from '@/game-core/quest/quest';
+import { assetCategories } from '@/game-core/assets/packs';
 import { netStatuses } from '@/net/netStore';
 import zhTW from './zh-TW.json';
 
@@ -20,6 +21,7 @@ describe('i18n', () => {
       ...questCategories.map((c) => `journal.category.${c}`),
       ...rebindableActions.map((a) => `action.${a}`),
       ...netStatuses.map((s) => `net.status.${s}`),
+      ...assetCategories.map((c) => `loading.category.${c}`),
     ];
     expect(keys.filter((key) => !(key in dictionary))).toEqual([]);
   });

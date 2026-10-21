@@ -12,7 +12,7 @@ const field = 'rounded-lg bg-white/10 px-3 py-2 outline-none focus:bg-white/20 f
 
 /**
  * 主選單的「線上遊玩」（任務 11L-2，DECISIONS T-179）：線上一定要登入，資料只存在資料庫。
- * 依序：用 Google 或 LINE 登入（第一次登入就建立並綁定帳號，T-184）→ 第一次設定顯示名稱 → 進入線上世界。
+ * 依序：用 Google 登入（第一次登入就建立並綁定帳號，T-184）→ 第一次設定顯示名稱 → 進入線上世界。
  */
 export function OnlinePanel() {
   const status = useAccountStore((s) => s.status);
@@ -51,10 +51,6 @@ function LoginStep() {
         <span aria-hidden className="text-lg font-black text-[#4285f4]">G</span>
         {t('account.withGoogle')}
       </button>
-      <button type="button" data-testid="online-line" disabled={busy} onClick={() => void signInWith('line')} className={`${button} bg-[#06c755] text-white hover:bg-[#05b34c]`}>
-        <span aria-hidden className="rounded bg-white px-1 text-xs font-black text-[#06c755]">LINE</span>
-        {t('account.withLine')}
-      </button>
       <AccountError />
     </div>
   );
@@ -63,11 +59,10 @@ function LoginStep() {
 /** 等待瀏覽器的登入頁面（桌面版在系統瀏覽器、網頁版正在導向） */
 function WaitingStep() {
   const busy = useAccountStore((s) => s.busy);
-  const provider = useAccountStore((s) => s.provider);
   return (
     <div className="flex flex-col gap-3">
       <p data-testid="online-waiting" role="status" className="rounded-xl bg-white/10 p-3 text-sm leading-6">
-        {busy ? t('account.finishing') : t('account.waiting', { provider: provider === 'line' ? 'LINE' : 'Google' })}
+        {busy ? t('account.finishing') : t('account.waiting', { provider: 'Google' })}
       </p>
       {!busy && (
         <button type="button" data-testid="online-cancel" onClick={cancelSignIn} className="text-xs underline opacity-80">

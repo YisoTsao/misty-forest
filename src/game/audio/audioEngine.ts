@@ -3,6 +3,7 @@
 // - 環境音：程式合成（風聲、晴朗時的鳥叫、迷霧裡低沉的嗡鳴、湖邊的水聲），音量隨所在位置與迷霧變化。
 // - 音樂：程式產生的輕柔曲子；迷霧越濃，濾波越暗、和弦轉為小調（規格：晴朗 / 迷霧各版或濾波）。
 // AudioContext 需要使用者操作後才能發聲，第一次按鍵或點擊時才建立。
+import { assetsReady, resolveAssetUrl } from '../assets/assetLoader';
 import { sounds, type SoundId } from './sounds';
 
 export type Volumes = { master: number; music: number; sfx: number };
@@ -98,7 +99,9 @@ class AudioEngine {
     let p = this.buffers.get(url);
     if (!p) {
       const ctx = this.ctx;
-      p = fetch(`${import.meta.env.BASE_URL}${url}`)
+      // 資源包下載完才讀（音效在包裡時直接從記憶體讀出，不另外下載）
+      p = assetsReady
+        .then(() => fetch(resolveAssetUrl(`${import.meta.env.BASE_URL}${url}`)))
         .then((r) => {
           if (!r.ok) throw new Error(`${r.status}`);
           return r.arrayBuffer();

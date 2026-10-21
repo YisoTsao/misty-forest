@@ -1,6 +1,6 @@
 # 帳號與線上登入（任務 11G、11L-2、T-184）
 
-**Google 與 LINE 的 OAuth 登入**（2026-10-17 使用者決定，取代 Email 驗證碼），只用於**線上遊玩**。第一次登入就自動建立並綁定帳號，沒有另外的註冊。實作：`src/account/`（登入）、`electron/oauthLoopback.ts`（桌面版回呼）、`src/online/`（玩家檔案、線上角色、遊玩紀錄）、`src/ui/OnlinePanel.tsx`（主選單的線上頁）。決策見 `docs/DECISIONS.md` T-184（登入方式；取代 T-178）、T-179、T-180（單機與線上分開）；畫面流程見 `ui-flow.md`；資料表見 `database.md`。
+**Google 的 OAuth 登入**（2026-10-17 使用者決定，取代 Email 驗證碼；LINE 登入已於 2026-10-21 依使用者指示移除，T-188，下方 LINE 的設定步驟僅留作紀錄），只用於**線上遊玩**。第一次登入就自動建立並綁定帳號，沒有另外的註冊。實作：`src/account/`（登入）、`electron/oauthLoopback.ts`（桌面版回呼）、`src/online/`（玩家檔案、線上角色、遊玩紀錄）、`src/ui/OnlinePanel.tsx`（主選單的線上頁）。決策見 `docs/DECISIONS.md` T-184（登入方式；取代 T-178）、T-179、T-180（單機與線上分開）；畫面流程見 `ui-flow.md`；資料表見 `database.md`。
 
 ## 資料
 
@@ -10,7 +10,7 @@
 
 ## 行為
 
-- 登入只在主選單的「線上遊玩」頁進行，兩個按鈕：「使用 Google 登入」「使用 LINE 登入」。
+- 登入只在主選單的「線上遊玩」頁進行，一個按鈕：「使用 Google 登入」（LINE 已移除，T-188）。
   - **網頁版**：整頁導到 Google / LINE，登入後導回同一網址（帶一次性的 `code`，PKCE），遊戲換成登入狀態並把參數從網址拿掉。
   - **桌面版（Electron）**：用系統瀏覽器打開登入頁，登入後導回 `http://127.0.0.1:53682/auth/callback`，主程序收下 `code` 交給遊戲，遊戲視窗回到前景。等待時可以「取消登入」，5 分鐘沒完成自動取消。
 - **帳號綁定**：Supabase 會把同一個已驗證信箱的登入方式合併成同一個帳號（automatic identity linking）。原本用 Email 驗證碼建立的帳號，用同信箱的 Google 登入就會接上原本的帳號、角色與權限（例如使用者的 `admin`）。LINE 只有在 LINE 提供信箱時才會合併，否則是另一個帳號。

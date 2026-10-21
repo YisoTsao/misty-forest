@@ -141,8 +141,17 @@ function SlotButton({ slot, active, compact, onSelect }: { slot: InventorySlot; 
     >
       {def && slot && (
         <>
-          <ItemIcon icon={def.icon} className="absolute inset-1.5" />
-          <span className={`absolute right-1 bottom-0.5 font-bold ${compact ? 'text-xs' : 'text-sm'} text-amber-950 [text-shadow:0_0_3px_white]`}>{slot.count}</span>
+          {/* 手機版（使用者 2026-10-21）：圖示依比例縮小，留出底部一條給數量，不再互相重疊 */}
+          <ItemIcon icon={def.icon} className={compact ? 'absolute inset-x-1.5 top-1 bottom-4' : 'absolute inset-1.5'} />
+          <span
+            className={
+              compact
+                ? 'absolute right-0.5 bottom-0.5 rounded bg-white/85 px-1 text-[11px] leading-tight font-bold text-amber-950'
+                : 'absolute right-1 bottom-0.5 text-sm font-bold text-amber-950 [text-shadow:0_0_3px_white]'
+            }
+          >
+            {slot.count}
+          </span>
         </>
       )}
     </button>

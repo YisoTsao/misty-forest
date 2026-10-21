@@ -326,10 +326,10 @@ export function VfxSystem() {
     <>
       <primitive object={particles.mesh} />
       {circleMats.map((mat, i) => (
-        <mesh key={`c${i}`} ref={(m) => void (circleRefs.current[i] = m)} geometry={circleGeo} material={mat} visible={false} renderOrder={3} />
+        <mesh key={`c${i}`} ref={(m) => void (circleRefs.current[i] = m)} geometry={circleGeo} material={mat} visible={false} renderOrder={10} />
       ))}
       {shockMats.map((mat, i) => (
-        <mesh key={`s${i}`} ref={(m) => void (shockRefs.current[i] = m)} geometry={circleGeo} material={mat} visible={false} renderOrder={3} />
+        <mesh key={`s${i}`} ref={(m) => void (shockRefs.current[i] = m)} geometry={circleGeo} material={mat} visible={false} renderOrder={10} />
       ))}
       {Array.from({ length: lightCount }, (_, i) => (
         <pointLight key={`l${i}`} ref={(l) => void (lightRefs.current[i] = l)} intensity={0} distance={10} decay={1.6} />

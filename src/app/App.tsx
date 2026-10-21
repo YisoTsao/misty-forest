@@ -6,6 +6,7 @@ import { t } from '@/game/i18n';
 import { useDebugStore } from '@/game/state/debugStore';
 import { useQualityPreset } from '@/game/state/settingsStore';
 import { worldDataResult } from '@/game/worldData';
+import { useAssetLoadStore } from '@/game/assets/assetLoader';
 import { BuildUi } from '@/ui/BuildUi';
 import { BossBar } from '@/ui/BossBar';
 import { CombatHud } from '@/ui/CombatHud';
@@ -44,6 +45,8 @@ export function App() {
   const preset = useQualityPreset();
   // 手機版（任務 11M）：除錯與效能面板會蓋住觸控按鈕，觸控介面下不顯示（除錯 API 照常可用）
   const touch = useTouchUi();
+  // 資源包下載完（或改回逐檔載入）才建立場景，模型才會從包裡讀，不會另外逐檔下載
+  const assetsLoaded = useAssetLoadStore((s) => s.phase === 'ready' || s.phase === 'direct');
   useEffect(() => {
     // ?cam=<書籤> 直接以自由視角開啟該書籤
     const cam = initialBookmarkFromUrl();
@@ -66,7 +69,7 @@ export function App() {
         camera={{ fov: 50, near: 0.1, far: 900, position: [0, 3, 24] }}
         gl={{ antialias: true, preserveDrawingBuffer: debugEnabled, toneMapping: THREE.NeutralToneMapping }}
       >
-        <WorldScene data={worldDataResult.data} />
+        {assetsLoaded && <WorldScene data={worldDataResult.data} />}
       </Canvas>
       {/* 手機版：搖桿與拖曳視角的觸控面在 HUD 底下，按鈕在 HUD 上面（任務 11M） */}
       <TouchSurface />

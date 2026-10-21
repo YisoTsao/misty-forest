@@ -3,7 +3,7 @@
 // - TouchSurface：放在 3D 畫面正上方、其他 HUD 底下。左半邊按下就是浮動搖桿的中心，右半邊拖曳轉視角、雙指縮放。
 // - TouchButtons：放在 HUD 上層。右下以攻擊鈕為圓心排成兩圈弧形（依螢幕大小縮放，直向、橫向都放得下），右上一排選單鈕。
 // 按鈕與手把一樣算一次「按下」（input.touchTap），冷卻遮罩與 CombatHud 讀同一份資料。
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ActionId } from '@/game-core/input/actions';
 import { JOYSTICK_RADIUS, joystickKnob, joystickMove, pinchZoom, touchLook } from '@/game-core/input/touch';
 import { spellsOf } from '@/game/character/currentClass';
@@ -16,6 +16,9 @@ import { input } from '@/game/input/inputManager';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
+import { ActionIcon, type ActionIconId } from './ActionIcon';
+import { SkillIcon } from './SkillIcon';
+import { CLASS_TONES, spellIconOf } from './spellIcons';
 
 /** 視窗（對話、背包、地圖…）開著時不能移動，觸控操作收起來 */
 function useModal(): boolean {
@@ -147,7 +150,7 @@ function ActiveSurface() {
   );
 }
 
-type Slot = { action: ActionId; icon: string; label: string; size: number; ring: number; angle: number; cooldown?: () => number; testId: string; highlight?: boolean };
+type Slot = { action: ActionId; icon: ReactNode; label: string; size: number; ring: number; angle: number; cooldown?: () => number; testId: string; highlight?: boolean };
 
 /** 攻擊鈕的中心離右下角的距離（px，縮放前） */
 const ANCHOR = { right: 64, bottom: 66 };
@@ -177,14 +180,14 @@ export function TouchButtons() {
 
   const slots: Slot[] = useMemo(
     () => [
-      { action: 'attack', icon: weapon?.icon ?? '⚔', label: t(weapon?.nameKey ?? 'hud.attack'), size: 80, ring: 0, angle: 0, cooldown: () => combatRuntime.attackCooldown / combatRuntime.melee.lightTotal, testId: 'touch-attack' },
-      { action: 'heavyAttack', icon: '💥', label: t('hud.heavy'), size: 58, ring: 98, angle: 180, cooldown: () => combatRuntime.melee.heavyCooldown / combatRuntime.melee.heavyCooldownTotal, testId: 'touch-heavy' },
-      { action: 'interact', icon: '✋', label: t('touch.interact'), size: 58, ring: 98, angle: 136, testId: 'touch-interact' },
-      { action: 'jump', icon: '⤴', label: t('touch.jump'), size: 58, ring: 98, angle: 92, testId: 'touch-jump' },
+      { action: 'attack', icon: <ActionIcon id={weaponId} className="h-[62%] w-[62%]" />, label: t(weapon?.nameKey ?? 'hud.attack'), size: 80, ring: 0, angle: 0, cooldown: () => combatRuntime.attackCooldown / combatRuntime.melee.lightTotal, testId: 'touch-attack' },
+      { action: 'heavyAttack', icon: <ActionIcon id="heavy" className="h-[62%] w-[62%]" />, label: t('hud.heavy'), size: 58, ring: 98, angle: 180, cooldown: () => combatRuntime.melee.heavyCooldown / combatRuntime.melee.heavyCooldownTotal, testId: 'touch-heavy' },
+      { action: 'interact', icon: <ActionIcon id="interact" className="h-[62%] w-[62%]" />, label: t('touch.interact'), size: 58, ring: 98, angle: 136, testId: 'touch-interact' },
+      { action: 'jump', icon: <ActionIcon id="jump" className="h-[62%] w-[62%]" />, label: t('touch.jump'), size: 58, ring: 98, angle: 92, testId: 'touch-jump' },
       ...spells.map(
         (spell, i): Slot => ({
           action: spell.action,
-          icon: spell.icon,
+          icon: <SkillIcon id={spellIconOf(spell.id)} tone={CLASS_TONES[heroClass]} className="h-full w-full" />,
           label: t(spell.nameKey),
           size: 50,
           ring: 166,
@@ -193,10 +196,10 @@ export function TouchButtons() {
           testId: `touch-${spell.action}`,
         }),
       ),
-      { action: 'cycleWeapon', icon: '🔁', label: t('touch.weapon'), size: 44, ring: 166, angle: 86, testId: 'touch-weapon' },
-      { action: 'quickHeal', icon: '🧪', label: t('touch.heal'), size: 44, ring: 166, angle: 177, testId: 'touch-heal' },
+      { action: 'cycleWeapon', icon: <ActionIcon id="cycle" className="h-[62%] w-[62%]" />, label: t('touch.weapon'), size: 44, ring: 166, angle: 86, testId: 'touch-weapon' },
+      { action: 'quickHeal', icon: <ActionIcon id="heal" className="h-[62%] w-[62%]" />, label: t('touch.heal'), size: 44, ring: 166, angle: 177, testId: 'touch-heal' },
     ],
-    [spells, weapon],
+    [spells, weapon, weaponId, heroClass],
   );
 
   // 冷卻遮罩每幀更新 DOM（與 CombatHud 相同的做法，不觸發 React 重新渲染）
@@ -220,14 +223,14 @@ export function TouchButtons() {
       {/* 選單鈕（暫停、背包、地圖、任務、芽芽、聊天）：直向排成一欄放在小地圖下面；橫向畫面矮，排成一列放在小地圖左邊，不碰到右下的按鈕。
           位置用 px：小地圖是固定像素大小，不隨觸控介面縮小的字級（styles.css 的 html.touch-ui）變動 */}
       <div data-testid="touch-menu" className="absolute flex gap-1.5 portrait:top-[152px] portrait:right-3 portrait:flex-col landscape:top-3 landscape:right-[140px] landscape:flex-row">
-        <MenuButton testId="touch-pause" icon="☰" label={t('touch.pause')} onPress={() => input.touchKey('Escape')} />
+        <MenuButton testId="touch-pause" icon="pause" label={t('touch.pause')} onPress={() => input.touchKey('Escape')} />
         {!modal && (
           <>
-            <MenuButton testId="touch-inventory" icon="🎒" label={t('touch.inventory')} onPress={() => input.touchTap('inventory')} />
-            <MenuButton testId="touch-map" icon="🗺" label={t('touch.map')} onPress={() => input.touchTap('map')} />
-            <MenuButton testId="touch-journal" icon="📜" label={t('touch.journal')} onPress={() => input.touchTap('journal')} />
-            <MenuButton testId="touch-companion" icon="✨" label={t('touch.companion')} onPress={() => input.touchTap('companion')} />
-            <MenuButton testId="touch-chat" icon="💬" label={t('touch.chat')} onPress={() => input.touchKey('Enter')} />
+            <MenuButton testId="touch-inventory" icon="inventory" label={t('touch.inventory')} onPress={() => input.touchTap('inventory')} />
+            <MenuButton testId="touch-map" icon="map" label={t('touch.map')} onPress={() => input.touchTap('map')} />
+            <MenuButton testId="touch-journal" icon="journal" label={t('touch.journal')} onPress={() => input.touchTap('journal')} />
+            <MenuButton testId="touch-companion" icon="companion" label={t('touch.companion')} onPress={() => input.touchTap('companion')} />
+            <MenuButton testId="touch-chat" icon="chat" label={t('touch.chat')} onPress={() => input.touchKey('Enter')} />
           </>
         )}
       </div>
@@ -268,7 +271,7 @@ export function TouchButtons() {
                 }}
                 onContextMenu={(e) => e.preventDefault()}
               >
-                <span className="pointer-events-none">{slot.icon}</span>
+                <span className="pointer-events-none flex h-full w-full items-center justify-center">{slot.icon}</span>
                 {slot.cooldown && <div ref={(el) => void overlays.current.set(slot.testId, el)} className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/60" style={{ height: '0%' }} />}
               </button>
             );
@@ -279,7 +282,7 @@ export function TouchButtons() {
   );
 }
 
-function MenuButton({ testId, icon, label, onPress }: { testId: string; icon: string; label: string; onPress: () => void }) {
+function MenuButton({ testId, icon, label, onPress }: { testId: string; icon: ActionIconId; label: string; onPress: () => void }) {
   return (
     <button
       type="button"
@@ -294,7 +297,7 @@ function MenuButton({ testId, icon, label, onPress }: { testId: string; icon: st
         onPress();
       }}
     >
-      <span className="pointer-events-none">{icon}</span>
+      <ActionIcon id={icon} className="pointer-events-none h-6 w-6" />
     </button>
   );
 }

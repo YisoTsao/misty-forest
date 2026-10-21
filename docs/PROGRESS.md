@@ -31,6 +31,33 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11M-5：載入加速——模型壓縮、包 gzip、模型同時解析、開發伺服器快取（2026-10-21）
+- 使用者回報：載入還是太久、重新整理沒有快取（每次重新讀一堆檔案）、載完按「開始遊玩」後停在「正在準備場景 99%」。
+- 重現：開發伺服器上，場景載入中按開始會停在 99% 約 38 秒；原因是 React 19 的 Suspense 讓各處的 `useGLTF` 一個接一個載入（約 150 個模型）。開發伺服器沒有包，所以也沒有快取。
+- 修正（T-191）：包處理完時所有模型一次 `useGLTF.preload`；角色與怪物模型用 `scripts/optimize-models.ts` 做 meshopt 壓縮（頂點位置不量化）；包 gzip、遊戲端 `DecompressionStream` 解壓；`vite dev` 也提供包（可快取）；載入畫面的場景準備顯示已載入的模型與材質數，最後一步顯示「正在建立世界、編譯材質…」。
+- 結果：下載量 23.1 MB → 3.8 MB；建置版到可以玩 11 秒 → 3.5 秒、重新整理 3.2 秒（只剩清單一個請求）；開發伺服器 40 秒 → 6.5 秒，重新整理全部從快取讀出。
+- 驗證：e2e `assets-web`（限速改 8 Mbps、新增下載量 < 6 MB 與「場景準備顯示模型數」的檢查，截圖 `docs/screenshots/loading/first_load_preparing.png`）、`melee`、`monsters`、`movement`、`dev` 全過；截圖 `--melee`、`--monsters`（`docs/screenshots/phase11/`）確認壓縮後的角色、武器拖尾與怪物外觀正常。`pnpm check`（Vitest 997 項）、`pnpm build` 通過；完整 `pnpm e2e`（48 個 suite）exit 0，393 項全過、0 項失敗。
+- 新增 devDependencies：`@gltf-transform/core`、`@gltf-transform/extensions`、`@gltf-transform/functions`、`meshoptimizer`（只有壓縮腳本用，不進遊戲）。
+
+### 任務 11M-4：技能與按鈕圖示、移除 LINE 登入、資源依種類打包與快取（2026-10-21）
+- 技能圖示接上遊戲（T-189）：12 個法術依效果對應到 11M-3 的設計稿圖樣（`src/ui/spellIcons.ts`），外框依職業上色（`SkillIcon` 新增 `tone`）。武器、重擊、互動、跳、換武器、喝藥與六個選單鈕從 emoji 改成 SVG（`src/ui/ActionIcon.tsx`）。換到鍵盤 HUD、觸控按鈕、職業選擇。
+- 移除 LINE 登入（T-188）：線上頁只剩「使用 Google 登入」。Supabase 後台的 `custom:line` 提供者還開著，要不要關由使用者決定（見「待使用者處理」）。
+- 資源依種類打包與快取（T-190）：建置時把 271 個零散的模型與音效接成 5 個包（角色 17.2 MB、怪物 2.2 MB、建築與道具 2.3 MB、花草樹木 0.9 MB、音效 0.4 MB），載入畫面列出各種類的大小、進度、是否已快取，以及整體的已下載量與預估剩餘時間；下載完存進 Cache Storage，重新整理時網路上只剩 22 KB 的清單一個請求。桌面版（file://）不快取，但同樣只讀 5 個包。`vercel.json` 為包加上一年 immutable。
+- 新增 e2e `e2e/assets-web.e2e.mjs`（Web 版，vite preview + Playwright Chromium，不在 `e2e:all` 內，`pnpm e2e:assets-web`）：限速 40 Mbps 第一次進入（5 個包的請求、沒有 `/models`、`/audio` 的零散請求、畫面上有五個種類與剩餘時間）、重新整理（每個種類都從快取讀出、網路位元組 0）、鍵盤 HUD 與觸控介面的圖示是 SVG、觸控按鈕沒有 emoji。截圖 `docs/screenshots/loading/first_load_downloading.png`、`reload_cached.png`、`hud_icons.png`、`touch_icons.png`。
+- 驗證：`pnpm check`（Vitest 996 項；`server/WorldRoom.test.ts`「兩個人看得到彼此」並行時逾時一次，為已知問題，改動前的程式也會失敗，單獨重跑 3 次全過）、`pnpm build` 通過。`assets-web` 4 項全過。完整 `pnpm e2e`（48 個 suite）：`audio`「晴朗時有鳥叫」失敗——共享世界時鐘當時是夜晚（鳥叫乘上 `1 - night`），比照 fbf4ef3 在測試裡固定中午後通過；`garden`「時間過去後花圃開花」連跑時失敗一次（1 !== 2），單獨重跑通過；其餘全過。桌面版確認 5 個包、271 個檔案都由包讀出。
+- 未做：第一次的下載量沒有變小（角色 GLB 重複的骨架與動畫、meshopt 壓縮），見 DECISIONS T-190。
+
+### 任務 11M-3：手機版回報六項修改＋角色技能圖示（2026-10-21）
+- 載入條：`LoadingScreen` 的進度取目前為止的最大值（drei 每批資源會從頭算，舊版會一直倒退重跑），場景就緒前最多顯示 99%，只留一條進度條。
+- 手機版不顯示「Esc 關閉」：`keyVars` 新增 `{esc}` / `{close}`（手機版為空字串），地圖、日誌、建造選單與商店、工作台的提示改用這兩個變數；鍵盤版文字不變。
+- 法術特效不被草叢遮住：魔法圓、衝擊波與粒子材質 `depthTest: false`，粒子與魔法圓 `renderOrder` 提高到 10。副作用：所有粒子特效（含命中火花）不再被牆或地形遮住，之後若要限制到法術再拆。
+- 手機版背包：格子裡圖示縮小，數量移到底部獨立一條（白底小標），不再重疊。
+- 手機版任務日誌：清單改到上方（橫向捲動的分頁、清單高度上限 34%），詳細內容在下方；標題列加關閉鈕（`journal-close`），不顯示鍵盤提示。
+- 點小地圖打開世界地圖（`Minimap` 改為可點、`setWorldMapOpen(true)`；暫停中不開）。
+- 角色技能圖示 32 個（`src/ui/SkillIcon.tsx`，SVG 手繪，依職業分藍 / 金 / 紫 / 紅四色外框）。**尚未接到遊戲**：設計稿的技能名稱（星光治癒、聖光斬、火焰術、旋風斬…）與目前 `src/data/spells.json` 的 12 個法術（星光衝擊、星屑飛彈…）不同，待使用者決定要改哪一邊再對應。
+- 驗證：`pnpm check`（Vitest 989 項）、`pnpm build` 通過；e2e `touch`、`journal`、`map`、`magic`、`shop`、`craft`、`dev` 全過（exit 0）。截圖 `docs/screenshots/mobile/journal_portrait.png`、`inventory_portrait.png`、`minimap_tap_map.png`（背包截圖沒有物品，數量重疊的修正未在畫面上看到）。
+- 未做：載入時間過長的根本處理（模型壓縮、角色 GLB 共用骨架與動畫）；見下一步。
+
 ### 任務 11M-2：手機版修正（2026-10-21，使用者回報四張截圖）
 - 連點兩下畫面會放大：所有元素 `touch-action: manipulation`，另以 `mobileGuards.ts` 攔下同一位置的雙擊（`touchend`）、`dblclick` 與 iOS 的 `gesture*` 雙指縮放整頁（按鈕與輸入框不攔，連點「繼續」不會少一下）。
 - 重新整理先看到空白天空與 HUD：新增 `LoadingScreen`（場景就緒前蓋住畫面、顯示下載進度，不攔點擊、就緒立刻卸載）。原因是下載量大（模型約 23 MB，其中 5 個角色 GLB 各約 3.6 MB；JS 5.9 MB）且 `/models` 沒有快取設定，每次重新整理都要重新驗證 232 個檔案：`vercel.json` 為 `/models`、`/audio` 加上一天快取＋一週 stale-while-revalidate。
@@ -604,9 +631,10 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 2. **B 級機器量測**：在 M1 / Iris Xe 8 GB 等級的機器執行 `node scripts/perf.mjs`，補進 `PERF.md`。
 3. **多人連線上線用的帳號（Phase 4–5 才需要，Phase 3 不需要）**：Vercel、Render 帳號與 GitHub repo 授權；Supabase 專案（URL、publishable key；secret key 由使用者自己貼進 Render 的環境變數）；`online-plan.md` §8 的待決定事項。
 4. **安全**：`git remote -v` 的網址裡含有 GitHub 個人存取權杖（`https://ghp_…@github.com/...`），建議撤銷這把權杖、改用 `gh auth login` 或系統鑰匙圈，並把 remote 改回不含權杖的網址。
-5. **LINE 登入**：`Error getting user profile from external provider`，請確認 LINE 頻道是 Published、Email address permission 已通過，或換有綁定信箱的 LINE 帳號再試。
+5. **LINE 登入已移除（T-188）**：遊戲裡不再有 LINE 按鈕；Supabase 後台 Authentication → Providers 的 `custom:line` 與 LINE Developers 的頻道可以自行關閉。
 
 ## 已知問題
+- `garden` e2e 的「時間過去後花圃開花」在完整連跑時失敗一次（2026-10-21，1 !== 2），單獨重跑通過；若再出現，檢查快轉時間與花圃生長的判定時機。
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。

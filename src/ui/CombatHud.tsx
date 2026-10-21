@@ -20,6 +20,9 @@ import type { WeaponId } from '@/game-core/combat/weapons';
 import { timeRuntime } from '@/game/world/timeRuntime';
 import { useTouchUi } from '@/game/input/device';
 import { formatClock } from '@/game-core/world/timeOfDay';
+import { ActionIcon } from './ActionIcon';
+import { SkillIcon } from './SkillIcon';
+import { CLASS_TONES, spellIconOf } from './spellIcons';
 
 /**
  * 戰鬥 HUD（規格 6.6）：左下血量、右下技能冷卻、受傷時畫面邊緣閃紅、倒下時的提示。
@@ -139,15 +142,15 @@ export function CombatHud() {
           <div ref={comboRef} data-testid="combo" className="h-6 text-lg font-black tracking-wider text-amber-200 italic drop-shadow" />
           <WeaponSelector current={weaponId} owned={weaponsOf(heroClass)} />
           <div className="flex gap-3">
-            <SkillSlot refEl={attackRef} keyLabel={actionKey(bindings, 'attack')} label={t(weapon?.nameKey ?? 'hud.attack')} icon={weapon?.icon ?? '⚔'} testId="attack-slot" />
-            <SkillSlot refEl={heavyRef} keyLabel={actionKey(bindings, 'heavyAttack')} label={t('hud.heavy')} icon="💥" testId="heavy-slot" />
+            <SkillSlot refEl={attackRef} keyLabel={actionKey(bindings, 'attack')} label={t(weapon?.nameKey ?? 'hud.attack')} icon={<ActionIcon id={weaponId} className="mb-3 h-8 w-8" />} testId="attack-slot" />
+            <SkillSlot refEl={heavyRef} keyLabel={actionKey(bindings, 'heavyAttack')} label={t('hud.heavy')} icon={<ActionIcon id="heavy" className="mb-3 h-8 w-8" />} testId="heavy-slot" />
             {spellList.map((spell) => (
               <SkillSlot
                 key={spell.id}
                 refEl={(el) => void spellRefs.current.set(spell.id, el)}
                 keyLabel={actionKey(bindings, spell.action)}
                 label={t(spell.nameKey)}
-                icon={spell.icon}
+                icon={<SkillIcon id={spellIconOf(spell.id)} tone={CLASS_TONES[heroClass]} className="h-full w-full" />}
                 testId={spell.action === 'skill' ? 'skill-slot' : `spell-slot-${spell.id}`}
               />
             ))}
@@ -182,7 +185,7 @@ function WeaponSelector({ current, owned }: { current: WeaponId; owned: readonly
             title={t(w?.nameKey ?? id)}
             className={`relative flex h-9 w-9 items-center justify-center rounded-xl border-2 text-lg transition ${active ? 'scale-110 border-amber-300 bg-amber-400/35' : 'border-white/35 bg-black/40 opacity-70'}`}
           >
-            {w?.icon}
+            <ActionIcon id={id} className="h-7 w-7" />
             <kbd className="absolute -right-1 -bottom-1 rounded bg-white/85 px-0.5 text-[9px] font-bold text-slate-800">{actionKey(bindings, WEAPON_ACTIONS[i] ?? 'weapon1')}</kbd>
           </div>
         );
@@ -191,11 +194,11 @@ function WeaponSelector({ current, owned }: { current: WeaponId; owned: readonly
   );
 }
 
-function SkillSlot({ refEl, keyLabel, label, icon, testId }: { refEl: React.Ref<HTMLDivElement>; keyLabel: string; label: string; icon: string; testId?: string }) {
+function SkillSlot({ refEl, keyLabel, label, icon, testId }: { refEl: React.Ref<HTMLDivElement>; keyLabel: string; label: string; icon: React.ReactNode; testId?: string }) {
   return (
     <div className="flex flex-col items-center gap-1" data-testid={testId}>
       <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border-2 border-amber-200/80 bg-black/45 text-2xl text-amber-200">
-        <span>{icon}</span>
+        <span className="flex h-full w-full items-center justify-center">{icon}</span>
         {/* 冷卻遮罩：由上往下收 */}
         <div ref={refEl} className="absolute inset-x-0 bottom-0 bg-black/60" style={{ height: '0%' }} />
         <kbd className="absolute right-0.5 bottom-0.5 rounded bg-amber-200 px-1 text-[10px] font-bold text-amber-950">{keyLabel}</kbd>
@@ -214,7 +217,9 @@ function PotionCount({ keyLabel }: { keyLabel: string }) {
   return (
     <div className="mt-1.5 flex w-fit items-center gap-1.5 rounded-full bg-black/40 px-2 py-0.5 text-xs text-white" data-testid="potion-count">
       <span className="rounded bg-white/85 px-1 font-mono text-[10px] font-bold text-amber-950">{keyLabel}</span>
-      <span>🧪 {t('hud.potions')} ×{count}</span>
+      <span className="flex items-center gap-0.5">
+        <ActionIcon id="heal" className="h-4 w-4" /> {t('hud.potions')} ×{count}
+      </span>
     </div>
   );
 }

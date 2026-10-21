@@ -50,12 +50,15 @@ import { vfxStats } from './vfx/vfxQueue';
 import { mistRuntime } from './world/mistRuntime';
 import { mistTargetAt } from './world/mistTarget';
 import { cameraBookmarks } from './worldData';
+import { assetLoadReport } from './assets/assetLoader';
 import { connect, disconnect, reconnect, sendRaw } from '@/net/netClient';
 import { chatRuntime, useChatStore } from '@/net/chatStore';
 import { remotePose, remoteRuntime, useNetStore, type NetStatus } from '@/net/netStore';
 
 export type MistwoodDebugApi = {
   isReady: () => boolean;
+  /** 資源包的載入結果（下載 / 從快取讀出、對應到包裡的檔案數） */
+  assetLoad: () => ReturnType<typeof assetLoadReport>;
   bookmarks: () => string[];
   setBookmark: (id: string) => void;
   /** 自由視角：攝影機放在 position 看向 target */
@@ -272,6 +275,7 @@ export function installDebugApi(): void {
   if (!debugEnabled) return;
   window.__mistwoodDebug = {
     isReady: () => useDebugStore.getState().sceneReady,
+    assetLoad: () => assetLoadReport(),
     bookmarks: () => cameraBookmarks.map((b) => b.id),
     setBookmark: (id) => {
       if (!cameraBookmarks.some((b) => b.id === id)) throw new Error(`未知的攝影機書籤：${id}`);

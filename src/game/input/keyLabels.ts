@@ -59,8 +59,14 @@ export function actionKey(bindings: Bindings, action: ActionId): string {
   return code ? keyLabel(code) : t('key.unbound');
 }
 
+/** 「Esc 關閉」提示；手機版沒有 Esc 鍵，不顯示（使用者 2026-10-21） */
+export function escCloseHint(): string {
+  return useInputDeviceStore.getState().device === 'touch' ? '' : t('key.escClose');
+}
+
 /** 提示文字使用的按鍵變數：{move}（WASD 四鍵）、{run}、{jump}、{interact}、{inventory}… */
 export function keyVars(bindings: Bindings): Record<string, string> {
+  const close = escCloseHint();
   const dirs = (['moveForward', 'moveLeft', 'moveBack', 'moveRight'] as const).map((a) => actionKey(bindings, a));
   // 四個方向都是單一字母時連在一起（WASD），否則以斜線分隔
   const device = useInputDeviceStore.getState().device;
@@ -94,6 +100,9 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     map: actionKey(bindings, 'map'),
     journal: actionKey(bindings, 'journal'),
     quickHeal: actionKey(bindings, 'quickHeal'),
+    // {esc}：接在按鍵後面的「 / Esc 關閉」；手機版為空字串
+    esc: close ? ` / ${close}` : '',
+    close,
     pause: device === 'gamepad' ? 'Menu' : device === 'touch' ? t('touch.key.pause') : t('key.escape'),
   };
 }

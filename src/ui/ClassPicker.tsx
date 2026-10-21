@@ -4,6 +4,9 @@ import { DEFAULT_HERO_CLASS, heroClassIds, type HeroClassId } from '@/game-core/
 import { heroClasses, weapons } from '@/game/authority';
 import { spellsOf } from '@/game/character/currentClass';
 import { t } from '@/game/i18n';
+import { ActionIcon } from './ActionIcon';
+import { SkillIcon } from './SkillIcon';
+import { CLASS_TONES, spellIconOf } from './spellIcons';
 
 /**
  * 選職業（使用者 2026-10-17：初始角色從一名增加到四種職業）：新遊戲與第一次進入線上世界時顯示。
@@ -55,8 +58,8 @@ export function ClassPicker({ onStart, onBack, busy = false }: { onStart: (heroC
                 {def.weapons.map((w) => {
                   const weapon = weapons.weapons.get(w);
                   return (
-                    <span key={w} className="mr-1.5 inline-block">
-                      {weapon?.icon} {t(weapon?.nameKey ?? w)}
+                    <span key={w} className="mr-1.5 inline-flex items-center gap-0.5 align-middle">
+                      <ActionIcon id={w} className="h-4 w-4" /> {t(weapon?.nameKey ?? w)}
                     </span>
                   );
                 })}
@@ -64,8 +67,8 @@ export function ClassPicker({ onStart, onBack, busy = false }: { onStart: (heroC
               <span className="flex flex-col gap-0.5 text-xs" data-testid={`class-spells-${id}`}>
                 <span className="font-bold text-amber-100">{t('classPicker.spells')}</span>
                 {spellsOf(id).map((s) => (
-                  <span key={s.id}>
-                    {s.icon} {t(s.nameKey)} <span className="opacity-60">（{s.mpCost}）</span>
+                  <span key={s.id} className="flex items-center gap-1">
+                    <SkillIcon id={spellIconOf(s.id)} tone={CLASS_TONES[id]} className="h-5 w-5 shrink-0" /> {t(s.nameKey)} <span className="opacity-60">（{s.mpCost}）</span>
                   </span>
                 ))}
               </span>

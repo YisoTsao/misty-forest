@@ -4,6 +4,7 @@ import { availableStock, COIN, MAX_TRADE, type ShopDef } from '@/game-core/shop/
 import { authority, npcs, shops } from '@/game/authority';
 import { t } from '@/game/i18n';
 import { input } from '@/game/input/inputManager';
+import { escCloseHint } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
@@ -96,7 +97,7 @@ function ShopWindow({ shop }: { shop: ShopDef }) {
             <ShopRow key={r.itemId} shop={shop} tab={tab} itemId={r.itemId} price={r.price} owned={countItem(state.inventory, r.itemId)} coins={coins} />
           ))}
         </ul>
-        <p className="text-xs text-amber-800">{t(tab === 'buy' ? 'shop.hint.buy' : 'shop.hint.sell')}</p>
+        <p className="text-xs text-amber-800">{t(tab === 'buy' ? 'shop.hint.buy' : 'shop.hint.sell', { close: escCloseHint() })}</p>
       </div>
     </div>
   );

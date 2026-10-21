@@ -1,4 +1,5 @@
 import { useAnimations, useGLTF } from '@react-three/drei';
+import { assetsReady } from '@/game/assets/assetLoader';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -254,4 +255,7 @@ export function CharacterModel({ def }: { def: CharacterDef }) {
   );
 }
 
-for (const path of Object.values(WEAPON_SOURCES)) useGLTF.preload(assetUrl(path));
+// 資源包處理完才預先載入（否則會在包下載完之前另外逐檔下載）
+void assetsReady.then(() => {
+  for (const path of Object.values(WEAPON_SOURCES)) useGLTF.preload(assetUrl(path));
+});

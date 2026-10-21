@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { assetPacks } from './scripts/assetPacks';
 
 /**
  * 多人連線（任務 11A）：把建置設定的遊戲伺服器（VITE_GAME_SERVER_URL）加進 CSP 的 connect-src。
@@ -32,7 +33,7 @@ export default defineConfig(({ mode }) => ({
   // Electron 正式版以 file:// 載入，資源路徑需為相對路徑
   base: './',
   define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion) },
-  plugins: [react(), tailwindcss(), gameServerCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_GAME_SERVER_URL), supabaseCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL)],
+  plugins: [react(), tailwindcss(), assetPacks(), gameServerCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_GAME_SERVER_URL), supabaseCsp(loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL)],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

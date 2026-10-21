@@ -27,3 +27,5 @@
 程式產生（不需授權）：環境音（風、鳥叫、迷霧嗡鳴、水聲）與背景音樂（Web Audio 合成，`game/audio/audioEngine.ts`）、地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火、酒館室內（牆、地板、壁爐）與門墊（`render/proceduralModels.ts`）、迷霧噗啾（迷霧生物）、星光夥伴芽芽、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層、湖與溪共用的水面與水深貼圖（任務 7A）；地圖邊界迷霧牆（任務 6A）；太陽、月亮與月相、星空、螢火蟲、夜晚燈光光暈、蟲鳴（任務 6B）；揮砍拖尾、命中火花與衝擊塵（任務 6C）。
 
 參考圖請放在 `docs/art/reference/`（目前尚未提供）。
+
+- 2026-10-21（T-191）：`public/models/characters/kaykit-adventurers/*.glb` 與 `public/models/monsters/*.glb` 以 `scripts/optimize-models.ts` 重新取樣動畫並 meshopt 壓縮（EXT_meshopt_compression，頂點位置不量化），內容與授權不變（CC0）。

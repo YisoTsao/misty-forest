@@ -153,6 +153,8 @@ export class GpuParticles {
       vertexShader,
       fragmentShader,
       transparent: true,
+      // 粒子特效（含法術）不被前景草叢遮住，見 magicShaders
+      depthTest: false,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       toneMapped: false,
@@ -160,7 +162,7 @@ export class GpuParticles {
     });
     this.mesh = new THREE.Mesh(geometry, this.material);
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = 5;
+    this.mesh.renderOrder = 10;
     this.mesh.name = 'vfx-particles';
   }
 
