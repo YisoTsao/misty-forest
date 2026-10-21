@@ -217,8 +217,9 @@ export function TouchButtons() {
   if (!touch || !playing) return null;
   return (
     <>
-      {/* 選單鈕（暫停、背包、地圖、任務、芽芽、聊天）：直向排成一欄放在小地圖下面；橫向畫面矮，排成一列放在小地圖左邊，不碰到右下的按鈕 */}
-      <div data-testid="touch-menu" className="absolute flex gap-1.5 portrait:top-[9.5rem] portrait:right-3 portrait:flex-col landscape:top-3 landscape:right-[8.75rem] landscape:flex-row">
+      {/* 選單鈕（暫停、背包、地圖、任務、芽芽、聊天）：直向排成一欄放在小地圖下面；橫向畫面矮，排成一列放在小地圖左邊，不碰到右下的按鈕。
+          位置用 px：小地圖是固定像素大小，不隨觸控介面縮小的字級（styles.css 的 html.touch-ui）變動 */}
+      <div data-testid="touch-menu" className="absolute flex gap-1.5 portrait:top-[152px] portrait:right-3 portrait:flex-col landscape:top-3 landscape:right-[140px] landscape:flex-row">
         <MenuButton testId="touch-pause" icon="☰" label={t('touch.pause')} onPress={() => input.touchKey('Escape')} />
         {!modal && (
           <>

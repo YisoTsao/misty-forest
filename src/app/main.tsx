@@ -11,6 +11,7 @@ import { installCompanion } from '@/game/companion/companionRuntime';
 import { installEventFeedback } from '@/game/eventFeedback';
 import { loadMainSave } from '@/game/save/saveService';
 import { installAutosave } from '@/game/session';
+import { installMobileGuards } from '@/game/input/mobileGuards';
 import { installNetwork } from '@/net/installNetwork';
 import { syncClockFromServer } from '@/net/serverTime';
 import { installOnline } from '@/online/installOnline';
@@ -22,6 +23,8 @@ import './styles.css';
 
 document.title = t('app.title');
 installDebugApi();
+// 手機：擋下雙擊與雙指縮放整頁、觸控介面縮小字級
+installMobileGuards();
 installEventFeedback();
 installCombatRuntime();
 installBossRuntime();

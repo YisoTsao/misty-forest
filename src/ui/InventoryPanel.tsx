@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { InventorySlot } from '@/game-core/inventory/inventory';
 import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
+import { useTouchUi } from '@/game/input/device';
 import { input } from '@/game/input/inputManager';
 import { actionKey } from '@/game/input/keyLabels';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
@@ -59,6 +60,8 @@ function InventoryWindow() {
   const index = selected ?? slots.findIndex((s) => s !== null);
   const slot = index >= 0 ? (slots[index] ?? null) : null;
   const def = slot ? items.get(slot.itemId) : undefined;
+  // 手機版（使用者 2026-10-21：背包的圖示跟文字要縮小）：格子、說明圖示與文字都縮小，不顯示鍵盤提示
+  const touch = useTouchUi();
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/25" onClick={close}>
@@ -67,27 +70,27 @@ function InventoryWindow() {
         aria-labelledby="inventory-title"
         data-testid="inventory" data-pad-scope
         onClick={(e) => e.stopPropagation()}
-        className="ui-panel flex gap-5 rounded-2xl border-4 border-amber-200 bg-amber-50 p-5 max-sm:flex-col max-sm:gap-3 max-sm:p-3 text-amber-950 shadow-2xl"
+        className={`ui-panel flex rounded-2xl border-4 border-amber-200 bg-amber-50 text-amber-950 shadow-2xl max-sm:flex-col ${touch ? 'gap-3 p-3' : 'gap-5 p-5 max-sm:gap-3 max-sm:p-3'}`}
       >
         <div>
-          <h2 id="inventory-title" className="mb-3 text-xl font-bold">
+          <h2 id="inventory-title" className={`font-bold ${touch ? 'mb-2 text-base' : 'mb-3 text-xl'}`}>
             {t('inventory.title')}
           </h2>
-          <div className="grid grid-cols-6 gap-2 max-sm:gap-1.5">
+          <div className={`grid grid-cols-6 ${touch ? 'gap-1.5' : 'gap-2 max-sm:gap-1.5'}`}>
             {slots.map((s, i) => (
-              <SlotButton key={i} slot={s} active={i === index && s !== null} onSelect={() => setSelected(i)} />
+              <SlotButton key={i} slot={s} active={i === index && s !== null} compact={touch} onSelect={() => setSelected(i)} />
             ))}
           </div>
         </div>
-        <div className="flex w-56 flex-col max-sm:w-auto" data-testid="inventory-detail">
+        <div className={`flex flex-col max-sm:w-auto ${touch ? 'w-44' : 'w-56'}`} data-testid="inventory-detail">
           {def && slot ? (
             <>
-              <ItemIcon icon={def.icon} className="mx-auto mt-8 h-24 w-24" />
-              <h3 className="mt-3 text-center text-lg font-bold">{t(def.nameKey)}</h3>
-              <p className="text-center text-sm opacity-70">
+              <ItemIcon icon={def.icon} className={touch ? 'mx-auto mt-2 h-12 w-12' : 'mx-auto mt-8 h-24 w-24'} />
+              <h3 className={`text-center font-bold ${touch ? 'mt-1 text-sm' : 'mt-3 text-lg'}`}>{t(def.nameKey)}</h3>
+              <p className={`text-center opacity-70 ${touch ? 'text-xs' : 'text-sm'}`}>
                 {t(`inventory.category.${def.category}`)} · {t('inventory.owned')} {slot.count}
               </p>
-              <p className="mt-3 text-sm leading-6">{t(def.descKey)}</p>
+              <p className={touch ? 'mt-2 text-xs leading-5' : 'mt-3 text-sm leading-6'}>{t(def.descKey)}</p>
               {def.use && (
                 <button
                   type="button"
@@ -102,9 +105,14 @@ function InventoryWindow() {
           ) : (
             <p className="mt-16 text-center text-sm whitespace-pre-line opacity-60">{t('inventory.empty')}</p>
           )}
-          <div className="mt-auto flex items-center justify-end gap-3 pt-4">
-            <span className="text-xs opacity-60">{t('inventory.closeHint', { inventory: inventoryKey })}</span>
-            <button type="button" data-testid="inventory-close" onClick={close} className="rounded-full bg-amber-500 px-5 py-1.5 font-bold text-white hover:bg-amber-600">
+          <div className={`mt-auto flex items-center justify-end gap-3 ${touch ? 'pt-2' : 'pt-4'}`}>
+            {!touch && <span className="text-xs opacity-60">{t('inventory.closeHint', { inventory: inventoryKey })}</span>}
+            <button
+              type="button"
+              data-testid="inventory-close"
+              onClick={close}
+              className={`rounded-full bg-amber-500 font-bold text-white hover:bg-amber-600 ${touch ? 'px-4 py-1 text-sm' : 'px-5 py-1.5'}`}
+            >
               {t('inventory.close')}
             </button>
           </div>
@@ -114,7 +122,7 @@ function InventoryWindow() {
   );
 }
 
-function SlotButton({ slot, active, onSelect }: { slot: InventorySlot; active: boolean; onSelect: () => void }) {
+function SlotButton({ slot, active, compact, onSelect }: { slot: InventorySlot; active: boolean; compact: boolean; onSelect: () => void }) {
   const def = slot ? items.get(slot.itemId) : undefined;
   return (
     <button
@@ -126,14 +134,15 @@ function SlotButton({ slot, active, onSelect }: { slot: InventorySlot; active: b
       onMouseEnter={slot ? onSelect : undefined}
       title={def ? t(def.nameKey) : undefined}
       // 手機版（任務 11M）：直向（寬度不足）或橫向（高度不足）時格子縮小
-      className={`relative h-16 w-16 max-sm:h-12 max-sm:w-12 [@media(max-height:480px)]:h-12 [@media(max-height:480px)]:w-12 rounded-xl border-2 ${
+      // 觸控介面再縮小一級（字級 13px 時約 36px，仍好按）
+      className={`relative rounded-xl border-2 ${compact ? 'h-11 w-11' : 'h-16 w-16 max-sm:h-12 max-sm:w-12 [@media(max-height:480px)]:h-12 [@media(max-height:480px)]:w-12'} ${
         active ? 'border-amber-500 bg-amber-200' : 'border-amber-200 bg-white/70'
       } ${slot ? 'hover:border-amber-400' : ''}`}
     >
       {def && slot && (
         <>
           <ItemIcon icon={def.icon} className="absolute inset-1.5" />
-          <span className="absolute right-1 bottom-0.5 text-sm font-bold text-amber-950 [text-shadow:0_0_3px_white]">{slot.count}</span>
+          <span className={`absolute right-1 bottom-0.5 font-bold ${compact ? 'text-xs' : 'text-sm'} text-amber-950 [text-shadow:0_0_3px_white]`}>{slot.count}</span>
         </>
       )}
     </button>

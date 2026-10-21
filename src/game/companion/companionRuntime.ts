@@ -33,6 +33,13 @@ export function companionSay(textKey: string): void {
   hideTimer = window.setTimeout(() => useCompanionBubble.setState({ text: null }), BUBBLE_MS);
 }
 
+/** 點一下泡泡就關閉（使用者 2026-10-21：NPC 的提示框都要可以點擊關閉） */
+export function dismissCompanionBubble(): void {
+  if (hideTimer !== null) window.clearTimeout(hideTimer);
+  hideTimer = null;
+  useCompanionBubble.setState({ text: null });
+}
+
 /** 依目前進度給提示（按下「詢問露米」） */
 export function companionHint(): void {
   companionSay(pickCompanionHint(companionDef, authority.getState(), { quests }));

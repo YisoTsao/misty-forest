@@ -23,7 +23,7 @@ export function QuestTracker() {
   if (active.length === 0) return null;
 
   return (
-    <div className={`pointer-events-none absolute flex flex-col gap-2 ${touch ? 'top-[6.5rem] left-3 w-52 portrait:w-44 text-[13px]' : 'top-36 left-4 w-64'}`} data-testid="quest-tracker">
+    <div className={`pointer-events-none absolute flex flex-col gap-2 ${touch ? 'top-[7.5rem] left-3 w-52 portrait:w-44 text-xs' : 'top-36 left-4 w-64'}`} data-testid="quest-tracker">
       {active.map((q) => {
         const ready = isQuestReady(state, q);
         const giver = npcs.find((n) => n.id === q.giver);

@@ -8,6 +8,12 @@
     />
     <!-- 手機版（任務 11M）：不讓瀏覽器縮放整頁（雙指張合給遊戲縮放鏡頭），畫面延伸到瀏海與圓角（以 safe-area 留邊） -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- 手機：iPhone 不支援網頁全螢幕，「加入主畫面」後以全螢幕 App 開啟（沒有網址列） -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mistwood" />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <title>Mistwood</title>
   </head>
   <body>

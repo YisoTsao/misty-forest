@@ -1,0 +1,9 @@
+{
+  "name": "迷霧之森：星光旅人",
+  "short_name": "Mistwood",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#cdeefc",
+  "theme_color": "#0f172a"
+}

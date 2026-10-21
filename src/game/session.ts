@@ -2,6 +2,7 @@ import { fetchOnlineSave, setPlayMode, useOnlineStore } from '@/online/onlineSto
 import { endOnlineSession, startOnlineSession } from '@/online/onlineSession';
 import { DEFAULT_HERO_CLASS, type HeroClassId } from '@/game-core/character/heroClass';
 import { authority } from './authority';
+import { enterFullscreenOnTouch } from './input/mobileGuards';
 import { loadedFromSaveData, loadMainSave, saveGame } from './save/saveService';
 import { currentScreen, useGameStore } from './state/gameStore';
 import { useUiStore } from './state/uiStore';
@@ -10,6 +11,7 @@ import { useUiStore } from './state/uiStore';
 
 /** 新遊戲：以選好的職業開始（使用者 2026-10-17：四種職業） */
 export function startNewGame(heroClass: HeroClassId = DEFAULT_HERO_CLASS): void {
+  enterFullscreenOnTouch();
   setPlayMode('offline');
   useGameStore.getState().beginSession(null);
   authority.send({ type: 'ChooseClass', heroClass });
@@ -17,6 +19,8 @@ export function startNewGame(heroClass: HeroClassId = DEFAULT_HERO_CLASS): void 
 
 /** 繼續遊戲：重新讀取主存檔（主檔損壞時用備份）。讀不到時回傳 false，畫面停在主選單並顯示原因。 */
 export async function continueGame(): Promise<boolean> {
+  // 手機：開始遊玩時進入全螢幕（要在第一個 await 之前，仍算點擊的手勢）
+  enterFullscreenOnTouch();
   const outcome = await loadMainSave();
   if (outcome.status !== 'ok' && outcome.status !== 'restored-from-backup') return false;
   setPlayMode('offline');
@@ -30,6 +34,7 @@ export async function continueGame(): Promise<boolean> {
  * 連線到遊戲伺服器由 installNetwork 在場景就緒後進行。讀取失敗或存檔格式錯誤時回傳 false，畫面停在主選單。
  */
 export async function enterOnlineWorld(heroClass: HeroClassId = DEFAULT_HERO_CLASS): Promise<boolean> {
+  enterFullscreenOnTouch();
   useOnlineStore.setState({ busy: true, error: null });
   try {
     const remote = await fetchOnlineSave();

@@ -5,6 +5,7 @@ import { TERRAIN_SIZE } from '@/game-core/world/terrain';
 import { currentMap } from '@/game/location';
 import { authority } from '@/game/authority';
 import { t } from '@/game/i18n';
+import { useTouchUi } from '@/game/input/device';
 import { input } from '@/game/input/inputManager';
 import { keyVars } from '@/game/input/keyLabels';
 import { currentInterior } from '@/game/location';
@@ -84,14 +85,26 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
   const origin = MAPS[map].origin;
   const [center, setCenter] = useState(() => ({ x: origin.x, z: origin.z }));
   const drag = useRef<{ x: number; y: number; cx: number; cz: number } | null>(null);
-  const [size, setSize] = useState(600);
+  // 手機版（使用者 2026-10-21：地圖太擠）：觸控介面下地圖佔滿整個畫面，圖例與關閉鈕浮在上面，地名縮小
+  const touch = useTouchUi();
+  const [box, setBox] = useState({ w: 600, h: 600 });
+  const { w: width, h: height } = box;
+  /** 縮放 1 時整張地圖剛好放進較短的一邊 */
+  const size = Math.min(width, height);
+  const textScale = touch ? 0.72 : 1;
 
   useEffect(() => {
-    const fit = () => setSize(Math.floor(Math.min(window.innerWidth - 360, window.innerHeight - 120, 900)));
+    const fit = () => {
+      if (touch) setBox({ w: window.innerWidth, h: window.innerHeight });
+      else {
+        const s = Math.floor(Math.min(window.innerWidth - 360, window.innerHeight - 120, 900));
+        setBox({ w: s, h: s });
+      }
+    };
     fit();
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
-  }, []);
+  }, [touch]);
 
   useEffect(() => {
     if (!worldDataResult.ok) return;
@@ -102,17 +115,17 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const dpr = window.devicePixelRatio || 1;
-      if (canvas.width !== size * dpr) {
-        canvas.width = size * dpr;
-        canvas.height = size * dpr;
+      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
       }
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       const state = authority.getState();
-      const view: MapView = { cx: center.x, cz: center.z, pxPerM: (size / TERRAIN_SIZE) * zoom, width: size, height: size };
+      const view: MapView = { cx: center.x, cz: center.z, pxPerM: (size / TERRAIN_SIZE) * zoom, width, height, textScale };
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = '#d6d6e2';
-      ctx.fillRect(0, 0, size, size);
+      ctx.fillRect(0, 0, width, height);
       drawLayer(ctx, getMapBase(data, map), view, map);
       drawRegionLabels(ctx, view, map);
       drawLandmarks(ctx, view, state, true, map);
@@ -134,7 +147,7 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [size, zoom, center, map]);
+  }, [width, height, size, zoom, center, map, textScale]);
 
   const close = () => {
     setWorldMapOpen(false);
@@ -145,6 +158,114 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
     return { x: Math.max(origin.x - half, Math.min(origin.x + half, x)), z: Math.max(origin.z - half, Math.min(origin.z + half, z)) };
   };
   const pct = Math.round(exploredRatio(explored, map) * 100);
+  const zoomTo = (next: number) => {
+    const z = Math.min(4, Math.max(1, next));
+    setZoom(z);
+    setCenter((c) => clampCenter(c.x, c.z, z));
+  };
+  // 觸控：雙指縮放（第二根手指放下時記下距離與當時的縮放）
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ distance: number; zoom: number } | null>(null);
+  const pinchDistance = () => {
+    const [a, b] = [...pointers.current.values()];
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  };
+
+  const canvas = (
+    <canvas
+      ref={canvasRef}
+      data-testid="world-map-canvas"
+      style={{ width, height, touchAction: 'none' }}
+      className={`cursor-grab active:cursor-grabbing ${touch ? '' : 'rounded-xl border-2 border-amber-700/40'}`}
+      onWheel={(e) => zoomTo(zoom * (e.deltaY < 0 ? 1.25 : 0.8))}
+      onPointerDown={(e) => {
+        pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        e.currentTarget.setPointerCapture(e.pointerId);
+        if (pointers.current.size === 2) {
+          drag.current = null;
+          pinch.current = { distance: pinchDistance(), zoom };
+          return;
+        }
+        drag.current = { x: e.clientX, y: e.clientY, cx: center.x, cz: center.z };
+      }}
+      onPointerMove={(e) => {
+        if (!pointers.current.has(e.pointerId)) return;
+        pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const p = pinch.current;
+        if (p && pointers.current.size >= 2) {
+          if (p.distance > 0) zoomTo(p.zoom * (pinchDistance() / p.distance));
+          return;
+        }
+        const d = drag.current;
+        if (!d) return;
+        const pxPerM = (size / TERRAIN_SIZE) * zoom;
+        setCenter(clampCenter(d.cx - (e.clientX - d.x) / pxPerM, d.cz - (e.clientY - d.y) / pxPerM));
+      }}
+      onPointerUp={(e) => {
+        pointers.current.delete(e.pointerId);
+        if (pointers.current.size < 2) pinch.current = null;
+        drag.current = null;
+      }}
+      onPointerCancel={(e) => {
+        pointers.current.delete(e.pointerId);
+        pinch.current = null;
+        drag.current = null;
+      }}
+    />
+  );
+  const legend = (
+    <ul className={`flex flex-col ${touch ? 'gap-1 text-xs' : 'gap-1.5 text-sm'}`}>
+      <Legend swatch={<span className="inline-block h-0 w-0 border-y-[6px] border-l-[12px] border-y-transparent border-l-orange-500" />} text={t('map.legend.player')} />
+      <Legend swatch={<Dot color="#f2b630" text="!" />} text={t('map.legend.questAvailable')} />
+      <Legend swatch={<Dot color="#4fb3e8" text="?" />} text={t('map.legend.questTurnIn')} />
+      <Legend swatch={<Dot color="#f2b630" text="★" />} text={t('map.legend.questObjective')} />
+      <Legend swatch={<span className="inline-block h-2.5 w-3.5 border border-amber-900 bg-amber-500" />} text={t('map.legend.chest')} />
+      <Legend swatch={<span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-white bg-green-600" />} text={t('map.legend.npc')} />
+    </ul>
+  );
+  const closeButton = (
+    <button type="button" data-testid="world-map-close" onClick={close} className="rounded-lg bg-amber-500 px-3 py-1.5 font-bold text-white hover:bg-amber-600">
+      {t('map.close')}
+    </button>
+  );
+
+  if (touch) {
+    return (
+      <div
+        ref={boxRef}
+        role="dialog"
+        aria-labelledby="map-title"
+        data-testid="world-map"
+        data-explored={pct}
+        data-pad-scope
+        className="absolute inset-0 overflow-hidden bg-[#d6d6e2] text-amber-950"
+      >
+        {canvas}
+        {/* 左上：標題、地區、探索度、圖例（收合）；右上：縮放與關閉。避開瀏海與圓角 */}
+        <div className="pointer-events-none absolute top-[max(0.5rem,env(safe-area-inset-top))] left-[max(0.5rem,env(safe-area-inset-left))] max-w-[45vw] rounded-xl bg-amber-50/90 px-3 py-2 shadow-lg">
+          <h2 id="map-title" className="text-sm font-bold">
+            {t('map.title')} · <span data-testid="world-map-name">{t(MAPS[map].nameKey)}</span>
+          </h2>
+          <p className="text-xs font-bold text-amber-800" data-testid="world-map-explored">
+            {t('map.explored', { pct })}
+          </p>
+          <details className="pointer-events-auto mt-1">
+            <summary className="cursor-pointer text-xs font-bold">{t('map.legend')}</summary>
+            <div className="mt-1">{legend}</div>
+          </details>
+        </div>
+        <div className="absolute top-[max(0.5rem,env(safe-area-inset-top))] right-[max(0.5rem,env(safe-area-inset-right))] flex items-center gap-2">
+          <button type="button" aria-label="-" onClick={() => zoomTo(zoom * 0.8)} className="h-9 w-9 rounded-full bg-amber-50/90 text-lg font-bold shadow-lg">
+            −
+          </button>
+          <button type="button" aria-label="+" onClick={() => zoomTo(zoom * 1.25)} className="h-9 w-9 rounded-full bg-amber-50/90 text-lg font-bold shadow-lg">
+            +
+          </button>
+          {closeButton}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/45" onClick={close}>
@@ -158,28 +279,7 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
         onClick={(e) => e.stopPropagation()}
         className="ui-panel flex gap-4 rounded-2xl border-4 border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-2xl"
       >
-        <canvas
-          ref={canvasRef}
-          data-testid="world-map-canvas"
-          style={{ width: size, height: size }}
-          className="cursor-grab rounded-xl border-2 border-amber-700/40 active:cursor-grabbing"
-          onWheel={(e) => {
-            const next = Math.min(4, Math.max(1, zoom * (e.deltaY < 0 ? 1.25 : 0.8)));
-            setZoom(next);
-            setCenter((c) => clampCenter(c.x, c.z, next));
-          }}
-          onPointerDown={(e) => {
-            drag.current = { x: e.clientX, y: e.clientY, cx: center.x, cz: center.z };
-            e.currentTarget.setPointerCapture(e.pointerId);
-          }}
-          onPointerMove={(e) => {
-            const d = drag.current;
-            if (!d) return;
-            const pxPerM = (size / TERRAIN_SIZE) * zoom;
-            setCenter(clampCenter(d.cx - (e.clientX - d.x) / pxPerM, d.cz - (e.clientY - d.y) / pxPerM));
-          }}
-          onPointerUp={() => (drag.current = null)}
-        />
+        {canvas}
         <aside className="flex w-56 flex-col gap-3">
           <h2 id="map-title" className="text-xl font-bold">
             {t('map.title')}
@@ -195,19 +295,10 @@ function WorldMapWindow({ interactive }: { interactive: boolean }) {
           </div>
           <div>
             <p className="mb-1 text-sm font-bold">{t('map.legend')}</p>
-            <ul className="flex flex-col gap-1.5 text-sm">
-              <Legend swatch={<span className="inline-block h-0 w-0 border-y-[6px] border-l-[12px] border-y-transparent border-l-orange-500" />} text={t('map.legend.player')} />
-              <Legend swatch={<Dot color="#f2b630" text="!" />} text={t('map.legend.questAvailable')} />
-              <Legend swatch={<Dot color="#4fb3e8" text="?" />} text={t('map.legend.questTurnIn')} />
-              <Legend swatch={<Dot color="#f2b630" text="★" />} text={t('map.legend.questObjective')} />
-              <Legend swatch={<span className="inline-block h-2.5 w-3.5 border border-amber-900 bg-amber-500" />} text={t('map.legend.chest')} />
-              <Legend swatch={<span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-white bg-green-600" />} text={t('map.legend.npc')} />
-            </ul>
+            {legend}
           </div>
           <p className="mt-auto text-xs text-amber-800">{t('map.hint', keyVars(bindings))}</p>
-          <button type="button" onClick={close} className="rounded-lg bg-amber-500 px-3 py-1.5 font-bold text-white hover:bg-amber-600">
-            {t('map.close')}
-          </button>
+          {closeButton}
         </aside>
       </div>
     </div>

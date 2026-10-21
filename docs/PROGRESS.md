@@ -31,6 +31,17 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11M-2：手機版修正（2026-10-21，使用者回報四張截圖）
+- 連點兩下畫面會放大：所有元素 `touch-action: manipulation`，另以 `mobileGuards.ts` 攔下同一位置的雙擊（`touchend`）、`dblclick` 與 iOS 的 `gesture*` 雙指縮放整頁（按鈕與輸入框不攔，連點「繼續」不會少一下）。
+- 重新整理先看到空白天空與 HUD：新增 `LoadingScreen`（場景就緒前蓋住畫面、顯示下載進度，不攔點擊、就緒立刻卸載）。原因是下載量大（模型約 23 MB，其中 5 個角色 GLB 各約 3.6 MB；JS 5.9 MB）且 `/models` 沒有快取設定，每次重新整理都要重新驗證 232 個檔案：`vercel.json` 為 `/models`、`/audio` 加上一天快取＋一週 stale-while-revalidate。
+- 世界地圖：觸控介面改成全螢幕（畫布佔滿畫面、標題 / 探索度 / 可收合圖例浮在左上、縮放鈕與關閉在右上、雙指縮放），地名與地標縮小（`MapView.textScale`）。
+- 背包：觸控時格子、說明圖示與文字縮小，不顯示鍵盤提示。
+- 整體字級：觸控介面 `html.touch-ui { font-size: 13px }`（Tailwind 的 rem 字級與間距一起縮小）；跟小地圖（固定像素）對齊的選單鈕、教學位置改用 px，任務追蹤下移；橫向矮畫面（高 ≤ 420 px）收起小地圖下的地名，避免壓到右下按鈕。
+- 提示框點擊關閉：芽芽的泡泡、教學提示（收起目前這一步）、訊息視窗（點外面）。對話框原本就是點一下下一句。
+- 全螢幕：觸控裝置按「繼續遊戲 / 新遊戲 / 進入線上世界」時 `requestFullscreen`。**iPhone 的瀏覽器（Safari、Chrome 都是 WebKit）不支援網頁全螢幕**，改為加 `manifest.webmanifest`（`display: fullscreen`）與 apple-mobile-web-app meta：用「分享 → 加入主畫面」開啟就沒有網址列。Android 與 iPad 可直接全螢幕。
+- 測試：`pnpm check`（Vitest 989 項）、`pnpm build` 通過。e2e `touch`（新增「全螢幕地圖」「點教學提示收起」共 13 項）、`dev`、`map`、`companion`、`tutorial`、`world`、`movement`、`journal` 全過；第一輪 `touch` 直向時血條與任務追蹤重疊（字級縮小後偏移量不一致）→ 修正。改到 `public/` 與 `vercel.json`，push 前要跑完整 `pnpm e2e`（尚未執行）。截圖 `docs/screenshots/mobile/landscape_map.png` 等。
+- 未在實機驗證：雙擊縮放的攔截、iPhone「加入主畫面」的全螢幕、Vercel 快取標頭（部署後才生效）。
+
 ### 任務 11M：手機版觸控操作（2026-10-21）
 - 使用者要求：手機也能玩、用虛擬搖桿、支援橫向與直向。觸控裝置（`(pointer: coarse)`）自動切換觸控介面，`?touch=1` / `?touch=0` 可強制開關；用鍵盤或手把時切回原本的介面。
 - 操作：左半邊浮動搖桿（推到外圈跑步）、右半邊拖曳轉視角、雙指縮放；右下以攻擊鈕為圓心的兩圈弧形按鈕（攻擊、重擊、互動、跳、三個法術、換武器、喝藥，含冷卻遮罩，依螢幕大小縮放）；選單鈕（暫停、背包、地圖、任務、芽芽、聊天：直向排一欄在小地圖下、橫向排一列在小地圖左邊）；點互動提示也能互動。按鈕按下就觸發，並吞掉隨後補送的 click（否則會落在新出現的暫停選單背景上，暫停一閃即逝）。純函式在 `game-core/input/touch.ts`。

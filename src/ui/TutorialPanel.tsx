@@ -6,7 +6,7 @@ import { keyVars } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useBindings } from '@/game/state/settingsStore';
-import { useTouchUi } from '@/game/input/device';
+import { swallowNextClick, useTouchUi } from '@/game/input/device';
 
 /** 完成全部步驟後，結語顯示多久（毫秒） */
 const OUTRO_MS = 9000;
@@ -22,6 +22,8 @@ export function TutorialPanel() {
   const touch = useTouchUi();
   /** 結語：記錄是在哪一局完成的，換局（回主選單再開始）後不再顯示 */
   const [outro, setOutro] = useState<{ session: number } | null>(null);
+  /** 點一下就收起目前這一步的提示（進到下一步再顯示；使用者 2026-10-21：提示框都要可以點擊關閉） */
+  const [hidden, setHidden] = useState<string | null>(null);
 
   // 在這一局內剛完成最後一步時，顯示結語一段時間（讀取已完成教學的存檔不顯示）
   useEffect(
@@ -38,15 +40,22 @@ export function TutorialPanel() {
   }, [outro]);
 
   const showOutro = step === 'done' && outro?.session === session;
-  if (!playing || (step === 'done' && !showOutro)) return null;
+  if (!playing || (step === 'done' && !showOutro) || hidden === `${session}:${step}`) return null;
   const index = steps.indexOf(step as (typeof steps)[number]);
 
   return (
-    <div className={`pointer-events-none absolute inset-x-0 flex justify-center ${touch ? 'portrait:top-[16rem] portrait:pr-16 landscape:top-[3.75rem] px-3' : 'top-5'}`}>
+    <div className={`pointer-events-none absolute inset-x-0 flex justify-center ${touch ? 'portrait:top-[256px] portrait:pr-16 landscape:top-[3.75rem] px-3' : 'top-5'}`}>
       <div
         data-testid="tutorial"
         data-step={step}
-        className={`animate-toast rounded-2xl border-2 border-amber-200/80 bg-amber-50/92 text-amber-950 shadow-lg ${touch ? 'max-w-[min(30rem,100%)] px-4 py-2 text-sm landscape:max-w-[calc(100%-28rem)]' : 'max-w-[34rem] px-5 py-3'}`}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          swallowNextClick();
+          if (showOutro) setOutro(null);
+          else setHidden(`${session}:${step}`);
+        }}
+        className={`pointer-events-auto cursor-pointer animate-toast rounded-2xl border-2 border-amber-200/80 bg-amber-50/92 text-amber-950 shadow-lg ${touch ? 'max-w-[min(30rem,100%)] px-4 py-2 text-sm landscape:max-w-[calc(100%-28rem)]' : 'max-w-[34rem] px-5 py-3'}`}
       >
         <div className="mb-1 flex items-center gap-2 text-xs font-bold tracking-wide text-amber-700">
           <span>{t(showOutro ? 'tutorial.outroTitle' : 'tutorial.title')}</span>

@@ -13,8 +13,8 @@ import { npcRuntime, npcVisible } from '@/game/npc/npcRuntime';
 import { worldDataResult } from '@/game/worldData';
 import { MAP_PX_PER_M, MAP_SIZE_PX } from '@/render/mapImage';
 
-/** 地圖畫面的視窗：中心（世界座標）與每公尺的螢幕像素 */
-export type MapView = { cx: number; cz: number; pxPerM: number; width: number; height: number };
+/** 地圖畫面的視窗：中心（世界座標）與每公尺的螢幕像素；textScale 縮放地名與地標（手機版的全螢幕地圖用較小的字，預設 1） */
+export type MapView = { cx: number; cz: number; pxPerM: number; width: number; height: number; textScale?: number };
 
 export function worldToScreen(view: MapView, x: number, z: number): { sx: number; sy: number } {
   return { sx: view.width / 2 + (x - view.cx) * view.pxPerM, sy: view.height / 2 + (z - view.cz) * view.pxPerM };
@@ -75,13 +75,15 @@ export function drawRegionLabels(ctx: CanvasRenderingContext2D, view: MapView, m
     const [x, z] = r.area.center;
     if (mapIdAt(x, z) !== map) continue;
     const { sx, sy } = worldToScreen(view, x, z);
-    label(ctx, t(r.nameKey), sx, sy - 18, Math.max(12, Math.min(18, view.pxPerM * 7)), '#5a3d1e');
+    const k = view.textScale ?? 1;
+    label(ctx, t(r.nameKey), sx, sy - 18 * k, Math.max(12, Math.min(18, view.pxPerM * 7)) * k, '#5a3d1e');
   }
 }
 
 /** 地標圖示與名稱 */
 export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, state: Pick<GameState, 'quests'>, withNames: boolean, map: MapId = 'dawnvale'): void {
-  const size = Math.max(14, Math.min(24, view.pxPerM * 9));
+  const k = view.textScale ?? 1;
+  const size = Math.max(14, Math.min(24, view.pxPerM * 9)) * k;
   for (const l of landmarks) {
     if (mapIdAt(l.position[0], l.position[1]) !== map || !landmarkShown(l, state.quests)) continue;
     const { sx, sy } = worldToScreen(view, l.position[0], l.position[1]);
@@ -97,7 +99,7 @@ export function drawLandmarks(ctx: CanvasRenderingContext2D, view: MapView, stat
     ctx.textBaseline = 'middle';
     ctx.fillText(LANDMARK_EMOJI[l.icon], sx, sy + 1);
     // 與區域同名的地標（農田、遺跡、望星丘…）已有區域標籤，不重複寫名字
-    if (withNames && !regionNames().has(t(l.nameKey))) label(ctx, t(l.nameKey), sx, sy + size * 1.15, Math.max(11, size * 0.62));
+    if (withNames && !regionNames().has(t(l.nameKey))) label(ctx, t(l.nameKey), sx, sy + size * 1.15, Math.max(11 * k, size * 0.62));
   }
 }
 

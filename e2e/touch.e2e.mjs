@@ -162,6 +162,18 @@ await runE2e('touch e2e', { query: 'debug=1&play=1&peaceful=1&touch=1&quality=lo
     assert.equal(await page.getByTestId('touch-buttons').count(), 1);
   });
 
+  await check('地圖鈕打開全螢幕地圖（佔滿畫面）、點「關閉」關掉', async () => {
+    await tap('touch-map');
+    const map = page.getByTestId('world-map');
+    await map.waitFor({ timeout: 2000 });
+    const box = await map.boundingBox();
+    const vp = await viewport();
+    assert.ok(box && Math.abs(box.width - vp.w) <= 1 && Math.abs(box.height - vp.h) <= 1, `地圖 ${JSON.stringify(box)}，畫面 ${JSON.stringify(vp)}`);
+    await page.screenshot({ path: `${shots}/landscape_map.png` });
+    await tap('world-map-close');
+    await map.waitFor({ state: 'detached', timeout: 2000 });
+  });
+
   await check('直向（390×844）：HUD 都在畫面內、互不重疊；搖桿一樣能走', async () => {
     await resize(390, 844);
     await page.getByTestId('touch-attack').waitFor({ timeout: 2000 });
@@ -191,6 +203,13 @@ await runE2e('touch e2e', { query: 'debug=1&play=1&peaceful=1&touch=1&quality=lo
     await page.screenshot({ path: `${shots}/portrait_pause.png` });
     await tap('pause-resume');
     await menu.waitFor({ state: 'detached', timeout: 2000 });
+  });
+
+  await check('點一下教學提示就收起來', async () => {
+    const tip = page.getByTestId('tutorial');
+    await tip.waitFor({ timeout: 2000 });
+    await tap('tutorial');
+    await tip.waitFor({ state: 'detached', timeout: 2000 });
   });
 });
 

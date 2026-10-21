@@ -24,6 +24,7 @@ import { WorldMap } from '@/ui/map/WorldMap';
 import { QuestJournal } from '@/ui/QuestJournal';
 import { ShopPanel } from '@/ui/ShopPanel';
 import { CraftPanel } from '@/ui/CraftPanel';
+import { LoadingScreen } from '@/ui/LoadingScreen';
 import { LocationFade } from '@/ui/LocationFade';
 import { MessageDialog } from '@/ui/MessageDialog';
 import { MultiplayerPanel } from '@/ui/MultiplayerPanel';
@@ -102,6 +103,8 @@ export function App() {
       <CraftPanel />
       <SettingsPanel />
       <MultiplayerPanel />
+      {/* 場景還在載入時蓋住空白的天空與 HUD */}
+      <LoadingScreen />
       <ErrorOverlay />
     </div>
   );

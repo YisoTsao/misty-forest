@@ -130,7 +130,7 @@ export function CombatHud() {
           <div className="h-2 flex-1 overflow-hidden rounded-full border border-amber-100/70 bg-black/40">
             <div ref={mpRef} className="h-full rounded-full bg-gradient-to-r from-amber-300 to-yellow-100 shadow-[0_0_8px_rgba(255,215,122,0.9)]" style={{ width: '100%' }} />
           </div>
-          <span ref={mpTextRef} className="w-14 text-right font-mono text-[10px] opacity-90" />
+          <span ref={mpTextRef} className="min-w-14 text-right font-mono text-[10px] whitespace-nowrap opacity-90" />
         </div>
         <PotionCount keyLabel={actionKey(bindings, 'quickHeal')} />
       </div>

@@ -16,6 +16,18 @@ body,
   touch-action: manipulation;
 }
 
+/* touch-action 不會繼承：每個元素都關掉雙擊縮放（保留捲動與點擊）。搖桿面、地圖畫布以 inline 的 touch-action: none 覆蓋 */
+*,
+*::before,
+*::after {
+  touch-action: manipulation;
+}
+
+/* 手機版：觸控介面整體縮小（Tailwind 的字級與間距都以 rem 計算，跟著縮小；使用者 2026-10-21：「整體的文字可以再縮小」） */
+html.touch-ui {
+  font-size: 13px;
+}
+
 /* 手機瀏覽器的網址列會伸縮：用動態高度，畫面不會被擋住或多出一截 */
 @supports (height: 100dvh) {
   html,

@@ -108,7 +108,11 @@ export function Minimap() {
       className={`pointer-events-none absolute flex flex-col items-center gap-1 ${touch ? 'top-3 right-3' : `top-4 ${debugEnabled ? 'right-48' : 'right-5'}`}`}
     >
       <canvas ref={canvasRef} style={{ width: size, height: size }} className="rounded-full shadow-lg" />
-      <span data-testid="minimap-region" className="rounded-full bg-black/45 px-3 py-0.5 text-xs font-bold text-white shadow">
+      {/* 手機橫向的矮畫面：地名會壓到右下的按鈕，收起來（進入區域時的大字橫幅仍會顯示） */}
+      <span
+        data-testid="minimap-region"
+        className={`rounded-full bg-black/45 px-3 py-0.5 text-xs font-bold text-white shadow ${touch ? '[@media(orientation:landscape)_and_(max-height:420px)]:hidden' : ''}`}
+      >
         {t(`region.${region}`)}
       </span>
     </div>

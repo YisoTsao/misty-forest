@@ -25,8 +25,10 @@ export function MessageDialog() {
 
   if (!message) return null;
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+    // 點視窗外面也能關閉（使用者 2026-10-21：提示框都要可以點擊關閉）
+    <div className="absolute inset-0 flex items-center justify-center bg-black/20" onClick={close}>
       <div
+        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-labelledby="message-title"
         data-testid="message-dialog" data-pad-scope
