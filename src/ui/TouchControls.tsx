@@ -16,7 +16,9 @@ import { input } from '@/game/input/inputManager';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useUiStore } from '@/game/state/uiStore';
+import { useNetStore } from '@/net/netStore';
 import { ActionIcon, type ActionIconId } from './ActionIcon';
+import { openChatFromButton } from './ChatBox';
 import { SkillIcon } from './SkillIcon';
 import { CLASS_TONES, spellIconOf } from './spellIcons';
 
@@ -159,6 +161,7 @@ export function TouchButtons() {
   const touch = useTouchUi();
   const playing = useGameStore((s) => s.screen === 'playing');
   const modal = useModal();
+  const connected = useNetStore((s) => s.status === 'connected');
   const defeated = useGameStateStore((s) => s.state.player.defeated);
   const heroClass = useGameStateStore((s) => s.state.player.heroClass);
   const weaponId = useGameStateStore((s) => s.state.player.weapon);
@@ -230,7 +233,8 @@ export function TouchButtons() {
             <MenuButton testId="touch-map" icon="map" label={t('touch.map')} onPress={() => input.touchTap('map')} />
             <MenuButton testId="touch-journal" icon="journal" label={t('touch.journal')} onPress={() => input.touchTap('journal')} />
             <MenuButton testId="touch-companion" icon="companion" label={t('touch.companion')} onPress={() => input.touchTap('companion')} />
-            <MenuButton testId="touch-chat" icon="chat" label={t('touch.chat')} onPress={() => input.touchKey('Enter')} />
+            {/* 聊天只在連線後才有（離線沒有聊天功能），所以離線不顯示這顆鈕 */}
+            {connected && <MenuButton testId="touch-chat" icon="chat" label={t('touch.chat')} onPress={openChatFromButton} />}
           </>
         )}
       </div>

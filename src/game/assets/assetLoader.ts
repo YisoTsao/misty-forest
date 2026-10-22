@@ -125,21 +125,21 @@ async function download(pack: AssetPack, cache: Cache | null): Promise<Blob> {
   return blob;
 }
 
-async function loadPack(pack: AssetPack, cache: Cache | null): Promise<void> {
-  let blob: Blob | null = null;
-  if (cache) {
-    try {
-      const hit = await cache.match(cacheKey(pack.file));
-      if (hit) {
-        const b = await hit.blob();
-        if (b.size === pack.size) blob = b;
-      }
-    } catch {
-      blob = null;
-    }
-    if (blob) update(pack.category, { cached: true, loaded: pack.bytes });
+/** 快取裡的包（大小要對）；沒有、讀不到或大小不對回傳 null。在畫面開始顯示前就讀，避免列表先顯示「等待中」再變成「已快取」 */
+async function readCached(cache: Cache | null, pack: AssetPack): Promise<Blob | null> {
+  if (!cache) return null;
+  try {
+    const hit = await cache.match(cacheKey(pack.file));
+    if (!hit) return null;
+    const b = await hit.blob();
+    return b.size === pack.size ? b : null;
+  } catch {
+    return null;
   }
-  blob ??= await download(pack, cache);
+}
+
+async function loadPack(pack: AssetPack, cache: Cache | null, cachedBlob: Blob | null): Promise<void> {
+  const blob = cachedBlob ?? (await download(pack, cache));
   // Blob.slice 不複製資料，每個檔案只是包的一段
   for (const e of pack.entries) {
     blobUrls.set(absolute(`${import.meta.env.BASE_URL}${e.path}`), URL.createObjectURL(blob.slice(e.offset, e.offset + e.length, mimeOf(e.path))));
@@ -186,14 +186,18 @@ export function startAssetLoading(): Promise<void> {
       finish('direct');
       return;
     }
-    const packs: PackProgress[] = manifest.packs.map((p) => ({ category: p.category, bytes: p.bytes, loaded: 0, cached: false, done: false }));
-    useAssetLoadStore.setState({ phase: 'download', packs, summary: summarize(packs, 0, 0), startedAt: performance.now() });
     const cache = await openCache();
-    const queue = [...manifest.packs];
+    const cachedBlobs = await Promise.all(manifest.packs.map((p) => readCached(cache, p)));
+    const packs: PackProgress[] = manifest.packs.map((p, i) => {
+      const cached = cachedBlobs[i] !== null;
+      return { category: p.category, bytes: p.bytes, loaded: cached ? p.bytes : 0, cached, done: false };
+    });
+    useAssetLoadStore.setState({ phase: 'download', packs, summary: summarize(packs, 0, 0), startedAt: performance.now() });
+    const queue = manifest.packs.map((pack, i) => ({ pack, cachedBlob: cachedBlobs[i] ?? null }));
     try {
       await Promise.all(
         Array.from({ length: CONCURRENCY }, async () => {
-          for (let pack = queue.shift(); pack; pack = queue.shift()) await loadPack(pack, cache);
+          for (let job = queue.shift(); job; job = queue.shift()) await loadPack(job.pack, cache, job.cachedBlob);
         }),
       );
     } catch (err) {

@@ -74,14 +74,15 @@ function LoadingOverlay() {
             <span>{summary.etaSeconds === null ? t('loading.etaMeasuring') : t('loading.eta', { time: formatEta(summary.etaSeconds) })}</span>
           </p>
         )}
-        {packs.length > 0 && (
+        {/* 全部從快取讀出時不列出各種類（重新整理時的畫面不需要這些）；有要下載的才列出 */}
+        {packs.length > 0 && !allCached && (
           <ul data-testid="loading-packs" className="mt-3 flex flex-col gap-1.5 rounded-xl bg-white/45 p-3 text-xs shadow-sm">
             {packs.map((p) => (
               <PackRow key={p.category} pack={p} />
             ))}
           </ul>
         )}
-        {packs.length > 0 && <p className="mt-2 text-center text-[11px] opacity-70">{t(allCached ? 'loading.fromCache' : 'loading.firstTime')}</p>}
+        {packs.length > 0 && !allCached && <p className="mt-2 text-center text-[11px] opacity-70">{t('loading.firstTime')}</p>}
       </div>
     </div>
   );

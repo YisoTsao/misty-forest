@@ -88,9 +88,12 @@ function TitleMenu() {
           >
             {t('settings.open')}
           </button>
-          <button type="button" data-testid="title-quit" onClick={() => window.close()} className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25">
-            {t('title.quit')}
-          </button>
+          {/* 網頁上 window.close() 對一般分頁無效，只在桌面版（Electron）顯示 */}
+          {window.mistwood?.isElectron && (
+            <button type="button" data-testid="title-quit" onClick={() => window.close()} className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25">
+              {t('title.quit')}
+            </button>
+          )}
         </div>
       </div>
     </div>

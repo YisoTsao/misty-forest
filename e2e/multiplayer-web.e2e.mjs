@@ -67,6 +67,30 @@ try {
     assert.deepEqual(await tab2.evaluate(() => window.__mistwoodDebug.remotePlayers().map((r) => r.name)), ['Web1']);
   });
 
+  await check('手機版（844×390 觸控）：連線後點聊天鈕打開聊天列（任務 11M-6）', async () => {
+    const phone = await context.newPage();
+    phone.on('pageerror', (err) => console.error(`[Phone] ${err.message}`));
+    await phone.setViewportSize({ width: 844, height: 390 });
+    await phone.goto(`http://localhost:${WEB_PORT}/?debug=1&play=1&peaceful=1&mp=1&touch=1&server=ws://localhost:${GAME_PORT}&mpName=Phone`);
+    await phone.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 120_000 });
+    await phone.waitForFunction(() => window.__mistwoodDebug.net().status === 'connected', null, { timeout: 15_000 });
+    await phone.locator('[data-testid="touch-chat"]').click();
+    await phone.locator('[data-testid="chat-input"]').waitFor({ state: 'visible', timeout: 3000 });
+    assert.equal(await phone.evaluate(() => window.__mistwoodDebug.chat().open), true, '聊天列開著');
+    await phone.screenshot({ path: 'docs/screenshots/mobile/chat_touch.png' });
+    await phone.close();
+  });
+
+  await check('手機版離線時沒有聊天鈕（離線沒有聊天功能）', async () => {
+    const offline = await context.newPage();
+    await offline.setViewportSize({ width: 844, height: 390 });
+    await offline.goto(`http://localhost:${WEB_PORT}/?debug=1&play=1&peaceful=1&touch=1&mpName=Offline`);
+    await offline.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 120_000 });
+    await offline.waitForSelector('[data-testid="touch-menu"]', { state: 'attached', timeout: 5000 });
+    assert.equal(await offline.locator('[data-testid="touch-chat"]').count(), 0, '離線不顯示聊天鈕');
+    await offline.close();
+  });
+
   await check('關掉一個分頁，另一個分頁移除該玩家、人數 1', async () => {
     await tab2.close();
     await tab1.waitForFunction(() => window.__mistwoodDebug.remotePlayers().length === 0 && window.__mistwoodDebug.net().playerCount === 1, null, { timeout: 10_000 });

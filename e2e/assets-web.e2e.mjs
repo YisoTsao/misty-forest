@@ -6,7 +6,7 @@
 // 3. 進入遊戲後的技能與按鈕圖示（觸控介面與鍵盤 HUD）是 SVG，不是 emoji。
 // 截圖存到 docs/screenshots/loading/。需要 Playwright 的 Chromium（npx playwright install chromium）。
 // 用法：pnpm build && node e2e/assets-web.e2e.mjs
-/* global window, document */
+/* global window, document, MutationObserver */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -90,6 +90,14 @@ try {
 
   await check('重新整理：所有種類都從快取讀出，不再下載', async () => {
     requests = [];
+    // 記錄載入畫面的種類列表是否出現過（快取命中時不該出現，連閃一下也不行）
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        new MutationObserver(() => {
+          if (document.querySelector('[data-testid="loading-packs"]')) window.__sawPacks = true;
+        }).observe(document, { childList: true, subtree: true });
+      });
+    });
     await page.reload();
     await page.waitForSelector('[data-testid="loading-screen"]', { timeout: 20_000 }).catch(() => {});
     await page.screenshot({ path: `${SHOTS}/reload_cached.png` });
@@ -98,6 +106,7 @@ try {
     assert.equal(report.phase, 'ready');
     assert.ok(report.packs.every((p) => p.cached), `每個種類都從快取：${JSON.stringify(report.packs.map((p) => [p.category, p.cached]))}`);
     assert.equal(report.networkBytes, 0);
+    assert.equal(await page.evaluate(() => window.__sawPacks === true), false, '快取命中時不顯示種類列表（連閃一下也不行）');
     const assetRequests = requests.filter((p) => p.startsWith('/packs/') || p.startsWith('/models/') || p.startsWith('/audio/'));
     // 只剩清單本身（每次向伺服器確認版本）
     assert.deepEqual(assetRequests, ['/packs/manifest.json']);
@@ -120,10 +129,12 @@ try {
     await touch.waitForSelector('[data-testid="touch-buttons"]', { state: 'attached', timeout: 10_000 });
     await touch.waitForTimeout(1500);
     await touch.screenshot({ path: `${SHOTS}/touch_icons.png` });
-    for (const id of ['touch-attack', 'touch-heavy', 'touch-interact', 'touch-jump', 'touch-weapon', 'touch-heal', 'touch-pause', 'touch-inventory', 'touch-map', 'touch-journal', 'touch-companion', 'touch-chat']) {
+    for (const id of ['touch-attack', 'touch-heavy', 'touch-interact', 'touch-jump', 'touch-weapon', 'touch-heal', 'touch-pause', 'touch-inventory', 'touch-map', 'touch-journal', 'touch-companion']) {
       assert.equal(await touch.locator(`[data-testid="${id}"] svg`).count(), 1, id);
     }
     assert.equal(await touch.locator('[data-testid="touch-skill"] svg[data-skill-icon="starlight_burst"]').count(), 1, '星光爆發');
+    // 離線沒有聊天功能，聊天鈕不顯示（連線後才有，見 multiplayer-web e2e）
+    assert.equal(await touch.locator('[data-testid="touch-chat"]').count(), 0, '離線不顯示聊天鈕');
     const emoji = await touch.locator('[data-testid="touch-buttons"], [data-testid="touch-menu"]').evaluateAll((els) => els.map((e) => e.textContent).join(''));
     assert.ok(!/\p{Extended_Pictographic}/u.test(emoji), `不再有 emoji：${emoji}`);
     await touch.close();

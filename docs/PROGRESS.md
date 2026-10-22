@@ -31,6 +31,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11M-6：載入畫面、網頁離開鈕、手機版聊天（2026-10-22）
+- 載入畫面：快取命中時不顯示各種類列表與「第一次進入」說明。原本列表會先以「等待中」出現、再變成「已快取」（閃一下），現在開始顯示前就先檢查快取（`readCached`）。e2e 以 MutationObserver 確認重新整理時列表從未出現。
+- 主選單的「離開遊戲」只在桌面版（Electron）顯示；網頁上 `window.close()` 對一般分頁無效，原本的按鈕沒有作用。
+- 手機版聊天鈕：原本送出 Enter，離線時聊天列不存在，所以按了沒有反應。現在直接打開聊天列（`openChatFromButton`），且只在連線後顯示（離線沒有聊天功能）。
+- 驗證：`pnpm typecheck` 通過；e2e `multiplayer-web`（手機版連線後點聊天鈕、離線時沒有聊天鈕）、`assets-web`（含快取命中時列表從未出現）、`touch`、`dev`、`account`、`multiplayer`（Electron）全過。截圖 `docs/screenshots/mobile/chat_touch.png`、`docs/screenshots/loading/reload_cached.png`。
+- 完整 `pnpm e2e`（48 個 suite）exit 0，393 項全過、0 項失敗；`pnpm check` 997 項通過。
+
 ### 任務 11M-5：載入加速——模型壓縮、包 gzip、模型同時解析、開發伺服器快取（2026-10-21）
 - 使用者回報：載入還是太久、重新整理沒有快取（每次重新讀一堆檔案）、載完按「開始遊玩」後停在「正在準備場景 99%」。
 - 重現：開發伺服器上，場景載入中按開始會停在 99% 約 38 秒；原因是 React 19 的 Suspense 讓各處的 `useGLTF` 一個接一個載入（約 150 個模型）。開發伺服器沒有包，所以也沒有快取。

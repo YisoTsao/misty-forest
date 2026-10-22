@@ -63,6 +63,12 @@ export function ChatBox() {
   );
 }
 
+/** 手機版的 💬 鈕（任務 11M-6）：與按 Enter 相同的條件（遊玩中、沒有其他視窗、已連線） */
+export function openChatFromButton(): void {
+  if (currentScreen() !== 'playing' || isModalOpen() || useNetStore.getState().status !== 'connected') return;
+  openChat('');
+}
+
 /** 開啟時先設成視窗再放開滑鼠：PauseMenu 在失去滑鼠鎖定時，有視窗開著就不會暫停 */
 function openChat(prefill: string): void {
   pendingPrefill = prefill;

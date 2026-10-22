@@ -15,7 +15,6 @@
   "loading.etaMeasuring": "正在估算剩餘時間…",
   "loading.seconds": "{n} 秒",
   "loading.minutes": "{m} 分 {s} 秒",
-  "loading.fromCache": "已從裝置快取讀取，不需要重新下載",
   "loading.firstTime": "第一次進入需要下載遊戲資源，之後重新整理會直接從裝置讀取",
   "loading.preparing": "正在準備場景…",
   "loading.models": "已載入 {loaded} / {total} 個模型與材質",
