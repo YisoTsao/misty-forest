@@ -249,6 +249,7 @@
   - 原本的零散檔案照常放在 dist：開發伺服器（`vite dev`）沒有包，清單讀不到（或讀到 index.html）時改回逐檔載入；包下載失敗時也是。
   - 內容變了雜湊就變，舊的包在下一次啟動時從快取刪掉（`pruneCache`）。`vercel.json`：`/packs/*.bin` 一年 immutable、清單 `no-cache`。
   - ~~沒做~~（已由 T-191 處理）：第一次進入的下載量（約 23 MB，其中 5 個角色 GLB 共 17 MB，每個都帶同一套骨架與動畫）沒有變小；之後可用 gltf-transform 去除重複的動畫、meshopt 壓縮（drei 的 useGLTF 已支援 meshopt 解碼）。
+- **T-192 同一帳號只能一處連線**（任務 11M-7，使用者 2026-10-22：同一個 Google 帳號不該能在兩台裝置上線，先進的要被踢）：客戶端把 Supabase 的 access token 放在加入選項（`account`），伺服器在 `onAuth` 經 `/auth/v1/user` 驗證並取得帳號 id（`server/accounts.ts`），驗證失敗就拒絕加入（不當作訪客，否則過期的 token 會繞過限制）。同一帳號的後進者加入時，先進者以關閉碼 4000 中斷、不保留座位；先進者斷線後重連時若已被登入，重連的那一個被踢。客戶端收到 `account-elsewhere` 就不自動重新加入。取捨：驗證要多一次 Supabase 請求（每次加入一次）；未設定 `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` 時不驗證、不踢人，所以部署時要在 Render 後台填入。
 - **T-191 包 gzip、角色與怪物模型 meshopt、所有模型同時解析、開發伺服器也用包**（使用者 2026-10-21：載入還是太久、重新整理沒有快取、載完按「開始遊玩」停在「正在準備場景 99%」）：
   - 停在 99% 的原因：React 19 的 Suspense 在一個元件暫停後不再渲染它後面的兄弟元件，散在各處的 `useGLTF` 變成一個接一個載入（約 150 個模型，開發伺服器上每秒四、五個，共約 40 秒；建置版約 5 秒）。drei 的 `useProgress` 只算已經開始的那一批，所以很早就到 99%。改為包處理完時把清單裡所有 `.glb` / `.gltf` 一次 `useGLTF.preload`（`assetLoader.preloadModels`，快取的鍵是原本的網址），元件掛上時直接拿到。
   - 壓縮：`scripts/optimize-models.ts`（gltf-transform）把 `public/models/characters`、`public/models/monsters` 的動畫重新取樣、meshopt 壓縮（動畫的四元數 / 指數濾波、法向量八面體編碼）。**頂點位置不量化**：量化會把位置換成整數並在節點上補縮放與位移，武器拖尾的 `bladeOf` 用模型局部的包圍盒找刀尖與握把，會整個跑掉。drei 的 `useGLTF` 預設就掛 meshopt 解碼器（three-stdlib；編碼器 meshoptimizer 1.1 輸出的頂點格式仍是 v0，舊解碼器讀得了）。角色 18 MB → 10 MB，怪物 2.2 → 1 MB。

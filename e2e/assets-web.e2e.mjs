@@ -6,7 +6,7 @@
 // 3. 進入遊戲後的技能與按鈕圖示（觸控介面與鍵盤 HUD）是 SVG，不是 emoji。
 // 截圖存到 docs/screenshots/loading/。需要 Playwright 的 Chromium（npx playwright install chromium）。
 // 用法：pnpm build && node e2e/assets-web.e2e.mjs
-/* global window, document, MutationObserver */
+/* global window, document, MutationObserver, Element, HTMLElement */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -119,6 +119,24 @@ try {
     assert.equal(await slot.locator('svg[data-skill-icon]').count(), 1);
     assert.equal(await page.locator('[data-testid="attack-slot"] svg[data-action-icon]').count(), 1);
     assert.equal(await page.locator('[data-testid="weapon-selector"] svg[data-action-icon]').count(), 3);
+  });
+
+  await check('沒有 Pointer Lock API 的瀏覽器（iOS Safari）：點畫面不會丟錯', async () => {
+    // iOS Safari 沒有 requestPointerLock，這裡模擬把它拿掉，點畫面（會嘗試鎖定滑鼠）不能出錯
+    const ios = await context.newPage();
+    const errors = [];
+    ios.on('pageerror', (err) => errors.push(err.message));
+    await ios.addInitScript(() => {
+      delete Element.prototype.requestPointerLock;
+      delete HTMLElement.prototype.requestPointerLock;
+    });
+    await ios.goto(url);
+    await ios.waitForFunction(() => window.__mistwoodDebug?.isReady() === true, null, { timeout: 120_000 });
+    await ios.mouse.click(640, 360);
+    await ios.mouse.click(640, 360);
+    await ios.waitForTimeout(500);
+    await ios.close();
+    assert.deepEqual(errors, []);
   });
 
   await check('觸控介面：按鈕與選單鈕都是 SVG 圖示，法術用職業的技能圖示', async () => {

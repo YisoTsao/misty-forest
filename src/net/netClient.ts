@@ -8,6 +8,7 @@ import { Client, type Room } from '@colyseus/sdk';
 import {
   ClientMessage,
   isNetAnim,
+  KICKED_ELSEWHERE,
   NET,
   PROTOCOL_VERSION,
   ROOM_NAME,
@@ -23,6 +24,7 @@ import {
   type TimeReply,
 } from '@/game-core/net/protocol';
 import { parseChatInput } from '@/game-core/net/chat';
+import { supabase } from '@/account/supabase';
 import { authority } from '@/game/authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
 import { t } from '@/game/i18n';
@@ -76,6 +78,13 @@ export async function connect(options: { name?: string; url?: string } = {}): Pr
   return ok;
 }
 
+/** 登入帳號的 access token：伺服器用它確認是哪個帳號（同一帳號只能一處連線）；沒登入或取不到就不帶 */
+async function accountToken(): Promise<string | undefined> {
+  if (!supabase) return undefined;
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? undefined;
+}
+
 /** 加入房間（第一次連線與自動重新加入共用）；失敗時把原因寫進 error、回傳 false */
 async function join(): Promise<boolean> {
   const url = lastOptions.url ?? serverUrl();
@@ -92,6 +101,7 @@ async function join(): Promise<boolean> {
       at: localMove(),
       weapon: authority.getState().player.weapon,
       heroClass: authority.getState().player.heroClass,
+      account: await accountToken(),
     });
   } catch (err) {
     useNetStore.setState({ error: `${t('net.connectFailed')}：${errorText(err)}` });
@@ -181,6 +191,13 @@ function onLeft(code: number, reason?: string): void {
   leavingOnPurpose = false;
   if (purposeful) {
     useNetStore.setState({ ...initialNetState });
+    return;
+  }
+  // 同一帳號在別處登入：先進的這裡被踢下線，不自動重新加入（任務 11M-7）
+  if (reason === KICKED_ELSEWHERE) {
+    console.warn('[net] 同一帳號在別處登入，這裡的線上連線已中斷');
+    useNetStore.setState({ ...initialNetState });
+    useUiStore.getState().pushToast({ textKey: 'net.kickedElsewhere' });
     return;
   }
   // 座位沒了（伺服器重啟、休眠喚醒、保留逾時、自動重連失敗）：自動重新加入

@@ -204,8 +204,15 @@ class InputManager {
   requestPointerLock(): void {
     // 觸控裝置不鎖定（手機瀏覽器沒有滑鼠鎖定，視角改用拖曳）
     if (!this.target || this.pointerLocked || useInputDeviceStore.getState().device === 'touch') return;
-    // 使用者快速連點或視窗未聚焦時瀏覽器會拒絕；屬預期情況，下次點擊再試
-    this.target.requestPointerLock().catch((err: unknown) => console.warn('[input] 無法鎖定滑鼠：', err));
+    // iOS Safari 等瀏覽器沒有 Pointer Lock API（元素上沒有這個方法），直接不鎖定（手機版本來就用觸控）
+    if (typeof this.target.requestPointerLock !== 'function') return;
+    try {
+      // 使用者快速連點或視窗未聚焦時瀏覽器會拒絕；屬預期情況，下次點擊再試
+      const pending: Promise<void> | undefined = this.target.requestPointerLock();
+      pending?.catch((err: unknown) => console.warn('[input] 無法鎖定滑鼠：', err));
+    } catch (err) {
+      console.warn('[input] 無法鎖定滑鼠：', err);
+    }
   }
 
   /**

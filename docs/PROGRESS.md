@@ -31,6 +31,15 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11M-7：部署修正、iOS 指標鎖定錯誤、同一帳號只能一處連線（2026-10-22）
+- Render 部署失敗：`buildCommand` 的 `npm install -g pnpm@12.11.2` 寫入 `/usr/lib/node_modules`（Render 映像唯讀，`EROFS`）。改為 `npx --yes pnpm@12.11.2 ...`，啟動改為 `node --enable-source-maps dist-server/server.mjs`（不需要 pnpm）。在乾淨的 `git archive` 副本實際跑過 install、build:server，並以 `node` 啟動、`/health` 200。Render 與 Vercel 各自由 GitHub 的 `main` 推送觸發，Vercel 不會觸發 Render；之前同一指令在 `278e2b1` 成功過，`8722f15` 失敗，原因不明，新指令不依賴全域安裝。`vercel.json` 的全域安裝沒有改（Vercel 的建置環境可以寫入）。
+- 手機上的錯誤 `this.target.requestPointerLock is not a function`：iOS Safari 沒有 Pointer Lock API。`InputManager.requestPointerLock` 先做功能偵測、再包 try，不支援就不鎖定（手機版本來就用觸控）。e2e `assets-web` 新增「模擬沒有 Pointer Lock API，點畫面不丟錯」；暫時還原修正後確認該項會失敗。
+- 同一 Google 帳號只能一處連線（T-192）：客戶端加入時帶上 access token（`joinOptions.account`）；伺服器 `onAuth` 經 Supabase `/auth/v1/user` 確認帳號（`server/accounts.ts`），token 無效就拒絕加入。同一帳號後進的登入會把先進的踢下線（關閉碼 4000、原因 `account-elsewhere`，不保留座位）；斷線期間被登入的那一個重連回來時也會被踢。客戶端收到原因就不自動重新加入，顯示「這個帳號在其他裝置登入了」。訪客不受影響。
+  - 需要在 Render 後台填 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（`render.yaml` 已列為 sync: false）；沒填就不驗證，不會踢人。
+  - 驗證：`server/WorldRoom.test.ts` 新增 4 項（同帳號互踢、訪客與不同帳號互不影響、無效 token 拒絕、斷線後重連被踢）、`server/accounts.test.ts` 3 項。`pnpm lint` 通過（修正 e2e 的全域變數宣告）。e2e `multiplayer-web`、`multiplayer`、`movement`、`dev`、`touch` 全過。
+  - 未測：真的 Google 帳號在兩台裝置登入（需要手動測，見 `docs/multiplayer/accounts.md`）。
+- 完整 `pnpm e2e`：第一輪 300 項全過，`garden`「回報桃樂；時間過去後花圃開花」失敗（0 !== 2，見「已知問題」），之後單獨跑 4 次全過，其餘 11 個 suite（`footprints` 至 `dev`）全過。`pnpm check` 1004 項通過。
+
 ### 任務 11M-6：載入畫面、網頁離開鈕、手機版聊天（2026-10-22）
 - 載入畫面：快取命中時不顯示各種類列表與「第一次進入」說明。原本列表會先以「等待中」出現、再變成「已快取」（閃一下），現在開始顯示前就先檢查快取（`readCached`）。e2e 以 MutationObserver 確認重新整理時列表從未出現。
 - 主選單的「離開遊戲」只在桌面版（Electron）顯示；網頁上 `window.close()` 對一般分頁無效，原本的按鈕沒有作用。
@@ -641,6 +650,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 5. **LINE 登入已移除（T-188）**：遊戲裡不再有 LINE 按鈕；Supabase 後台 Authentication → Providers 的 `custom:line` 與 LINE Developers 的頻道可以自行關閉。
 
 ## 已知問題
+- `garden`「回報桃樂；時間過去後花圃開花」偶發失敗（0 !== 2，2026-10-22）：測試用 `setClock(20)` 推進遊玩時間看花圃成長，結果偶爾停在第 0 階段；同一程式單獨跑 4 次全過。之後若再出現，要檢查測試開始時的共享時鐘（測試沒有固定時段）。
 - `garden` e2e 的「時間過去後花圃開花」在完整連跑時失敗一次（2026-10-21，1 !== 2），單獨重跑通過；若再出現，檢查快轉時間與花圃生長的判定時機。
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。

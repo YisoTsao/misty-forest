@@ -10,8 +10,9 @@ services:
     branch: main
     autoDeploy: true
     # pnpm 版本與本機一致（pnpm-workspace.yaml 的 allowBuilds 需要 pnpm 11 以上）；不下載 Electron 執行檔
-    buildCommand: npm install -g pnpm@12.11.2 && pnpm install --frozen-lockfile && pnpm build:server
-    startCommand: pnpm start:server
+    # 不用 npm install -g：Render 的 Node 映像的全域目錄是唯讀的（2026-10-22 部署失敗：EROFS）。改用 npx 執行固定版本的 pnpm
+    buildCommand: npx --yes pnpm@12.11.2 install --frozen-lockfile && npx --yes pnpm@12.11.2 run build:server
+    startCommand: node --enable-source-maps dist-server/server.mjs
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
@@ -21,4 +22,10 @@ services:
       # 連線來源允許清單（逗號分隔，支援 *）：Vercel 正式網址、預覽網址、Electron（null、file://）。
       # 建立時在後台填入，例如 https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://
       - key: ALLOWED_ORIGINS
+        sync: false
+      # 帳號驗證（任務 11M-7）：Supabase 專案網址與 publishable key（與 Vercel 的 VITE_SUPABASE_* 相同的值，不是 secret key）。
+      # 沒設定時伺服器不驗證帳號，同一帳號可以同時在多處連線。
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
         sync: false

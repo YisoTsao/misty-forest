@@ -19,9 +19,11 @@
 | Render | `NODE_VERSION` | `24`（`render.yaml` 已設定） |
 | Render | `ELECTRON_SKIP_BINARY_DOWNLOAD` | `1`（`render.yaml` 已設定） |
 | Render | `ALLOWED_ORIGINS` | `https://mistwood.yisoapp.com,https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://` |
+| Render | `SUPABASE_URL` | Supabase 專案網址（與 Vercel 的 `VITE_SUPABASE_URL` 相同）。**要在 Render 後台手動填**（`render.yaml` 設為 sync: false）；沒填就不驗證帳號，同一帳號可以多處連線 |
+| Render | `SUPABASE_PUBLISHABLE_KEY` | Supabase 的 publishable key（與 Vercel 的 `VITE_SUPABASE_PUBLISHABLE_KEY` 相同，不是 secret key）。**要在 Render 後台手動填** |
 | Render | `PORT` | Render 自動提供，伺服器會讀 |
 
-`ALLOWED_ORIGINS`：逗號分隔，`*` 只比對英數與連字號（不跨越 `.` 與 `/`）；`null`、`file://` 是 Electron 正式版（`file://` 頁面送出的 Origin）。沒設定時全部允許。來源檢查只防止別的網站在瀏覽器裡連過來，不是身分驗證（Phase 5 改用 Supabase 的 JWT）。
+`ALLOWED_ORIGINS`：逗號分隔，`*` 只比對英數與連字號（不跨越 `.` 與 `/`）；`null`、`file://` 是 Electron 正式版（`file://` 頁面送出的 Origin）。沒設定時全部允許。來源檢查只防止別的網站在瀏覽器裡連過來，不是身分驗證。帳號身分另外由 `SUPABASE_URL` 與 `SUPABASE_PUBLISHABLE_KEY` 驗證（登入的 access token 經 `/auth/v1/user` 確認，任務 11M-7）：同一帳號同時只能一處連線，後進的登入會把先進的踢下線。
 
 ## 第一次部署
 

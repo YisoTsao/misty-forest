@@ -17,6 +17,7 @@ import {
   ClientMessage,
   equipMessageSchema,
   joinOptionsSchema,
+  KICKED_ELSEWHERE,
   moveMessageSchema,
   NET,
   PROTOCOL_VERSION,
@@ -34,6 +35,7 @@ import {
 import { acceptRate, canWarp, checkMove, maxLungeIn, moveLimitsFor, zoneAt, type InteriorZone, type Vec3 } from '@/game-core/net/moveValidation';
 import { NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { terrainHeight } from '@/game-core/world/terrain';
+import type { AccountVerifier } from './accounts';
 import { isAllowedOrigin, type OriginRule } from './origins';
 import { PlayerState, WorldState } from './schema';
 
@@ -68,11 +70,21 @@ type Track = {
 
 export type WorldRoomOptions = { instanceId?: string };
 
+/** Colyseus 的「正常離開」關閉碼：不保留座位、不自動重連 */
+const KICK_CODE = 4000;
+
+/** 連線的帳號 id（onAuth 回傳的 accountId；訪客為 null） */
+function accountOf(client: Client): string | null {
+  return (client.auth as { accountId?: string | null } | undefined)?.accountId ?? null;
+}
+
 let nextPlayerNumber = 1;
 
 export class WorldRoom extends Room<{ state: WorldState }> {
   /** 連線來源允許清單（createGameServer 設定；空的 = 全部允許，任務 11D） */
   static originRules: OriginRule[] = [];
+  /** 帳號驗證（createGameServer 依環境變數設定；null = 不驗證，全部當作訪客） */
+  static verifyAccount: AccountVerifier | null = null;
   maxClients = NET.maxClients;
   maxMessagesPerSecond = NET.hardMessagesPerSecond;
   state = new WorldState();
@@ -103,14 +115,26 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     });
   }
 
-  /** 比對房間的 HTTP 請求（static：在保留座位之前執行）：來源不在允許清單內就拒絕。WebSocket 升級另外在 transport 的 beforeUpgrade 檢查 */
-  static async onAuth(_token: string, _options: unknown, context: AuthContext): Promise<boolean> {
+  /**
+   * 比對房間的 HTTP 請求（static：在保留座位之前執行）：來源不在允許清單內就拒絕。WebSocket 升級另外在 transport 的 beforeUpgrade 檢查。
+   * 帶了登入 token 就確認帳號（任務 11M-7）；token 無效就拒絕加入。回傳的 accountId 會成為 client.auth。
+   */
+  static async onAuth(_token: string, options: unknown, context: AuthContext): Promise<{ accountId: string | null }> {
     const origin = context.headers.get('origin');
     if (!isAllowedOrigin(origin, WorldRoom.originRules)) {
       console.warn(`[world] 拒絕來源 ${origin} 加入`);
       throw new ServerError(403, 'origin not allowed');
     }
-    return true;
+    const parsed = joinOptionsSchema.safeParse(options ?? {});
+    const account = parsed.success ? parsed.data.account : undefined;
+    if (!account || !WorldRoom.verifyAccount) return { accountId: null };
+    try {
+      return { accountId: await WorldRoom.verifyAccount(account) };
+    } catch (err) {
+      // 不記 token 本身
+      console.warn('[world] 帳號驗證失敗：', err instanceof Error ? err.message : String(err));
+      throw new ServerError(401, 'account token invalid');
+    }
   }
 
   onJoin(client: Client, rawOptions?: unknown): void {
@@ -119,6 +143,9 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       throw new Error(`協定版本不符（伺服器 ${PROTOCOL_VERSION}）`);
     }
     const options = parsed.data;
+    // 同一個帳號同時只能一處連線：後進的登入，先進的會被踢下線（任務 11M-7）
+    const accountId = accountOf(client);
+    if (accountId) this.kickOtherSessions(accountId, client);
     const number = nextPlayerNumber++;
     const player = new PlayerState();
     player.playerId = `p${number}-${client.sessionId.slice(0, 4)}`;
@@ -176,6 +203,13 @@ export class WorldRoom extends Room<{ state: WorldState }> {
 
   /** 斷線後在時間內重連回來：恢復在線；斷線期間客戶端自己走動過，下一則位置當作合法的瞬移 */
   onReconnect(client: Client): void {
+    // 斷線期間同一帳號已在別處登入：這次重連的是先進的那一個，要被踢下線（任務 11M-7）
+    const accountId = accountOf(client);
+    if (accountId && this.hasOtherSession(accountId, client)) {
+      console.info(`[world] 帳號 ${accountId} 已在別處登入，踢下重連的 ${client.sessionId}`);
+      client.leave(KICK_CODE, KICKED_ELSEWHERE);
+      return;
+    }
     const player = this.state.players.get(client.sessionId);
     const track = this.tracks.get(client.sessionId);
     if (player) player.online = true;
@@ -192,6 +226,19 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     this.tracks.delete(client.sessionId);
     if (player) this.system('chat.sys.left', { name: player.name });
     console.info(`[world] 離開 ${player?.name ?? client.sessionId}，目前 ${this.clients.length} 人`);
+  }
+
+  /** 踢掉同一帳號的其他連線（不保留座位：客戶端收到原因後不會自動重新加入） */
+  private kickOtherSessions(accountId: string, keep: Client): void {
+    for (const other of [...this.clients]) {
+      if (other.sessionId === keep.sessionId || accountOf(other) !== accountId) continue;
+      console.info(`[world] 帳號 ${accountId} 在別處登入，中斷 ${other.sessionId}`);
+      other.leave(KICK_CODE, KICKED_ELSEWHERE);
+    }
+  }
+
+  private hasOtherSession(accountId: string, self: Client): boolean {
+    return this.clients.some((c) => c.sessionId !== self.sessionId && accountOf(c) === accountId);
   }
 
   private handleMove(client: Client, raw: unknown, warp: boolean): void {

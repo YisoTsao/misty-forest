@@ -2,6 +2,7 @@
 import { createEndpoint, createRouter, defineRoom, defineServer, matchMaker } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { PROTOCOL_VERSION, ROOM_NAME } from '@/game-core/net/protocol';
+import { verifierFromEnv, type AccountVerifier } from './accounts';
 import { isAllowedOrigin, type OriginRule } from './origins';
 import { WorldRoom } from './WorldRoom';
 
@@ -18,9 +19,11 @@ const health = createEndpoint('/health', { method: 'GET' }, async () => {
  * @param allowedOrigins 連線來源允許清單（空的 = 全部允許，任務 11D）。三個地方檢查：
  * 比對房間的 HTTP 請求（WorldRoom.onAuth）、WebSocket 升級（含斷線重連，beforeUpgrade）、CORS 標頭只回允許的來源。
  */
-export function createGameServer(options: { allowedOrigins?: OriginRule[] } = {}) {
+export function createGameServer(options: { allowedOrigins?: OriginRule[]; verifyAccount?: AccountVerifier | null } = {}) {
   const rules = options.allowedOrigins ?? [];
   WorldRoom.originRules = rules;
+  // 帳號驗證：預設依環境變數（SUPABASE_URL、SUPABASE_PUBLISHABLE_KEY），沒設定就不驗證（任務 11M-7）
+  WorldRoom.verifyAccount = options.verifyAccount !== undefined ? options.verifyAccount : verifierFromEnv(process.env);
   // 預設的 CORS 標頭含 `Access-Control-Allow-Origin: *`，而且會先放、再合併 getCorsHeaders 的結果：有允許清單時拿掉
   if (rules.length > 0) delete (matchMaker.controller.DEFAULT_CORS_HEADERS as Record<string, string>)['Access-Control-Allow-Origin'];
   matchMaker.controller.getCorsHeaders = (headers: Headers): Record<string, string> => {

@@ -1038,6 +1038,7 @@
   "net.joined": "{name} 來到了這個世界",
   "net.left": "{name} 離開了",
   "net.unstable": "連線中斷了，正在重新連線…",
+  "net.kickedElsewhere": "這個帳號在其他裝置登入了，這裡的線上連線已中斷",
   "net.restored": "已重新連上伺服器",
   "net.remoteUnstable": "（連線不穩）",
   "net.wakeHint": "伺服器可能正在從休眠中醒來，第一次連線最多要等約 1 分鐘。",

@@ -172,6 +172,9 @@ export type ChatOut = {
   vars?: Record<string, string>;
 };
 
+/** 被踢下線的關閉原因（同一帳號在別處登入）：客戶端看到就不自動重新加入 */
+export const KICKED_ELSEWHERE = 'account-elsewhere';
+
 export const joinOptionsSchema = z.object({
   protocol: z.number().int(),
   name: z.string().max(64).optional(),
@@ -181,6 +184,8 @@ export const joinOptionsSchema = z.object({
   weapon: dataId.optional(),
   /** 職業（決定外型）；不認得就是旅人 */
   heroClass: dataId.optional(),
+  /** 登入帳號的 access token（任務 11M-7）：伺服器用它確認是哪個帳號；同一帳號同時只能一處連線 */
+  account: z.string().min(1).max(4096).optional(),
 });
 export type JoinOptions = z.infer<typeof joinOptionsSchema>;
 

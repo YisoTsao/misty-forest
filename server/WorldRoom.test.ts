@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
-import { ClientMessage, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type ChatOut, type CorrectionMessage, type RemoteActionMessage, type TimeReply } from '@/game-core/net/protocol';
+import { ClientMessage, KICKED_ELSEWHERE, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type ChatOut, type CorrectionMessage, type RemoteActionMessage, type TimeReply } from '@/game-core/net/protocol';
 import { MAPS, NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { createGameServer } from './app';
-import type { WorldRoom } from './WorldRoom';
+import { WorldRoom } from './WorldRoom';
 
 let colyseus: ColyseusTestServer;
 
@@ -444,5 +444,77 @@ describe('世界房間：聊天（任務 11F）', () => {
     await b.leave(true);
     await until(() => systemKeys(toA).includes('chat.sys.left'));
     expect(toA.filter((m) => m.channel === 'system').map((m) => m.vars?.name)).toEqual(['B', 'B']);
+  });
+});
+
+describe('世界房間：同一帳號只能一處連線（任務 11M-7）', () => {
+  // 假的驗證器：token 是 ok:<帳號> 才有效（真的 Supabase 驗證在部署後手動測）
+  beforeAll(() => {
+    WorldRoom.verifyAccount = async (token) => {
+      if (!token.startsWith('ok:')) throw new Error('invalid');
+      return token.slice(3);
+    };
+  });
+  afterAll(() => {
+    WorldRoom.verifyAccount = null;
+  });
+
+  /** 記錄客戶端被關閉的原因（被踢時 code 4000、原因 KICKED_ELSEWHERE） */
+  const watchLeave = (client: { onLeave: (cb: (code: number, reason?: string) => void) => void }) => {
+    const left = { code: null as number | null, reason: undefined as string | undefined };
+    client.onLeave((code, reason) => {
+      left.code = code;
+      left.reason = reason;
+    });
+    return left;
+  };
+
+  it('同一個帳號第二次加入：先進的被踢下線（不保留座位），後進的正常在線', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const first = await join(room, { name: 'A', account: 'ok:acc1' });
+    const leftFirst = watchLeave(first);
+    const firstId = first.sessionId;
+    const second = await join(room, { name: 'A2', account: 'ok:acc1' });
+    await until(() => leftFirst.reason === KICKED_ELSEWHERE);
+    expect(leftFirst.code).toBe(4000);
+    await until(() => !room.state.players.has(firstId));
+    expect([...room.clients].map((c) => c.sessionId)).toEqual([second.sessionId]);
+    expect(room.state.players.get(second.sessionId)?.name).toBe('A2');
+  });
+
+  it('不同帳號、訪客（沒帶 token）互不影響', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const a = await join(room, { name: 'A', account: 'ok:acc1' });
+    const b = await join(room, { name: 'B', account: 'ok:acc2' });
+    const g1 = await join(room, { name: 'G1' });
+    const g2 = await join(room, { name: 'G2' });
+    const leftA = watchLeave(a);
+    const leftB = watchLeave(b);
+    const leftG1 = watchLeave(g1);
+    await until(() => room.clients.length === 4);
+    expect([leftA.reason, leftB.reason, leftG1.reason]).toEqual([undefined, undefined, undefined]);
+    expect(g2.sessionId).toBeTruthy();
+  });
+
+  it('token 無效：拒絕加入（不會變成訪客）', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    await expect(join(room, { name: 'X', account: 'bad-token' })).rejects.toThrow();
+    expect(room.clients.length).toBe(0);
+  });
+
+  it('斷線期間同一帳號在別處登入：斷線的那一個重連回來時被踢（先進的不能搶回來）', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    const first = await join(room, { name: 'A', account: 'ok:acc1' });
+    const leftFirst = watchLeave(first);
+    // 模擬斷線：伺服器把它移出 clients（座位保留中），另一台以同一帳號加入
+    const serverFirst = room.clients.get(first.sessionId)!;
+    room.clients.delete(serverFirst);
+    const second = await join(room, { name: 'A2', account: 'ok:acc1' });
+    expect([...room.clients].map((c) => c.sessionId)).toEqual([second.sessionId]);
+    // 斷線的連線回來：不能再和後進的並存
+    room['onReconnect'](serverFirst);
+    await until(() => leftFirst.reason === KICKED_ELSEWHERE);
+    expect(leftFirst.code).toBe(4000);
+    expect([...room.clients].map((c) => c.sessionId)).toEqual([second.sessionId]);
   });
 });

@@ -89,7 +89,7 @@
 
 ## 已知限制
 
-- 遊戲伺服器還不驗證帳號（Supabase JWT）：連線名稱由客戶端帶上；禁言（`profiles.muted_until`）還沒有作用。
+- 遊戲伺服器驗證登入帳號（任務 11M-7）：加入時帶上登入的 access token，伺服器經 `/auth/v1/user` 確認；同一帳號同時只能一處連線。需要 Render 的 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（沒設定就不驗證）。禁言（`profiles.muted_until`）還沒有作用。
 - 線上存檔由客戶端寫入（RLS 只允許本人），防作弊要改成伺服器驗證後代寫。
 - 同一個人的 Google 與 LINE 只有信箱相同時才會是同一個帳號；還沒有手動綁定第二種登入方式的畫面。
 - 線上角色目前只有一格（`slot` 1）；資料表預留到 3。
