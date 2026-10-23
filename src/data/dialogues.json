@@ -2130,5 +2130,93 @@
         "next": "greet"
       }
     }
+  },
+  {
+    "id": "toto_crate_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.crate.offer",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.help",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_sq03"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_toto_wares"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.bye"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.crate.accept"
+      }
+    }
+  },
+  {
+    "id": "toto_crate_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.crate.progress",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_toto_wares"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.bye"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "toto_crate_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.crate.done",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.giveCrate",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_sq03"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.crate.gift"
+      }
+    }
   }
 ]

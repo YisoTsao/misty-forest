@@ -675,5 +675,42 @@
       }
     ],
     "rewards": {}
+  },
+  {
+    "id": "quest_forest_sq03",
+    "nameKey": "quest.forestSq3.name",
+    "category": "side",
+    "descKey": "quest.forestSq3.desc",
+    "giver": "toto",
+    "requires": [
+      "quest_forest_004"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "toto_crate_01"
+        ],
+        "descKey": "quest.forestSq3.crate"
+      },
+      {
+        "type": "defeat",
+        "enemy": "mob_mist_wolf",
+        "count": 3,
+        "descKey": "quest.forestSq3.wolves"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "seed_coin",
+          "count": 40
+        },
+        {
+          "itemId": "thick_pelt",
+          "count": 1
+        }
+      ]
+    }
   }
 ]

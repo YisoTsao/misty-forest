@@ -142,6 +142,20 @@
       {
         "itemId": "ancient_resin",
         "price": 14
+      },
+      {
+        "itemId": "guardian_heartwood",
+        "price": 24,
+        "requires": {
+          "questCompleted": "quest_forest_sq03"
+        }
+      },
+      {
+        "itemId": "starlight_shard",
+        "price": 18,
+        "requires": {
+          "questCompleted": "quest_forest_sq03"
+        }
       }
     ],
     "buys": [

@@ -1118,6 +1118,29 @@
     "interactRadius": 2.6,
     "talk": [
       {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_sq03"
+        },
+        "dialogue": "toto_crate_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq03",
+          "is": "active"
+        },
+        "dialogue": "toto_crate_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq03",
+          "is": "available"
+        },
+        "dialogue": "toto_crate_offer"
+      },
+      {
         "dialogue": "toto_intro"
       }
     ]

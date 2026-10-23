@@ -1267,5 +1267,17 @@
   "dlg.toto.opt.rumor": "有什麼消息嗎？",
   "dlg.toto.opt.bye": "下次再說",
   "dlg.toto.rumor": "聽說溪谷北邊的山脊後面藏著一座會發光的洞窟，洞口的石門只認星光。我在那附近撿過星晶碎片……可惜我的貨箱在半路被森林狼弄丟了，不然還有更多好東西給你看。",
-  "shop.toto.name": "托托的旅行貨攤"
+  "shop.toto.name": "托托的旅行貨攤",
+  "object.totoCrate": "托托的貨箱",
+  "quest.forestSq3.name": "商人的失物",
+  "quest.forestSq3.desc": "托托的貨箱掉在迷霧深層，附近有森林狼出沒。找回貨箱，順便把狼群趕走。",
+  "quest.forestSq3.crate": "找回托托的貨箱",
+  "quest.forestSq3.wolves": "擊退霧紋森林狼 ×3",
+  "dlg.toto.opt.help": "我幫你找",
+  "dlg.toto.opt.giveCrate": "把貨箱還給他",
+  "dlg.toto.crate.offer": "說到這個……我的貨箱掉在南邊的迷霧深層了，那裡的森林狼兇得很，我一個人不敢回去。要是你能幫我拿回來，順便趕走那群狼，我一定好好謝你。",
+  "dlg.toto.crate.accept": "太好了！貨箱是一只綁著麻繩的大木箱，應該就在狼群出沒的地方。小心濃霧，待太久會不舒服的。",
+  "dlg.toto.crate.progress": "貨箱找到了嗎？狼群還在附近的話，可別硬拿，先把牠們趕走。",
+  "dlg.toto.crate.done": "這是……我的貨箱！連狼都趕跑了？你真是可靠的旅人。",
+  "dlg.toto.crate.gift": "這些種籽幣和獸皮是謝禮。還有，從今天起我把壓箱底的好貨也擺出來——守衛木核、星晶碎片，只賣給信得過的人。"
 }

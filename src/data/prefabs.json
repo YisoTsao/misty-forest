@@ -5099,6 +5099,28 @@
     "persists": true
   },
   {
+    "id": "toto_crate",
+    "model": "models/kaykit-hexagon/crate_A_big.gltf",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.21,
+        0.21,
+        0.21
+      ]
+    },
+    "interaction": "activate",
+    "nameKey": "object.totoCrate",
+    "verbKey": "interact.pickUp",
+    "interactRadius": 2.2,
+    "activate": {
+      "quest": "quest_forest_sq03",
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
     "id": "hidden_cache",
     "model": "models/props/kaykit-dungeon/chest.glb",
     "collider": "static",

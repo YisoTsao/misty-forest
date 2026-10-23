@@ -53535,6 +53535,26 @@
     ]
   },
   {
+    "id": "toto_crate_01",
+    "prefabId": "toto_crate",
+    "regionId": "deep_mist",
+    "position": [
+      2038,
+      -0.33,
+      100
+    ],
+    "rotation": [
+      0,
+      0.7,
+      0
+    ],
+    "scale": [
+      4.5,
+      4.5,
+      4.5
+    ]
+  },
+  {
     "id": "hidden_cache_01",
     "prefabId": "hidden_cache",
     "regionId": "glow_garden",
