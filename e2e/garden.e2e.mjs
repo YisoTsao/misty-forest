@@ -92,6 +92,8 @@ await runE2e('garden e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
     assert.equal(await debug((q) => window.__mistwoodDebug.questState(q), Q), 'completed');
     const plot = (await buildings()).find((b) => b.buildable === 'garden_plot');
     assert.equal(await debug((id) => window.__mistwoodDebug.buildingStage(id), plot.id), 0);
+    // 先到中午再到 20 點：直接跳到 20 點時，目前若已接近 20 點，經過的時間可能不夠長（共享時鐘）
+    await debug(() => window.__mistwoodDebug.setClock(12));
     await debug(() => window.__mistwoodDebug.setClock(20));
     await page.waitForTimeout(300);
     assert.equal(await debug((id) => window.__mistwoodDebug.buildingStage(id), plot.id), 2);

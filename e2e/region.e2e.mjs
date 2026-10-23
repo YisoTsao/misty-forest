@@ -89,6 +89,8 @@ await runE2e('region e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env },
   });
 
   await check('森林迷霧改為「清」後，森林畫面明顯變亮、變鮮豔（規格 Phase 3 驗收）', async () => {
+    // 飽和度與亮度要看白天（共享世界時鐘在夜裡或黃昏會失準，與 e2e world、cellar 的處理相同）
+    await debug(() => window.__mistwoodDebug.setClock(12));
     await teleport(...clearing, 200);
     await camera({ yaw: 0.5, pitch: 0.55, distance: 5 });
     await page.waitForTimeout(2500);
