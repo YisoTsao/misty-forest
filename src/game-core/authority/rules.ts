@@ -733,8 +733,11 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   return events;
 }
 
-/** 迷霧持續傷害（第二章 Phase 3，規格 §7.3 守林者護腕）：濃霧裡每次 2 點，防具的迷霧倍率會減少 */
-export const MIST_HARM = 2;
+/**
+ * 迷霧持續傷害（第二章 Phase 3，規格 §7.3 守林者護腕）：濃霧裡每次 6 點，迷霧倍率會減少——
+ * 螢光提燈（持有即生效，規格 4.2：取得提燈後才能進迷霧深層）降到 2 點，守林者護腕再減半。
+ */
+export const MIST_HARM = 6;
 function mistHarm(state: GameState, region: RegionId, ctx: RulesContext): GameEvent[] {
   if (state.player.defeated) return reject('MistHarm', 'player-defeated');
   if (state.mist[region] !== 'dense' || !ctx.regionHarm?.has(region)) return reject('MistHarm', 'not-dense');

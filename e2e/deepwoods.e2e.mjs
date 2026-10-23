@@ -1,4 +1,5 @@
-// 端對端：第二章的森林怪物 — 迷霧深層（規格 M-03 霧紋森林狼、M-04 幻霧螢靈）與花園的菌帽小妖（M-02）。
+// 端對端：第二章的森林怪物 — 迷霧深層（規格 M-03 霧紋森林狼、M-04 幻霧螢靈）與花園的菌帽小妖（M-02）；
+// 深層的濃霧沒有螢光提燈時扣血較重並提示。
 // 深層的生成點會生成森林狼與幻霧螢靈；狼被打倒後掉落霧紋獸牙或厚實獸皮（機率，只檢查數量變化的可能性，不強制）。
 // 外觀以截圖檢查（--monsters --enemies=mob_mist_wolf,mob_fog_wisp）。
 // 用法：pnpm build && node e2e/deepwoods.e2e.mjs
@@ -19,6 +20,12 @@ await runE2e('deepwoods e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ p
     return (await list()).find((e) => e.kind === kind);
   };
 
+  await check('沒有螢光提燈走進深層的濃霧：被霧傷到時提示需要一盞燈', async () => {
+    await teleport(2052, 92, 300);
+    await page.waitForFunction(() => window.__mistwoodDebug.toasts().some((x) => x.textKey === 'toast.mistNeedLantern'), null, { timeout: 6000 });
+    await teleport(1880, 2, 300);
+  });
+
   await check('迷霧深層生成森林狼與幻霧螢靈', async () => {
     const wolf = await goTo('deep_wolves', 'mob_mist_wolf');
     assert.ok(wolf && wolf.x > 1990, '森林狼沒有在深層生成');
@@ -33,6 +40,8 @@ await runE2e('deepwoods e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ p
     await page.waitForTimeout(4600);
     const hp1 = await debug(() => window.__mistwoodDebug.combatState().hp);
     assert.ok(hp1 < hp0, `深層的濃霧沒有扣血（${hp0} → ${hp1}）`);
+    // 沒有螢光提燈：每次扣 6 點（規格 4.2：取得提燈後才能進深層；提示 20 秒最多一次，不在這裡檢查）
+    assert.ok(hp0 - hp1 >= 6, `沒有提燈時扣血太少（${hp0} → ${hp1}）`);
     await teleport(1880, 2, 300);
     await page.waitForFunction(() => window.__mistwoodDebug.region() === 'mist_gate', null, { timeout: 5000 });
     const hp2 = await debug(() => window.__mistwoodDebug.combatState().hp);

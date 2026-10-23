@@ -467,7 +467,7 @@
   "quest.forest4.desc": "聚落的人還不太信任旅人。幫菇菇婆婆做一盞給孩子們的燈。",
   "quest.forest4.spore": "交出微光孢子 ×2",
   "item.glow_lantern.name": "螢光提燈",
-  "item.glow_lantern.desc": "聚落的人用來照亮夜路的燈，裡面的螢苔會發出柔和的光。",
+  "item.glow_lantern.desc": "聚落的人用來照亮夜路的燈，裡面的螢苔會發出柔和的光。帶在身上，迷霧深層的濃霧就不那麼傷人。",
   "dlg.granny.opt.yes": "好，我去看看",
   "dlg.granny.gel.offer": "螢苔史萊姆身上的凝膠能穩住受污染的螢苔。你幫我拿兩份回來吧。",
   "dlg.granny.gel.accept": "凝膠通常在花園裡的螢苔史萊姆身上。小心別被它撞到。",
@@ -1370,5 +1370,6 @@
   "dlg.granny.seed.accept": "到了那附近，用你的星光照一照四周（G）。盒子會自己亮起來的。",
   "dlg.granny.seed.progress": "種子找到了嗎？迷霧入口北邊，記得用星光照一照。",
   "dlg.granny.seed.done": "就是這個……跟我小時候看到的一模一樣。",
-  "dlg.granny.seed.gift": "我把它們分成幾顆花種，你也帶一些回家吧。在家園蓋一塊苗圃，它們就會長出光來。"
+  "dlg.granny.seed.gift": "我把它們分成幾顆花種，你也帶一些回家吧。在家園蓋一塊苗圃，它們就會長出光來。",
+  "toast.mistNeedLantern": "濃霧壓得你喘不過氣……也許需要一盞能驅散迷霧的燈"
 }

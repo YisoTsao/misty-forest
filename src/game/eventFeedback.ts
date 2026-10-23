@@ -30,12 +30,23 @@ function objectNameKey(placementId: string): string | undefined {
   return placement && worldIndex.prefab(placement.prefabId)?.nameKey;
 }
 
+/** 沒有螢光提燈時被濃霧傷到的提示，多久最多一次（毫秒） */
+const MIST_HINT_MS = 20_000;
+let lastMistHint = -Infinity;
+
 /** 把權威層事件轉成玩家看得到的回饋（取得物品、背包已滿）。只在啟動時安裝一次。 */
 export function installEventFeedback(): void {
   authority.subscribe((events) => {
     const ui = useUiStore.getState();
     for (const e of events) {
-      if (e.type === 'ItemsGained') {
+      if (e.type === 'PlayerDamaged' && e.enemyId === 'mist') {
+        // 迷霧深層的濃霧：沒有螢光提燈時提示該帶什麼來（規格 4.2：取得提燈後才能進深層）
+        const hasLantern = authority.getState().inventory.slots.some((slot) => slot?.itemId === 'glow_lantern');
+        if (!hasLantern && performance.now() - lastMistHint > MIST_HINT_MS) {
+          lastMistHint = performance.now();
+          ui.pushToast({ textKey: 'toast.mistNeedLantern' });
+        }
+      } else if (e.type === 'ItemsGained') {
         for (const stack of e.items) ui.pushToast({ itemId: stack.itemId, count: stack.count });
       } else if (e.type === 'MistStageChanged') {
         ui.pushToast({ textKey: `toast.mist.${e.stage}`, vars: { region: t(`region.${e.region}`) } });

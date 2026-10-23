@@ -128,10 +128,12 @@ describe('迷霧持續傷害（第二章 Phase 3）', () => {
   const harmCtx = { ...ctx, regionHarm: new Set(['deep_mist' as const]) };
   const harm = (s: GameState, region: 'deep_mist' | 'mist_gate') => applyEvents(s, handleCommand(s, { type: 'MistHarm', region }, harmCtx), harmCtx);
 
-  it('濃霧且會扣血的區域：每次 2 點，護腕的迷霧倍率減半為 1 點', () => {
+  it('濃霧且會扣血的區域：每次 6 點；帶著螢光提燈降到 2 點，再戴護腕減半為 1 點', () => {
     const s = deep(traveler());
-    expect(harm(s, 'deep_mist').player.hp).toBe(s.player.hp - 2);
-    const worn = deep(ok(give(traveler(), 'forest_bracer'), { type: 'EquipItem', itemId: 'forest_bracer' }).state);
+    expect(harm(s, 'deep_mist').player.hp).toBe(s.player.hp - 6);
+    const lit = deep(give(traveler(), 'glow_lantern'));
+    expect(harm(lit, 'deep_mist').player.hp).toBe(lit.player.hp - 2);
+    const worn = deep(ok(give(give(traveler(), 'glow_lantern'), 'forest_bracer'), { type: 'EquipItem', itemId: 'forest_bracer' }).state);
     expect(harm(worn, 'deep_mist').player.hp).toBe(worn.player.hp - 1);
   });
 
