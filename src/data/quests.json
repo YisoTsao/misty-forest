@@ -661,6 +661,16 @@
           "itemId": "ancient_core",
           "count": 1
         }
+      ],
+      "mist": [
+        {
+          "region": "ancient_altar",
+          "stage": "clear"
+        },
+        {
+          "region": "deep_mist",
+          "stage": "light"
+        }
       ]
     }
   },

@@ -38,6 +38,8 @@ describe('第二章結尾', () => {
     const won: GameState = { ...initialGameState(), quests: { quest_forest_007: { status: 'active' } }, defeatedBosses: ['boss_root_devourer'] };
     const s = ok(won, { type: 'TurnInQuest', quest: 'quest_forest_007' });
     expect(countItem(s.inventory, 'ancient_core')).toBe(1);
+    // 古樹恢復呼吸：祭壇放晴、迷霧深層降為淡霧（濃霧傷害只在濃霧時有）
+    expect([s.mist.ancient_altar, s.mist.deep_mist]).toEqual(['clear', 'light']);
     const turnin = data.dialogues.get('granny_root_turnin')!;
     const effects = Object.values(turnin.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => o.effects ?? []));
     expect(effects).toContainEqual({ type: 'acceptQuest', quest: 'quest_forest_008' });
