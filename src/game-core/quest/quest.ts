@@ -25,6 +25,12 @@ export const objectiveSchema = z.discriminatedUnion('type', [
   }),
   /** 擊敗頭目（任務 8D-2）：以「已擊敗的頭目」判斷，接任務前就打倒的也算 */
   z.object({ type: z.literal('boss'), boss: z.string().min(1), descKey: z.string().min(1) }),
+  /** 轉動機關的謎題（第二章 Phase 2 水輪）：每個機關都轉到指定位置時完成；進度以目前的轉動位置判斷 */
+  z.object({
+    type: z.literal('puzzle'),
+    members: z.array(z.object({ placement: z.string().min(1), turn: z.number().int().nonnegative() })).min(1),
+    descKey: z.string().min(1),
+  }),
   /** 走到某個地方（任務 7O：跟著芽芽到晨曦村）：玩家走進 (x, z) 半徑 radius 內時完成 */
   z.object({ type: z.literal('visit'), x: z.number(), z: z.number(), radius: z.number().positive(), descKey: z.string().min(1) }),
   /** 在家園蓋出指定數量的建造物（任務 7K 花圃）：以目前已放置的數量判斷 */
@@ -94,6 +100,9 @@ export function parseQuests(
       if (o.type === 'boss' && refs.enemies && !refs.enemies.has(o.boss)) throw new Error(`任務 ${q.id} 參照不存在的頭目：${o.boss}`);
     }
     if (refs.placements) {
+      for (const o of q.objectives) if (o.type === 'puzzle') for (const m of o.members) if (!refs.placements.has(m.placement)) throw new Error(`任務 ${q.id} 參照不存在的機關：${m.placement}`);
+    }
+    if (refs.placements) {
       const ids = [
         ...q.objectives.flatMap((o) => (o.type === 'activate' ? o.placementIds : o.type === 'repair' ? [o.placementId] : [])),
         ...(q.rewards.objects ?? []),
@@ -111,7 +120,7 @@ export function parseQuests(
 type QuestState = {
   quests: Readonly<Record<string, QuestRecord>>;
   inventory: Parameters<typeof countItem>[0];
-  objects: ReadonlyMap<string, { repaired?: boolean; active?: boolean }>;
+  objects: ReadonlyMap<string, { repaired?: boolean; active?: boolean; turn?: number }>;
   /** 已擊敗的頭目（省略視為沒有） */
   defeatedBosses?: readonly string[];
   /** 已放置的建造物（省略視為沒有） */
@@ -143,6 +152,8 @@ export function objectiveProgress(state: QuestState, def: QuestDef): { current: 
         return { current: (state.quests[def.id]?.progress?.[i] ?? 0) > 0 ? 1 : 0, target: 1 };
       case 'build':
         return { current: Math.min(o.count, (state.buildings ?? []).filter((b) => b.buildable === o.buildable).length), target: o.count };
+      case 'puzzle':
+        return { current: o.members.every((m) => (state.objects.get(m.placement)?.turn ?? 0) === m.turn) ? 1 : 0, target: 1 };
     }
   });
 }

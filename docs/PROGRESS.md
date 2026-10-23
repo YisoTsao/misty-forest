@@ -38,6 +38,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 測試：`pnpm check`（Vitest 979 項，新增 `waterwheel.test.ts` 5 項）、`pnpm build`。e2e `creek`（讀石碑、轉錯不開、依答案開、存讀檔）全過；`glowmoss`、`forestquest` 重跑全過。截圖 `docs/screenshots/phase13/glowmoss_creek.png`：水輪外形偏簡，溪水在這個角度看不到，美術待改。
 - `pnpm check` 一次出現 1 項失敗、重跑全過（與 PROGRESS 已知的 WorldRoom 偶發逾時同類），未追查。
 
+### 任務 13C：聚落主線 quest_forest_002–004（第二章 Phase 2，規格 8.2 CH2-MQ-02 至 04）
+- 菇菇婆婆（`granny`，D 區，placeholder 模型）是聚落的主要 NPC：開啟聚落工作台（13A）、交付主線。
+- `quest_forest_002` 螢苔的呼吸：交出螢苔凝膠 ×2 → 純淨螢苔 ×2。`quest_forest_003` 倒流的溪水：新目標類型 `puzzle`（機關全部轉到位，進度以目前的轉動位置判斷；任務自動達成，回報時拿星晶碎片 ×2）。`quest_forest_004` 不願相信旅人的居民：交出微光孢子 ×2 → 螢光提燈（新道具）。
+- 規格 CH2-MQ-04 寫的是「協助聚落並取得信任」，目前只做了上面的交付，還沒有其他村民與信任度。
+- 測試：`pnpm check`（Vitest 979 項）、`pnpm build`。e2e `granny` 新增（接取、交付、水輪、交付、提燈）全過；`quest`、`npc`、`journal`、`forestquest`、`creek`、`equipment` 重跑未見失敗。
+- 教訓：改了資料之後沒重新 build，e2e 會跑舊的建置；之後每次改資料都先 `pnpm build`。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

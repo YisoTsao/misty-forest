@@ -946,6 +946,75 @@
     "interactRadius": 2.6,
     "talk": [
       {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_004"
+        },
+        "dialogue": "granny_help_turnin"
+      },
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_003"
+        },
+        "dialogue": "granny_wheels_turnin"
+      },
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_002"
+        },
+        "dialogue": "granny_gel_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_004",
+          "is": "active"
+        },
+        "dialogue": "granny_help_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "active"
+        },
+        "dialogue": "granny_wheels_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "active"
+        },
+        "dialogue": "granny_gel_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_004",
+          "is": "available"
+        },
+        "dialogue": "granny_help_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "available"
+        },
+        "dialogue": "granny_wheels_hint"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "available"
+        },
+        "dialogue": "granny_gel_offer"
+      },
+      {
         "dialogue": "granny_intro"
       }
     ]

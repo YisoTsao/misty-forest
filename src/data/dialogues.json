@@ -1717,5 +1717,181 @@
         ]
       }
     }
+  },
+  {
+    "id": "granny_gel_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.gel.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_002"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.gel.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_gel_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.gel.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_gel_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.gel.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_002"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.gel.gift"
+      }
+    }
+  },
+  {
+    "id": "granny_wheels_hint",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.wheels.hint"
+      }
+    }
+  },
+  {
+    "id": "granny_wheels_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.wheels.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_wheels_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.wheels.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_003"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.wheels.after"
+      }
+    }
+  },
+  {
+    "id": "granny_help_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.help.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_004"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.help.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_help_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.help.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_help_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.help.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_004"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.help.gift"
+      }
+    }
   }
 ]

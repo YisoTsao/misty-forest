@@ -15,6 +15,7 @@
   { "id": "glow_knife", "nameKey": "item.glow_knife.name", "descKey": "item.glow_knife.desc", "icon": "glow_knife", "category": "equipment", "maxStack": 1, "equip": { "slot": "weapon", "base": "knife", "effects": [{ "kind": "attackScale", "value": 1.25 }] } },
   { "id": "glow_staff", "nameKey": "item.glow_staff.name", "descKey": "item.glow_staff.desc", "icon": "glow_staff", "category": "equipment", "maxStack": 1, "equip": { "slot": "weapon", "base": "staff", "effects": [{ "kind": "attackScale", "value": 1.2 }] } },
   { "id": "forest_bracer", "nameKey": "item.forest_bracer.name", "descKey": "item.forest_bracer.desc", "icon": "forest_bracer", "category": "equipment", "maxStack": 1, "equip": { "slot": "armor", "effects": [{ "kind": "damageTakenScale", "value": 0.9 }, { "kind": "mistDamageScale", "value": 0.5 }, { "kind": "rareDropBonus", "value": 0.15 }] } },
+  { "id": "glow_lantern", "nameKey": "item.glow_lantern.name", "descKey": "item.glow_lantern.desc", "icon": "lantern", "category": "quest", "maxStack": 1 },
   { "id": "star_compass", "nameKey": "item.star_compass.name", "descKey": "item.star_compass.desc", "icon": "star_compass", "category": "quest", "maxStack": 1 },
   { "id": "pure_glowmoss", "nameKey": "item.pure_glowmoss.name", "descKey": "item.pure_glowmoss.desc", "icon": "pure_glowmoss", "category": "material", "maxStack": 99 },
   { "id": "moondew_herb", "nameKey": "item.moondew_herb.name", "descKey": "item.moondew_herb.desc", "icon": "moondew", "category": "material", "maxStack": 99 },
