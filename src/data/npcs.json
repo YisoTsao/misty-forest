@@ -971,6 +971,13 @@
       {
         "when": {
           "type": "questReady",
+          "quest": "quest_forest_sq05"
+        },
+        "dialogue": "granny_seed_turnin"
+      },
+      {
+        "when": {
+          "type": "questReady",
           "quest": "quest_forest_sq01"
         },
         "dialogue": "granny_dinner_turnin"
@@ -1083,6 +1090,14 @@
       {
         "when": {
           "type": "questStatus",
+          "quest": "quest_forest_sq05",
+          "is": "available"
+        },
+        "dialogue": "granny_seed_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
           "quest": "quest_forest_sq06",
           "is": "available"
         },
@@ -1151,6 +1166,14 @@
           "is": "active"
         },
         "dialogue": "granny_dinner_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq05",
+          "is": "active"
+        },
+        "dialogue": "granny_seed_progress"
       },
       {
         "dialogue": "granny_intro"

@@ -3331,6 +3331,24 @@
     "persists": false
   },
   {
+    "id": "build_glow_plot_0",
+    "model": "procedural:garden_plot_0",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "build_glow_plot_1",
+    "model": "procedural:glowmoss_tuft",
+    "collider": "none",
+    "persists": false
+  },
+  {
+    "id": "build_glow_plot_2",
+    "model": "procedural:glow_mushrooms",
+    "collider": "none",
+    "persists": false
+  },
+  {
     "id": "river_footprints",
     "model": "procedural:footprints",
     "collider": "none",
@@ -5235,6 +5253,28 @@
     "persists": true,
     "contents": {
       "lootTableId": "chest_glowmoss",
+      "requiresLumen": true
+    }
+  },
+  {
+    "id": "seed_cache",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.seedCache",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "forgotten_seed_pick",
       "requiresLumen": true
     }
   }

@@ -1356,5 +1356,19 @@
   "dlg.granny.dinner.progress": "材料湊齊了嗎？螢苔、菌帽、溪魚，一樣都不能少喔。",
   "dlg.granny.dinner.done": "都在這裡了！聞到了嗎？湯已經在我腦子裡咕嘟咕嘟了。",
   "dlg.granny.dinner.gift": "先給你兩碗帶著走。作法我也寫在工作台旁邊了，以後你自己也能煮。",
-  "dlg.granny.wheels.accept": "溪邊的石碑記著水輪該停的位置。三座都轉對了，溪水就會照老樣子流了。"
+  "dlg.granny.wheels.accept": "溪邊的石碑記著水輪該停的位置。三座都轉對了，溪水就會照老樣子流了。",
+  "object.seedCache": "埋著種子的舊木盒",
+  "item.forgotten_seed.name": "被遺忘的種子",
+  "item.forgotten_seed.desc": "包在乾苔蘚裡的一顆種子，在星光下會微微發亮。聚落以前的花園就是從這種種子長出來的。",
+  "item.glow_seed.name": "螢苔花種",
+  "item.glow_seed.desc": "菇菇婆婆分給你的螢苔花種。在家園的苗圃種下，過一陣子就會長出會發光的小花。",
+  "build.glow_plot": "螢苔苗圃",
+  "quest.forestSq5.name": "被遺忘的花園",
+  "quest.forestSq5.desc": "聚落以前有一座會發光的花園。菇菇婆婆說，最後一盒種子被藏在迷霧入口附近，只有星光照得到。",
+  "quest.forestSq5.seed": "找到被遺忘的種子，帶回聚落（用星光照明 G）",
+  "dlg.granny.seed.offer": "聚落以前有一座會發光的花園，迷霧來了以後就荒掉了。我記得最後一盒種子被埋在迷霧入口北邊的老樹下……可是那盒子只有星光照得到。你願意去找找嗎？",
+  "dlg.granny.seed.accept": "到了那附近，用你的星光照一照四周（G）。盒子會自己亮起來的。",
+  "dlg.granny.seed.progress": "種子找到了嗎？迷霧入口北邊，記得用星光照一照。",
+  "dlg.granny.seed.done": "就是這個……跟我小時候看到的一模一樣。",
+  "dlg.granny.seed.gift": "我把它們分成幾顆花種，你也帶一些回家吧。在家園蓋一塊苗圃，它們就會長出光來。"
 }

@@ -11,6 +11,8 @@
   { "id": "tough_bark", "nameKey": "item.tough_bark.name", "descKey": "item.tough_bark.desc", "icon": "bark", "category": "material", "maxStack": 99 },
   { "id": "fungus_cap", "nameKey": "item.fungus_cap.name", "descKey": "item.fungus_cap.desc", "icon": "moss_cap", "category": "material", "maxStack": 99 },
   { "id": "creek_fish", "nameKey": "item.creek_fish.name", "descKey": "item.creek_fish.desc", "icon": "glow_moss", "category": "material", "maxStack": 99 },
+  { "id": "forgotten_seed", "nameKey": "item.forgotten_seed.name", "descKey": "item.forgotten_seed.desc", "icon": "seed", "category": "quest", "maxStack": 1 },
+  { "id": "glow_seed", "nameKey": "item.glow_seed.name", "descKey": "item.glow_seed.desc", "icon": "seed", "category": "material", "maxStack": 20 },
   { "id": "guardian_heartwood", "nameKey": "item.guardian_heartwood.name", "descKey": "item.guardian_heartwood.desc", "icon": "heartwood", "category": "material", "maxStack": 99 },
   { "id": "star_crystal", "nameKey": "item.star_crystal.name", "descKey": "item.star_crystal.desc", "icon": "crystal", "category": "material", "maxStack": 99 },
   { "id": "ancient_resin", "nameKey": "item.ancient_resin.name", "descKey": "item.ancient_resin.desc", "icon": "resin", "category": "material", "maxStack": 99 },

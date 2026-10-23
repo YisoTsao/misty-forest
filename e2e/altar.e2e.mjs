@@ -164,8 +164,9 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
       await option.click();
       await page.waitForTimeout(200);
     };
-    // 支線「會發光的晚餐」排在前面，這裡先當作已完成
+    // 支線「會發光的晚餐」「被遺忘的花園」排在前面，這裡先當作已完成
     await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_sq01'));
+    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_sq05'));
     await talk('granny', 'granny_dream_offer');
     await choose('好');
     assert.equal(await questState('quest_forest_sq06'), 'active');

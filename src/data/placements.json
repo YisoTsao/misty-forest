@@ -53835,6 +53835,26 @@
     ]
   },
   {
+    "id": "seed_cache_01",
+    "prefabId": "seed_cache",
+    "regionId": "glow_garden",
+    "position": [
+      1896,
+      2.04,
+      -20
+    ],
+    "rotation": [
+      0,
+      0.9,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "crystal_chest",
     "prefabId": "crystal_chest",
     "regionId": "crystal_grotto",

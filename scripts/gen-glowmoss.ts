@@ -232,6 +232,8 @@ export function addGlowmoss(placements: Out[]): void {
   // 支線 CH2-SQ-03 商人的失物：托托的貨箱掉在森林狼出沒的地方
   place('toto_crate_01', 'toto_crate', 38, 100, { yaw: 0.7, scale: 4.5, r: 1.6 });
   place('hidden_cache_01', 'hidden_cache', -60, -18, { yaw: 2.4, r: 2 });
+  // 支線 CH2-SQ-05 被遺忘的花園：迷霧入口北邊的舊木盒（需要星光照明）；不佔散佈的位置，選在原本空著的地方
+  place('seed_cache_01', 'seed_cache', -104, -20, { yaw: 0.9 });
   // 寶箱與石碑放在祕窟中央較平的地面（高度 0.4），不在光路上
   place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
   place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });

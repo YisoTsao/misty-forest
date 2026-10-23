@@ -871,5 +871,32 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_sq05",
+    "nameKey": "quest.forestSq5.name",
+    "category": "side",
+    "descKey": "quest.forestSq5.desc",
+    "giver": "granny",
+    "requires": [
+      "quest_forest_004"
+    ],
+    "objectives": [
+      {
+        "type": "collect",
+        "itemId": "forgotten_seed",
+        "count": 1,
+        "consume": true,
+        "descKey": "quest.forestSq5.seed"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "glow_seed",
+          "count": 3
+        }
+      ]
+    }
   }
 ]
