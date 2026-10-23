@@ -195,6 +195,14 @@ export function addGlowmoss(placements: Out[]): void {
   place('lost_firefly_01', 'lost_firefly', -118, -12, { yaw: 0.4, r: 1 });
   place('lost_firefly_02', 'lost_firefly', -44, 24, { yaw: 1.8, r: 1 });
   place('lost_firefly_03', 'lost_firefly', -34, -96, { yaw: 2.6, r: 1 });
+  // 支線 CH2-SQ-04 不會說謊的石碑：花園北邊的星盤遺跡（三塊星盤由西往東排、盤面朝南，從南邊的石碑看過去）
+  // 轉軸是模型的 X 軸，朝向 π/2 時指向北方；每轉一格星轉 90°：0 朝上、1 朝東、2 朝下、3 朝西；石碑的答案是西、下、東（3、2、1）
+  // 不加入 taken（r）：佔位會讓之後的散佈亂數整串錯開；位置選在原本就沒有樹與石頭的空地
+  for (const [i, x] of [-80, -76, -72].entries()) {
+    place(`star_dial_base_0${i + 1}`, 'star_dial_base', x, -24, { yaw: Math.PI / 2 });
+    place(`star_dial_0${i + 1}`, 'star_dial', x, -24, { yaw: Math.PI / 2, dy: 1.35 });
+  }
+  place('star_tablet', 'star_tablet', -76, -19, { yaw: Math.PI });
 
   // ── 2b. C 倒流溪谷（規格 P-02）：三座水輪在溪岸（答案在石碑上）、石障擋住溪谷往上游的路、石碑讀得到 ──
   place('creek_wheel_01', 'waterwheel', -44, -56, { yaw: Math.PI / 2, r: 2.5 });

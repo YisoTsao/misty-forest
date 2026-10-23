@@ -152,6 +152,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
 - 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
 
+### 任務 13Q：支線 CH2-SQ-04「不會說謊的石碑」＋可轉動機關不顯示的修正（第二章 Phase 2，規格 8.3）
+- 托托在「商人的失物」之後提出 `quest_forest_sq04`：花園北邊的星盤遺跡（三塊星盤 `star_dial_01`–`03`＋石座、石碑 `star_tablet`）。星盤盤面朝南，轉一格星轉 90°（上 → 東 → 下 → 西），只有任務進行中能轉；石碑寫「西、地面、東」（3、2、1 格），用任務目標 `puzzle` 判斷。回報拿古代星圖（`star_chart`，畫著星晶祕窟，給 13F 缺的祕窟線索）與星晶碎片 ×3。新程式造型 `star_dial`、`star_dial_base`。
+- **修正（影響 13B 水輪、13F 星晶鏡）**：`TurnableGroup` 把模型放在原點交給 `InstancedPrefab`，它的區塊剔除以世界原點算距離，祕林在 2000 m 外 → 所有可轉動機關的轉動部分都被剔除、畫面上看不到（13B 截圖只看到水輪骨架）。改為內層不剔除、外層依機關實際位置剔除。另：發光材質在這種擺法下也會淡掉，星盤的星改用實心亮黃色。
+- 星盤不加入散佈的佔位（`r`）：第一次加時讓之後的散佈亂數整串錯開（幾百個物件換位），改選原本沒有樹石的空地，重新產生後只多出新物件。
+- 測試：`starDials.test.ts` 2 項；`pnpm check`（Vitest 1049 項；WorldRoom 偶發逾時，已知）、`pnpm build`；e2e `toto` 新增 1 項共 6 項（讀石碑、實際按 E 轉星盤）全過；`creek`、`crystal`、`lightpuzzle` 全過。截圖 `glowmoss_star_dials.png`（toto e2e 拍）、`glowmoss_creek.png`（水輪轉輪現在看得到），已檢視。
+
 ### 任務 13P：支線 CH2-SQ-06「守護者的夢」（第二章 Phase 4，規格 8.3）
 - 淨化後的古樹守護者（`root_guardian`，MushroomKing 模型原色、Wave 當說話動作）在根噬者被打倒後出現在祭壇。菇菇婆婆在 007 之後提出 `quest_forest_sq06`：到祭壇聽守護者說夢（`talk` 目標，夢裡湖邊捧燈收走星光的人，銜接第三章）→ 回報拿古樹守護符（`guardian_charm`，護符格：受傷 ×0.92、迷霧傷害 ×0.7）。
 - 測試：`chapterEnding.test.ts` 新增 1 項；`pnpm check`（Vitest 1044 項）、`pnpm build`；e2e `altar` 新增 1 項共 10 項全過（第一輪對話框沒關掉導致逾時 → 測試補上 Escape）。截圖 `docs/screenshots/phase13/glowmoss_guardian.png`（altar e2e 拍，已檢視；祭壇的迷霧在戰後仍是「濃」，之後可考慮淨化後降霧）。

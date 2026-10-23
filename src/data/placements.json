@@ -53315,6 +53315,146 @@
     ]
   },
   {
+    "id": "star_dial_base_01",
+    "prefabId": "star_dial_base",
+    "regionId": "glow_garden",
+    "position": [
+      1920,
+      1.63,
+      -24
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "star_dial_01",
+    "prefabId": "star_dial",
+    "regionId": "glow_garden",
+    "position": [
+      1920,
+      2.98,
+      -24
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "star_dial_base_02",
+    "prefabId": "star_dial_base",
+    "regionId": "glow_garden",
+    "position": [
+      1924,
+      1.24,
+      -24
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "star_dial_02",
+    "prefabId": "star_dial",
+    "regionId": "glow_garden",
+    "position": [
+      1924,
+      2.59,
+      -24
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "star_dial_base_03",
+    "prefabId": "star_dial_base",
+    "regionId": "glow_garden",
+    "position": [
+      1928,
+      0.83,
+      -24
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "star_dial_03",
+    "prefabId": "star_dial",
+    "regionId": "glow_garden",
+    "position": [
+      1928,
+      2.18,
+      -24
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "star_tablet",
+    "prefabId": "star_tablet",
+    "regionId": "glow_garden",
+    "position": [
+      1924,
+      0.66,
+      -19
+    ],
+    "rotation": [
+      0,
+      3.14,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "creek_wheel_01",
     "prefabId": "waterwheel",
     "regionId": "reverse_creek",

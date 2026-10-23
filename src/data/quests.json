@@ -788,5 +788,47 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_sq04",
+    "nameKey": "quest.forestSq4.name",
+    "category": "side",
+    "descKey": "quest.forestSq4.desc",
+    "giver": "toto",
+    "requires": [
+      "quest_forest_004"
+    ],
+    "objectives": [
+      {
+        "type": "puzzle",
+        "members": [
+          {
+            "placement": "star_dial_01",
+            "turn": 3
+          },
+          {
+            "placement": "star_dial_02",
+            "turn": 2
+          },
+          {
+            "placement": "star_dial_03",
+            "turn": 1
+          }
+        ],
+        "descKey": "quest.forestSq4.dials"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "star_chart",
+          "count": 1
+        },
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ]
+    }
   }
 ]

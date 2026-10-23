@@ -1324,5 +1324,20 @@
   "dlg.guardian.opt.listen": "（靜靜聽它說完）",
   "dlg.guardian.dream.c": "謝謝你把我叫醒。替我跟聚落的大家說，祭壇的門以後都會開著。去吧，湖邊有人在等你。",
   "dlg.guardian.calm": "（古樹守護者打了個大哈欠，身上的菌傘輕輕晃動。祭壇四周的螢苔亮得像星星。）",
-  "dlg.granny.opt.tellDream": "說說守護者的夢"
+  "dlg.granny.opt.tellDream": "說說守護者的夢",
+  "object.starDial": "星盤",
+  "object.starTablet": "不會說謊的石碑",
+  "star.tablet.title": "不會說謊的石碑",
+  "star.tablet.body": "北冠的三顆星，從西數來：\n第一顆望向西方的林道，\n第二顆落向沉睡的大地，\n第三顆看著東方的聚落。\n星不會說謊——讓石盤上的星回到它們該在的地方。",
+  "item.star_chart.name": "古代星圖",
+  "item.star_chart.desc": "石碑遺跡底下找到的星圖，畫著北冠三星和一座藏在山脊後的洞窟。托托說這是很多人在找的東西。",
+  "quest.forestSq4.name": "不會說謊的石碑",
+  "quest.forestSq4.desc": "花園北邊有一座刻著星座的遺跡。照石碑上的文字，把三塊星盤上的星轉到正確的方向。",
+  "quest.forestSq4.dials": "把三塊星盤轉到石碑說的方向",
+  "dlg.toto.opt.starReport": "星盤都轉好了",
+  "dlg.toto.star.offer": "對了，花園北邊有一座老遺跡，三塊會轉的石盤，旁邊立著一塊石碑。我研究了好幾天都打不開——聽說轉對了，底下藏著古代的星圖。你要不要試試？",
+  "dlg.toto.star.accept": "石碑上寫的是方位。先讀石碑，再轉石盤上那顆發光的星。",
+  "dlg.toto.star.progress": "遺跡打開了嗎？石碑說的方位——西、地面、東——別弄混了。",
+  "dlg.toto.star.done": "你打開了？……真的是星圖！上面畫的洞窟，就是溪谷北邊那座。",
+  "dlg.toto.star.gift": "星圖給你，算是我們的交情。這幾塊星晶碎片也拿去——它們在你手上比在我的貨箱裡有用。"
 }

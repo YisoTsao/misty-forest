@@ -1187,6 +1187,39 @@
         "dialogue": "toto_crate_offer"
       },
       {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_sq04"
+        },
+        "dialogue": "toto_star_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq04",
+          "is": "active"
+        },
+        "dialogue": "toto_star_progress"
+      },
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_forest_sq04",
+              "is": "available"
+            },
+            {
+              "type": "questStatus",
+              "quest": "quest_forest_sq03",
+              "is": "completed"
+            }
+          ]
+        },
+        "dialogue": "toto_star_offer"
+      },
+      {
         "dialogue": "toto_intro"
       }
     ]

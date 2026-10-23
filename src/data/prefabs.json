@@ -5154,6 +5154,52 @@
     "persists": true
   },
   {
+    "id": "star_dial",
+    "model": "procedural:star_dial",
+    "collider": "none",
+    "interaction": "turn",
+    "nameKey": "object.starDial",
+    "verbKey": "interact.turn",
+    "interactRadius": 2.4,
+    "turn": {
+      "positions": 4,
+      "quest": "quest_forest_sq04"
+    },
+    "persists": true
+  },
+  {
+    "id": "star_dial_base",
+    "model": "procedural:star_dial_base",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        0.5,
+        2,
+        0.5
+      ]
+    },
+    "persists": true
+  },
+  {
+    "id": "star_tablet",
+    "model": "procedural:signpost_broken",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 1.8
+    },
+    "interaction": "read",
+    "nameKey": "object.starTablet",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "star.tablet.title",
+      "bodyKey": "star.tablet.body"
+    },
+    "persists": true
+  },
+  {
     "id": "hidden_cache",
     "model": "models/props/kaykit-dungeon/chest.glb",
     "collider": "static",

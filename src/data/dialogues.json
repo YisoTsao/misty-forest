@@ -2421,5 +2421,93 @@
         "textKey": "dlg.guardian.calm"
       }
     }
+  },
+  {
+    "id": "toto_star_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.star.offer",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.help",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_sq04"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_toto_wares"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.bye"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.star.accept"
+      }
+    }
+  },
+  {
+    "id": "toto_star_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.star.progress",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_toto_wares"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.bye"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "toto_star_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.star.done",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.starReport",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_sq04"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.star.gift"
+      }
+    }
   }
 ]

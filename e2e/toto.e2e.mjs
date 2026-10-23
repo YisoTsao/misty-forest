@@ -1,4 +1,5 @@
 // 端對端：第二章 NPC-03 旅行商人托托（規格 8.1）——聚落的信任（quest_forest_004）完成後出現在蘑菇居民聚落，開商店（高價收星晶）；
+// 支線 CH2-SQ-04「不會說謊的石碑」：之後托托提出，讀石碑、轉星盤（西、下、東）、回報拿古代星圖（截圖 glowmoss_star_dials.png）。
 // 支線 CH2-SQ-03「商人的失物」：接取 → 在迷霧深層撿回貨箱、擊退森林狼 ×3 → 回報，貨攤多出守衛木核與星晶碎片。
 // 托托出現後存一張截圖 docs/screenshots/phase13/glowmoss_toto.png（外觀檢查用）。
 // 用法：pnpm build && node e2e/toto.e2e.mjs
@@ -137,5 +138,47 @@ await runE2e('toto e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, 
     assert.equal(await row('guardian_heartwood').count(), 1);
     assert.equal(await row('starlight_shard').count(), 1);
     await page.keyboard.press('Escape');
+  });
+
+  await check('不會說謊的石碑：托托提出；讀石碑、按 E 轉星盤到西、下、東，回報拿到古代星圖', async () => {
+    assert.equal(await talkToToto(), 'toto_star_offer');
+    await choose('我幫你找');
+    await closeDialogue();
+    assert.equal(await debug(() => window.__mistwoodDebug.questState('quest_forest_sq04')), 'active');
+    const P = (id) => placements.find((p) => p.id === id);
+    const tablet = P('star_tablet');
+    await teleport(tablet.position[0], tablet.position[2] + 1.6, 800);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [tablet.position[0], tablet.position[2]]);
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'star_tablet', null, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    const dialog = page.locator('[data-testid="message-dialog"]');
+    await dialog.waitFor({ timeout: 3000 });
+    assert.match(await dialog.innerText(), /北冠/);
+    await page.keyboard.press('KeyE');
+    await dialog.waitFor({ state: 'detached', timeout: 2000 });
+    for (const [id, times] of [['star_dial_01', 3], ['star_dial_02', 2], ['star_dial_03', 1]]) {
+      const p = P(id);
+      await teleport(p.position[0] + 0.2, p.position[2] + 1.6, 700);
+      await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [p.position[0], p.position[2]]);
+      // 每一下等提示出現、按 E、等轉動位置加一（轉動有 0.45 秒的動作延遲）
+      for (let i = 0; i < times; i++) {
+        await page.waitForFunction((x) => window.__mistwoodDebug.interactTarget() === x, id, { timeout: 3000 });
+        await page.keyboard.press('KeyE');
+        await page.waitForFunction(([x, n]) => (window.__mistwoodDebug.objectState(x)?.turn ?? 0) === n, [id, i + 1], { timeout: 3000 });
+      }
+      assert.equal((await debug((x) => window.__mistwoodDebug.objectState(x), id))?.turn, times);
+    }
+    await debug(() => {
+      window.__mistwoodDebug.setClock(12);
+      window.__mistwoodDebug.viewAt([1924, 3.6, -16.5], [1924, 2.2, -24]);
+    });
+    await page.waitForTimeout(900);
+    await page.screenshot({ path: 'docs/screenshots/phase13/glowmoss_star_dials.png' });
+    await debug(() => window.__mistwoodDebug.setCameraMode('follow'));
+    assert.equal(await talkToToto(), 'toto_star_turnin');
+    await choose('星盤都轉好了');
+    await closeDialogue();
+    assert.equal(await debug(() => window.__mistwoodDebug.questState('quest_forest_sq04')), 'completed');
+    assert.equal(await itemCount('star_chart'), 1);
   });
 });

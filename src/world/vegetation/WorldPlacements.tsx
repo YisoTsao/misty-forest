@@ -1,5 +1,7 @@
 import { useGLTF } from '@react-three/drei';
-import { useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
+import type * as THREE from 'three';
 import { groupPlacementsByPrefab, type WorldData } from '@/game-core/world/worldData';
 import type { Placement, Prefab } from '@/game-core/world/types';
 import { useGameStateStore } from '@/game/state/gameStateStore';
@@ -7,6 +9,9 @@ import { assetUrl } from '@/game/worldData';
 import { PROCEDURAL_PREFIX } from '@/render/proceduralModels';
 import { Chest } from '../entities/props/Chest';
 import { InstancedPrefab } from './InstancedPrefab';
+
+/** 轉動機關沒有指定 cullDistance 時的剔除距離（與 InstancedPrefab 的預設相同） */
+const TURNABLE_CULL_DISTANCE = 230;
 
 /**
  * 依 prefab 分組渲染所有資料驅動的世界物件。
@@ -107,22 +112,40 @@ function ActivatableGroup({ prefab, placements }: { prefab: Prefab; placements: 
 /**
  * 可轉動的機關（規格 P-02 水輪）：每個機關依權威狀態的轉動位置繞原點旋轉（轉軸沿模型的 X 軸）。
  * 模型本身放在機關原點，外層的 group 負責擺放與朝向。
+ * 模型交給 InstancedPrefab 時位置是原點，它的區塊剔除會以世界原點算距離（祕林在 2000 m 外，整個被藏起來），
+ * 所以內層不剔除，改由外層依機關的實際位置剔除。
  */
 function TurnableGroup({ prefab, placements }: { prefab: Prefab; placements: readonly Placement[] }) {
   const objects = useGameStateStore((s) => s.state.objects);
   const positions = prefab.turn?.positions ?? 4;
   return (
     <>
-      {placements.map((p) => {
-        const turn = objects.get(p.id)?.turn ?? 0;
-        return (
-          <group key={p.id} position={p.position} rotation={[0, p.rotation?.[1] ?? 0, 0]} scale={p.scale}>
-            <group rotation={[(turn * Math.PI * 2) / positions, 0, 0]}>
-              <InstancedPrefab model={prefab.model} placements={[{ ...p, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] }]} castShadow={prefab.castShadow} />
-            </group>
-          </group>
-        );
-      })}
+      {placements.map((p) => (
+        <Turnable key={p.id} prefab={prefab} placement={p} angle={((objects.get(p.id)?.turn ?? 0) * Math.PI * 2) / positions} />
+      ))}
     </>
+  );
+}
+
+const TURNABLE_CULL_INTERVAL = 0.3;
+
+function Turnable({ prefab, placement: p, angle }: { prefab: Prefab; placement: Placement; angle: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const local = useMemo(() => ({ since: Infinity, limit: ((prefab.cullDistance ?? TURNABLE_CULL_DISTANCE) + 8) ** 2 }), [prefab.cullDistance]);
+  const origin = useMemo(() => [{ ...p, position: [0, 0, 0] as [number, number, number], rotation: [0, 0, 0] as [number, number, number], scale: [1, 1, 1] as [number, number, number] }], [p]);
+  useFrame(({ camera }, dt) => {
+    local.since += dt;
+    if (local.since < TURNABLE_CULL_INTERVAL || !ref.current) return;
+    local.since = 0;
+    const dx = camera.position.x - p.position[0];
+    const dz = camera.position.z - p.position[2];
+    ref.current.visible = dx * dx + dz * dz < local.limit;
+  });
+  return (
+    <group ref={ref} position={p.position} rotation={[0, p.rotation?.[1] ?? 0, 0]} scale={p.scale}>
+      <group rotation={[angle, 0, 0]}>
+        <InstancedPrefab model={prefab.model} placements={origin} castShadow={prefab.castShadow} cullDistance={Infinity} />
+      </group>
+    </group>
   );
 }

@@ -565,7 +565,35 @@ function lostFirefly(): ForestModel {
   return { solid: merge(solid, '螢靈的小蘑菇'), glow: merge(glow, '失散的螢靈') };
 }
 
+/**
+ * 星盤（支線 CH2-SQ-04，繞局部 X 軸轉動；中心在原點）：直立的石盤，兩面都刻著一顆亮黃色的星，轉動時星跟著繞一圈。
+ * 星用實心材質：轉動機關的模型放在原點再由外層擺放，發光材質在這種擺法下會被當成遠處而淡掉。
+ */
+function starDial(): ForestModel {
+  // cylinder() 沿軸從 0 長到 height，轉到 X 軸後是 [−height, 0]，所以往 +X 移一半讓石盤置中
+  const solid = [cylinder(0.62, 0.62, 0.22, [0.11, 0, 0], STONE, 14, [0, 0, Math.PI / 2]), cylinder(0.5, 0.5, 0.26, [0.13, 0, 0], STONE_DARK, 14, [0, 0, Math.PI / 2])];
+  for (const x of [-0.17, 0.17]) {
+    const star = new THREE.OctahedronGeometry(0.16, 0);
+    star.scale(0.35, 1.25, 1);
+    star.translate(x, 0.34, 0);
+    solid.push(paint(star, c('#ffe27a')));
+    solid.push(sphere(0.05, [x, 0.08, 0], c('#ffd45e'), [0.6, 1, 1], 0));
+  }
+  return { solid: merge(solid, '星盤') };
+}
+
+/** 星盤的石座：盤下一根方石柱（頂端 0.72 m，石盤的下緣剛好靠在上面） */
+function starDialBase(): ForestModel {
+  const post = new THREE.BoxGeometry(0.34, 0.72, 0.34);
+  post.translate(0, 0.36, 0);
+  const slab = new THREE.BoxGeometry(0.8, 0.14, 0.8);
+  slab.translate(0, 0.07, 0);
+  return { solid: merge([paint(post, STONE_DARK), paint(slab, STONE), sphere(0.16, [0.1, 0.16, 0.2], MOSS_LIGHT, [1.4, 0.4, 1])], '星盤石座') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
+  star_dial: starDial,
+  star_dial_base: starDialBase,
   lost_firefly: lostFirefly,
   mist_arch: mistArch,
   signpost_broken: brokenSignpost,
