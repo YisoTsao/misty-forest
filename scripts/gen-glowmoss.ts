@@ -231,6 +231,8 @@ export function addGlowmoss(placements: Out[]): void {
   place('altar_resonance_01', 'altar_resonance', 120, 0, { r: 1.2 });
   place('altar_resonance_02', 'altar_resonance', 108, 6.93, { r: 1.2 });
   place('altar_resonance_03', 'altar_resonance', 108, -6.93, { r: 1.2 });
+  // CH2-MQ-08：古樹核心的記憶（淨化後在祭壇觀看，接著往澄鏡湖的出口）
+  place('ancient_memory_01', 'ancient_memory', 104, 0, { yaw: -Math.PI / 2, r: 1.2 });
 
   // ── 3. B 螢苔花園：周圍的巨型蘑菇、發光立石、螢光花、樹根拱門 ──
   GARDEN_GIANTS.forEach(([a, r, s], i) => {

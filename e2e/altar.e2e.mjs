@@ -1,6 +1,7 @@
 // 端對端：第二章 Phase 4 — 古樹祭壇與根噬者（規格 B-01、G 區、CH2-MQ-07）。
 // 接下 quest_forest_007 後走進祭壇的戰場，把根噬者打到只剩 1 點 → 進入淨化（不會死）；
 // 依序點亮三座古樹共鳴石柱 → 根噬者被淨化、打倒只結算一次；回報菇菇婆婆後任務完成。
+// 章節結尾（CH2-MQ-08）：回報時拿到古樹核心、接下 quest_forest_008；觀看古樹核心的記憶、走到澄鏡湖的入口 → 完成；無名旅人出現在出口。
 // 第二階段（血量跌破門檻）召喚幻霧螢靈；離開戰場時頭目、召喚物與點亮的石柱都重置（規格 §6.4 重試）。
 // 用法：pnpm build && node e2e/altar.e2e.mjs
 /* global window */
@@ -101,7 +102,34 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
     await page.locator('[data-testid="dialogue-option"]', { hasText: '交給她' }).click();
     await page.waitForTimeout(300);
     assert.equal(await questState('quest_forest_007'), 'completed');
-    void itemCount;
-    void objectState;
+    assert.equal(await itemCount('ancient_core'), 1);
+    assert.equal(await questState('quest_forest_008'), 'active');
+  });
+
+  await check('章節結尾：觀看古樹核心的記憶、走到澄鏡湖的入口，quest_forest_008 完成', async () => {
+    await page.keyboard.press('Escape').catch(() => {});
+    const m = at('ancient_memory_01');
+    await teleport(m.position[0] - 1.6, m.position[2] + 0.4, 800);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [m.position[0], m.position[2]]);
+    await page.waitForFunction((x) => window.__mistwoodDebug.interactTarget() === x, m.id, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    const dialog = page.locator('[data-testid="message-dialog"]');
+    await dialog.waitFor({ timeout: 3000 });
+    assert.match(await dialog.innerText(), /湖/);
+    await page.keyboard.press('KeyE');
+    await dialog.waitFor({ state: 'detached', timeout: 2000 });
+    assert.equal((await objectState(m.id))?.active, true);
+    await teleport(2131, 49, 1200);
+    await page.waitForFunction(() => window.__mistwoodDebug.questState('quest_forest_008') === 'completed', null, { timeout: 5000 });
+  });
+
+  await check('無名旅人在出口旁，留下第三章的線索', async () => {
+    const wanderer = JSON.parse(await (await import('node:fs')).promises.readFile('src/data/npcs.json', 'utf8')).find((n) => n.id === 'wanderer');
+    await teleport(wanderer.position[0] + 1.4, wanderer.position[1] - 1.2, 800);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), wanderer.position);
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'npc:wanderer', null, { timeout: 5000 });
+    await page.keyboard.press('KeyE');
+    await page.locator('[data-testid="dialogue"]').waitFor({ timeout: 2000 });
+    assert.equal((await debug(() => window.__mistwoodDebug.dialogue())).dialogueId, 'wanderer_words');
   });
 });

@@ -655,7 +655,14 @@
         "descKey": "quest.forest7.boss"
       }
     ],
-    "rewards": {}
+    "rewards": {
+      "items": [
+        {
+          "itemId": "ancient_core",
+          "count": 1
+        }
+      ]
+    }
   },
   {
     "id": "quest_forest_008",
@@ -666,6 +673,13 @@
       "quest_forest_007"
     ],
     "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "ancient_memory_01"
+        ],
+        "descKey": "quest.forest8.memory"
+      },
       {
         "type": "visit",
         "x": 2132,

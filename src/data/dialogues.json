@@ -2086,6 +2086,10 @@
               {
                 "type": "turnInQuest",
                 "quest": "quest_forest_007"
+              },
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_008"
               }
             ],
             "next": "done"
@@ -2216,6 +2220,34 @@
       "done": {
         "speakerKey": "npc.toto",
         "textKey": "dlg.toto.crate.gift"
+      }
+    }
+  },
+  {
+    "id": "wanderer_words",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.wanderer",
+        "textKey": "dlg.wanderer.say",
+        "next": "line"
+      },
+      "line": {
+        "speakerKey": "npc.wanderer",
+        "textKey": "dlg.wanderer.line",
+        "options": [
+          {
+            "textKey": "dlg.wanderer.opt.who",
+            "next": "who"
+          },
+          {
+            "textKey": "dlg.wanderer.opt.bye"
+          }
+        ]
+      },
+      "who": {
+        "speakerKey": "npc.wanderer",
+        "textKey": "dlg.wanderer.who"
       }
     }
   }

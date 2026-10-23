@@ -53755,6 +53755,26 @@
     ]
   },
   {
+    "id": "ancient_memory_01",
+    "prefabId": "ancient_memory",
+    "regionId": "ancient_altar",
+    "position": [
+      2104,
+      3.17,
+      0
+    ],
+    "rotation": [
+      0,
+      -1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "glowmoss_garden_giant_01",
     "prefabId": "giant_mushroom",
     "regionId": "glow_garden",

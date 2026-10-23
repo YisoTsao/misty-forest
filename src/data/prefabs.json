@@ -5069,6 +5069,25 @@
     "persists": true
   },
   {
+    "id": "ancient_memory",
+    "model": "procedural:odd_reflection",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.ancientMemory",
+    "verbKey": "interact.observe",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:odd_reflection_seen",
+      "quest": "quest_forest_008",
+      "anim": "interact",
+      "message": {
+        "titleKey": "object.ancientMemory",
+        "bodyKey": "memory.ancient.body"
+      }
+    },
+    "persists": true
+  },
+  {
     "id": "corruption_root",
     "model": "procedural:root_arch",
     "collider": "static",

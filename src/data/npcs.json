@@ -1144,5 +1144,40 @@
         "dialogue": "toto_intro"
       }
     ]
+  },
+  {
+    "id": "wanderer",
+    "nameKey": "npc.wanderer",
+    "regionId": "ancient_altar",
+    "model": "models/characters/kaykit-adventurers/Rogue_Hooded.glb",
+    "scale": 0.72,
+    "hiddenNodes": [
+      "Knife_Offhand",
+      "1H_Crossbow",
+      "2H_Crossbow",
+      "Knife",
+      "Throwable"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Interact"
+    },
+    "visible": {
+      "type": "questStatus",
+      "quest": "quest_forest_007",
+      "is": "completed"
+    },
+    "position": [
+      2126,
+      46
+    ],
+    "facingYaw": -2.4,
+    "interactRadius": 2.6,
+    "talk": [
+      {
+        "dialogue": "wanderer_words"
+      }
+    ]
   }
 ]
