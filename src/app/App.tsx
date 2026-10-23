@@ -93,12 +93,13 @@ export function App() {
           <DebugPanel />
         </>
       )}
-      <MessageDialog />
       <DialogueBox />
       <InventoryPanel />
       <BuildUi />
       <LocationFade />
       <TitleScreen />
+      {/* 放在主選單之後：被踢下線時訊息要蓋在標題畫面上（任务 11M-9） */}
+      <MessageDialog />
       <PauseMenu />
       <WorldMap />
       <QuestJournal />

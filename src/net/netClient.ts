@@ -29,7 +29,10 @@ import { authority } from '@/game/authority';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from '@/game/character/characters';
 import { t } from '@/game/i18n';
 import { playerRuntime } from '@/game/player/localRuntime';
+import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { useUiStore } from '@/game/state/uiStore';
+import { setPlayMode } from '@/online/onlineStore';
+import { endOnlineSession } from '@/online/onlineSession';
 import { syncServerTime } from '@/game/world/worldClock';
 import { clearBubbles, localNotice, mute, receiveChat, unmute, useChatStore } from './chatStore';
 import { rememberName, savedName, serverUrl } from './config';
@@ -197,13 +200,25 @@ function onLeft(code: number, reason?: string): void {
   if (reason === KICKED_ELSEWHERE) {
     console.warn('[net] 同一帳號在別處登入，這裡的線上連線已中斷');
     useNetStore.setState({ ...initialNetState });
-    useUiStore.getState().pushToast({ textKey: 'net.kickedElsewhere' });
+    returnToTitleAfterKick();
     return;
   }
   // 座位沒了（伺服器重啟、休眠喚醒、保留逾時、自動重連失敗）：自動重新加入
   console.warn(`[net] 與伺服器的連線中斷（${code}${reason ? `：${reason}` : ''}），自動重新加入`);
   useNetStore.setState({ status: 'reconnecting', roomId: null, sessionId: null, playerId: null, playerCount: 0, members: [] });
   startRejoin();
+}
+
+/**
+ * 同一帳號在別處登入、這裡被踢下線：角色回到首頁並說明原因（任務 11M-9）。
+ * 不呼叫 returnToTitle 的存檔：這一端的進度可能比另一台舊，存進雲端會覆蓋新進度。
+ */
+function returnToTitleAfterKick(): void {
+  if (currentScreen() === 'playing') useGameStore.getState().send('pause');
+  if (currentScreen() === 'paused') useGameStore.getState().send('returnToTitle');
+  setPlayMode('offline');
+  void endOnlineSession();
+  useUiStore.getState().showMessage({ titleKey: 'net.kickedTitle', bodyKey: 'net.kickedBody' });
 }
 
 function startRejoin(): void {
