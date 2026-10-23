@@ -971,17 +971,16 @@
       {
         "when": {
           "type": "questReady",
-          "quest": "quest_forest_sq06"
+          "quest": "quest_forest_sq01"
         },
-        "dialogue": "granny_dream_turnin"
+        "dialogue": "granny_dinner_turnin"
       },
       {
         "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_sq06",
-          "is": "active"
+          "type": "questReady",
+          "quest": "quest_forest_sq06"
         },
-        "dialogue": "granny_dream_progress"
+        "dialogue": "granny_dream_turnin"
       },
       {
         "when": {
@@ -1024,54 +1023,6 @@
           "quest": "quest_forest_002"
         },
         "dialogue": "granny_gel_turnin"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_007",
-          "is": "active"
-        },
-        "dialogue": "granny_root_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_006",
-          "is": "active"
-        },
-        "dialogue": "granny_crystal_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_005",
-          "is": "active"
-        },
-        "dialogue": "granny_guard_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_004",
-          "is": "active"
-        },
-        "dialogue": "granny_help_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_003",
-          "is": "active"
-        },
-        "dialogue": "granny_wheels_progress"
-      },
-      {
-        "when": {
-          "type": "questStatus",
-          "quest": "quest_forest_002",
-          "is": "active"
-        },
-        "dialogue": "granny_gel_progress"
       },
       {
         "when": {
@@ -1124,10 +1075,82 @@
       {
         "when": {
           "type": "questStatus",
+          "quest": "quest_forest_sq01",
+          "is": "available"
+        },
+        "dialogue": "granny_dinner_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
           "quest": "quest_forest_sq06",
           "is": "available"
         },
         "dialogue": "granny_dream_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_007",
+          "is": "active"
+        },
+        "dialogue": "granny_root_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_006",
+          "is": "active"
+        },
+        "dialogue": "granny_crystal_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_005",
+          "is": "active"
+        },
+        "dialogue": "granny_guard_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_004",
+          "is": "active"
+        },
+        "dialogue": "granny_help_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_003",
+          "is": "active"
+        },
+        "dialogue": "granny_wheels_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_002",
+          "is": "active"
+        },
+        "dialogue": "granny_gel_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq06",
+          "is": "active"
+        },
+        "dialogue": "granny_dream_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq01",
+          "is": "active"
+        },
+        "dialogue": "granny_dinner_progress"
       },
       {
         "dialogue": "granny_intro"

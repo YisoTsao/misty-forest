@@ -830,5 +830,46 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_sq01",
+    "nameKey": "quest.forestSq1.name",
+    "category": "side",
+    "descKey": "quest.forestSq1.desc",
+    "giver": "granny",
+    "requires": [
+      "quest_forest_002"
+    ],
+    "objectives": [
+      {
+        "type": "collect",
+        "itemId": "glow_moss",
+        "count": 3,
+        "consume": true,
+        "descKey": "quest.forestSq1.moss"
+      },
+      {
+        "type": "collect",
+        "itemId": "fungus_cap",
+        "count": 2,
+        "consume": true,
+        "descKey": "quest.forestSq1.cap"
+      },
+      {
+        "type": "collect",
+        "itemId": "creek_fish",
+        "count": 2,
+        "consume": true,
+        "descKey": "quest.forestSq1.fish"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "glow_stew",
+          "count": 2
+        }
+      ]
+    }
   }
 ]

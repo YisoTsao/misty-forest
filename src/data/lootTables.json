@@ -30,6 +30,7 @@
   {"id": "loose_soil_dig", "drops": [{"itemId": "loose_soil", "min": 1, "max": 2}]},
   {"id": "dry_cloth_pick", "drops": [{"itemId": "dry_cloth", "min": 1, "max": 1}]},
   {"id": "lantern_shard_pick", "drops": [{"itemId": "lantern_shard", "min": 1, "max": 1}]},
+  {"id": "creek_fish_catch", "drops": [{"itemId": "creek_fish", "min": 1, "max": 1}]},
   {"id": "mob_cap_imp_drop", "drops": [{"itemId": "fungus_cap", "min": 1, "max": 1, "chance": 0.6}, {"itemId": "tough_bark", "min": 1, "max": 1, "chance": 0.35}]},
   {"id": "mob_mist_wolf_drop", "drops": [{"itemId": "mist_fang", "min": 1, "max": 1, "chance": 0.6}, {"itemId": "thick_pelt", "min": 1, "max": 1, "chance": 0.5, "rare": true}]},
   {"id": "mob_fog_wisp_drop", "drops": [{"itemId": "glow_spore", "min": 1, "max": 1, "chance": 0.5}, {"itemId": "starlight_shard", "min": 1, "max": 1, "chance": 0.2, "rare": true}]},

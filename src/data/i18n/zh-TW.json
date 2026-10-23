@@ -1339,5 +1339,22 @@
   "dlg.toto.star.accept": "石碑上寫的是方位。先讀石碑，再轉石盤上那顆發光的星。",
   "dlg.toto.star.progress": "遺跡打開了嗎？石碑說的方位——西、地面、東——別弄混了。",
   "dlg.toto.star.done": "你打開了？……真的是星圖！上面畫的洞窟，就是溪谷北邊那座。",
-  "dlg.toto.star.gift": "星圖給你，算是我們的交情。這幾塊星晶碎片也拿去——它們在你手上比在我的貨箱裡有用。"
+  "dlg.toto.star.gift": "星圖給你，算是我們的交情。這幾塊星晶碎片也拿去——它們在你手上比在我的貨箱裡有用。",
+  "object.creekFishSpot": "溪魚的淺灘",
+  "interact.catchFish": "撈魚",
+  "item.creek_fish.name": "溪魚",
+  "item.creek_fish.desc": "倒流溪谷淺灘裡的小魚，鱗片帶著一點螢光。烤過或燉湯都好吃。",
+  "item.glow_stew.name": "螢光燉菇湯",
+  "item.glow_stew.desc": "菇菇婆婆的拿手菜：螢苔、菌帽和溪魚一起燉，喝下去暖洋洋的。回復 60 點體力，也能解除緩速。",
+  "quest.forestSq1.name": "會發光的晚餐",
+  "quest.forestSq1.desc": "菇菇婆婆想為聚落煮一鍋會發光的燉湯。需要螢苔、菌帽和溪谷的溪魚。",
+  "quest.forestSq1.moss": "交出螢苔 ×3",
+  "quest.forestSq1.cap": "交出菌帽 ×2（菌帽小妖）",
+  "quest.forestSq1.fish": "交出溪魚 ×2（倒流溪谷的淺灘）",
+  "dlg.granny.dinner.offer": "聚落的孩子好久沒吃到熱騰騰的晚餐了。我想煮一鍋螢光燉菇湯——螢苔三把、菌帽兩頂，再加兩條溪谷淺灘的溪魚。你能幫我湊齊嗎？",
+  "dlg.granny.dinner.accept": "菌帽要從那些調皮的菌帽小妖頭上拿；溪魚躲在溪谷的蘆葦淺灘裡。",
+  "dlg.granny.dinner.progress": "材料湊齊了嗎？螢苔、菌帽、溪魚，一樣都不能少喔。",
+  "dlg.granny.dinner.done": "都在這裡了！聞到了嗎？湯已經在我腦子裡咕嘟咕嘟了。",
+  "dlg.granny.dinner.gift": "先給你兩碗帶著走。作法我也寫在工作台旁邊了，以後你自己也能煮。",
+  "dlg.granny.wheels.accept": "溪邊的石碑記著水輪該停的位置。三座都轉對了，溪水就會照老樣子流了。"
 }

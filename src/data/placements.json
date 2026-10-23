@@ -53615,6 +53615,66 @@
     ]
   },
   {
+    "id": "creek_fish_spot_01",
+    "prefabId": "creek_fish_spot",
+    "regionId": "reverse_creek",
+    "position": [
+      1966,
+      -0.61,
+      -50
+    ],
+    "rotation": [
+      0,
+      0.3,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "creek_fish_spot_02",
+    "prefabId": "creek_fish_spot",
+    "regionId": "reverse_creek",
+    "position": [
+      1974,
+      -0.7,
+      -80
+    ],
+    "rotation": [
+      0,
+      1.9,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "creek_fish_spot_03",
+    "prefabId": "creek_fish_spot",
+    "regionId": "reverse_creek",
+    "position": [
+      1976,
+      -0.72,
+      -92
+    ],
+    "rotation": [
+      0,
+      3.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "crystal_mirror_01",
     "prefabId": "crystal_mirror",
     "regionId": "crystal_grotto",

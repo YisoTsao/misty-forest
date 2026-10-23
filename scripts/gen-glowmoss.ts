@@ -213,6 +213,10 @@ export function addGlowmoss(placements: Out[]): void {
   place('creek_wheel_frame_03', 'waterwheel_frame', -44, -86, { yaw: Math.PI / 2 });
   place('creek_barrier', 'creek_barrier', -20, -102, { yaw: Math.PI / 2, r: 4 });
   place('creek_tablet', 'creek_tablet', -30, -60, { yaw: 0.6, r: 1.2 });
+  // 支線 CH2-SQ-01 會發光的晚餐：溪谷的蘆葦淺灘（撈溪魚）；不佔散佈的位置，選在原本空著的地方
+  place('creek_fish_spot_01', 'creek_fish_spot', -34, -50, { yaw: 0.3 });
+  place('creek_fish_spot_02', 'creek_fish_spot', -26, -80, { yaw: 1.9 });
+  place('creek_fish_spot_03', 'creek_fish_spot', -24, -92, { yaw: 3.4 });
 
   // ── 2c. C 星晶祕窟（規格 P-03）：祕窟內三面星晶鏡、東南面的星光石門（隱藏入口）、寶箱與石碑 ──
   // 光路（lightPaths.json）：光源 → 鏡 1 → 鏡 2 → 鏡 3 → 石門；每面鏡子轉到朝向下一個目標（4 個方向）

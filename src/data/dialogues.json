@@ -1798,7 +1798,26 @@
     "nodes": {
       "say": {
         "speakerKey": "npc.granny",
-        "textKey": "dlg.granny.wheels.hint"
+        "textKey": "dlg.granny.wheels.hint",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_003"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.wheels.accept"
       }
     }
   },
@@ -2507,6 +2526,112 @@
       "done": {
         "speakerKey": "npc.toto",
         "textKey": "dlg.toto.star.gift"
+      }
+    }
+  },
+  {
+    "id": "granny_dinner_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dinner.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_sq01"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.craft",
+            "effects": [
+              {
+                "type": "openCraft",
+                "station": "glow_workbench"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_granny_mushroom"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dinner.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_dinner_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dinner.progress",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.craft",
+            "effects": [
+              {
+                "type": "openCraft",
+                "station": "glow_workbench"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_granny_mushroom"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "granny_dinner_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dinner.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_sq01"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dinner.gift"
       }
     }
   }

@@ -156,6 +156,13 @@
         "requires": {
           "questCompleted": "quest_forest_sq03"
         }
+      },
+      {
+        "itemId": "star_crystal",
+        "price": 30,
+        "requires": {
+          "questCompleted": "quest_forest_sq04"
+        }
       }
     ],
     "buys": [

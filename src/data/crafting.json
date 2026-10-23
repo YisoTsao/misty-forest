@@ -116,6 +116,31 @@
           "count": 1
         }
       ]
+    },
+    {
+      "id": "recipe_glow_stew",
+      "station": "glow_workbench",
+      "output": {
+        "itemId": "glow_stew",
+        "count": 1
+      },
+      "inputs": [
+        {
+          "itemId": "glow_moss",
+          "count": 2
+        },
+        {
+          "itemId": "fungus_cap",
+          "count": 1
+        },
+        {
+          "itemId": "creek_fish",
+          "count": 1
+        }
+      ],
+      "requires": {
+        "questCompleted": "quest_forest_sq01"
+      }
     }
   ]
 }

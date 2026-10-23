@@ -2908,6 +2908,23 @@
     "castShadow": false
   },
   {
+    "id": "creek_fish_spot",
+    "model": "procedural:lake_reeds",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.creekFishSpot",
+    "verbKey": "interact.catchFish",
+    "interactRadius": 1.8,
+    "harvest": {
+      "lootTableId": "creek_fish_catch",
+      "respawnSec": 300,
+      "anim": "interact"
+    },
+    "persists": true,
+    "cullDistance": 80,
+    "castShadow": false
+  },
+  {
     "id": "star_lamp",
     "model": "procedural:star_lamp",
     "collider": "static",
