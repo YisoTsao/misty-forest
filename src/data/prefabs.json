@@ -4968,5 +4968,85 @@
       "bodyKey": "creek.tablet.body"
     },
     "persists": true
+  },
+  {
+    "id": "crystal_mirror",
+    "model": "procedural:mirror_pillar_base",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 1.4,
+        "height": 0.5,
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.45,
+        "height": 4.4
+      }
+    ],
+    "interaction": "turn",
+    "nameKey": "object.crystalMirror",
+    "verbKey": "interact.turnMirror",
+    "interactRadius": 2.6,
+    "turn": {
+      "positions": 4
+    },
+    "persists": true
+  },
+  {
+    "id": "crystal_gate",
+    "model": "procedural:lake_gate",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        10,
+        5,
+        1.4
+      ]
+    },
+    "activate": {},
+    "persists": true
+  },
+  {
+    "id": "crystal_chest",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.chest",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_crystal"
+    }
+  },
+  {
+    "id": "crystal_tablet",
+    "model": "procedural:signpost_broken",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 1.8
+    },
+    "interaction": "read",
+    "nameKey": "object.crystalTablet",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "crystal.tablet.title",
+      "bodyKey": "crystal.tablet.body"
+    },
+    "persists": true
   }
 ]

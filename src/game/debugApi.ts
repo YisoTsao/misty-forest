@@ -454,7 +454,7 @@ export function installDebugApi(): void {
       const def = lightPaths[0];
       if (!def) throw new Error('沒有水鏡光路');
       const t = traceLight(def, (id) => worldIndex.placement(id), authority.getState().objects);
-      return { lit: t.lit.length, solved: t.solved, beams: lightPathRuntime.beams };
+      return { lit: t.lit.length, solved: t.solved, beams: lightPathRuntime[def.id] ?? 0 };
     },
     questProgress: (id) => {
       const def = quests.get(id);

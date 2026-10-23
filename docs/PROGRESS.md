@@ -58,6 +58,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 測試：`deepWoods.test.ts` 4 項、`equipment.test.ts` 迷霧傷害 2 項；e2e 新增 `deepwoods`（生成、深層扣血、A 區不扣血、狼被打倒）全過。`monsters` 的涵蓋範圍改為排除只由分裂產生的小怪（`mob_moss_slime_small`）；`region` 的飽和度項目這次通過（已知的共享時鐘時刻問題）。
 - `pnpm check` 991 項通過。
 
+### 任務 13F：星晶祕窟與 P-03 光路機關（第二章 Phase 4，規格 P-03、§9.3）
+- 祕窟在環狀山脊的東南開口，平時被星光石門（`crystal_gate`，沒有互動，只由光照啟動）擋住。祕窟內三面星晶鏡（`crystal_mirror`，4 個方向，沒有任務限制）、寶箱（`chest_crystal`：星晶碎片、古代共鳴石片）、石碑（答案：鏡 1 轉 2 次、鏡 2 轉 1 次、鏡 3 轉 1 次）。
+- 光路 `crystal_light` 沿用 9D 的水鏡光路（`lightPaths.json`）。`MirrorPuzzle` 改為畫出所有光路；`lightPathRuntime` 依光路 id 分開記錄（否則兩條路的光束數會互相覆蓋，lightpuzzle 的 debug 讀數就錯了）。
+- 測試：`crystalCave.test.ts` 4 項（答案照到石門、只在完成時啟動、不重複啟動、位置）；e2e `crystal`（石碑、轉鏡、石門開、寶箱拿共鳴石片）全過；`lightpuzzle`、`mirrorlake`、`glowmoss`、`creek` 重跑全過。
+- 修正過程：寶箱與石碑一開始放在地形隆起處，玩家站上去、互動距離不夠；改到地面平的地方（高度 0.4）。
+- 未做：星晶祕窟的「地下湖、晶柱」場景與隱藏入口的提示（只有石門與光路，沒有線索指向它）；星晶鏡的模型用 9D 的石柱造型，外觀待看。石門的 `gate` 區域是 glow_garden（生成時的區域判定，不影響功能）。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

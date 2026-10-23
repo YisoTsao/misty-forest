@@ -14,5 +14,21 @@
     "target": "mirrorlake_sluice",
     "tolerance": 3,
     "maxLength": 170
+  },
+  {
+    "id": "crystal_light",
+    "source": [
+      2004,
+      -124
+    ],
+    "sourceY": 2.2,
+    "mirrors": [
+      "crystal_mirror_01",
+      "crystal_mirror_02",
+      "crystal_mirror_03"
+    ],
+    "target": "crystal_gate",
+    "tolerance": 8,
+    "maxLength": 60
   }
 ]

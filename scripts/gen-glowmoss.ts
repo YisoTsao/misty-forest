@@ -202,6 +202,18 @@ export function addGlowmoss(placements: Out[]): void {
   place('creek_barrier', 'creek_barrier', -20, -102, { yaw: Math.PI / 2, r: 4 });
   place('creek_tablet', 'creek_tablet', -30, -60, { yaw: 0.6, r: 1.2 });
 
+  // ── 2c. C 星晶祕窟（規格 P-03）：祕窟內三面星晶鏡、東南面的星光石門（隱藏入口）、寶箱與石碑 ──
+  // 光路（lightPaths.json）：光源 → 鏡 1 → 鏡 2 → 鏡 3 → 石門；每面鏡子轉到朝向下一個目標（4 個方向）
+  // 局部座標（世界 − (2000, 0)）：祕窟中心 (20, −124)；答案是鏡 1 轉 2 格、鏡 2 轉 1 格、鏡 3 轉 1 格
+  place('crystal_mirror_01', 'crystal_mirror', 10, -124, { r: 1.5 });
+  place('crystal_mirror_02', 'crystal_mirror', 10, -136, { r: 1.5 });
+  place('crystal_mirror_03', 'crystal_mirror', 24, -136, { r: 1.5 });
+  // 石門在環狀山脊的開口上（半徑 26），面向祕窟中心
+  place('crystal_gate', 'crystal_gate', 43.6, -134.9, { yaw: Math.atan2(-12, 26) + Math.PI / 2, r: 2 });
+  // 寶箱與石碑放在祕窟中央較平的地面（高度 0.4），不在光路上
+  place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
+  place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });
+
   // ── 3. B 螢苔花園：周圍的巨型蘑菇、發光立石、螢光花、樹根拱門 ──
   GARDEN_GIANTS.forEach(([a, r, s], i) => {
     const x = GLOW_GARDEN.x + Math.cos(a) * r;

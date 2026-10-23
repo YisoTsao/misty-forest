@@ -136,8 +136,8 @@ const RINGS: readonly { x: number; z: number; radius: number; width: number; hei
   { x: MUSHROOM_VILLAGE.x, z: MUSHROOM_VILLAGE.z, radius: MUSHROOM_VILLAGE.radius + 7, width: 5, height: 6, gates: [-Math.PI / 2, Math.PI / 2] },
   // 祭壇：西南面向深層的小徑開口
   { x: ANCIENT_ALTAR.x, z: ANCIENT_ALTAR.z, radius: ANCIENT_ALTAR.radius + 7, width: 5.5, height: 7, gates: [Math.atan2(18, -6)] },
-  // 祕窟：沒有開口（之後從瀑布後的洞穴進去）
-  { x: CRYSTAL_GROTTO.x, z: CRYSTAL_GROTTO.z, radius: CRYSTAL_GROTTO.radius + 6, width: 5, height: 9, gates: [] },
+  // 祕窟：東南面的隱藏入口，平時被星光石門擋住（P-03：光照到石門才打開，見 crystal_gate）
+  { x: CRYSTAL_GROTTO.x, z: CRYSTAL_GROTTO.z, radius: CRYSTAL_GROTTO.radius + 6, width: 5, height: 9, gates: [Math.atan2(-12, 26)] },
 ];
 /** 開口的半寬（弧度） */
 const GATE_HALF = 0.36;
