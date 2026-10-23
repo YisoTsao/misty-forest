@@ -130,6 +130,8 @@ export type GameCommand =
   | { type: 'ChooseClass'; heroClass: HeroClassId }
   | { type: 'EquipItem'; itemId: string }
   | { type: 'Roll' }
+  /** 迷霧持續傷害（第二章 Phase 3）：客戶端在濃霧區域裡每隔一段時間送一次；權威層確認區域仍是濃霧才扣血 */
+  | { type: 'MistHarm'; region: RegionId }
   | { type: 'UnequipItem'; slot: EquipSlot }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
@@ -167,6 +169,7 @@ export type GameCommand =
 
 export type RejectReason =
   | 'cooldown'
+  | 'not-dense'
   | 'unknown-object'
   | 'wrong-interaction'
   | 'already-open'
@@ -272,6 +275,8 @@ export type RulesContext = {
   shops?: ShopCatalog;
   /** 水鏡光路（任務 9D） */
   lightPaths?: readonly LightPathDef[];
+  /** 會持續扣血的區域（濃霧時；第二章 Phase 3 迷霧深層）；省略時沒有 */
+  regionHarm?: ReadonlySet<RegionId>;
   /** 轉動機關的謎題（第二章 Phase 2）；省略時沒有謎題 */
   puzzles?: readonly PuzzleDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
@@ -358,6 +363,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return equipItem(state, cmd.itemId, ctx);
     case 'Roll':
       return roll(state);
+    case 'MistHarm':
+      return mistHarm(state, cmd.region, ctx);
     case 'UnequipItem':
       return unequipItem(state, cmd.slot, ctx);
     case 'ChooseClass': {
@@ -689,6 +696,18 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
     // 失敗後重試（Bible §27.4）：頭目回去、血量回滿，已注水的水槽保留
     for (const e of state.enemies.values()) if (ctx.combat.enemies.get(e.kind)?.boss) events.push({ type: 'EnemyDespawned', enemyId: e.id });
   }
+  return events;
+}
+
+/** 迷霧持續傷害（第二章 Phase 3，規格 §7.3 守林者護腕）：濃霧裡每次 2 點，防具的迷霧倍率會減少 */
+export const MIST_HARM = 2;
+function mistHarm(state: GameState, region: RegionId, ctx: RulesContext): GameEvent[] {
+  if (state.player.defeated) return reject('MistHarm', 'player-defeated');
+  if (state.mist[region] !== 'dense' || !ctx.regionHarm?.has(region)) return reject('MistHarm', 'not-dense');
+  const amount = scaleDamage(MIST_HARM, modifiersOf(state, ctx).mistDamageScale);
+  const hp = Math.max(0, state.player.hp - amount);
+  const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId: 'mist' }];
+  if (hp <= 0) events.push({ type: 'PlayerDefeated' });
   return events;
 }
 

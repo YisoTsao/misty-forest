@@ -1,29 +1,413 @@
 [
-  {"id": "meadow", "nameKey": "region.meadow"},
-  {"id": "village", "nameKey": "region.village", "area": {"center": [-11, -34], "radius": 19, "blend": 8}},
-  {"id": "forest", "nameKey": "region.forest", "area": {"center": [66, -66], "radius": 32, "blend": 12}},
-  {"id": "lake", "nameKey": "region.lake", "area": {"center": [34, 8], "radius": 19, "blend": 8}},
-  {"id": "home", "nameKey": "region.home", "area": {"center": [37.5, 8], "radius": 6, "blend": 3}},
-  {"id": "overlook", "nameKey": "region.overlook", "area": {"center": [-88, 92], "radius": 26, "blend": 10}},
-  {"id": "ruins", "nameKey": "region.ruins", "area": {"center": [60, 104], "radius": 22, "blend": 10}},
-  {"id": "highland", "nameKey": "region.highland", "area": {"center": [-40, -128], "radius": 52, "blend": 16}},
-  {"id": "farmland", "nameKey": "region.farmland", "area": {"center": [-86, -28], "radius": 30, "blend": 10}},
-  {"id": "river", "nameKey": "region.river", "area": {"center": [100, 30], "path": [[118, -122], [104, -92], [108, -58], [98, -24], [100, 0], [106, 30], [96, 62], [100, 96], [92, 130]], "radius": 11, "blend": 6}},
-  {"id": "mist_gate", "nameKey": "region.mist_gate", "area": {"center": [1882, 2], "path": [[1850, 4], [1866, 4], [1890, 2], [1908, 4]], "radius": 20, "blend": 8}},
-  {"id": "glow_garden", "nameKey": "region.glow_garden", "area": {"center": [1944, 6], "radius": 34, "blend": 12}},
-  {"id": "reverse_creek", "nameKey": "region.reverse_creek", "area": {"center": [1972, -92], "path": [[1962, -46], [1974, -78], [1980, -110], [1974, -140]], "radius": 24, "blend": 12}},
-  {"id": "mushroom_village", "nameKey": "region.mushroom_village", "area": {"center": [2036, 6], "radius": 30, "blend": 10}},
-  {"id": "deep_mist", "nameKey": "region.deep_mist", "area": {"center": [2052, 92], "radius": 46, "blend": 14}},
-  {"id": "crystal_grotto", "nameKey": "region.crystal_grotto", "area": {"center": [2020, -124], "radius": 20, "blend": 8}},
-  {"id": "ancient_altar", "nameKey": "region.ancient_altar", "area": {"center": [2112, 0], "path": [[2112, 0], [2132, 52]], "radius": 30, "blend": 10}},
-  {"id": "lake_shore", "nameKey": "region.lake_shore", "area": {"center": [4006, 14], "radius": 118, "blend": 20}},
-  {"id": "lake_camp", "nameKey": "region.lake_camp", "area": {"center": [3888, 8], "radius": 24, "blend": 8}},
-  {"id": "reed_isle", "nameKey": "region.reed_isle", "area": {"center": [3998, -20], "radius": 16, "blend": 6}},
-  {"id": "mirror_ruins", "nameKey": "region.mirror_ruins", "area": {"center": [4018, 78], "radius": 20, "blend": 8}},
-  {"id": "mirror_temple", "nameKey": "region.mirror_temple", "area": {"center": [4046, 18], "radius": 22, "blend": 8}},
-  {"id": "windy_hills", "nameKey": "region.windy_hills", "area": {"center": [6000, 0], "radius": 230, "blend": 20}},
-  {"id": "windmill_hamlet", "nameKey": "region.windmill_hamlet", "area": {"center": [5972, 52], "radius": 34, "blend": 10}},
-  {"id": "floatstone_ridge", "nameKey": "region.floatstone_ridge", "area": {"center": [5980, -85], "path": [[5908, -86], [6052, -84]], "radius": 18, "blend": 6}},
-  {"id": "wind_tower", "nameKey": "region.wind_tower", "area": {"center": [6096, 12], "radius": 28, "blend": 8}},
-  {"id": "golem_arena", "nameKey": "region.golem_arena", "area": {"center": [6104, -52], "radius": 24, "blend": 8}}
+  {
+    "id": "meadow",
+    "nameKey": "region.meadow"
+  },
+  {
+    "id": "village",
+    "nameKey": "region.village",
+    "area": {
+      "center": [
+        -11,
+        -34
+      ],
+      "radius": 19,
+      "blend": 8
+    }
+  },
+  {
+    "id": "forest",
+    "nameKey": "region.forest",
+    "area": {
+      "center": [
+        66,
+        -66
+      ],
+      "radius": 32,
+      "blend": 12
+    }
+  },
+  {
+    "id": "lake",
+    "nameKey": "region.lake",
+    "area": {
+      "center": [
+        34,
+        8
+      ],
+      "radius": 19,
+      "blend": 8
+    }
+  },
+  {
+    "id": "home",
+    "nameKey": "region.home",
+    "area": {
+      "center": [
+        37.5,
+        8
+      ],
+      "radius": 6,
+      "blend": 3
+    }
+  },
+  {
+    "id": "overlook",
+    "nameKey": "region.overlook",
+    "area": {
+      "center": [
+        -88,
+        92
+      ],
+      "radius": 26,
+      "blend": 10
+    }
+  },
+  {
+    "id": "ruins",
+    "nameKey": "region.ruins",
+    "area": {
+      "center": [
+        60,
+        104
+      ],
+      "radius": 22,
+      "blend": 10
+    }
+  },
+  {
+    "id": "highland",
+    "nameKey": "region.highland",
+    "area": {
+      "center": [
+        -40,
+        -128
+      ],
+      "radius": 52,
+      "blend": 16
+    }
+  },
+  {
+    "id": "farmland",
+    "nameKey": "region.farmland",
+    "area": {
+      "center": [
+        -86,
+        -28
+      ],
+      "radius": 30,
+      "blend": 10
+    }
+  },
+  {
+    "id": "river",
+    "nameKey": "region.river",
+    "area": {
+      "center": [
+        100,
+        30
+      ],
+      "path": [
+        [
+          118,
+          -122
+        ],
+        [
+          104,
+          -92
+        ],
+        [
+          108,
+          -58
+        ],
+        [
+          98,
+          -24
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          106,
+          30
+        ],
+        [
+          96,
+          62
+        ],
+        [
+          100,
+          96
+        ],
+        [
+          92,
+          130
+        ]
+      ],
+      "radius": 11,
+      "blend": 6
+    }
+  },
+  {
+    "id": "mist_gate",
+    "nameKey": "region.mist_gate",
+    "area": {
+      "center": [
+        1882,
+        2
+      ],
+      "path": [
+        [
+          1850,
+          4
+        ],
+        [
+          1866,
+          4
+        ],
+        [
+          1890,
+          2
+        ],
+        [
+          1908,
+          4
+        ]
+      ],
+      "radius": 20,
+      "blend": 8
+    }
+  },
+  {
+    "id": "glow_garden",
+    "nameKey": "region.glow_garden",
+    "area": {
+      "center": [
+        1944,
+        6
+      ],
+      "radius": 34,
+      "blend": 12
+    }
+  },
+  {
+    "id": "reverse_creek",
+    "nameKey": "region.reverse_creek",
+    "area": {
+      "center": [
+        1972,
+        -92
+      ],
+      "path": [
+        [
+          1962,
+          -46
+        ],
+        [
+          1974,
+          -78
+        ],
+        [
+          1980,
+          -110
+        ],
+        [
+          1974,
+          -140
+        ]
+      ],
+      "radius": 24,
+      "blend": 12
+    }
+  },
+  {
+    "id": "mushroom_village",
+    "nameKey": "region.mushroom_village",
+    "area": {
+      "center": [
+        2036,
+        6
+      ],
+      "radius": 30,
+      "blend": 10
+    }
+  },
+  {
+    "id": "deep_mist",
+    "nameKey": "region.deep_mist",
+    "area": {
+      "center": [
+        2052,
+        92
+      ],
+      "radius": 46,
+      "blend": 14
+    },
+    "mistHarm": true
+  },
+  {
+    "id": "crystal_grotto",
+    "nameKey": "region.crystal_grotto",
+    "area": {
+      "center": [
+        2020,
+        -124
+      ],
+      "radius": 20,
+      "blend": 8
+    }
+  },
+  {
+    "id": "ancient_altar",
+    "nameKey": "region.ancient_altar",
+    "area": {
+      "center": [
+        2112,
+        0
+      ],
+      "path": [
+        [
+          2112,
+          0
+        ],
+        [
+          2132,
+          52
+        ]
+      ],
+      "radius": 30,
+      "blend": 10
+    }
+  },
+  {
+    "id": "lake_shore",
+    "nameKey": "region.lake_shore",
+    "area": {
+      "center": [
+        4006,
+        14
+      ],
+      "radius": 118,
+      "blend": 20
+    }
+  },
+  {
+    "id": "lake_camp",
+    "nameKey": "region.lake_camp",
+    "area": {
+      "center": [
+        3888,
+        8
+      ],
+      "radius": 24,
+      "blend": 8
+    }
+  },
+  {
+    "id": "reed_isle",
+    "nameKey": "region.reed_isle",
+    "area": {
+      "center": [
+        3998,
+        -20
+      ],
+      "radius": 16,
+      "blend": 6
+    }
+  },
+  {
+    "id": "mirror_ruins",
+    "nameKey": "region.mirror_ruins",
+    "area": {
+      "center": [
+        4018,
+        78
+      ],
+      "radius": 20,
+      "blend": 8
+    }
+  },
+  {
+    "id": "mirror_temple",
+    "nameKey": "region.mirror_temple",
+    "area": {
+      "center": [
+        4046,
+        18
+      ],
+      "radius": 22,
+      "blend": 8
+    }
+  },
+  {
+    "id": "windy_hills",
+    "nameKey": "region.windy_hills",
+    "area": {
+      "center": [
+        6000,
+        0
+      ],
+      "radius": 230,
+      "blend": 20
+    }
+  },
+  {
+    "id": "windmill_hamlet",
+    "nameKey": "region.windmill_hamlet",
+    "area": {
+      "center": [
+        5972,
+        52
+      ],
+      "radius": 34,
+      "blend": 10
+    }
+  },
+  {
+    "id": "floatstone_ridge",
+    "nameKey": "region.floatstone_ridge",
+    "area": {
+      "center": [
+        5980,
+        -85
+      ],
+      "path": [
+        [
+          5908,
+          -86
+        ],
+        [
+          6052,
+          -84
+        ]
+      ],
+      "radius": 18,
+      "blend": 6
+    }
+  },
+  {
+    "id": "wind_tower",
+    "nameKey": "region.wind_tower",
+    "area": {
+      "center": [
+        6096,
+        12
+      ],
+      "radius": 28,
+      "blend": 8
+    }
+  },
+  {
+    "id": "golem_arena",
+    "nameKey": "region.golem_arena",
+    "area": {
+      "center": [
+        6104,
+        -52
+      ],
+      "radius": 24,
+      "blend": 8
+    }
+  }
 ]

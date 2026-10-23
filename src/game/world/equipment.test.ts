@@ -122,3 +122,22 @@ describe('工作台與存檔', () => {
     expect(loaded.state.equipment).toEqual({ armor: 'forest_bracer' });
   });
 });
+
+describe('迷霧持續傷害（第二章 Phase 3）', () => {
+  const deep = (s: GameState): GameState => ({ ...s, mist: { ...s.mist, deep_mist: 'dense' } });
+  const harmCtx = { ...ctx, regionHarm: new Set(['deep_mist' as const]) };
+  const harm = (s: GameState, region: 'deep_mist' | 'mist_gate') => applyEvents(s, handleCommand(s, { type: 'MistHarm', region }, harmCtx), harmCtx);
+
+  it('濃霧且會扣血的區域：每次 2 點，護腕的迷霧倍率減半為 1 點', () => {
+    const s = deep(traveler());
+    expect(harm(s, 'deep_mist').player.hp).toBe(s.player.hp - 2);
+    const worn = deep(ok(give(traveler(), 'forest_bracer'), { type: 'EquipItem', itemId: 'forest_bracer' }).state);
+    expect(harm(worn, 'deep_mist').player.hp).toBe(worn.player.hp - 1);
+  });
+
+  it('不會扣血的區域或已經不是濃霧時不扣血', () => {
+    expect(handleCommand(deep(traveler()), { type: 'MistHarm', region: 'mist_gate' }, harmCtx)[0]).toMatchObject({ reason: 'not-dense' });
+    const light = { ...traveler(), mist: { ...traveler().mist, deep_mist: 'light' as const } };
+    expect(handleCommand(light, { type: 'MistHarm', region: 'deep_mist' }, harmCtx)[0]).toMatchObject({ reason: 'not-dense' });
+  });
+});

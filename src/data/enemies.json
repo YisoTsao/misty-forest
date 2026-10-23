@@ -343,11 +343,31 @@
     "lootTableId": "boss_dawn_mist_puff_drop",
     "hitRadius": 1.5,
     "boss": {
-      "arena": { "center": [-4, -118], "radius": 13, "trigger": 10 },
-      "home": [-4, -122],
-      "requires": { "questCompleted": "quest_dawn_003" },
-      "retryAt": [14, -112],
-      "stun": { "mirrors": ["highland_star_mirror"], "sec": 3 },
+      "arena": {
+        "center": [
+          -4,
+          -118
+        ],
+        "radius": 13,
+        "trigger": 10
+      },
+      "home": [
+        -4,
+        -122
+      ],
+      "requires": {
+        "questCompleted": "quest_dawn_003"
+      },
+      "retryAt": [
+        14,
+        -112
+      ],
+      "stun": {
+        "mirrors": [
+          "highland_star_mirror"
+        ],
+        "sec": 3
+      },
       "introSec": 2.2,
       "moveSpeed": 3,
       "bodyRadius": 1.3,
@@ -356,9 +376,33 @@
       "recoverScale": 1.5,
       "textKey": "puffKing",
       "moves": {
-        "charge": { "windup": 0.8, "speed": 13, "distance": 12, "damage": 12, "radius": 1.5, "minRange": 4, "cooldown": 2 },
-        "orbs": { "windup": 0.8, "damage": 8, "radius": 1.2, "count": 4, "count2": 6, "ring": 4.5, "cooldown": 2 },
-        "slam": { "windup": 0.8, "air": 0.5, "damage": 16, "radius": 3.5, "recoverSec": 1.2, "minRange": 0, "cooldown": 2.2 }
+        "charge": {
+          "windup": 0.8,
+          "speed": 13,
+          "distance": 12,
+          "damage": 12,
+          "radius": 1.5,
+          "minRange": 4,
+          "cooldown": 2
+        },
+        "orbs": {
+          "windup": 0.8,
+          "damage": 8,
+          "radius": 1.2,
+          "count": 4,
+          "count2": 6,
+          "ring": 4.5,
+          "cooldown": 2
+        },
+        "slam": {
+          "windup": 0.8,
+          "air": 0.5,
+          "damage": 16,
+          "radius": 3.5,
+          "recoverSec": 1.2,
+          "minRange": 0,
+          "cooldown": 2.2
+        }
       }
     }
   },
@@ -615,6 +659,118 @@
           "cooldown": 2.4
         }
       }
+    }
+  },
+  {
+    "id": "mob_mist_wolf",
+    "nameKey": "enemy.mob_mist_wolf",
+    "maxHp": 40,
+    "damage": 8,
+    "moveSpeed": 4.2,
+    "aggroRadius": 12,
+    "attackRange": 1.8,
+    "attackWindup": 0.5,
+    "attackCooldown": 1.4,
+    "leashRadius": 20,
+    "lootTableId": "mob_mist_wolf_drop",
+    "model": {
+      "path": "models/monsters/GreenSpikyBlob.glb",
+      "height": 0.9,
+      "radius": 0.5,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Walk",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Green_Main": "#7b8590"
+      }
+    },
+    "lunge": 6,
+    "behavior": {
+      "kind": "orbit",
+      "radius": 3.6,
+      "sec": 2.4,
+      "speed": 5
+    }
+  },
+  {
+    "id": "mob_fog_wisp",
+    "nameKey": "enemy.mob_fog_wisp",
+    "maxHp": 34,
+    "damage": 7,
+    "moveSpeed": 3.2,
+    "aggroRadius": 12,
+    "attackRange": 1.6,
+    "attackWindup": 0.6,
+    "attackCooldown": 2,
+    "leashRadius": 20,
+    "lootTableId": "mob_fog_wisp_drop",
+    "model": {
+      "path": "models/monsters/Ghost.glb",
+      "height": 1.4,
+      "radius": 0.45,
+      "clips": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "attack": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      },
+      "hover": 0.5,
+      "colors": {
+        "Ghost_Main": "#bff7ff"
+      }
+    },
+    "behavior": {
+      "kind": "spit",
+      "minRange": 4,
+      "range": 10,
+      "windup": 0.8,
+      "cooldown": 3.5,
+      "speed": 10,
+      "damage": 7,
+      "slowSec": 1,
+      "slowScale": 0.8,
+      "retreat": 4
+    }
+  },
+  {
+    "id": "mob_root_guard",
+    "nameKey": "enemy.mob_root_guard",
+    "maxHp": 160,
+    "damage": 14,
+    "moveSpeed": 2.4,
+    "aggroRadius": 12,
+    "attackRange": 2.6,
+    "attackWindup": 1.0,
+    "attackCooldown": 3,
+    "leashRadius": 22,
+    "lootTableId": "mob_root_guard_drop",
+    "model": {
+      "path": "models/monsters/Goleling.glb",
+      "height": 2.0,
+      "radius": 0.65,
+      "clips": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "attack": "CharacterArmature|Headbutt",
+        "hit": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Goleling_Main": "#7a6a4f",
+        "Goleling_Secondary": "#4f5b3c"
+      }
+    },
+    "behavior": {
+      "kind": "shell",
+      "guardSec": 2.5,
+      "guardScale": 0.3,
+      "recoverSec": 1.6,
+      "recoverScale": 1.8
     }
   }
 ]

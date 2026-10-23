@@ -104,6 +104,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   buildables: data.buildables,
   lightPaths: data.lightPaths,
   puzzles: data.puzzles,
+  regionHarm: new Set(data.regions.filter((r) => r.mistHarm).map((r) => r.id)),
   shops: data.shops,
   crafting: data.crafting,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),

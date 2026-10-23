@@ -51,6 +51,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 測試：`roll.test.ts` 6 項（冷卻、倒下、方向與恢復）；e2e `roll` 3 項（翻滾、冷卻中無效、翻滾中不扣血／結束後照常扣血）。`pnpm check` 982 項通過；e2e `movement`、`bounds`、`combat`、`melee`（存檔的 loadout 欄位）、`settings`、`gamepad`、`dev` 全過。
 - 未做：翻滾的專屬動畫（目前沿用走路／跑步）、手把翻滾鍵。
 
+### 任務 13E：迷霧深層的怪物與濃霧傷害（第二章 Phase 3，規格 §6.2 M-03、M-04、M-05）
+- 霧紋森林狼（`mob_mist_wolf`）：盤旋（orbit）後衝撞（lunge），掉落霧紋獸牙、厚實獸皮（稀有）。幻霧螢靈（`mob_fog_wisp`）：遠距離攻擊（spit）後瞬移（retreat）。枯根守衛（`mob_root_guard`，精英）：縮殼擋傷（shell）、掉落守衛木核。生成點都在 `deep_mist`（深層）。
+- 濃霧傷害（`MistHarm` 指令）：只對 `regions.json` 標記 `mistHarm` 的區域（迷霧深層）生效，每 2 秒扣 2 點，守林者護腕的迷霧倍率減半。客戶端在 `RegionTracker` 計時送出。
+- 規格的差異（未做）：枯根守衛的兩階段（目前只有縮殼）；幻霧螢靈的致盲與提燈現形（要等星光照明與螢光提燈）；森林狼的硬直與叫同伴；迷霧深層的週期濃霧。模型是暫用的 GreenSpikyBlob（狼）、Ghost（螢靈）、Goleling（守衛）。
+- 測試：`deepWoods.test.ts` 4 項、`equipment.test.ts` 迷霧傷害 2 項；e2e 新增 `deepwoods`（生成、深層扣血、A 區不扣血、狼被打倒）全過。`monsters` 的涵蓋範圍改為排除只由分裂產生的小怪（`mob_moss_slime_small`）；`region` 的飽和度項目這次通過（已知的共享時鐘時刻問題）。
+- `pnpm check` 991 項通過。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

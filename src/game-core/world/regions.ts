@@ -12,6 +12,8 @@ export const DEFAULT_REGION: RegionId = 'meadow';
 export const regionDefSchema = z.object({
   id: z.enum(regionIds),
   nameKey: z.string().min(1),
+  /** 濃霧會持續扣血（第二章 Phase 3，迷霧深層）；省略為不扣血 */
+  mistHarm: z.boolean().optional(),
   /**
    * 範圍：圓形（center）或沿折線的帶狀（path，例如溪流，radius 為離中心線的距離）；
    * 省略表示這個區域還沒有實際場地（例如之後才加入的區域）
