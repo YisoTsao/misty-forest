@@ -152,6 +152,11 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
 - 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
 
+### 部署：第二章 13J–13V 上線（2026-10-23）
+- 使用者指示 push 並部署：`feat/ch2-completion` 推到 GitHub，`main` 快轉到 `5fef70e` 後 push，Vercel 自動部署 Production 成功（`vercel list` 顯示 Ready）。正式網址現在會轉到 `https://mistwood.yisoapp.com/`，載入的 bundle 已含第二章新內容（`lost_firefly`、`quest_forest_sq06`）。
+- 遊戲伺服器（Render）回應 200；這次沒有改到伺服器用到的模組（`server/` 與它 import 的 game-core 都沒動）。
+- Vercel MCP 列部署仍回 403，改用使用者登入的 `npx vercel --scope yisotsaos-projects list mistwood`。
+
 ### 完整 e2e（2026-10-23，分支 `feat/ch2-completion`，13J–13V 收尾）
 - `pnpm e2e` 在第 6 個 suite `tutorial` 停下：「新遊戲開始時顯示第一步：移動」失敗。切回 `main`（311676e）重新建置同樣失敗 → **既有問題，不是這次的改動**，未修（見「已知問題」）。
 - 其餘 49 個 suite 改為逐一跑完（失敗也繼續）：48 個全過；`footprints`「時間過去後回來悄悄觀察」連跑時失敗 1 項，單獨重跑 4 項全過（與時間有關的偶發）。
