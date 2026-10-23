@@ -10,6 +10,8 @@ export type LocomotionInput = {
   run: boolean;
   /** 本幀是否剛按下跳躍（邊緣觸發） */
   jumpPressed: boolean;
+  /** 本幀翻滾已經被權威層接受（冷卻與死亡由權威層判斷，這裡只負責動作） */
+  roll?: boolean;
 };
 
 export type LocomotionState = {
@@ -23,10 +25,18 @@ export type LocomotionState = {
   landTimer: number;
   jumping: boolean;
   anim: LocomotionAnim;
+  /** 翻滾剩餘時間與翻滾方向（第二章 Phase 3） */
+  rollTimer: number;
+  rollX: number;
+  rollZ: number;
 };
 
+/** 翻滾的動作時間與速度（與權威層的無敵時間 ROLL_SEC 一致） */
+export const ROLL_ANIM_SEC = 0.45;
+export const ROLL_SPEED = 8;
+
 export function initialLocomotionState(facingYaw = 0): LocomotionState {
-  return { vx: 0, vy: 0, vz: 0, facingYaw, grounded: true, airTime: 0, landTimer: 0, jumping: false, anim: 'idle' };
+  return { vx: 0, vy: 0, vz: 0, facingYaw, grounded: true, airTime: 0, landTimer: 0, jumping: false, anim: 'idle', rollTimer: 0, rollX: 0, rollZ: 0 };
 }
 
 /**
@@ -111,7 +121,7 @@ export function stepLocomotion(
   s.landTimer = Math.max(0, s.landTimer - (grounded && prev.grounded ? dt : 0));
 
   // 跳躍：接地或 coyote time 內，且不在跳躍上升中
-  const canJump = (grounded || s.airTime <= p.coyoteTime) && !s.jumping;
+  const canJump = (grounded || s.airTime <= p.coyoteTime) && !s.jumping && s.rollTimer <= 0;
   if (input.jumpPressed && canJump) {
     s.vy = p.jumpVelocity;
     s.jumping = true;
@@ -125,9 +135,22 @@ export function stepLocomotion(
   // 水平速度
   const dir = moveInputToWorld(input.right, input.forward, cameraYaw);
   const speed = input.run ? p.runSpeed : p.walkSpeed;
-  const v = approachVelocity(s.vx, s.vz, dir.x * speed, dir.z * speed, p.acceleration, p.deceleration, dt);
-  s.vx = v.x;
-  s.vz = v.z;
+  // 翻滾（第二章 Phase 3）：沿開始時的移動方向（沒有方向就往面向的方向）滾出去，翻滾中不接受移動輸入
+  if (input.roll && s.rollTimer <= 0) {
+    const len = Math.hypot(dir.x, dir.z);
+    s.rollX = len > 0.01 ? dir.x / len : Math.sin(prev.facingYaw);
+    s.rollZ = len > 0.01 ? dir.z / len : Math.cos(prev.facingYaw);
+    s.rollTimer = ROLL_ANIM_SEC;
+  }
+  if (s.rollTimer > 0) {
+    s.vx = s.rollX * ROLL_SPEED;
+    s.vz = s.rollZ * ROLL_SPEED;
+    s.rollTimer = Math.max(0, s.rollTimer - dt);
+  } else {
+    const v = approachVelocity(s.vx, s.vz, dir.x * speed, dir.z * speed, p.acceleration, p.deceleration, dt);
+    s.vx = v.x;
+    s.vz = v.z;
+  }
 
   // 面向主要移動方向
   const horizontalSpeed = Math.hypot(s.vx, s.vz);

@@ -74,6 +74,7 @@ export type MistwoodDebugApi = {
     z: number;
     anim: string;
     grounded: boolean;
+    rolling: boolean;
     speed: number;
     facingYaw: number;
     action: string | null;
@@ -296,6 +297,8 @@ export function installDebugApi(): void {
         ...position,
         anim: l.anim,
         grounded: l.grounded,
+        /** 翻滾動作中（第二章 Phase 3） */
+        rolling: l.rollTimer > 0,
         speed: Math.hypot(l.vx, l.vz),
         facingYaw: l.facingYaw,
         action: playerRuntime.action?.clip ?? null,

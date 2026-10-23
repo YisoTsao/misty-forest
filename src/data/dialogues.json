@@ -1712,6 +1712,15 @@
             ]
           },
           {
+            "textKey": "dlg.granny.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_granny_mushroom"
+              }
+            ]
+          },
+          {
             "textKey": "dlg.granny.opt.later"
           }
         ]

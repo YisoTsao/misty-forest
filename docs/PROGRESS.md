@@ -45,6 +45,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 測試：`pnpm check`（Vitest 979 項）、`pnpm build`。e2e `granny` 新增（接取、交付、水輪、交付、提燈）全過；`quest`、`npc`、`journal`、`forestquest`、`creek`、`equipment` 重跑未見失敗。
 - 教訓：改了資料之後沒重新 build，e2e 會跑舊的建置；之後每次改資料都先 `pnpm build`。
 
+### 任務 13D：翻滾閃避（第二章 Phase 3，規格 10.1）
+- 動作 `dodge`（鍵盤 Z，手把沒有按鈕可用，測試中豁免並記在下方）。權威指令 `Roll`：無敵 0.45 秒（`rollUntil`），冷卻 1.1 秒（`rollReadyAt`），倒下時不能翻滾；翻滾中敵人的攻擊不扣血（`EnemyStrike` 回傳空事件）。不存檔。
+- 動作：`stepLocomotion` 的 `roll`（沿移動方向、沒有方向就沿面向，8 m/s，翻滾中不接受移動與跳躍）；只有權威層接受時才開始滾。
+- 測試：`roll.test.ts` 6 項（冷卻、倒下、方向與恢復）；e2e `roll` 3 項（翻滾、冷卻中無效、翻滾中不扣血／結束後照常扣血）。`pnpm check` 982 項通過；e2e `movement`、`bounds`、`combat`、`melee`（存檔的 loadout 欄位）、`settings`、`gamepad`、`dev` 全過。
+- 未做：翻滾的專屬動畫（目前沿用走路／跑步）、手把翻滾鍵。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

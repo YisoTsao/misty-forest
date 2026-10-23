@@ -124,6 +124,8 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
         weapon: data.loadout.weapon,
         mp: Math.min(MAX_MP, data.combat.mp),
         heroClass: data.loadout.heroClass,
+        rollUntil: 0,
+        rollReadyAt: 0,
       },
       enemies,
       spawners: data.combat.spawners,

@@ -8,7 +8,7 @@ import { isControllable } from '@/game-core/flow/gameFlow';
 import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
 import { mapAt } from '@/game-core/world/maps';
 import { SPAWN_POINT, terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
-import { currentModifiers } from '@/game/authority';
+import { authority, currentModifiers } from '@/game/authority';
 import { combatRuntime } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
@@ -106,10 +106,18 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     }
     // 互動動作中、視窗開啟時或主選單中不接受移動輸入（仍持續套用重力與減速）
     const jumpPressed = input.consumePressed('jump');
+    const dodgePressed = input.consumePressed('dodge');
     const blocked = action !== null || isModalOpen() || !isControllable(screen);
+    // 翻滾（第二章 Phase 3）：權威層接受（沒有冷卻、沒有倒下）才開始滾；動作由 stepLocomotion 負責
+    let rolled = false;
+    if (dodgePressed && !blocked) {
+      const before = authority.getState().player.rollUntil;
+      authority.send({ type: 'Roll' });
+      rolled = authority.getState().player.rollUntil !== before;
+    }
     const move = blocked
       ? NO_MOVE
-      : { ...input.moveAxes(), run: input.isDown('run'), jumpPressed };
+      : { ...input.moveAxes(), run: input.isDown('run'), jumpPressed, roll: rolled };
     const { state, delta } = stepLocomotion(
       playerRuntime.locomotion,
       move,

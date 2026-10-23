@@ -48,6 +48,9 @@ export type GameState = {
     readonly weapon: WeaponId;
     readonly mp: number;
     readonly heroClass: HeroClassId;
+    /** 翻滾（第二章 Phase 3）：翻滾中（遊戲時間 < rollUntil）敵人打不到；rollReadyAt 之前不能再翻滾。不存檔 */
+    readonly rollUntil: number;
+    readonly rollReadyAt: number;
   };
   /** 目前存在的敵人（位置由本機模擬，權威層只管血量與存在） */
   readonly enemies: ReadonlyMap<string, EnemyRuntime>;
@@ -77,7 +80,7 @@ export function initialGameState(): GameState {
     tutorial: 'move',
     mist: initialMistStages,
     quests: {},
-    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP, heroClass: DEFAULT_HERO_CLASS },
+    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP, heroClass: DEFAULT_HERO_CLASS, rollUntil: 0, rollReadyAt: 0 },
     enemies: new Map(),
     spawners: {},
     companion: { unlocked: false },
@@ -126,6 +129,7 @@ export type GameCommand =
   /** 選職業（新遊戲開始時）：換成該職業的預設武器 */
   | { type: 'ChooseClass'; heroClass: HeroClassId }
   | { type: 'EquipItem'; itemId: string }
+  | { type: 'Roll' }
   | { type: 'UnequipItem'; slot: EquipSlot }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
@@ -162,6 +166,7 @@ export type GameCommand =
   | { type: 'DebugSetHp'; hp: number };
 
 export type RejectReason =
+  | 'cooldown'
   | 'unknown-object'
   | 'wrong-interaction'
   | 'already-open'
@@ -211,6 +216,7 @@ export type GameEvent =
   | { type: 'QuestCompleted'; quest: string }
   | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' | 'equip' }
   | { type: 'ItemEquipped'; slot: EquipSlot; itemId: string }
+  | { type: 'PlayerRolled'; until: number; readyAt: number }
   | { type: 'ItemUnequipped'; slot: EquipSlot; itemId: string }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
@@ -350,6 +356,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return [{ type: 'WeaponEquipped', weapon: cmd.weapon }];
     case 'EquipItem':
       return equipItem(state, cmd.itemId, ctx);
+    case 'Roll':
+      return roll(state);
     case 'UnequipItem':
       return unequipItem(state, cmd.slot, ctx);
     case 'ChooseClass': {
@@ -659,6 +667,8 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('EnemyStrike', 'unknown-enemy');
   if (state.player.defeated) return reject('EnemyStrike', 'player-defeated');
+  // 翻滾中躲開攻擊（第二章 Phase 3）：不扣血、不算失敗
+  if (state.time < state.player.rollUntil) return [];
   const behavior = def.behavior;
   if (spit && behavior?.kind !== 'spit') return reject('EnemyStrike', 'invalid-command');
   // 頭目只用招式攻擊，一般敵人不能帶招式
@@ -680,6 +690,17 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
     for (const e of state.enemies.values()) if (ctx.combat.enemies.get(e.kind)?.boss) events.push({ type: 'EnemyDespawned', enemyId: e.id });
   }
   return events;
+}
+
+/** 翻滾的無敵時間與冷卻（遊戲時間秒，與 locomotion 的翻滾動作一致） */
+export const ROLL_SEC = 0.45;
+export const ROLL_COOLDOWN_SEC = 1.1;
+
+/** 翻滾（第二章 Phase 3，規格 10.1）：翻滾中敵人的攻擊不造成傷害；冷卻中不能再翻滾 */
+function roll(state: GameState): GameEvent[] {
+  if (state.player.defeated) return reject('Roll', 'player-defeated');
+  if (state.time < state.player.rollReadyAt) return reject('Roll', 'cooldown');
+  return [{ type: 'PlayerRolled', until: state.time + ROLL_SEC, readyAt: state.time + ROLL_COOLDOWN_SEC }];
 }
 
 /** 裝備道具（第二章 Phase 2）：道具從背包放進裝備格；原本在格子裡的裝備放回背包（放不下就拒絕） */
@@ -991,6 +1012,9 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         break;
       case 'ItemEquipped':
         equipment = { ...equipment, [e.slot]: e.itemId };
+        break;
+      case 'PlayerRolled':
+        player = { ...player, rollUntil: e.until, rollReadyAt: e.readyAt };
         break;
       case 'ItemUnequipped': {
         equipment = { ...equipment };

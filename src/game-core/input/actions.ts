@@ -31,6 +31,8 @@ export const actionIds = [
   'journal',
   /** 快速使用回復藥（任務 7I） */
   'quickHeal',
+  /** 翻滾閃避（第二章 Phase 3）：短時間內無敵，沿移動方向滾出去 */
+  'dodge',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];
