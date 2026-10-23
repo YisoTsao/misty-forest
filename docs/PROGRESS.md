@@ -152,6 +152,11 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
 - 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
 
+### 任務 13J：菌帽小妖（第二章 Phase 2，規格 §6.2 M-02）
+- 菌帽小妖（`mob_cap_imp`，Mushnub 模型換色：奶油色身體、橘紅菌帽）：新行為 `skirmish`——出手後轉身跑開 1.3 秒再回頭追擊，跑開中被打不會回頭。掉落菌帽（新素材 `fungus_cap`）、柔韌樹皮。生成點：B 花園東側（`glowmoss_imps_garden`）、D 聚落北面入口內（`glowmoss_imps_village`），一次 2–3 隻。
+- 未做：孢子煙霧攻擊、撿走地上的可拾取物。
+- 測試：`capImp.test.ts` 4 項；`pnpm check`（Vitest 1034 項）、`pnpm build` 通過；e2e `deepwoods`（新增花園生成菌帽小妖）、`monsters`、`combat` 全過。截圖 `docs/screenshots/phase13/monster_mob_cap_imp.png`（已檢視）。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

@@ -102,6 +102,7 @@ export const enemyDefSchema = z.object({
    *   retreat（任務 9B 霧鷺影）：吐完立刻向後瞬移 retreat 公尺，拉開距離
    * - carapace（任務 9B 鏡殼蟹，Bible §7.6）：正面（面向兩側 arcDeg / 2 以內）被打時受到的傷害 × frontScale；
    *   側面、背後一般傷害；出手後有 recoverSec 秒的破綻（× recoverScale，不分方向）
+   * - skirmish（第二章 M-02 菌帽小妖）：出手後轉身跑開 retreatSec 秒（速度 retreatSpeed），再回頭追擊（打了就跑）
    */
   behavior: z
     .discriminatedUnion('kind', [
@@ -125,6 +126,7 @@ export const enemyDefSchema = z.object({
         slowScale: z.number().positive().max(1),
         retreat: z.number().positive().optional(),
       }),
+      z.object({ kind: z.literal('skirmish'), retreatSec: z.number().positive(), retreatSpeed: z.number().positive() }),
       z.object({
         kind: z.literal('carapace'),
         arcDeg: z.number().positive().max(360),

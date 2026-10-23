@@ -1,4 +1,4 @@
-// 端對端：第二章 Phase 3 — 迷霧深層的怪物（規格 M-03 霧紋森林狼、M-04 幻霧螢靈）。
+// 端對端：第二章的森林怪物 — 迷霧深層（規格 M-03 霧紋森林狼、M-04 幻霧螢靈）與花園的菌帽小妖（M-02）。
 // 深層的生成點會生成森林狼與幻霧螢靈；狼被打倒後掉落霧紋獸牙或厚實獸皮（機率，只檢查數量變化的可能性，不強制）。
 // 外觀以截圖檢查（--monsters --enemies=mob_mist_wolf,mob_fog_wisp）。
 // 用法：pnpm build && node e2e/deepwoods.e2e.mjs
@@ -39,6 +39,11 @@ await runE2e('deepwoods e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ p
     await page.waitForTimeout(4600);
     // 體力會自然回復，所以只檢查沒有扣血
     assert.ok((await debug(() => window.__mistwoodDebug.combatState().hp)) >= hp2, 'A 區不應該扣血');
+  });
+
+  await check('螢苔花園生成菌帽小妖，靠近時會追擊', async () => {
+    const imp = await goTo('glowmoss_imps_garden', 'mob_cap_imp');
+    assert.ok(imp && imp.x > 1940, '菌帽小妖沒有在花園生成');
   });
 
   await check('森林狼被打倒後從列表消失', async () => {

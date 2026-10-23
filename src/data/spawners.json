@@ -128,6 +128,38 @@
     "respawnSec": 45
   },
   {
+    "id": "glowmoss_imps_garden",
+    "regionId": "glow_garden",
+    "enemy": "mob_cap_imp",
+    "center": [
+      1962,
+      20
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 3,
+      "light": 3,
+      "clear": 2
+    },
+    "respawnSec": 40
+  },
+  {
+    "id": "glowmoss_imps_village",
+    "regionId": "mushroom_village",
+    "enemy": "mob_cap_imp",
+    "center": [
+      2036,
+      -18
+    ],
+    "radius": 5,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 40
+  },
+  {
     "id": "river_bubbles",
     "regionId": "river",
     "enemy": "mob_bubble_wisp",

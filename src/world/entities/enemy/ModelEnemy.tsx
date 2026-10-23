@@ -163,9 +163,9 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
         // 攻擊動作的出手點對齊前搖結束
         if (actions.attack) actions.attack.timeScale = Math.max(0.6, Math.min(2, (actions.attack.getClip().duration * 0.45) / Math.max(windup, 0.2)));
       }
-    } else if (ai.state === 'chase' || ai.state === 'patrol' || ai.state === 'return') {
+    } else if (ai.state === 'chase' || ai.state === 'patrol' || ai.state === 'return' || ai.state === 'retreat') {
       play(actions.move ?? actions.idle);
-      if (actions.move) actions.move.timeScale = ai.state === 'patrol' ? 0.75 : 1.1;
+      if (actions.move) actions.move.timeScale = ai.state === 'patrol' ? 0.75 : ai.state === 'retreat' ? 1.4 : 1.1;
     } else {
       play(actions.idle);
     }

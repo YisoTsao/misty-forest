@@ -2,8 +2,8 @@
 // 規則（傷害、死亡）在權威層；這裡只決定「怎麼動、什麼時候出手」。
 import type { EnemyDef } from './combat';
 
-// 任務 8B：orbit（飛蛾繞圈）、spit（芽怪吐泥前搖）、guard（甲蟲縮殼）、recover（甲蟲出手後的破綻）
-export type AiState = 'idle' | 'patrol' | 'chase' | 'orbit' | 'attack' | 'spit' | 'guard' | 'recover' | 'return' | 'dead';
+// 任務 8B：orbit（飛蛾繞圈）、spit（芽怪吐泥前搖）、guard（甲蟲縮殼）、recover（甲蟲出手後的破綻）；retreat（菌帽小妖出手後跑開）
+export type AiState = 'idle' | 'patrol' | 'chase' | 'orbit' | 'attack' | 'spit' | 'guard' | 'recover' | 'retreat' | 'return' | 'dead';
 
 export type EnemyAi = {
   state: AiState;
@@ -175,8 +175,8 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
           ai.knockback.z = Math.cos(ai.yaw) * def.lunge;
         }
         ai.orbitFor = 0;
-        // 根鬚甲蟲、鏡殼蟹：出手後有一段停下來的破綻
-        set(behavior?.kind === 'shell' || behavior?.kind === 'carapace' ? 'recover' : 'chase');
+        // 根鬚甲蟲、鏡殼蟹：出手後有一段停下來的破綻；菌帽小妖：出手後跑開
+        set(behavior?.kind === 'shell' || behavior?.kind === 'carapace' ? 'recover' : behavior?.kind === 'skirmish' ? 'retreat' : 'chase');
       }
       break;
     case 'spit':
@@ -219,6 +219,22 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
     case 'recover':
       if ((behavior?.kind !== 'shell' && behavior?.kind !== 'carapace') || ai.timer >= behavior.recoverSec) set('chase');
       break;
+    case 'retreat': {
+      if (behavior?.kind !== 'skirmish' || ai.timer >= behavior.retreatSec || !player.alive) {
+        set('chase');
+        break;
+      }
+      // 往遠離玩家的方向跑，但不跑出巡邏範圍（超出時改往家的方向）
+      const away = Math.atan2(ai.x - player.x, ai.z - player.z);
+      let tx = ai.x + Math.sin(away) * 2;
+      let tz = ai.z + Math.cos(away) * 2;
+      if (Math.hypot(tx - home.x, tz - home.z) > def.leashRadius * 0.8) {
+        tx = home.x;
+        tz = home.z;
+      }
+      moveToward(ai, tx, tz, behavior.retreatSpeed, dt);
+      break;
+    }
     case 'return':
       if (moveToward(ai, home.x, home.z, def.moveSpeed * 1.2, dt) <= 0.3) set('idle');
       break;
@@ -281,7 +297,8 @@ export function applyHitReaction(ai: EnemyAi, from: { x: number; z: number }, st
     }
     return;
   }
-  if (ai.state !== 'attack' && ai.state !== 'recover' && ai.state !== 'spit') {
+  // 跑開中被打不會回頭（打了就跑的怪物要追著打）
+  if (ai.state !== 'attack' && ai.state !== 'recover' && ai.state !== 'spit' && ai.state !== 'retreat') {
     ai.state = 'chase';
     ai.timer = 0;
   }

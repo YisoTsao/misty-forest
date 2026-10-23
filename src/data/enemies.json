@@ -881,5 +881,39 @@
         }
       }
     }
+  },
+  {
+    "id": "mob_cap_imp",
+    "nameKey": "enemy.mob_cap_imp",
+    "maxHp": 26,
+    "damage": 5,
+    "moveSpeed": 3.8,
+    "aggroRadius": 11,
+    "attackRange": 1.5,
+    "attackWindup": 0.4,
+    "attackCooldown": 1.2,
+    "leashRadius": 18,
+    "lootTableId": "mob_cap_imp_drop",
+    "model": {
+      "path": "models/monsters/Mushnub.glb",
+      "height": 0.95,
+      "radius": 0.4,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Walk",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "MushroomKing_Main": "#e6d2ad",
+        "MushroomKing_Secondary": "#d9744f"
+      }
+    },
+    "behavior": {
+      "kind": "skirmish",
+      "retreatSec": 1.3,
+      "retreatSpeed": 4.6
+    }
   }
 ]
