@@ -772,5 +772,114 @@
       "recoverSec": 1.6,
       "recoverScale": 1.8
     }
+  },
+  {
+    "id": "boss_root_devourer",
+    "nameKey": "enemy.boss_root_devourer",
+    "maxHp": 320,
+    "damage": 14,
+    "moveSpeed": 2.6,
+    "aggroRadius": 24,
+    "attackRange": 3,
+    "attackWindup": 0.8,
+    "attackCooldown": 2,
+    "leashRadius": 24,
+    "lootTableId": "boss_root_drop",
+    "hitRadius": 2.4,
+    "model": {
+      "path": "models/monsters/MushroomKing.glb",
+      "height": 2.8,
+      "radius": 0.9,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Run",
+        "attack": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "MushroomKing_Main": "#d8574a"
+      }
+    },
+    "boss": {
+      "arena": {
+        "center": [
+          2112,
+          0
+        ],
+        "radius": 10,
+        "trigger": 13
+      },
+      "home": [
+        2112,
+        0
+      ],
+      "avoid": {
+        "center": [
+          2112,
+          0
+        ],
+        "radius": 2
+      },
+      "requires": {
+        "questActive": "quest_forest_007"
+      },
+      "retryAt": [
+        2128,
+        0
+      ],
+      "purify": {
+        "pillars": [
+          "altar_resonance_01",
+          "altar_resonance_02",
+          "altar_resonance_03"
+        ]
+      },
+      "introSec": 3,
+      "moveSpeed": 2.6,
+      "bodyRadius": 2.2,
+      "phase2Below": 0.6,
+      "phase2Cooldown": 0.7,
+      "recoverScale": 1.5,
+      "textKey": "root",
+      "moves": {
+        "spikes": {
+          "windup": 0.8,
+          "damage": 12,
+          "radius": 1.4,
+          "count": 3,
+          "count2": 5,
+          "spread": 3.5,
+          "cooldown": 2
+        },
+        "slam": {
+          "windup": 0.8,
+          "air": 0.9,
+          "damage": 18,
+          "radius": 4,
+          "recoverSec": 1.8,
+          "minRange": 5,
+          "cooldown": 2.4
+        },
+        "charge": {
+          "windup": 1,
+          "speed": 9,
+          "distance": 12,
+          "damage": 14,
+          "radius": 2,
+          "minRange": 5,
+          "cooldown": 3.2
+        },
+        "orbs": {
+          "windup": 0.9,
+          "damage": 9,
+          "radius": 1.6,
+          "count": 3,
+          "count2": 5,
+          "ring": 4,
+          "cooldown": 3
+        }
+      }
+    }
   }
 ]

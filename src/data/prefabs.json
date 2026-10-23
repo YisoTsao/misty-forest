@@ -3621,7 +3621,7 @@
       "arriveAt": "mirrorlake_gate_glowmoss",
       "arriveDistance": 4,
       "requires": {
-        "questCompleted": "quest_dawn_003"
+        "questCompleted": "quest_forest_008"
       },
       "lockedKey": "gate.mirrorlake.locked"
     },
@@ -5046,6 +5046,25 @@
     "read": {
       "titleKey": "crystal.tablet.title",
       "bodyKey": "crystal.tablet.body"
+    },
+    "persists": true
+  },
+  {
+    "id": "altar_resonance",
+    "model": "procedural:star_lamp",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.35,
+      "height": 2.2
+    },
+    "interaction": "activate",
+    "nameKey": "object.altarResonance",
+    "verbKey": "interact.lightStar",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:star_lamp_lit",
+      "boss": "boss_root_devourer"
     },
     "persists": true
   }

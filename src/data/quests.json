@@ -585,5 +585,95 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_005",
+    "nameKey": "quest.forest5.name",
+    "category": "main",
+    "descKey": "quest.forest5.desc",
+    "giver": "granny",
+    "requires": [
+      "quest_forest_004"
+    ],
+    "objectives": [
+      {
+        "type": "defeat",
+        "enemy": "mob_root_guard",
+        "count": 1,
+        "descKey": "quest.forest5.guard"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "starlight_shard",
+          "count": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "quest_forest_006",
+    "nameKey": "quest.forest6.name",
+    "category": "main",
+    "descKey": "quest.forest6.desc",
+    "giver": "granny",
+    "requires": [
+      "quest_forest_005"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "crystal_gate"
+        ],
+        "descKey": "quest.forest6.gate"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "ancient_resin",
+          "count": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "quest_forest_007",
+    "nameKey": "quest.forest7.name",
+    "category": "main",
+    "descKey": "quest.forest7.desc",
+    "giver": "granny",
+    "requires": [
+      "quest_forest_006"
+    ],
+    "objectives": [
+      {
+        "type": "boss",
+        "boss": "boss_root_devourer",
+        "descKey": "quest.forest7.boss"
+      }
+    ],
+    "rewards": {}
+  },
+  {
+    "id": "quest_forest_008",
+    "nameKey": "quest.forest8.name",
+    "category": "main",
+    "descKey": "quest.forest8.desc",
+    "requires": [
+      "quest_forest_007"
+    ],
+    "objectives": [
+      {
+        "type": "visit",
+        "x": 2132,
+        "z": 52,
+        "radius": 4,
+        "descKey": "quest.forest8.visit"
+      }
+    ],
+    "rewards": {}
   }
 ]

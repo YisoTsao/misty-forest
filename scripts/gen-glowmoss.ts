@@ -214,6 +214,12 @@ export function addGlowmoss(placements: Out[]): void {
   place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
   place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });
 
+  // ── 2d. 古樹祭壇（規格 G、B-01）：三座共鳴石柱環繞戰場（淨化用），祭壇中心是古樹 ──
+  // 戰場中心 (112, 0)（局部座標，世界 2112, 0）；石柱在半徑 8 的圓上
+  place('altar_resonance_01', 'altar_resonance', 120, 0, { r: 1.2 });
+  place('altar_resonance_02', 'altar_resonance', 108, 6.93, { r: 1.2 });
+  place('altar_resonance_03', 'altar_resonance', 108, -6.93, { r: 1.2 });
+
   // ── 3. B 螢苔花園：周圍的巨型蘑菇、發光立石、螢光花、樹根拱門 ──
   GARDEN_GIANTS.forEach(([a, r, s], i) => {
     const x = GLOW_GARDEN.x + Math.cos(a) * r;

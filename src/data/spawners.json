@@ -496,5 +496,22 @@
       "clear": 0
     },
     "respawnSec": 180
+  },
+  {
+    "id": "altar_boss",
+    "regionId": "ancient_altar",
+    "enemy": "boss_root_devourer",
+    "center": [
+      2112,
+      0
+    ],
+    "radius": 3,
+    "budget": {
+      "dense": 1,
+      "light": 1,
+      "clear": 1
+    },
+    "respawnSec": 1,
+    "manual": true
   }
 ]

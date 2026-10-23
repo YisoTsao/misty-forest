@@ -67,7 +67,7 @@ export type GameState = {
   readonly defeatedBosses: readonly string[];
 };
 
-export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
+export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number; /** 淨化中（第二章 B-01）：停在 1 點、不會被打倒 */ readonly purifying?: true };
 export type SpawnerRuntime = { readonly nextSpawnAt: number; readonly counter: number };
 
 export function initialGameState(): GameState {
@@ -219,6 +219,7 @@ export type GameEvent =
   | { type: 'QuestCompleted'; quest: string }
   | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' | 'equip' }
   | { type: 'ItemEquipped'; slot: EquipSlot; itemId: string }
+  | { type: 'EnemyPurifying'; enemyId: string }
   | { type: 'PlayerRolled'; until: number; readyAt: number }
   | { type: 'ItemUnequipped'; slot: EquipSlot; itemId: string }
   | { type: 'ObjectRepaired'; placementId: string }
@@ -576,6 +577,17 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
     if (!items) return reject('ActivateObject', 'inventory-full', placementId);
     if (items.length > 0) events.push({ type: 'ItemsGained', items, source: placementId });
   }
+  // 淨化（第二章 B-01）：共鳴石柱全部啟動、頭目正在淨化 → 打倒（只結算一次）
+  if (spec.boss) {
+    const purify = ctx.combat.enemies.get(spec.boss)?.boss?.purify;
+    const fighting = bossEnemies(state, spec.boss).find((e) => e.purifying);
+    if (purify && fighting) {
+      const lit = (id: string) => (id === placementId ? true : state.objects.get(id)?.active === true);
+      if (purify.pillars.every(lit)) {
+        events.push({ type: 'EnemyDefeated', enemyId: fighting.id, kind: fighting.kind, spawner: fighting.spawner }, { type: 'BossDefeated', boss: fighting.kind });
+      }
+    }
+  }
   return events;
 }
 
@@ -632,10 +644,13 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   const veil = boss?.veil && stance !== 'recover' ? boss.veil.scale : 1;
   const amount = Math.round(base * stanceDamageScale(def, stance) * shield * veil);
   // 水槽還沒全部注水前，迷霧把傷口補回去：頭目打不倒（Bible §6.5 戰鬥提示）
-  const floor = boss && filled < boss.troughs.length ? 1 : 0;
+  // 淨化的頭目停在 1 點（第二章 B-01）：血量歸零時進入淨化，不會被打倒
+  const purifying = boss?.purify !== undefined;
+  const floor = boss && (filled < boss.troughs.length || purifying) ? 1 : 0;
   const hp = Math.max(floor, enemy.hp - amount);
   const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount: boss ? enemy.hp - hp : amount, hp, attack }];
-  if (hp > 0) return events;
+  if (purifying && hp === 1 && !enemy.purifying && enemy.hp > 1) events.push({ type: 'EnemyPurifying', enemyId });
+  if (hp > 0 || purifying) return events;
 
   events.push({ type: 'EnemyDefeated', enemyId, kind: enemy.kind, spawner: enemy.spawner });
   if (boss) events.push({ type: 'BossDefeated', boss: enemy.kind });
@@ -1087,6 +1102,11 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'EnemyDamaged': {
         const enemy = mutableEnemies().get(e.enemyId);
         if (enemy) mutableEnemies().set(e.enemyId, { ...enemy, hp: e.hp });
+        break;
+      }
+      case 'EnemyPurifying': {
+        const enemy = mutableEnemies().get(e.enemyId);
+        if (enemy) mutableEnemies().set(e.enemyId, { ...enemy, purifying: true });
         break;
       }
       case 'SpawnerCooldown':

@@ -53535,6 +53535,66 @@
     ]
   },
   {
+    "id": "altar_resonance_01",
+    "prefabId": "altar_resonance",
+    "regionId": "ancient_altar",
+    "position": [
+      2120,
+      3.17,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "altar_resonance_02",
+    "prefabId": "altar_resonance",
+    "regionId": "ancient_altar",
+    "position": [
+      2108,
+      3,
+      6.93
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "altar_resonance_03",
+    "prefabId": "altar_resonance",
+    "regionId": "ancient_altar",
+    "position": [
+      2108,
+      3.17,
+      -6.93
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "glowmoss_garden_giant_01",
     "prefabId": "giant_mushroom",
     "regionId": "glow_garden",

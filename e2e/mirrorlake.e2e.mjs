@@ -52,7 +52,7 @@ await runE2e('mirrorlake e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', en
     await page.keyboard.press('KeyE');
     const dialog = page.locator('[data-testid="message-dialog"]');
     await dialog.waitFor({ timeout: 2000 });
-    assert.match(await dialog.innerText(), /燈塔/);
+    assert.match(await dialog.innerText(), /古樹記憶/);
     await page.keyboard.press('KeyE');
     await dialog.waitFor({ state: 'detached', timeout: 2000 });
     await page.waitForTimeout(900);
@@ -61,6 +61,8 @@ await runE2e('mirrorlake e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', en
 
   await check('第一章完成後：轉場到澄鏡湖北邊的林間水道出口，站在地面上', async () => {
     await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_dawn_003'));
+    // 第二章完成（古樹記憶找回）後湖邊的路才開（T-186）
+    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_008'));
     await faceGate(forestGate, { page, debug });
     await page.keyboard.press('KeyE');
     await page.waitForFunction(() => window.__mistwoodDebug.currentMap().at === 'mirrorlake', null, { timeout: 3000 });

@@ -5,7 +5,7 @@
 import type { BossDef, BossMoveId } from './combat';
 import type { EnemyAi } from './enemyAi';
 
-export type BossState = 'intro' | 'chase' | 'spikes' | 'slam' | 'air' | 'recover' | 'spores' | 'guard' | 'charge' | 'dash' | 'orbs' | 'stunned' | 'dead';
+export type BossState = 'intro' | 'chase' | 'spikes' | 'slam' | 'air' | 'recover' | 'spores' | 'guard' | 'charge' | 'dash' | 'orbs' | 'stunned' | 'purify' | 'dead';
 
 /** 蓄力中的狀態（任務 7E：這時被燈塔的光照到會暈眩） */
 export const WINDUP_STATES: readonly BossState[] = ['spikes', 'slam', 'spores', 'charge', 'orbs'];
@@ -195,7 +195,8 @@ export function stepBossAi(ai: EnemyAi, boss: BossAi, def: BossDef, input: BossI
   const { dt, player, random } = input;
   let strike: BossStrike | null = null;
   let phaseChanged = false;
-  if (boss.state === 'dead') return { strike, phaseChanged };
+  // 淨化（第二章 B-01）：停在原地、不出招，等共鳴石柱全部啟動
+  if (boss.state === 'dead' || boss.state === 'purify') return { strike, phaseChanged };
   boss.timer += dt;
   boss.cooldown = Math.max(0, boss.cooldown - dt);
   if (boss.phase === 1 && input.hpRatio <= def.phase2Below) {

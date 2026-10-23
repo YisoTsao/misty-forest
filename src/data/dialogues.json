@@ -1902,5 +1902,200 @@
         "textKey": "dlg.granny.help.gift"
       }
     }
+  },
+  {
+    "id": "granny_guard_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.guard.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_005"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.guard.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_guard_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.guard.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_guard_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.guard.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_005"
+              }
+            ],
+            "next": "done"
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.guard.gift"
+      }
+    }
+  },
+  {
+    "id": "granny_crystal_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.crystal.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_006"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.crystal.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_crystal_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.crystal.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_crystal_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.crystal.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_006"
+              }
+            ],
+            "next": "done"
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.crystal.gift"
+      }
+    }
+  },
+  {
+    "id": "granny_root_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.root.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_007"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.root.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_root_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.root.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_root_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.root.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.report",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_007"
+              }
+            ],
+            "next": "done"
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.root.after"
+      }
+    }
   }
 ]

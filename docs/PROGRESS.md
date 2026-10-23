@@ -65,6 +65,14 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 修正過程：寶箱與石碑一開始放在地形隆起處，玩家站上去、互動距離不夠；改到地面平的地方（高度 0.4）。
 - 未做：星晶祕窟的「地下湖、晶柱」場景與隱藏入口的提示（只有石門與光路，沒有線索指向它）；星晶鏡的模型用 9D 的石柱造型，外觀待看。石門的 `gate` 區域是 glow_garden（生成時的區域判定，不影響功能）。
 
+### 任務 13G：古樹祭壇與根噬者（第二章 Phase 4，規格 B-01、G 區、CH2-MQ-05 至 08）
+- 根噬者（`boss_root_devourer`，placeholder 模型：MushroomKing 的骨架）：戰場在古樹祭壇（半徑 10，中心是古樹）。招式：根刺（spikes）、手臂揮擊（slam）、衝撞（charge）、霧球（orbs）；血量低於 60% 進入第二階段（冷卻縮短）。
+- 淨化（新機制 `purify`）：血量歸零時不會死，停在 1 點、進入「淨化」（`EnemyPurifying` 事件，頭目停下不出招）。祭壇三座古樹共鳴石柱（`altar_resonance`，沿用星光燈柱造型，activate 時帶 `boss`，只能在戰鬥中啟動）全部點亮 → 打倒（`EnemyDefeated` + `BossDefeated`，只結算一次）。
+- 任務：`quest_forest_005` 被遺忘的守護者（擊敗枯根守衛）、`006` 星晶的記憶（星光石門開）、`007` 古樹最後的呼吸（淨化根噬者，菇菇婆婆回報）、`008` 湖面上的倒影（走到澄鏡湖入口，無發起人自動完成）。菇菇婆婆的對話依任務狀態接續。
+- 澄鏡湖入口改為 `quest_forest_008` 完成後才開（T-186）：`maps.test.ts` 與 mirrorlake e2e 同步更新。過渡期間的 T-187 規則取代。
+- 測試：e2e `altar`（接任務、進戰場、淨化不死、三座石柱、回報）全過；`puffking`、`liyi`、`combat`、`lightpuzzle`、`granny`、`forestquest`、`crystal`、`creek`、`mirrorlake` 全過；`pnpm check` 1001 項。
+- 未做：第二階段的三座共鳴石柱「安全區」與召喚幻霧螢靈（目前只有霧球）；章節結尾的過場與對話（只有戰後的提示與菇菇婆婆的回報）；第三章「澄鏡湖」的正式入口文字（目前沿用既有的湖區）；根噬者的專屬模型與美術。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。
