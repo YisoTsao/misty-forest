@@ -70,8 +70,8 @@ export function PauseMenu() {
 function PauseWindow({ resume }: { resume: () => void }) {
   const mode = useOnlineStore((s) => s.mode);
   const displayName = useOnlineStore((s) => s.profile?.displayName ?? null);
-  // 沒有設定帳號服務的開發建置：保留手動連線（不需登入），方便本機測試多人
-  const showNet = mode === 'online' || !accountEnabled;
+  // 線上狀態按鈕只在本機（沒有設定帳號服務的開發建置，保留手動連線方便本機測試多人）；線上模式的狀態已經在畫面上（連線徽章）
+  const showNet = !accountEnabled;
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[2px]">
@@ -96,7 +96,8 @@ function PauseWindow({ resume }: { resume: () => void }) {
         >
           {t('pause.resume')}
         </button>
-        <SaveControls online={mode === 'online'} />
+        {/* 線上模式的進度由伺服器保存，暫停選單不提供儲存與匯出（單機才有） */}
+        {mode !== 'online' && <SaveControls />}
         <button
           type="button"
           data-testid="pause-map"
@@ -141,7 +142,7 @@ function PauseWindow({ resume }: { resume: () => void }) {
 }
 
 /** 手動存檔與匯出，以及最後一次存檔的狀態。線上角色存在資料庫，不提供匯出。 */
-function SaveControls({ online }: { online: boolean }) {
+function SaveControls() {
   const { saving, lastSavedAt, saveError } = useSaveStore();
   const [exportError, setExportError] = useState<string | null>(null);
   const onExport = async () => {
@@ -171,8 +172,7 @@ function SaveControls({ online }: { online: boolean }) {
         >
           {t('pause.save')}
         </button>
-        {!online && (
-          <button
+        <button
             type="button"
             data-testid="pause-export"
             disabled={saving}
@@ -180,8 +180,7 @@ function SaveControls({ online }: { online: boolean }) {
             className="flex-1 rounded-full bg-white/15 py-2 hover:bg-white/25 disabled:opacity-60"
           >
             {t('pause.export')}
-          </button>
-        )}
+        </button>
       </div>
       <p data-testid="save-status" className={`min-h-4 text-center text-xs ${saveError || exportError ? 'text-rose-300' : 'opacity-70'}`}>
         {exportError ? `${t('save.exportFailed')}：${exportError}` : status}

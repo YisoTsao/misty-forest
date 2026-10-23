@@ -24,6 +24,8 @@ export function createGameServer(options: { allowedOrigins?: OriginRule[]; verif
   WorldRoom.originRules = rules;
   // 帳號驗證：預設依環境變數（SUPABASE_URL、SUPABASE_PUBLISHABLE_KEY），沒設定就不驗證（任務 11M-7）
   WorldRoom.verifyAccount = options.verifyAccount !== undefined ? options.verifyAccount : verifierFromEnv(process.env);
+  // 啟動時記下帳號驗證是否啟用：沒啟用時同一帳號可以重複登入（Render 後台要設定 SUPABASE_URL、SUPABASE_PUBLISHABLE_KEY）
+  console.info(WorldRoom.verifyAccount ? '[world] 帳號驗證：已啟用（同一帳號只能一處連線）' : '[world] 帳號驗證：未設定 SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY，不會踢人');
   // 預設的 CORS 標頭含 `Access-Control-Allow-Origin: *`，而且會先放、再合併 getCorsHeaders 的結果：有允許清單時拿掉
   if (rules.length > 0) delete (matchMaker.controller.DEFAULT_CORS_HEADERS as Record<string, string>)['Access-Control-Allow-Origin'];
   matchMaker.controller.getCorsHeaders = (headers: Headers): Record<string, string> => {

@@ -57,17 +57,14 @@ export function WorldPlacements({ data }: { data: WorldData }) {
  */
 function HarvestableGroup({ prefab, placements }: { prefab: Prefab; placements: readonly Placement[] }) {
   const objects = useGameStateStore((s) => s.state.objects);
-  const [standing, harvested] = useMemo(() => {
-    const standing: Placement[] = [];
-    const harvested: Placement[] = [];
-    for (const p of placements) (objects.get(p.id)?.harvested ? harvested : standing).push(p);
-    return [standing, harvested];
-  }, [objects, placements]);
+  // 採集的實例不從陣列移除（會重建 InstancedMesh、畫面跳動），改用 hidden 隱藏
+  const harvested = useMemo(() => new Set(placements.filter((p) => objects.get(p.id)?.harvested).map((p) => p.id)), [objects, placements]);
+  const standing = useMemo(() => new Set(placements.filter((p) => !harvested.has(p.id)).map((p) => p.id)), [harvested, placements]);
   const harvestedModel = prefab.harvest?.harvestedModel;
   return (
     <>
-      <InstancedPrefab model={prefab.model} placements={standing} cullDistance={prefab.cullDistance} castShadow={prefab.castShadow} />
-      {harvestedModel && <InstancedPrefab model={harvestedModel} placements={harvested} cullDistance={prefab.cullDistance} castShadow={prefab.castShadow} />}
+      <InstancedPrefab model={prefab.model} placements={placements} hidden={harvested} cullDistance={prefab.cullDistance} castShadow={prefab.castShadow} />
+      {harvestedModel && <InstancedPrefab model={harvestedModel} placements={placements} hidden={standing} cullDistance={prefab.cullDistance} castShadow={prefab.castShadow} />}
     </>
   );
 }

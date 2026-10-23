@@ -108,12 +108,14 @@ const tmpRot = new THREE.Matrix4();
 function InstancedPart({
   part,
   placements,
+  hidden,
   receiveShadow,
   castShadow,
   anim,
 }: {
   part: Part;
   placements: readonly Placement[];
+  hidden?: ReadonlySet<string>;
   receiveShadow: boolean;
   castShadow: boolean;
   anim?: Animation;
@@ -129,8 +131,8 @@ function InstancedPart({
     placements.forEach((p, i) => {
       const phase = i * 1.7;
       const angle = anim.kind === 'spin' ? anim.speed * t + phase : Math.sin(anim.speed * t + phase) * (anim.amplitude ?? 0.2);
-      placementMatrix(p, tmpMatrix).multiply(part.local).multiply(tmpRot.makeRotationAxis(tmpAxis, angle));
-      mesh.setMatrixAt(i, tmpMatrix);
+      if (hidden?.has(p.id)) mesh.setMatrixAt(i, HIDDEN_MATRIX);
+      else mesh.setMatrixAt(i, placementMatrix(p, tmpMatrix).multiply(part.local).multiply(tmpRot.makeRotationAxis(tmpAxis, angle)));
     });
     mesh.instanceMatrix.needsUpdate = true;
   });
@@ -139,13 +141,15 @@ function InstancedPart({
     const mesh = ref.current;
     if (!mesh) return;
     placements.forEach((p, i) => {
-      placementMatrix(p, tmpMatrix).multiply(part.local);
-      mesh.setMatrixAt(i, tmpMatrix);
+      if (hidden?.has(p.id)) mesh.setMatrixAt(i, HIDDEN_MATRIX);
+      else mesh.setMatrixAt(i, placementMatrix(p, tmpMatrix).multiply(part.local));
     });
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [part, placements]);
+  }, [part, placements, hidden]);
 
+  // 實例數固定為 placements.length：採集或重生時只改矩陣（隱藏的實例縮成 0），不重建 InstancedMesh
+  // （重建會讓整批模型閃一下，畫面跳開又跳回來）
   return <instancedMesh ref={ref} args={[part.geometry, part.material, placements.length]} castShadow={castShadow} receiveShadow={receiveShadow} />;
 }
 
@@ -163,9 +167,14 @@ function useProceduralParts(model: string): Part[] {
   return parts;
 }
 
+/** 隱藏的實例：縮放為 0，不佔畫面也不投影 */
+const HIDDEN_MATRIX = new THREE.Matrix4().makeScale(0, 0, 0);
+
 type InstancedProps = {
   model: string;
   placements: readonly Placement[];
+  /** 這些 placement 暫時隱藏（採集後的樹、未採集的樹樁）：實例保留，矩陣縮成 0 */
+  hidden?: ReadonlySet<string>;
   animate?: Prefab['animate'];
   /** 超過這個距離的區塊不畫（省略時用 DEFAULT_CULL_DISTANCE） */
   cullDistance?: number;
@@ -235,6 +244,7 @@ function ChunkGroup({ placements, cullDistance, children }: { placements: readon
 function InstancedParts({
   parts,
   placements,
+  hidden,
   receiveShadow,
   animate,
   cullDistance = DEFAULT_CULL_DISTANCE,
@@ -250,6 +260,7 @@ function InstancedParts({
               key={part.key}
               part={part}
               placements={list}
+              hidden={hidden}
               receiveShadow={receiveShadow}
               castShadow={castShadow}
               anim={animate?.find((a) => a.node === part.name)}
