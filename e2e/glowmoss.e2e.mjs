@@ -17,6 +17,8 @@ const forestGate = placements.find((p) => p.id === 'glowmoss_gate_dawnvale');
 const tuft = placements.find((p) => p.prefabId === 'glowmoss_tuft' && p.regionId === 'glow_garden');
 const sign = placements.find((p) => p.id === 'glowmoss_signpost_broken');
 const chest = placements.find((p) => p.id === 'glowmoss_first_chest');
+const lamp = placements.find((p) => p.id === 'glowmoss_star_lamp_01');
+const pureNode = placements.find((p) => p.id === 'glowmoss_pure_node_01');
 const arch = placements.find((p) => p.id === 'glowmoss_mist_arch');
 const inGlowmoss = (s) => Math.abs(s.x - ORIGIN.x) < 170 && Math.abs(s.z - ORIGIN.z) < 170;
 
@@ -98,6 +100,43 @@ await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env 
     await dialog.waitFor({ state: 'detached', timeout: 2000 });
   });
 
+  await check('星光燈柱：沒有純淨螢苔時可以互動，但不會點亮', async () => {
+    await teleport(lamp.position[0] + 1.6, lamp.position[2], 900);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [lamp.position[0], lamp.position[2]]);
+    await page.waitForFunction((id) => window.__mistwoodDebug.interactTarget() === id, lamp.id, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(600);
+    assert.notEqual((await objectState(lamp.id))?.active, true);
+    assert.equal(await itemCount('pure_glowmoss'), 0);
+    assert.ok((await debug(() => window.__mistwoodDebug.mist())).target > 0.9, '點不亮時迷霧不能變淡');
+  });
+
+  await check('純淨螢苔採集點：採集得到一顆純淨螢苔', async () => {
+    await teleport(pureNode.position[0], pureNode.position[2] + 1.1, 900);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [pureNode.position[0], pureNode.position[2]]);
+    await page.waitForFunction((id) => window.__mistwoodDebug.interactTarget() === id, pureNode.id, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(1500);
+    assert.equal(await itemCount('pure_glowmoss'), 1);
+  });
+
+  await check('星光燈柱：消耗一顆純淨螢苔點亮，迷霧降一段，存檔狀態保留到讀檔', async () => {
+    await teleport(lamp.position[0] + 1.6, lamp.position[2], 900);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [lamp.position[0], lamp.position[2]]);
+    await page.waitForFunction((id) => window.__mistwoodDebug.interactTarget() === id, lamp.id, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    const dialog = page.locator('[data-testid="message-dialog"]');
+    await dialog.waitFor({ timeout: 2000 });
+    assert.match(await dialog.innerText(), /燈柱亮了起來/);
+    await page.keyboard.press('KeyE');
+    await dialog.waitFor({ state: 'detached', timeout: 2000 });
+    assert.equal((await objectState(lamp.id))?.active, true);
+    assert.equal(await itemCount('pure_glowmoss'), 0);
+    const mist = (await debug(() => window.__mistwoodDebug.mist())).target;
+    assert.ok(mist > 0.3 && mist < 0.7, `迷霧入口點亮後 ${mist}（應為淡霧）`);
+    assert.notEqual(await interactTarget(), lamp.id);
+  });
+
   await check('打開石拱門旁的第一個寶箱', async () => {
     const yaw = chest.rotation[1];
     await teleport(chest.position[0] + Math.sin(yaw) * 1.4, chest.position[2] + Math.cos(yaw) * 1.4, 900);
@@ -176,7 +215,7 @@ await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env 
   });
 });
 
-await runE2e('glowmoss e2e（2/2 讀檔）', { query: 'debug=1', env }, async ({ page, check, debug, state, interactTarget }) => {
+await runE2e('glowmoss e2e（2/2 讀檔）', { query: 'debug=1', env }, async ({ page, check, debug, state, interactTarget, objectState }) => {
   await check('繼續遊戲：在螢苔祕林醒來，顯示的是新地圖', async () => {
     await page.locator('[data-testid="title-continue"]').click();
     await page.locator('[data-testid="title-screen"]').waitFor({ state: 'detached', timeout: 5000 });
@@ -185,6 +224,7 @@ await runE2e('glowmoss e2e（2/2 讀檔）', { query: 'debug=1', env }, async ({
     assert.ok(inGlowmoss(s), `位置 (${s.x.toFixed(1)}, ${s.z.toFixed(1)})`);
     assert.ok(s.grounded);
     assert.deepEqual(await debug(() => window.__mistwoodDebug.currentMap()), { at: 'glowmoss', shown: 'glowmoss' });
+    assert.equal((await objectState('glowmoss_star_lamp_01'))?.active, true, '燈柱讀檔後應保持點亮');
   });
 
   await check('從迷霧入口的林道入口回到晨曦谷地（溪東荒野的林道入口前）', async () => {

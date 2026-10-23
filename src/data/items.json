@@ -4,6 +4,7 @@
   { "id": "flower", "nameKey": "item.flower.name", "descKey": "item.flower.desc", "icon": "flower", "category": "material", "maxStack": 99 },
   { "id": "herb", "nameKey": "item.herb.name", "descKey": "item.herb.desc", "icon": "herb", "category": "material", "maxStack": 99 },
   { "id": "glow_moss", "nameKey": "item.glow_moss.name", "descKey": "item.glow_moss.desc", "icon": "glow_moss", "category": "material", "maxStack": 99 },
+  { "id": "pure_glowmoss", "nameKey": "item.pure_glowmoss.name", "descKey": "item.pure_glowmoss.desc", "icon": "pure_glowmoss", "category": "material", "maxStack": 99 },
   { "id": "moondew_herb", "nameKey": "item.moondew_herb.name", "descKey": "item.moondew_herb.desc", "icon": "moondew", "category": "material", "maxStack": 99 },
   { "id": "glow_pollen", "nameKey": "item.glow_pollen.name", "descKey": "item.glow_pollen.desc", "icon": "pollen", "category": "material", "maxStack": 99 },
   { "id": "root_fiber", "nameKey": "item.root_fiber.name", "descKey": "item.root_fiber.desc", "icon": "fiber", "category": "material", "maxStack": 99 },

@@ -146,6 +146,9 @@ export function parseGameData(raw: {
     for (const need of [prefab.harvest?.quest, prefab.repair?.quest, prefab.activate?.quest]) {
       if (need !== undefined && !quests.has(need)) throw new WorldDataError(`prefab ${prefab.id} 參照不存在的任務：${need}`);
     }
+    for (const c of prefab.activate?.consume ?? []) {
+      if (!items.has(c.itemId)) throw new WorldDataError(`prefab ${prefab.id} 的啟動消耗參照不存在的物品：${c.itemId}`);
+    }
     const enter = prefab.enter;
     if (!enter) continue;
     for (const need of [enter.requires?.questCompleted, enter.requires?.questActive]) {

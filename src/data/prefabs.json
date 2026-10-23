@@ -2892,6 +2892,43 @@
     "castShadow": false
   },
   {
+    "id": "glowmoss_node",
+    "model": "procedural:glowmoss_tuft",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.pureGlowmoss",
+    "interactRadius": 1.6,
+    "harvest": {
+      "lootTableId": "glow_node_basic",
+      "respawnSec": 480,
+      "anim": "interact"
+    },
+    "persists": true,
+    "cullDistance": 80,
+    "castShadow": false
+  },
+  {
+    "id": "star_lamp",
+    "model": "procedural:star_lamp",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.35,
+      "height": 2.2
+    },
+    "interaction": "activate",
+    "nameKey": "object.starLamp",
+    "verbKey": "interact.lightStar",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:star_lamp_lit",
+      "consume": [{ "itemId": "pure_glowmoss", "count": 1 }],
+      "mistDown": true,
+      "message": { "titleKey": "lamp.lit.title", "bodyKey": "lamp.lit.body" }
+    },
+    "persists": true
+  },
+  {
     "id": "moondew",
     "model": "procedural:moondew",
     "collider": "none",

@@ -187,6 +187,10 @@ export function addGlowmoss(placements: Out[]): void {
   place('glowmoss_first_chest', 'chest_glowmoss', FIRST_CHEST.x, FIRST_CHEST.z, { yaw: Math.atan2(-2, 9), r: 2 });
   place('glowmoss_first_chest_root', 'root_arch', FIRST_CHEST.x - 0.6, FIRST_CHEST.z - 2.4, { yaw: 0.2, scale: 0.7, dy: -0.2, r: 2.5 });
   place('glowmoss_first_chest_mushroom', 'k_mushroom_red', FIRST_CHEST.x + 1.6, FIRST_CHEST.z + 0.6, { scale: 3.4, yaw: 1.2 });
+  // 第一座星光燈柱（規格 P-01）：拱門後方、小徑南側，走過去就看得見；純淨螢苔採集點在入口與小徑旁
+  place('glowmoss_star_lamp_01', 'star_lamp', -99, 8, { yaw: Math.PI / 2, r: 1.2 });
+  place('glowmoss_pure_node_01', 'glowmoss_node', -124, 8, { yaw: 0.6, r: 1 });
+  place('glowmoss_pure_node_02', 'glowmoss_node', -98, -5, { yaw: 2.1, r: 1 });
 
   // ── 3. B 螢苔花園：周圍的巨型蘑菇、發光立石、螢光花、樹根拱門 ──
   GARDEN_GIANTS.forEach(([a, r, s], i) => {

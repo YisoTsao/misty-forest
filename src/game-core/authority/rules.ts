@@ -11,7 +11,7 @@ import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored 
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
 import { type QuestDef, earlierObjectivesDone, isQuestTracked, talkObjectiveIndex, talksDone, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
-import type { MistStage } from '../world/mist';
+import { lowerMistStage, type MistStage } from '../world/mist';
 import { secondsUntilHour } from '../world/timeOfDay';
 import { initialMistStages, type MistStages } from '../world/regions';
 import type { RegionId } from '../world/types';
@@ -529,6 +529,11 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
   const events: GameEvent[] = [{ type: 'ObjectActivated', placementId, source: 'player' }];
   if (spec.consume) events.unshift({ type: 'ItemsRemoved', items: spec.consume.map((c) => ({ ...c })), reason: 'quest' });
   if (started) events.push({ type: 'QuestAccepted', quest: started.id });
+  if (spec.mistDown) {
+    const region = found.placement.regionId;
+    const next = lowerMistStage(state.mist[region]);
+    if (next !== state.mist[region]) events.push({ type: 'MistStageChanged', region, stage: next });
+  }
   if (spec.lootTableId) {
     // 背包放不下時不能啟動（物品不會遺失）
     const items = rollIntoInventory(state, spec.lootTableId, ctx);

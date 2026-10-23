@@ -65,7 +65,8 @@ export function installEventFeedback(): void {
       } else if (e.type === 'CommandRejected' && e.reason === 'missing-materials' && e.placementId) {
         // 列出需要的材料
         const placement = worldIndex.placement(e.placementId);
-        const materials = (placement && worldIndex.prefab(placement.prefabId)?.repair?.materials) ?? [];
+        const prefab = placement && worldIndex.prefab(placement.prefabId);
+        const materials = prefab?.repair?.materials ?? prefab?.activate?.consume ?? [];
         ui.pushToast({ textKey: 'toast.missingMaterials', vars: { materials: materials.map((m) => `${itemName(m.itemId)} ×${m.count}`).join('、') } });
       } else if (e.type === 'CommandRejected') {
         const key = rejectMessageKeys[e.reason];

@@ -349,30 +349,28 @@ function forestGate(): ForestModel {
 // ── 任務 8C：琳娜的路燈與奇奇的水道（Bible §6.4、§6.7 prop_forest_waterwheel / watergate） ──
 
 /** 林間路燈：木柱、彎出的橫桿掛著一盞小燈籠；lit 時燈裡的螢苔發光（+Z 面朝向小徑） */
-function trailLantern(lit: boolean): ForestModel {
-  const wood = c('#6e4a2f');
+/**
+ * 星光燈柱（任務 12C，規格 P-01）：石柱頂端的晶座。未啟動時晶體暗淡、像嵌在石頭裡；
+ * 點亮後晶體發出星光（光暈與漂浮的光點）。原點在底座中央，高約 2.6 m。
+ */
+function starLamp(lit: boolean): ForestModel {
   const solid = [
-    cylinder(0.09, 0.12, 2.2, [0, 0, 0], wood, 7),
-    cylinder(0.05, 0.05, 0.75, [0, 2.05, 0], wood, 5, [Math.PI / 2, 0, 0]),
-    cylinder(0.012, 0.012, 0.22, [0, 1.84, 0.68], c('#4a3524'), 4),
+    sphere(0.42, [0, 0.12, 0], MOSS, [1.2, 0.3, 1.2]),
+    cylinder(0.3, 0.38, 0.3, [0, 0.15, 0], STONE_DARK, 8),
+    cylinder(0.14, 0.18, 1.6, [0, 1.1, 0], STONE, 8),
+    cylinder(0.26, 0.2, 0.2, [0, 1.98, 0], STONE_DARK, 8),
+    cylinder(0.12, 0.2, 0.25, [0, 2.2, 0], STONE_DARK, 6),
   ];
-  // 燈籠：上下兩片木蓋、四根細柱
-  solid.push(cylinder(0.17, 0.2, 0.07, [0, 1.8, 0.68], wood, 6), cylinder(0.2, 0.16, 0.06, [0, 1.42, 0.68], wood, 6));
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-    solid.push(cylinder(0.014, 0.014, 0.32, [Math.cos(a) * 0.15, 1.48, 0.68 + Math.sin(a) * 0.15], wood, 4));
-  }
-  solid.push(sphere(0.28, [0, 0.05, 0], MOSS, [1.3, 0.35, 1.2]));
   if (!lit) {
-    solid.push(sphere(0.1, [0, 1.58, 0.68], c('#7c7f74'), [1, 0.8, 1], 0));
-    return { solid: merge(solid, '林間路燈') };
+    solid.push(sphere(0.16, [0, 2.45, 0], c('#5d6b7a'), [1, 1.5, 1], 0));
+    return { solid: merge(solid, '星光燈柱') };
   }
-  const glow = [sphere(0.15, [0, 1.6, 0.68], glowColor(MINT, 2.6), [1, 1.1, 1], 1)];
+  const glow = [sphere(0.2, [0, 2.45, 0], glowColor(MINT, 2.6), [1, 1.5, 1], 1)];
   for (let i = 0; i < 5; i++) {
     const a = (i / 5) * Math.PI * 2;
-    glow.push(sphere(0.035, [Math.cos(a) * 0.32, 0.12, Math.sin(a) * 0.32], glowColor(MINT, 1.6), [1, 1, 1], 0));
+    glow.push(sphere(0.035, [Math.cos(a) * 0.45, 1.6 + (i % 2) * 0.5, Math.sin(a) * 0.45], glowColor(MINT, 1.6), [1, 1, 1], 0));
   }
-  return { solid: merge(solid, '林間路燈'), glow: merge(glow, '林間路燈光') };
+  return { solid: merge(solid, '星光燈柱'), glow: merge(glow, '星光燈柱光') };
 }
 
 /** 分水木輪的骨架（原點在渠底中央，X 橫跨渠道）：兩根石柱、輪軸、頂上的平台；高約 6 m */
@@ -568,8 +566,8 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   giant_mushroom: giantMushroom,
   glow_stone: glowStone,
   forest_gate: forestGate,
-  trail_lantern: () => trailLantern(false),
-  trail_lantern_lit: () => trailLantern(true),
+  star_lamp: () => starLamp(false),
+  star_lamp_lit: () => starLamp(true),
   water_wheel_frame: waterWheelFrame,
   water_wheel_rotor: waterWheelRotor,
   water_wheel_spout: waterWheelSpout,

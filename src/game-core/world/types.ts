@@ -150,6 +150,8 @@ export const prefabSchema = z
         /** 另一個物件啟動 seconds 秒（遊戲時間）後才能啟動（任務 7L：離開一陣子再回來觀察） */
         after: z.object({ placement: z.string().min(1), seconds: z.number().positive() }).optional(),
         anim: z.enum(['attack', 'interact']).optional(),
+        /** 啟動後所在區域的迷霧降一段（任務 12C 星光燈柱：點亮後局部迷霧降低） */
+        mistDown: z.boolean().optional(),
         /** 玩家啟動時顯示的訊息（任務 9C：倒影裡看到的景象） */
         message: z.object({ titleKey: z.string().min(1), bodyKey: z.string().min(1) }).optional(),
       })
