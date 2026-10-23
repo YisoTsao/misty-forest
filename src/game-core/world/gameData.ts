@@ -10,6 +10,7 @@ import { parseItemData, type ItemCatalog, type LootTables } from '../items/items
 import { parseNpcs, type NpcDef } from '../npc/npc';
 import { parseQuests, type QuestCatalog } from '../quest/quest';
 import { parseFlocks, type FlockDef } from '../ambient/sheep';
+import { parsePuzzles, type PuzzleDef } from './puzzles';
 import { parseInteriors, type InteriorDef } from './interiors';
 import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
@@ -38,6 +39,7 @@ export type GameData = WorldData & {
   /** 世界地圖的地標（任務 7B） */
   landmarks: readonly Landmark[];
   lightPaths: readonly LightPathDef[];
+  puzzles: readonly PuzzleDef[];
   /** 商店（任務 7H） */
   shops: ReadonlyMap<string, ShopDef>;
   /** 工作台與配方（任務 7J） */
@@ -65,6 +67,7 @@ export function parseGameData(raw: {
   /** 省略時沒有地標（測試用的最小資料） */
   landmarks?: unknown;
   lightPaths?: unknown;
+  puzzles?: unknown;
   shops?: unknown;
   crafting?: unknown;
 }): GameData {
@@ -207,6 +210,19 @@ export function parseGameData(raw: {
     for (const id of l.mirrors) if (prefabOf(id)?.turn?.positions !== 4) throw new WorldDataError(`光路 ${l.id} 的水鏡必須能轉 4 個方向：${id}`);
     if (!prefabOf(l.target)?.activate) throw new WorldDataError(`光路 ${l.id} 的終點不是可啟動的物件：${l.target}`);
   }
+  let puzzles: readonly PuzzleDef[];
+  try {
+    puzzles = parsePuzzles(raw.puzzles ?? [], new Set(world.placements.map((p) => p.id)));
+  } catch (err) {
+    throw new WorldDataError(`puzzles 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  for (const pz of puzzles) {
+    for (const m of pz.members) {
+      const turn = placementsById.get(m.placement) && world.prefabs.get(placementsById.get(m.placement)!.prefabId)?.turn;
+      if (!turn) throw new WorldDataError(`謎題 ${pz.id} 的成員不能轉動：${m.placement}`);
+      if (m.turn >= turn.positions) throw new WorldDataError(`謎題 ${pz.id} 的答案超出 ${m.placement} 的位置數`);
+    }
+  }
   let shops: Map<string, ShopDef>;
   try {
     shops = parseShops(raw.shops ?? [], { items, npcs: new Set(npcs.map((n) => n.id)), quests: new Set(quests.keys()) });
@@ -219,5 +235,5 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`crafting 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, lightPaths, shops, crafting };
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, lightPaths, puzzles, shops, crafting };
 }

@@ -47,6 +47,8 @@ export function installEventFeedback(): void {
         const placement = worldIndex.placement(e.placementId);
         const message = placement && worldIndex.prefab(placement.prefabId)?.activate?.message;
         if (message) ui.showMessage(message);
+      } else if (e.type === 'ObjectActivated' && e.source === 'puzzle') {
+        ui.pushToast({ textKey: 'toast.barrierOpen' });
       } else if (e.type === 'ObjectActivated' && e.source === 'quest') {
         const nameKey = objectNameKey(e.placementId);
         if (nameKey) ui.pushToast({ textKey: 'toast.objectReleased', vars: { name: t(nameKey) } });

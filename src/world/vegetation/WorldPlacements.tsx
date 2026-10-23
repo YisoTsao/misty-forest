@@ -33,6 +33,7 @@ export function WorldPlacements({ data }: { data: WorldData }) {
         if (prefab.entity === 'chest') return list.map((p) => <Chest key={p.id} placement={p} model={prefab.model} />);
         if (prefab.harvest) return <HarvestableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.repair) return <RepairableGroup key={prefabId} prefab={prefab} placements={list} />;
+        if (prefab.turn && prefab.model) return <TurnableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.activate) return <ActivatableGroup key={prefabId} prefab={prefab} placements={list} />;
         return (
           <InstancedPrefab
@@ -102,6 +103,29 @@ function ActivatableGroup({ prefab, placements }: { prefab: Prefab; placements: 
     <>
       <InstancedPrefab model={prefab.model} placements={idle} castShadow={prefab.castShadow} />
       {activeModel && <InstancedPrefab model={activeModel} placements={active} castShadow={prefab.castShadow} />}
+    </>
+  );
+}
+
+/**
+ * 可轉動的機關（規格 P-02 水輪）：每個機關依權威狀態的轉動位置繞原點旋轉（轉軸沿模型的 X 軸）。
+ * 模型本身放在機關原點，外層的 group 負責擺放與朝向。
+ */
+function TurnableGroup({ prefab, placements }: { prefab: Prefab; placements: readonly Placement[] }) {
+  const objects = useGameStateStore((s) => s.state.objects);
+  const positions = prefab.turn?.positions ?? 4;
+  return (
+    <>
+      {placements.map((p) => {
+        const turn = objects.get(p.id)?.turn ?? 0;
+        return (
+          <group key={p.id} position={p.position} rotation={[0, p.rotation?.[1] ?? 0, 0]} scale={p.scale}>
+            <group rotation={[(turn * Math.PI * 2) / positions, 0, 0]}>
+              <InstancedPrefab model={prefab.model} placements={[{ ...p, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] }]} castShadow={prefab.castShadow} />
+            </group>
+          </group>
+        );
+      })}
     </>
   );
 }

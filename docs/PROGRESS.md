@@ -31,6 +31,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 13B：倒流溪谷水輪（第二章 Phase 2，規格 P-02）
+- 通用謎題（`src/game-core/world/puzzles.ts`、`src/data/puzzles.json`）：一組轉動機關全部轉到答案時，啟動開的物件（`ObjectActivated`，source `puzzle`），只在剛完成的那一刻啟動。答案由石碑（`creek_tablet`）讀出：1、3、2 格。
+- 三座水輪（`waterwheel`，`turn` 4 個位置，轉軸沿模型 X 軸，`TurnableGroup` 渲染）；石障 `creek_barrier` 擋住溪谷往上游的路，啟動後移除碰撞與模型。
+- 規格的「可推動石塊」與「壓力板」沒有做（需要推動與物理互動的新機制），留到之後。
+- 測試：`pnpm check`（Vitest 979 項，新增 `waterwheel.test.ts` 5 項）、`pnpm build`。e2e `creek`（讀石碑、轉錯不開、依答案開、存讀檔）全過；`glowmoss`、`forestquest` 重跑全過。截圖 `docs/screenshots/phase13/glowmoss_creek.png`：水輪外形偏簡，溪水在這個角度看不到，美術待改。
+- `pnpm check` 一次出現 1 項失敗、重跑全過（與 PROGRESS 已知的 WorldRoom 偶發逾時同類），未追查。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

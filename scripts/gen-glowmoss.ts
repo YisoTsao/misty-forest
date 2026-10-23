@@ -192,6 +192,16 @@ export function addGlowmoss(placements: Out[]): void {
   place('glowmoss_pure_node_01', 'glowmoss_node', -124, 8, { yaw: 0.6, r: 1 });
   place('glowmoss_pure_node_02', 'glowmoss_node', -98, -5, { yaw: 2.1, r: 1 });
 
+  // ── 2b. C 倒流溪谷（規格 P-02）：三座水輪在溪岸（答案在石碑上）、石障擋住溪谷往上游的路、石碑讀得到 ──
+  place('creek_wheel_01', 'waterwheel', -44, -56, { yaw: Math.PI / 2, r: 2.5 });
+  place('creek_wheel_frame_01', 'waterwheel_frame', -44, -56, { yaw: Math.PI / 2 });
+  place('creek_wheel_02', 'waterwheel', -34, -70, { yaw: Math.PI / 2, r: 2.5 });
+  place('creek_wheel_frame_02', 'waterwheel_frame', -34, -70, { yaw: Math.PI / 2 });
+  place('creek_wheel_03', 'waterwheel', -44, -86, { yaw: Math.PI / 2, r: 2.5 });
+  place('creek_wheel_frame_03', 'waterwheel_frame', -44, -86, { yaw: Math.PI / 2 });
+  place('creek_barrier', 'creek_barrier', -20, -102, { yaw: Math.PI / 2, r: 4 });
+  place('creek_tablet', 'creek_tablet', -30, -60, { yaw: 0.6, r: 1.2 });
+
   // ── 3. B 螢苔花園：周圍的巨型蘑菇、發光立石、螢光花、樹根拱門 ──
   GARDEN_GIANTS.forEach(([a, r, s], i) => {
     const x = GLOW_GARDEN.x + Math.cos(a) * r;

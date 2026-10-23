@@ -1,0 +1,22 @@
+[
+  {
+    "id": "creek_wheels",
+    "members": [
+      {
+        "placement": "creek_wheel_01",
+        "turn": 1
+      },
+      {
+        "placement": "creek_wheel_02",
+        "turn": 3
+      },
+      {
+        "placement": "creek_wheel_03",
+        "turn": 2
+      }
+    ],
+    "opens": [
+      "creek_barrier"
+    ]
+  }
+]

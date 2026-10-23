@@ -14,6 +14,7 @@ import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import type { Landmark } from '@/game-core/map/markers';
 import type { LightPathDef } from '@/game-core/world/lightPath';
+import type { PuzzleDef } from '@/game-core/world/puzzles';
 import { initialGameState, modifiersOf } from '@/game-core/authority/rules';
 import { parseHeroClasses, type HeroClassCatalog } from '@/game-core/character/heroClass';
 import classesRaw from '@/data/classes.json';
@@ -43,6 +44,7 @@ const data = worldDataResult.ok
       spells: new Map() as SpellCatalog,
       landmarks: [] as Landmark[],
       lightPaths: [] as LightPathDef[],
+      puzzles: [] as PuzzleDef[],
       shops: new Map() as ShopCatalog,
       crafting: { stations: [], recipes: [] } as CraftData,
     };
@@ -101,6 +103,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   heroClasses,
   buildables: data.buildables,
   lightPaths: data.lightPaths,
+  puzzles: data.puzzles,
   shops: data.shops,
   crafting: data.crafting,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),

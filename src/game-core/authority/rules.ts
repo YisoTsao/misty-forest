@@ -19,6 +19,7 @@ import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 import { targetsToLight, type LightPathDef } from '../world/lightPath';
+import { puzzleSolved, type PuzzleDef } from '../world/puzzles';
 import { availableStock, COIN, MAX_TRADE, type ShopCatalog } from '../shop/shop';
 import type { CraftData } from '../craft/craft';
 
@@ -213,7 +214,7 @@ export type GameEvent =
   | { type: 'ItemUnequipped'; slot: EquipSlot; itemId: string }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
-  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'quest' | 'light' }
+  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'quest' | 'light' | 'puzzle' }
   | { type: 'ObjectTurned'; placementId: string; turn: number }
   | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
   | { type: 'EnemyDespawned'; enemyId: string }
@@ -265,6 +266,8 @@ export type RulesContext = {
   shops?: ShopCatalog;
   /** 水鏡光路（任務 9D） */
   lightPaths?: readonly LightPathDef[];
+  /** 轉動機關的謎題（第二章 Phase 2）；省略時沒有謎題 */
+  puzzles?: readonly PuzzleDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
   isOccupied?: (x: number, z: number, margin: number) => boolean;
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
@@ -568,7 +571,17 @@ function turnObject(state: GameState, placementId: string, ctx: RulesContext): G
   if (found.prefab.interaction !== 'turn' || !spec) return reject('TurnObject', 'wrong-interaction', placementId);
   if (spec.quest && state.quests[spec.quest]?.status !== 'active') return reject('TurnObject', 'quest-unavailable', placementId);
   const turn = ((state.objects.get(placementId)?.turn ?? 0) + 1) % spec.positions;
-  return [{ type: 'ObjectTurned', placementId, turn }];
+  const events: GameEvent[] = [{ type: 'ObjectTurned', placementId, turn }];
+  // 謎題：這一下轉動讓整組機關都對準了 → 啟動謎題開的物件（只在剛完成的那一刻啟動）
+  const turnOf = (id: string) => (id === placementId ? turn : state.objects.get(id)?.turn ?? 0);
+  for (const puzzle of ctx.puzzles ?? []) {
+    if (!puzzle.members.some((m) => m.placement === placementId)) continue;
+    if (!puzzleSolved(puzzle, turnOf) || puzzleSolved(puzzle, (id) => state.objects.get(id)?.turn ?? 0)) continue;
+    for (const opened of puzzle.opens) {
+      if (!state.objects.get(opened)?.active) events.push({ type: 'ObjectActivated', placementId: opened, source: 'puzzle' });
+    }
+  }
+  return events;
 }
 
 /** 水鏡光路（任務 9D）：轉動水鏡後重新追光；光照到還沒啟動的終點（湖底閘門）時一併送出啟動事件 */
