@@ -1600,5 +1600,98 @@
         "textKey": "dlg.liyi.now"
       }
     }
+  },
+  {
+    "id": "lilu_intro",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.intro.greet",
+        "next": "more"
+      },
+      "more": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.intro.more"
+      }
+    }
+  },
+  {
+    "id": "lilu_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.offer.ask",
+        "options": [
+          {
+            "textKey": "dlg.lilu.opt.accept",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_001"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.lilu.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.offer.accept"
+      }
+    }
+  },
+  {
+    "id": "lilu_progress",
+    "start": "hint",
+    "nodes": {
+      "hint": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.progress"
+      }
+    }
+  },
+  {
+    "id": "lilu_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.turnin.ask",
+        "options": [
+          {
+            "textKey": "dlg.lilu.opt.report",
+            "next": "gift",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_001"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.lilu.opt.later"
+          }
+        ]
+      },
+      "gift": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.turnin.gift"
+      }
+    }
+  },
+  {
+    "id": "lilu_after",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.after"
+      }
+    }
   }
 ]

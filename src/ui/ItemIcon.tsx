@@ -35,6 +35,15 @@ const icons: Record<string, ReactNode> = {
       <circle cx="24" cy="7" r="3" fill="#f4fff0" stroke="#7fb27a" strokeWidth="1.2" />
     </>
   ),
+  star_compass: (
+    <>
+      <circle cx="24" cy="24" r="17" fill="#2b3a52" stroke="#d9b75a" strokeWidth="2.5" />
+      <circle cx="24" cy="24" r="12" fill="none" stroke="#8fa6c9" strokeWidth="1.2" />
+      <path d="M24 8 L27 24 L24 40 L21 24 Z" fill="#f4e3a1" stroke="#b8923a" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M24 24 L40 24 L24 27 Z" fill="#7fc8ff" opacity="0.8" />
+      <circle cx="24" cy="24" r="2.2" fill="#fff8dc" />
+    </>
+  ),
   pure_glowmoss: (
     <>
       <path d="M8 38 Q10 28 18 27 Q21 20 28 22 Q36 20 40 29 Q44 36 38 40 Q24 44 8 38 Z" fill="#2f6f58" stroke="#1d4d3c" strokeWidth="2" />

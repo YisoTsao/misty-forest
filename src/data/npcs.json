@@ -869,5 +869,66 @@
         "dialogue": "liyi_restored"
       }
     ]
+  },
+  {
+    "id": "lilu",
+    "nameKey": "npc.lilu",
+    "regionId": "mist_gate",
+    "model": "models/characters/kaykit-adventurers/Rogue.glb",
+    "scale": 0.72,
+    "hiddenNodes": [
+      "Knife_Offhand",
+      "1H_Crossbow",
+      "2H_Crossbow",
+      "Knife",
+      "Throwable"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Cheer"
+    },
+    "position": [
+      1896,
+      12
+    ],
+    "facingYaw": 3.14,
+    "interactRadius": 2.6,
+    "talk": [
+      {
+        "when": {
+          "type": "questReady",
+          "quest": "quest_forest_001"
+        },
+        "dialogue": "lilu_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_001",
+          "is": "active"
+        },
+        "dialogue": "lilu_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_001",
+          "is": "available"
+        },
+        "dialogue": "lilu_offer"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_001",
+          "is": "completed"
+        },
+        "dialogue": "lilu_after"
+      },
+      {
+        "dialogue": "lilu_intro"
+      }
+    ]
   }
 ]

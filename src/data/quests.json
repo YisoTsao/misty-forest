@@ -466,5 +466,32 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_001",
+    "nameKey": "quest.forest1.name",
+    "category": "main",
+    "descKey": "quest.forest1.desc",
+    "giver": "lilu",
+    "requires": [
+      "quest_dawn_003"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "glowmoss_star_lamp_01"
+        ],
+        "descKey": "quest.forest1.lamp"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "star_compass",
+          "count": 1
+        }
+      ]
+    }
   }
 ]

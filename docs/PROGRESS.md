@@ -1,7 +1,7 @@
 # 開發進度
 
 ## 目前階段
-**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行：**12A、12B、12C、12D 完成**（移除舊版祕林、存檔 v18；新地形與 A 迷霧入口、B 螢苔花園、存檔 v19；第一座星光燈柱、純淨螢苔與採集點；螢苔史萊姆），下一步 12E 莉露與第一個完整任務。**
+**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行：**12A–12E 完成，第二章 Phase 1 垂直切片完成（待使用者驗收；見下方 12E 的未做項）**（移除舊版祕林、存檔 v18；新地形與 A 迷霧入口、B 螢苔花園、存檔 v19；第一座星光燈柱、純淨螢苔與採集點；螢苔史萊姆；莉露與 `quest_forest_001`）。**下一步：Phase 2（倒流溪谷、蘑菇居民聚落、主要 NPC 與商店、裝備流程），見 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` §15。**
 
 **Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）、11D（部署：Vercel + Render 上線，2026-10-15 使用者以兩個瀏覽器在正式網址驗收連線成功）、11E（攻擊與施法的同步）、11F（聊天）完成。正式網址 https://mistwood-blue.vercel.app。路線圖（使用者 2026-10-16 決定）：聊天 → 登入與雲端存檔（11G）→ 日光與資源共享 → 怪物共享 → 手機版（先做能玩）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
@@ -31,6 +31,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 12E：莉露與 quest_forest_001「失去光芒的森林」（2026-10-23，分支 `wip/ch2-glowmoss`，規格 CH2-MQ-01）
+- 莉露（`lilu`，placeholder 模型：KayKit Rogue，之後換正式模型）在迷霧入口的燈柱旁。第一章完成（`quest_dawn_003`）後提出委託，接取 → 採集純淨螢苔 → 點亮 `glowmoss_star_lamp_01` → 回報，拿到星光羅盤（`star_compass`，只給道具，指引功能之後做）。之後莉露改說後續的話。
+- 目標只有「點亮燈柱」。規格的「採集」由燈柱的素材需求承接（純淨螢苔被燈柱消耗，所以不能做成「持有數量」的收集目標）；莉露的「回報」是 `turnInQuest`，不另設 `talk` 目標（對話在任務就緒後才出現，不能當作目標）。
+- 存檔不改版（任務紀錄與道具本來就在存檔裡）。
+- 測試：`pnpm check`（Vitest 961 項，新增 `forestQuest.test.ts` 4 項）、`pnpm build` 通過。e2e 新增 `forestquest`（接取、採集、點亮、回報、存檔、讀檔，共 7 項）全過；`glowmoss`、`glowslime`、`npc`、`quest`、`journal` 重跑未見失敗。截圖 `docs/screenshots/phase12/glowmoss_lilu.png`（已檢視：莉露在燈柱旁，外形為暫用模型）。
+- 未做（Phase 1 驗收前）：完整 `pnpm e2e`（收尾前跑）、`perf.mjs`（規格的階段驗收，需要使用者離開電腦時跑）、合回 `develop`（分支落後 `develop` 很多，且決策編號 T-188 撞號，見 DECISIONS）。
+
 ### 任務 12D：螢苔史萊姆（2026-10-23，分支 `wip/ch2-glowmoss`，規格 M-01）
 - `mob_moss_slime`：GreenBlob 換色（薄荷綠）、跳撞（沿用 `lunge`）、黏液噴射（沿用 `spit`，距離 2.5–6 m、減速）、擊破後分裂成兩隻 `mob_moss_slime_small`（沿用 `splitInto`，小的不再分裂）。生成點 `glowmoss_slimes_a`（A）、`glowmoss_slimes_b`（B）。
 - 掉落：螢苔凝膠（`moss_gel`，60%）、微光孢子（`glow_spore`，35%）；小史萊姆只掉凝膠 20%。新增兩個材料，圖示沿用既有的凝膠與花粉造型。
