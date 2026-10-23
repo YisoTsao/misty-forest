@@ -1,7 +1,7 @@
 # 開發進度
 
 ## 目前階段
-**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行：**12A、12B、12C 完成**（移除舊版祕林、存檔 v18；新地形與 A 迷霧入口、B 螢苔花園、存檔 v19；第一座星光燈柱、純淨螢苔與採集點），下一步 12D 螢苔史萊姆。**
+**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行：**12A、12B、12C、12D 完成**（移除舊版祕林、存檔 v18；新地形與 A 迷霧入口、B 螢苔花園、存檔 v19；第一座星光燈柱、純淨螢苔與採集點；螢苔史萊姆），下一步 12E 莉露與第一個完整任務。**
 
 **Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）、11D（部署：Vercel + Render 上線，2026-10-15 使用者以兩個瀏覽器在正式網址驗收連線成功）、11E（攻擊與施法的同步）、11F（聊天）完成。正式網址 https://mistwood-blue.vercel.app。路線圖（使用者 2026-10-16 決定）：聊天 → 登入與雲端存檔（11G）→ 日光與資源共享 → 怪物共享 → 手機版（先做能玩）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
@@ -31,6 +31,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 12D：螢苔史萊姆（2026-10-23，分支 `wip/ch2-glowmoss`，規格 M-01）
+- `mob_moss_slime`：GreenBlob 換色（薄荷綠）、跳撞（沿用 `lunge`）、黏液噴射（沿用 `spit`，距離 2.5–6 m、減速）、擊破後分裂成兩隻 `mob_moss_slime_small`（沿用 `splitInto`，小的不再分裂）。生成點 `glowmoss_slimes_a`（A）、`glowmoss_slimes_b`（B）。
+- 掉落：螢苔凝膠（`moss_gel`，60%）、微光孢子（`glow_spore`，35%）；小史萊姆只掉凝膠 20%。新增兩個材料，圖示沿用既有的凝膠與花粉造型。
+- 與規格的差異：規格寫「低血量時分裂」，現有的分裂機制是擊破時分裂（水泡精同），沿用之；「星光攻擊弱點」目前沒有屬性剋制系統，未做。
+- 測試：`pnpm check`（Vitest 957 項，新增 `mossSlime.test.ts` 6 項）、`pnpm build` 通過。e2e 新增 `glowslime`（A、B 生成、分裂與小的不再分裂）全過。截圖 `docs/screenshots/phase12/monster_mob_moss_slime.png`（已檢視：外形可辨識，顏色偏灰白，霧重時尤其明顯，之後可調）。
+
 ### 任務 12C：星光燈柱與純淨螢苔（2026-10-23，分支 `wip/ch2-glowmoss`，規格 P-01、Bible §6.4）
 - 第一座星光燈柱（`glowmoss_star_lamp_01`）放在 A 迷霧入口的拱門後方、小徑南側。未啟動的晶體暗淡；消耗一顆純淨螢苔點亮，所在區域（`mist_gate`）的迷霧從濃霧降到淡霧（`activate.mistDown`，純函式 `lowerMistStage`），顯示訊息。素材不足時的提示列出需要的材料（沿用 `missing-materials` 的吐司）。
 - `pure_glowmoss`（純淨螢苔，材料，圖示 `ItemIcon`）；採集點 `glowmoss_node`（`glow_node_basic`：純淨螢苔 1，螢苔 50%；480 秒重生），兩個放在 A 區入口與小徑旁。

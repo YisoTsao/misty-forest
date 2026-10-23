@@ -5,6 +5,8 @@
   { "id": "deepwood_slimes", "regionId": "forest", "enemy": "mob_mist_slime", "center": [70, -108], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 40 },
   { "id": "farm_fluffs", "regionId": "farmland", "enemy": "mob_windfluff", "center": [-112, -56], "radius": 10, "budget": { "dense": 3, "light": 3, "clear": 3 }, "respawnSec": 45 },
   { "id": "south_fluffs", "regionId": "meadow", "enemy": "mob_windfluff", "center": [-40, 124], "radius": 11, "budget": { "dense": 3, "light": 3, "clear": 3 }, "respawnSec": 45 },
+  { "id": "glowmoss_slimes_a", "regionId": "mist_gate", "enemy": "mob_moss_slime", "center": [1880, -8], "radius": 6, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 },
+  { "id": "glowmoss_slimes_b", "regionId": "glow_garden", "enemy": "mob_moss_slime", "center": [1944, 6], "radius": 8, "budget": { "dense": 2, "light": 2, "clear": 1 }, "respawnSec": 45 },
   { "id": "river_bubbles", "regionId": "river", "enemy": "mob_bubble_wisp", "center": [117, 50], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 2 }, "respawnSec": 45 },
   { "id": "river_frogs", "regionId": "river", "enemy": "mob_marsh_frog", "center": [118, -32], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 2 }, "respawnSec": 50 },
   { "id": "highland_bats", "regionId": "highland", "enemy": "mob_dusk_bat", "center": [-82, -136], "radius": 12, "budget": { "dense": 4, "light": 3, "clear": 2 }, "respawnSec": 45 },

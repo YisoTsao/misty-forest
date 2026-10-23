@@ -363,6 +363,79 @@
     }
   },
   {
+    "id": "mob_moss_slime",
+    "nameKey": "enemy.mob_moss_slime",
+    "maxHp": 28,
+    "damage": 6,
+    "moveSpeed": 2.4,
+    "aggroRadius": 8,
+    "attackRange": 1.6,
+    "attackWindup": 0.6,
+    "attackCooldown": 1.9,
+    "leashRadius": 16,
+    "lootTableId": "mob_moss_slime_drop",
+    "model": {
+      "path": "models/monsters/GreenBlob.glb",
+      "height": 0.85,
+      "radius": 0.4,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Jump",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Green_Main": "#9fe3b8"
+      }
+    },
+    "lunge": 3,
+    "behavior": {
+      "kind": "spit",
+      "minRange": 2.5,
+      "range": 6,
+      "windup": 0.8,
+      "cooldown": 5,
+      "speed": 6,
+      "damage": 3,
+      "slowSec": 1.2,
+      "slowScale": 0.7
+    },
+    "splitInto": {
+      "enemy": "mob_moss_slime_small",
+      "count": 2
+    }
+  },
+  {
+    "id": "mob_moss_slime_small",
+    "nameKey": "enemy.mob_moss_slime_small",
+    "maxHp": 12,
+    "damage": 3,
+    "moveSpeed": 3,
+    "aggroRadius": 10,
+    "attackRange": 1.3,
+    "attackWindup": 0.45,
+    "attackCooldown": 1.5,
+    "leashRadius": 18,
+    "lootTableId": "mob_moss_slime_small_drop",
+    "model": {
+      "path": "models/monsters/GreenBlob.glb",
+      "height": 0.55,
+      "radius": 0.3,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Jump",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Green_Main": "#b6f0cf"
+      }
+    },
+    "lunge": 2
+  },
+  {
     "id": "mob_bubble_wisp",
     "nameKey": "enemy.mob_bubble_wisp",
     "maxHp": 36,
