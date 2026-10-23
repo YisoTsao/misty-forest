@@ -79,5 +79,8 @@
   ],
   "dodge": [
     "KeyZ"
+  ],
+  "lumen": [
+    "KeyG"
   ]
 }

@@ -82,6 +82,8 @@ export function PlayerCombat() {
     const attackPressed = input.consumePressed('attack');
     const heavyPressed = input.consumePressed('heavyAttack');
     const healPressed = input.consumePressed('quickHeal');
+    // 星光照明（第二章 Phase 3）：揭露隱藏的寶箱；星光不夠時權威層會拒絕並提示
+    const lumenPressed = input.consumePressed('lumen');
     const state = authority.getState();
     const switchTo = pressedWeapon(state.player.weapon);
     // 建造模式中左鍵用來放置（BuildController），數字鍵選建造物
@@ -91,6 +93,7 @@ export function PlayerCombat() {
       return;
     }
     if (healPressed && !isModalOpen()) quickHeal();
+    if (lumenPressed && !isModalOpen()) authority.send({ type: 'Lumen' });
 
     // 倒下：一段時間後重新站起來，回到重生點
     if (state.player.defeated) {

@@ -162,7 +162,7 @@ describe('版本遷移', () => {
       quests: { mend: { status: 'completed' } },
     };
     const loaded = fromSaveData(v4, ctx);
-    expect(loaded.state.player).toEqual({ weapon: 'sword', heroClass: 'traveler', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false, rollUntil: 0, rollReadyAt: 0 });
+    expect(loaded.state.player).toEqual({ weapon: 'sword', heroClass: 'traveler', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false, rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 });
     expect(loaded.state.enemies.size).toBe(0);
     expect(loaded.state.objects.get('b1')?.repaired).toBe(true);
   });
@@ -172,7 +172,7 @@ describe('版本遷移', () => {
     const state: GameState = {
       ...base,
       quests: { hunt: { status: 'active', progress: [2] } },
-      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42, heroClass: 'traveler', rollUntil: 0, rollReadyAt: 0 },
+      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42, heroClass: 'traveler', rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 },
       enemies: new Map([['sp#1', { id: 'sp#1', kind: 'wisp', spawner: 'sp', hp: 20 }]]),
       spawners: { sp: { nextSpawnAt: 12, counter: 1 } },
     };
@@ -183,7 +183,7 @@ describe('版本遷移', () => {
     expect(loaded.spawners.sp).toEqual({ nextSpawnAt: 12, counter: 1 });
     expect(loaded.player.weapon).toBe('knife');
     expect(loaded.player.mp).toBe(42);
-    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10, heroClass: 'traveler', rollUntil: 0, rollReadyAt: 0 } }, player, new Date())).state;
+    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10, heroClass: 'traveler', rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 } }, player, new Date())).state;
     expect(downed.player).toMatchObject({ hp: 100, defeated: false, weapon: 'fist' });
   });
 

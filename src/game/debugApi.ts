@@ -75,6 +75,7 @@ export type MistwoodDebugApi = {
     anim: string;
     grounded: boolean;
     rolling: boolean;
+    lumen: boolean;
     speed: number;
     facingYaw: number;
     action: string | null;
@@ -299,6 +300,8 @@ export function installDebugApi(): void {
         grounded: l.grounded,
         /** 翻滾動作中（第二章 Phase 3） */
         rolling: l.rollTimer > 0,
+        /** 星光照明中（第二章 Phase 3） */
+        lumen: authority.getState().time < authority.getState().player.lumenUntil,
         speed: Math.hypot(l.vx, l.vz),
         facingYaw: l.facingYaw,
         action: playerRuntime.action?.clip ?? null,

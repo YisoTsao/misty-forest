@@ -108,6 +108,8 @@ export const prefabSchema = z
     /** 寶箱內容（打開時給予，只能領一次） */
     contents: z.object({
       lootTableId: z.string().min(1),
+      /** 隱藏的寶箱：要先用星光照明揭露才能打開（第二章 Phase 3） */
+      requiresLumen: z.boolean().optional(),
       /** 打開時解鎖星光夥伴（序章：碎片裡飛出了小星星） */
       unlocksCompanion: z.boolean().optional(),
       /** 打開時開始這個任務（任務 7O：芽芽說要帶你去晨曦村；任務必須可接取） */

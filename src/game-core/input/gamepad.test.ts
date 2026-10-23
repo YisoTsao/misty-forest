@@ -20,7 +20,7 @@ describe('手把配置', () => {
     const pad = parsePadBindings(padData);
     const keyboard = parseBindings(keybindings);
     for (const action of Object.keys(keyboard)) {
-      if (action.startsWith('move') || action === 'pause' || action === 'map' || action === 'journal' || action === 'quickHeal' || action === 'dodge' || /^weapon\d$/.test(action)) continue;
+      if (action.startsWith('move') || action === 'pause' || action === 'map' || action === 'journal' || action === 'quickHeal' || action === 'dodge' || action === 'lumen' || /^weapon\d$/.test(action)) continue;
       expect(pad[action as keyof typeof pad]?.length, action).toBeGreaterThan(0);
     }
   });

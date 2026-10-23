@@ -5067,5 +5067,57 @@
       "boss": "boss_root_devourer"
     },
     "persists": true
+  },
+  {
+    "id": "corruption_root",
+    "model": "procedural:root_arch",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        2.4,
+        1.6,
+        1.2
+      ]
+    },
+    "interaction": "activate",
+    "nameKey": "object.corruptionRoot",
+    "verbKey": "interact.purify",
+    "interactRadius": 2.4,
+    "activate": {
+      "consume": [
+        {
+          "itemId": "pure_glowmoss",
+          "count": 1
+        }
+      ],
+      "message": {
+        "titleKey": "corruption.cleared.title",
+        "bodyKey": "corruption.cleared.body"
+      }
+    },
+    "persists": true
+  },
+  {
+    "id": "hidden_cache",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.hiddenCache",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_glowmoss",
+      "requiresLumen": true
+    }
   }
 ]

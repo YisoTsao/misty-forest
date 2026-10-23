@@ -210,6 +210,10 @@ export function addGlowmoss(placements: Out[]): void {
   place('crystal_mirror_03', 'crystal_mirror', 24, -136, { r: 1.5 });
   // 石門在環狀山脊的開口上（半徑 26），面向祕窟中心
   place('crystal_gate', 'crystal_gate', 43.6, -134.9, { yaw: Math.atan2(-12, 26) + Math.PI / 2, r: 2 });
+  // 污染根瘤（規格 P-06 / §5.2）：深層的紫色根，用一顆純淨螢苔淨化；隱藏的寶箱（需要照明）藏在花園的石頭後面
+  place('corruption_root_01', 'corruption_root', 50, 74, { yaw: 0.4, r: 2.5 });
+  place('corruption_root_02', 'corruption_root', 62, 108, { yaw: 2.2, r: 2.5 });
+  place('hidden_cache_01', 'hidden_cache', -60, -18, { yaw: 2.4, r: 2 });
   // 寶箱與石碑放在祕窟中央較平的地面（高度 0.4），不在光路上
   place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
   place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });

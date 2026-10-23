@@ -126,6 +126,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
         heroClass: data.loadout.heroClass,
         rollUntil: 0,
         rollReadyAt: 0,
+        lumenUntil: 0,
       },
       enemies,
       spawners: data.combat.spawners,

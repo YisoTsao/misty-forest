@@ -73,6 +73,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 測試：e2e `altar`（接任務、進戰場、淨化不死、三座石柱、回報）全過；`puffking`、`liyi`、`combat`、`lightpuzzle`、`granny`、`forestquest`、`crystal`、`creek`、`mirrorlake` 全過；`pnpm check` 1001 項。
 - 未做：第二階段的三座共鳴石柱「安全區」與召喚幻霧螢靈（目前只有霧球）；章節結尾的過場與對話（只有戰後的提示與菇菇婆婆的回報）；第三章「澄鏡湖」的正式入口文字（目前沿用既有的湖區）；根噬者的專屬模型與美術。
 
+### 任務 13H：星光照明、污染根瘤、隱藏的寶箱（第二章 Phase 3，規格 10.2、§5.2）
+- 星光照明（動作 `lumen`，鍵盤 G；手把沒有按鈕，測試中豁免）：花 15 點星光值，12 秒內揭露隱藏的寶箱（`contents.requiresLumen`）。權威指令 `Lumen`；星光不夠時拒絕並提示。不存檔。
+- 污染根瘤（`corruption_root`，兩個在迷霧深層）：用一顆純淨螢苔淨化，根瘤消失並顯示訊息。
+- 隱藏的寶箱（`hidden_cache_01`，花園石頭後面）：沒有照明打不開，照明中打得開。
+- 規格的差異：照明還不會「揭露」畫面上的線索（隱藏寶箱一直看得見，只是打不開），幻霧螢靈的現形也還沒做；污染根瘤沒有戰鬥淨化的路徑。
+- 測試：`starLumen.test.ts` 4 項；e2e `lumen`（沒照明打不開、按 G、照明中打開）全過；`combat`、`melee`、`dev`、`settings`、`gamepad`、`save` 重跑全過。`pnpm check` 1007 項通過。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。

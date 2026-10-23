@@ -53495,6 +53495,66 @@
     ]
   },
   {
+    "id": "corruption_root_01",
+    "prefabId": "corruption_root",
+    "regionId": "deep_mist",
+    "position": [
+      2050,
+      -0.53,
+      74
+    ],
+    "rotation": [
+      0,
+      0.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "corruption_root_02",
+    "prefabId": "corruption_root",
+    "regionId": "deep_mist",
+    "position": [
+      2062,
+      -0.33,
+      108
+    ],
+    "rotation": [
+      0,
+      2.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "hidden_cache_01",
+    "prefabId": "hidden_cache",
+    "regionId": "glow_garden",
+    "position": [
+      1940,
+      0.47,
+      -18
+    ],
+    "rotation": [
+      0,
+      2.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "crystal_chest",
     "prefabId": "crystal_chest",
     "regionId": "crystal_grotto",
@@ -57159,19 +57219,19 @@
     "prefabId": "moondew_decor",
     "regionId": "glow_garden",
     "position": [
-      1942.31,
+      1969.82,
       0.45,
-      -17.71
+      1.99
     ],
     "rotation": [
       0,
-      6.13,
+      5.07,
       0
     ],
     "scale": [
-      1.74,
-      1.94,
-      1.74
+      1.41,
+      1.31,
+      1.41
     ]
   },
   {
@@ -65936,26 +65996,6 @@
   },
   {
     "id": "glowmoss_tree_352",
-    "prefabId": "gm_tree_default",
-    "regionId": "deep_mist",
-    "position": [
-      2060.32,
-      -0.35,
-      109.46
-    ],
-    "rotation": [
-      0,
-      5.38,
-      0
-    ],
-    "scale": [
-      9.28,
-      9.58,
-      9.28
-    ]
-  },
-  {
-    "id": "glowmoss_tree_353",
     "prefabId": "k_tree_tall_dark",
     "regionId": "deep_mist",
     "position": [
@@ -65975,7 +66015,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_354",
+    "id": "glowmoss_tree_353",
     "prefabId": "gm_tree_plateau",
     "regionId": "glow_garden",
     "position": [
@@ -65995,7 +66035,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_355",
+    "id": "glowmoss_tree_354",
     "prefabId": "gm_tree_oak",
     "regionId": "mist_gate",
     "position": [
@@ -66015,7 +66055,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_356",
+    "id": "glowmoss_tree_355",
     "prefabId": "gm_tree_simple",
     "regionId": "mist_gate",
     "position": [
@@ -66035,7 +66075,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_357",
+    "id": "glowmoss_tree_356",
     "prefabId": "k_tree_tall_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66055,7 +66095,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_358",
+    "id": "glowmoss_tree_357",
     "prefabId": "gm_tree_fat",
     "regionId": "glow_garden",
     "position": [
@@ -66075,7 +66115,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_359",
+    "id": "glowmoss_tree_358",
     "prefabId": "gm_tree_fat",
     "regionId": "glow_garden",
     "position": [
@@ -66095,7 +66135,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_360",
+    "id": "glowmoss_tree_359",
     "prefabId": "gm_tree_thin",
     "regionId": "glow_garden",
     "position": [
@@ -66115,7 +66155,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_361",
+    "id": "glowmoss_tree_360",
     "prefabId": "gm_tree_detailed",
     "regionId": "glow_garden",
     "position": [
@@ -66135,7 +66175,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_362",
+    "id": "glowmoss_tree_361",
     "prefabId": "gm_tree_plateau",
     "regionId": "glow_garden",
     "position": [
@@ -66155,7 +66195,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_363",
+    "id": "glowmoss_tree_362",
     "prefabId": "k_tree_tall_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66175,7 +66215,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_364",
+    "id": "glowmoss_tree_363",
     "prefabId": "gm_tree_detailed",
     "regionId": "ancient_altar",
     "position": [
@@ -66195,7 +66235,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_365",
+    "id": "glowmoss_tree_364",
     "prefabId": "gm_tree_fat",
     "regionId": "glow_garden",
     "position": [
@@ -66215,7 +66255,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_366",
+    "id": "glowmoss_tree_365",
     "prefabId": "k_tree_cone_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66235,7 +66275,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_367",
+    "id": "glowmoss_tree_366",
     "prefabId": "k_tree_tall_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66255,7 +66295,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_368",
+    "id": "glowmoss_tree_367",
     "prefabId": "k_tree_cone_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66275,7 +66315,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_369",
+    "id": "glowmoss_tree_368",
     "prefabId": "k_tree_tall_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66295,7 +66335,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_370",
+    "id": "glowmoss_tree_369",
     "prefabId": "gm_tree_simple",
     "regionId": "deep_mist",
     "position": [
@@ -66315,7 +66355,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_371",
+    "id": "glowmoss_tree_370",
     "prefabId": "k_tree_tall_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66335,7 +66375,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_372",
+    "id": "glowmoss_tree_371",
     "prefabId": "gm_tree_thin",
     "regionId": "glow_garden",
     "position": [
@@ -66355,7 +66395,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_373",
+    "id": "glowmoss_tree_372",
     "prefabId": "gm_tree_simple",
     "regionId": "glow_garden",
     "position": [
@@ -66375,7 +66415,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_374",
+    "id": "glowmoss_tree_373",
     "prefabId": "gm_tree_plateau",
     "regionId": "glow_garden",
     "position": [
@@ -66395,7 +66435,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_375",
+    "id": "glowmoss_tree_374",
     "prefabId": "gm_tree_plateau",
     "regionId": "glow_garden",
     "position": [
@@ -66415,7 +66455,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_376",
+    "id": "glowmoss_tree_375",
     "prefabId": "k_tree_cone_dark",
     "regionId": "glow_garden",
     "position": [
@@ -66435,7 +66475,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_377",
+    "id": "glowmoss_tree_376",
     "prefabId": "gm_tree_plateau",
     "regionId": "glow_garden",
     "position": [
@@ -66455,7 +66495,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_378",
+    "id": "glowmoss_tree_377",
     "prefabId": "gm_tree_plateau",
     "regionId": "reverse_creek",
     "position": [
@@ -66475,7 +66515,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_379",
+    "id": "glowmoss_tree_378",
     "prefabId": "gm_tree_thin",
     "regionId": "glow_garden",
     "position": [
@@ -66495,7 +66535,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_380",
+    "id": "glowmoss_tree_379",
     "prefabId": "gm_tree_fat",
     "regionId": "glow_garden",
     "position": [
@@ -66515,7 +66555,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_381",
+    "id": "glowmoss_tree_380",
     "prefabId": "gm_tree_default",
     "regionId": "deep_mist",
     "position": [
@@ -66535,7 +66575,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_382",
+    "id": "glowmoss_tree_381",
     "prefabId": "gm_tree_oak",
     "regionId": "glow_garden",
     "position": [
@@ -66555,7 +66595,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_383",
+    "id": "glowmoss_tree_382",
     "prefabId": "k_tree_tall_dark",
     "regionId": "deep_mist",
     "position": [
@@ -66575,7 +66615,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_384",
+    "id": "glowmoss_tree_383",
     "prefabId": "gm_tree_thin",
     "regionId": "mist_gate",
     "position": [
@@ -66595,7 +66635,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_385",
+    "id": "glowmoss_tree_384",
     "prefabId": "gm_tree_thin",
     "regionId": "glow_garden",
     "position": [
@@ -66615,7 +66655,7 @@
     ]
   },
   {
-    "id": "glowmoss_tree_386",
+    "id": "glowmoss_tree_385",
     "prefabId": "gm_tree_thin",
     "regionId": "glow_garden",
     "position": [
@@ -66632,6 +66672,26 @@
       9.73,
       10.25,
       9.73
+    ]
+  },
+  {
+    "id": "glowmoss_tree_386",
+    "prefabId": "gm_tree_simple",
+    "regionId": "deep_mist",
+    "position": [
+      2054.77,
+      -0.35,
+      108.49
+    ],
+    "rotation": [
+      0,
+      4.29,
+      0
+    ],
+    "scale": [
+      7.26,
+      7.63,
+      7.26
     ]
   },
   {

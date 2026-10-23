@@ -1197,5 +1197,12 @@
   "dlg.granny.root.accept": "祭壇的三座石柱能幫忙。打倒它的時候，它會停下來，那就是淨化開始的地方。",
   "dlg.granny.root.progress": "根噬者還在祭壇裡。別忘了點亮石柱。",
   "dlg.granny.root.done": "古樹……在呼吸了。我好像聽見了聚落的孩子在唱歌。",
-  "dlg.granny.root.after": "往湖邊去吧。古樹的記憶指向那裡，澄鏡湖的倒影會告訴你更多。"
+  "dlg.granny.root.after": "往湖邊去吧。古樹的記憶指向那裡，澄鏡湖的倒影會告訴你更多。",
+  "action.lumen": "星光照明",
+  "object.corruptionRoot": "污染根瘤",
+  "object.hiddenCache": "隱藏的寶箱",
+  "toast.noStarPower": "星光不夠了，照明需要 15 點星光",
+  "toast.notRevealed": "寶箱藏在霧裡，要先用星光照明才看得見",
+  "corruption.cleared.title": "污染根瘤",
+  "corruption.cleared.body": "純淨螢苔貼上根瘤，紫色慢慢退去，露出底下發綠的木頭。"
 }

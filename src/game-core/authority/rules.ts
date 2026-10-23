@@ -51,6 +51,8 @@ export type GameState = {
     /** 翻滾（第二章 Phase 3）：翻滾中（遊戲時間 < rollUntil）敵人打不到；rollReadyAt 之前不能再翻滾。不存檔 */
     readonly rollUntil: number;
     readonly rollReadyAt: number;
+    /** 星光照明（第二章 Phase 3）：照明中（遊戲時間 < lumenUntil）可以打開需要照明的寶箱。不存檔 */
+    readonly lumenUntil: number;
   };
   /** 目前存在的敵人（位置由本機模擬，權威層只管血量與存在） */
   readonly enemies: ReadonlyMap<string, EnemyRuntime>;
@@ -80,7 +82,7 @@ export function initialGameState(): GameState {
     tutorial: 'move',
     mist: initialMistStages,
     quests: {},
-    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP, heroClass: DEFAULT_HERO_CLASS, rollUntil: 0, rollReadyAt: 0 },
+    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP, heroClass: DEFAULT_HERO_CLASS, rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 },
     enemies: new Map(),
     spawners: {},
     companion: { unlocked: false },
@@ -130,6 +132,8 @@ export type GameCommand =
   | { type: 'ChooseClass'; heroClass: HeroClassId }
   | { type: 'EquipItem'; itemId: string }
   | { type: 'Roll' }
+  /** 星光照明（第二章 Phase 3，規格 10.2）：消耗星光值，一段時間內揭露隱藏的寶箱 */
+  | { type: 'Lumen' }
   /** 迷霧持續傷害（第二章 Phase 3）：客戶端在濃霧區域裡每隔一段時間送一次；權威層確認區域仍是濃霧才扣血 */
   | { type: 'MistHarm'; region: RegionId }
   | { type: 'UnequipItem'; slot: EquipSlot }
@@ -169,6 +173,8 @@ export type GameCommand =
 
 export type RejectReason =
   | 'cooldown'
+  | 'no-star-power'
+  | 'not-revealed'
   | 'not-dense'
   | 'unknown-object'
   | 'wrong-interaction'
@@ -221,6 +227,7 @@ export type GameEvent =
   | { type: 'ItemEquipped'; slot: EquipSlot; itemId: string }
   | { type: 'EnemyPurifying'; enemyId: string }
   | { type: 'PlayerRolled'; until: number; readyAt: number }
+  | { type: 'LumenCast'; until: number }
   | { type: 'ItemUnequipped'; slot: EquipSlot; itemId: string }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
@@ -364,6 +371,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return equipItem(state, cmd.itemId, ctx);
     case 'Roll':
       return roll(state);
+    case 'Lumen':
+      return lumen(state);
     case 'MistHarm':
       return mistHarm(state, cmd.region, ctx);
     case 'UnequipItem':
@@ -503,6 +512,8 @@ function openChest(state: GameState, placementId: string, ctx: RulesContext): Ga
   // 規格 5.2：寶箱記錄開關，唯一獎勵不可重複領取
   if (state.objects.get(placementId)?.open) return reject('OpenChest', 'already-open', placementId);
   const contents = found.prefab.contents;
+  // 隱藏的寶箱要先用星光照明揭露（第二章 Phase 3，規格 10.2）
+  if (contents?.requiresLumen && state.player.lumenUntil <= state.time) return reject('OpenChest', 'not-revealed', placementId);
   if (!contents) return [{ type: 'ChestOpened', placementId }];
   // 背包放不下時寶箱保持關閉，獎勵不會遺失
   const items = rollIntoInventory(state, contents.lootTableId, ctx);
@@ -724,6 +735,18 @@ function mistHarm(state: GameState, region: RegionId, ctx: RulesContext): GameEv
   const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId: 'mist' }];
   if (hp <= 0) events.push({ type: 'PlayerDefeated' });
   return events;
+}
+
+/** 星光照明（第二章 Phase 3）：花 LUMEN_COST 點星光值，LUMEN_SEC 秒內能打開隱藏的寶箱 */
+export const LUMEN_COST = 15;
+export const LUMEN_SEC = 12;
+function lumen(state: GameState): GameEvent[] {
+  if (state.player.defeated) return reject('Lumen', 'player-defeated');
+  if (state.player.mp < LUMEN_COST) return reject('Lumen', 'no-star-power');
+  return [
+    { type: 'MpChanged', mp: state.player.mp - LUMEN_COST },
+    { type: 'LumenCast', until: state.time + LUMEN_SEC },
+  ];
 }
 
 /** 翻滾的無敵時間與冷卻（遊戲時間秒，與 locomotion 的翻滾動作一致） */
@@ -1049,6 +1072,9 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         break;
       case 'PlayerRolled':
         player = { ...player, rollUntil: e.until, rollReadyAt: e.readyAt };
+        break;
+      case 'LumenCast':
+        player = { ...player, lumenUntil: e.until };
         break;
       case 'ItemUnequipped': {
         equipment = { ...equipment };

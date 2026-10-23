@@ -33,6 +33,8 @@ export const actionIds = [
   'quickHeal',
   /** 翻滾閃避（第二章 Phase 3）：短時間內無敵，沿移動方向滾出去 */
   'dodge',
+  /** 星光照明（第二章 Phase 3）：揭露隱藏的寶箱 */
+  'lumen',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];
