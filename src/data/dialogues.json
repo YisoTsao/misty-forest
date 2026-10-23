@@ -2097,5 +2097,38 @@
         "textKey": "dlg.granny.root.after"
       }
     }
+  },
+  {
+    "id": "toto_intro",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.greet",
+        "options": [
+          {
+            "textKey": "dlg.toto.opt.shop",
+            "effects": [
+              {
+                "type": "openShop",
+                "shop": "shop_toto_wares"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.toto.opt.rumor",
+            "next": "rumor"
+          },
+          {
+            "textKey": "dlg.toto.opt.bye"
+          }
+        ]
+      },
+      "rumor": {
+        "speakerKey": "npc.toto",
+        "textKey": "dlg.toto.rumor",
+        "next": "greet"
+      }
+    }
   }
 ]

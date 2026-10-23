@@ -117,5 +117,58 @@
         "price": 3
       }
     ]
+  },
+  {
+    "id": "shop_toto_wares",
+    "nameKey": "shop.toto.name",
+    "npc": "toto",
+    "stock": [
+      {
+        "itemId": "herb_potion",
+        "price": 11
+      },
+      {
+        "itemId": "moondew_salve",
+        "price": 14
+      },
+      {
+        "itemId": "tough_bark",
+        "price": 6
+      },
+      {
+        "itemId": "thick_pelt",
+        "price": 9
+      },
+      {
+        "itemId": "ancient_resin",
+        "price": 14
+      }
+    ],
+    "buys": [
+      {
+        "itemId": "starlight_shard",
+        "price": 8
+      },
+      {
+        "itemId": "fungus_cap",
+        "price": 2
+      },
+      {
+        "itemId": "tough_bark",
+        "price": 2
+      },
+      {
+        "itemId": "mist_fang",
+        "price": 4
+      },
+      {
+        "itemId": "thick_pelt",
+        "price": 4
+      },
+      {
+        "itemId": "guardian_heartwood",
+        "price": 10
+      }
+    ]
   }
 ]

@@ -152,6 +152,11 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
 - 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
 
+### 任務 13K：旅行商人托托與貨攤（第二章 Phase 2，規格 NPC-03、CH2-MQ-04 的「商店」）
+- 托托（`toto`，KayKit Barbarian 拿酒杯、隱藏武器與盾）在聚落東側（2040, 18）；`quest_forest_004`（取得聚落信任）完成後才出現（`visible`）。對話：看貨、打聽消息（星晶祕窟的石門只認星光、貨箱被森林狼弄丟，為 CH2-SQ-03 鋪陳）。
+- 貨攤 `shop_toto_wares`：賣草藥水、月露軟膏、柔韌樹皮、厚實獸皮、古樹樹脂；收星晶碎片（8 枚種籽幣，比其他商品高）、菌帽、獸牙、守衛木核等。
+- 測試：`pnpm check`（Vitest 1034 項）、`pnpm build`；e2e 新增 `toto`（信任前不在、出現後開貨攤、賣星晶、買藥水，3 項，已加進 `e2e:all` 與 `e2e:chapter2`）全過；`npc`、`shop` 未見失敗。截圖 `docs/screenshots/phase13/glowmoss_toto.png`（由 toto e2e 拍，已檢視）。
+
 ### 任務 13J：菌帽小妖（第二章 Phase 2，規格 §6.2 M-02）
 - 菌帽小妖（`mob_cap_imp`，Mushnub 模型換色：奶油色身體、橘紅菌帽）：新行為 `skirmish`——出手後轉身跑開 1.3 秒再回頭追擊，跑開中被打不會回頭。掉落菌帽（新素材 `fungus_cap`）、柔韌樹皮。生成點：B 花園東側（`glowmoss_imps_garden`）、D 聚落北面入口內（`glowmoss_imps_village`），一次 2–3 隻。
 - 未做：孢子煙霧攻擊、撿走地上的可拾取物。

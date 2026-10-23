@@ -1213,6 +1213,7 @@
   "bookmark.glowmoss_creek": "祕林・倒流溪谷的水輪",
   "bookmark.glowmoss_barrier": "祕林・溪谷石障",
   "bookmark.glowmoss_deep": "祕林・迷霧深層",
+  "bookmark.glowmoss_toto": "祕林・旅行商人托托",
   "bookmark.glowmoss_garden": "祕林・螢苔花園",
   "bookmark.glowmoss_garden_center": "祕林・花園中心",
   "bookmark.glowmoss_lake_exit": "祕林・往澄鏡湖",
@@ -1259,5 +1260,12 @@
   "toast.notRevealed": "寶箱藏在霧裡，要先用星光照明才看得見",
   "corruption.cleared.title": "污染根瘤",
   "corruption.cleared.body": "純淨螢苔貼上根瘤，紫色慢慢退去，露出底下發綠的木頭。",
-  "bookmark.glowmoss_village": "祕林・蘑菇居民聚落"
+  "bookmark.glowmoss_village": "祕林・蘑菇居民聚落",
+  "npc.toto": "托托",
+  "dlg.toto.greet": "哎呀，終於有人敢跟外地人說話了！我是托托，走遍七片森林的旅行商人。藥水、皮革、樹脂，你要的我這裡都有——價錢好商量，星晶的話我更是高價收。",
+  "dlg.toto.opt.shop": "看看你的貨",
+  "dlg.toto.opt.rumor": "有什麼消息嗎？",
+  "dlg.toto.opt.bye": "下次再說",
+  "dlg.toto.rumor": "聽說溪谷北邊的山脊後面藏著一座會發光的洞窟，洞口的石門只認星光。我在那附近撿過星晶碎片……可惜我的貨箱在半路被森林狼弄丟了，不然還有更多好東西給你看。",
+  "shop.toto.name": "托托的旅行貨攤"
 }

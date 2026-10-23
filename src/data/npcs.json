@@ -1087,5 +1087,39 @@
         "dialogue": "granny_intro"
       }
     ]
+  },
+  {
+    "id": "toto",
+    "nameKey": "npc.toto",
+    "regionId": "mushroom_village",
+    "model": "models/characters/kaykit-adventurers/Barbarian.glb",
+    "scale": 0.72,
+    "hiddenNodes": [
+      "1H_Axe_Offhand",
+      "Barbarian_Round_Shield",
+      "1H_Axe",
+      "2H_Axe"
+    ],
+    "clips": {
+      "idle": "Idle",
+      "walk": "Walking_A",
+      "talk": "Interact"
+    },
+    "visible": {
+      "type": "questStatus",
+      "quest": "quest_forest_004",
+      "is": "completed"
+    },
+    "position": [
+      2040,
+      18
+    ],
+    "facingYaw": -2.82,
+    "interactRadius": 2.6,
+    "talk": [
+      {
+        "dialogue": "toto_intro"
+      }
+    ]
   }
 ]
