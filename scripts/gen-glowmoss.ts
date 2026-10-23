@@ -218,6 +218,12 @@ export function addGlowmoss(placements: Out[]): void {
   place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
   place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });
 
+  // ── 2e. D 蘑菇居民聚落（規格 4.2 D）：幾間小屋、公告板；菇菇婆婆在聚落中央（NPC 位置在 npcs.json）──
+  place('village_house_01', 'house_small_yellow', 34, -6, { yaw: 0.6, r: 4 });
+  place('village_house_02', 'house_small_blue', 46, 10, { yaw: -0.8, r: 4 });
+  place('village_house_03', 'house_small_red', 22, 16, { yaw: 2.2, r: 4 });
+  place('village_board', 'notice_board', 30, 2, { yaw: 1.4, r: 1.2 });
+
   // ── 2d. 古樹祭壇（規格 G、B-01）：三座共鳴石柱環繞戰場（淨化用），祭壇中心是古樹 ──
   // 戰場中心 (112, 0)（局部座標，世界 2112, 0）；石柱在半徑 8 的圓上
   place('altar_resonance_01', 'altar_resonance', 120, 0, { r: 1.2 });

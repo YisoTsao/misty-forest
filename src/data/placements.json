@@ -53595,6 +53595,86 @@
     ]
   },
   {
+    "id": "village_house_01",
+    "prefabId": "house_small_yellow",
+    "regionId": "mushroom_village",
+    "position": [
+      2034,
+      2.23,
+      -6
+    ],
+    "rotation": [
+      0,
+      0.6,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "village_house_02",
+    "prefabId": "house_small_blue",
+    "regionId": "mushroom_village",
+    "position": [
+      2046,
+      2.37,
+      10
+    ],
+    "rotation": [
+      0,
+      -0.8,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "village_house_03",
+    "prefabId": "house_small_red",
+    "regionId": "mushroom_village",
+    "position": [
+      2022,
+      2.37,
+      16
+    ],
+    "rotation": [
+      0,
+      2.2,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "village_board",
+    "prefabId": "notice_board",
+    "regionId": "mushroom_village",
+    "position": [
+      2030,
+      2.37,
+      2
+    ],
+    "rotation": [
+      0,
+      1.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "altar_resonance_01",
     "prefabId": "altar_resonance",
     "regionId": "ancient_altar",

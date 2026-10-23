@@ -80,6 +80,10 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 規格的差異：照明還不會「揭露」畫面上的線索（隱藏寶箱一直看得見，只是打不開），幻霧螢靈的現形也還沒做；污染根瘤沒有戰鬥淨化的路徑。
 - 測試：`starLumen.test.ts` 4 項；e2e `lumen`（沒照明打不開、按 G、照明中打開）全過；`combat`、`melee`、`dev`、`settings`、`gamepad`、`save` 重跑全過。`pnpm check` 1007 項通過。
 
+### 任務 13I：蘑菇居民聚落的建築與公告板（第二章 Phase 2，規格 4.2 D）
+- D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
+- 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
+
 ### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
 - 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
 - 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。
