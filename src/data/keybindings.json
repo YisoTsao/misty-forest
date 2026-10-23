@@ -76,5 +76,11 @@
   ],
   "pause": [
     "Escape"
+  ],
+  "dodge": [
+    "KeyZ"
+  ],
+  "lumen": [
+    "KeyG"
   ]
 }

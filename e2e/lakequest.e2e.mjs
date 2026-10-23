@@ -43,7 +43,7 @@ await runE2e('lakequest e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ p
     const d = window.__mistwoodDebug;
     d.setQuestCompleted('quest_dawn_003');
     d.setQuestCompleted('quest_dawn_007');
-    d.setQuestCompleted('quest_forest_003');
+    d.setQuestCompleted('quest_dawn_003');
   });
 
   await check('苔冠下的守衛之後，向奧林接下「湖面不肯忘記」', async () => {

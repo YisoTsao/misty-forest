@@ -19,11 +19,9 @@ import { countItem, type InventorySlot } from '@/game-core/inventory/inventory';
 import type { ObjectRuntime } from '@/game-core/world/types';
 import { MAIN_SLOT } from '@/game-core/save/schema';
 import { audio } from './audio/audioEngine';
-import { authority, buildables, lightPaths, quests, regions, waterways, worldIndex } from './authority';
+import { authority, buildables, lightPaths, quests, regions, worldIndex } from './authority';
 import { traceLight } from '@/game-core/world/lightPath';
 import { lightPathRuntime } from './world/lightPathRuntime';
-import { waterwayFlow } from '@/game-core/world/waterway';
-import { waterwayRuntime } from './world/waterwayRuntime';
 import { getCharacterDef, PLAYER_CHARACTER_ID } from './character/characters';
 import { buildRuntime } from './build/buildRuntime';
 import { attackEnemy, combatRuntime, enemyRuntime, enemyY } from './combat/combatRuntime';
@@ -79,6 +77,8 @@ export type MistwoodDebugApi = {
     z: number;
     anim: string;
     grounded: boolean;
+    rolling: boolean;
+    lumen: boolean;
     speed: number;
     facingYaw: number;
     action: string | null;
@@ -155,6 +155,7 @@ export type MistwoodDebugApi = {
   resetWorld: () => void;
   /** 背包格子快照 */
   inventory: () => InventorySlot[];
+  equipment: () => Record<string, string | undefined>;
   itemCount: (itemId: string) => number;
   /** 敵人是否還在權威狀態裡；enemyAnim 為模型怪物目前播放的動畫（含正在倒下消失的） */
   enemyKnown: (id: string) => boolean;
@@ -198,7 +199,6 @@ export type MistwoodDebugApi = {
   windowGlow: () => { glow: number; patched: number; compiled: number };
   /** 建造物目前的成長階段（任務 7K 花圃；不會長大的為 0） */
   buildingStage: (id: string) => number | null;
-  waterway: () => { cleared: number; flowing: boolean; turn: number; outlet: string | null; channelReach: number; flumeReach: number[]; rotorAngle: number; spoutYaw: number } | null;
   /** 畫面上的迷霧生物（位置、AI 狀態、權威層的血量） */
   enemies: () => { id: string; kind: string; x: number; y: number; z: number; yaw: number; state: string; hp: number; anim: string | null }[];
   /** 以玩家的招式打敵人（附上敵人目前的姿態，與實際出招相同；任務 8B 甲蟲縮殼） */
@@ -302,6 +302,10 @@ export function installDebugApi(): void {
         ...position,
         anim: l.anim,
         grounded: l.grounded,
+        /** 翻滾動作中（第二章 Phase 3） */
+        rolling: l.rollTimer > 0,
+        /** 星光照明中（第二章 Phase 3） */
+        lumen: authority.getState().time < authority.getState().player.lumenUntil,
         speed: Math.hypot(l.vx, l.vz),
         facingYaw: l.facingYaw,
         action: playerRuntime.action?.clip ?? null,
@@ -405,6 +409,7 @@ export function installDebugApi(): void {
       useUiStore.getState().closeMessage();
     },
     inventory: () => [...authority.getState().inventory.slots],
+    equipment: () => ({ ...authority.getState().equipment }),
     itemCount: (itemId) => countItem(authority.getState().inventory, itemId),
     enemyKnown: (id) => authority.getState().enemies.has(id),
     enemyAnim: (id) => enemyRuntime.get(id)?.anim ?? null,
@@ -456,7 +461,7 @@ export function installDebugApi(): void {
       const def = lightPaths[0];
       if (!def) throw new Error('沒有水鏡光路');
       const t = traceLight(def, (id) => worldIndex.placement(id), authority.getState().objects);
-      return { lit: t.lit.length, solved: t.solved, beams: lightPathRuntime.beams };
+      return { lit: t.lit.length, solved: t.solved, beams: lightPathRuntime[def.id] ?? 0 };
     },
     questProgress: (id) => {
       const def = quests.get(id);
@@ -486,11 +491,6 @@ export function installDebugApi(): void {
     slowPlayer: (sec, scale) => {
       combatRuntime.slow.remaining = sec;
       combatRuntime.slow.scale = scale;
-    },
-    waterway: () => {
-      const def = waterways[0];
-      if (!def) return null;
-      return { ...waterwayFlow(def, authority.getState().objects), ...waterwayRuntime, flumeReach: [...waterwayRuntime.flumeReach] };
     },
     setQuestCompleted: (id) => {
       if (!quests.has(id)) throw new Error(`未知的任務：${id}`);

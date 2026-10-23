@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { InventorySlot } from '@/game-core/inventory/inventory';
 import { authority } from '@/game/authority';
+import { equipSlots } from '@/game-core/equipment/equipment';
 import { t } from '@/game/i18n';
 import { useTouchUi } from '@/game/input/device';
 import { input } from '@/game/input/inputManager';
@@ -53,6 +54,7 @@ export function InventoryPanel() {
 
 function InventoryWindow() {
   const slots = useGameStateStore((s) => s.state.inventory.slots);
+  const equipment = useGameStateStore((s) => s.state.equipment);
   const [selected, setSelected] = useState<number | null>(null);
   const inventoryKey = actionKey(useBindings(), 'inventory');
   const close = () => useUiStore.getState().setInventoryOpen(false);
@@ -91,6 +93,16 @@ function InventoryWindow() {
                 {t(`inventory.category.${def.category}`)} · {t('inventory.owned')} {slot.count}
               </p>
               <p className={touch ? 'mt-2 text-xs leading-5' : 'mt-3 text-sm leading-6'}>{t(def.descKey)}</p>
+              {def.equip && (
+                <button
+                  type="button"
+                  data-testid="inventory-equip"
+                  onClick={() => authority.send({ type: 'EquipItem', itemId: def.id })}
+                  className="mt-3 rounded-full bg-sky-600 px-4 py-1.5 font-bold text-white hover:bg-sky-700"
+                >
+                  {t('inventory.equip')}
+                </button>
+              )}
               {def.use && (
                 <button
                   type="button"
@@ -105,6 +117,27 @@ function InventoryWindow() {
           ) : (
             <p className="mt-16 text-center text-sm whitespace-pre-line opacity-60">{t('inventory.empty')}</p>
           )}
+          <div className="mt-3 space-y-1" data-testid="equipment">
+            {equipSlots.map((slotName) => {
+              const itemId = equipment[slotName];
+              return (
+                <div key={slotName} data-testid={`equip-slot-${slotName}`} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="opacity-70">{t(`inventory.equipSlot.${slotName}`)}</span>
+                  <span className="flex-1 truncate font-bold">{itemId ? t(items.get(itemId)?.nameKey ?? itemId) : t('inventory.equipEmpty')}</span>
+                  {itemId && (
+                    <button
+                      type="button"
+                      data-testid={`equip-unequip-${slotName}`}
+                      onClick={() => authority.send({ type: 'UnequipItem', slot: slotName })}
+                      className="rounded-full border border-amber-700 px-2 py-0.5 text-xs font-bold hover:bg-amber-100"
+                    >
+                      {t('inventory.unequip')}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           <div className={`mt-auto flex items-center justify-end gap-3 ${touch ? 'pt-2' : 'pt-4'}`}>
             {!touch && <span className="text-xs opacity-60">{t('inventory.closeHint', { inventory: inventoryKey })}</span>}
             <button

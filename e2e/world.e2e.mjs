@@ -212,6 +212,7 @@ try {
 
   await check('迷霧滑桿：uMist 平滑變化，迷霧時畫面明顯去飽和', async () => {
     // 日光看共享世界時鐘（T-181）：固定在中午，夜晚與黃昏的光線會讓飽和度比較失準
+    // 飽和度要看白天（共享世界時鐘在夜裡會失準）
     await debug(() => window.__mistwoodDebug.setClock(12));
     await teleport(0, 18);
     await camera({ yaw: 0, pitch: 0.35, distance: 6 });

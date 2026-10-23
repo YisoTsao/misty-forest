@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CHANNEL_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
+import { GLOWMOSS_WATER_LEVEL, TRAIL_HALF_WIDTH } from '@/game-core/world/glowmossTerrain';
 import { MEADOW_TRAIL_HALF_WIDTH } from '@/game-core/world/meadowTerrain';
 import { MIRRORLAKE_TRAIL_HALF_WIDTH } from '@/game-core/world/mirrorlakeTerrain';
 import type { MapId } from '@/game-core/world/maps';
@@ -72,8 +72,8 @@ const GROUND: Readonly<Record<MapId, GroundPalette>> = {
     rock: '#7f8784',
     sand: '#9c8667',
     lakeBed: '#6c5a47',
-    // 泥面只在渠道裡（渠底 −1.1）；林地本身的低處高度約 0，不能被畫成泥地
-    waterLevel: CHANNEL_WATER_LEVEL - 0.55,
+    // 溪谷谷底約 −0.5，還沒有水（任務 12B），不能被畫成泥地
+    waterLevel: GLOWMOSS_WATER_LEVEL,
     pathHalf: TRAIL_HALF_WIDTH,
   },
   // 澄鏡湖（任務 9A，Bible §7.3）：水草綠的湖岸草坡、淺色沙灘、灰白圓石

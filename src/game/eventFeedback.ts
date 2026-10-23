@@ -6,6 +6,8 @@ import { useUiStore } from './state/uiStore';
 
 const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejected' }>['reason'], string>> = {
   'inventory-full': 'toast.inventoryFull',
+  'no-star-power': 'toast.noStarPower',
+  'not-revealed': 'toast.notRevealed',
   'quest-unavailable': 'toast.questLocked',
   'not-in-fight': 'toast.troughIdle',
   'boss-not-defeated': 'toast.guardianAwake',
@@ -40,8 +42,6 @@ export function installEventFeedback(): void {
       } else if (e.type === 'ObjectRepaired') {
         const nameKey = objectNameKey(e.placementId);
         ui.pushToast(nameKey === 'object.bridge' || !nameKey ? { textKey: 'toast.bridgeRepaired' } : { textKey: 'toast.objectRepaired', vars: { name: t(nameKey) } });
-      } else if (e.type === 'ObjectActivated' && e.source === 'water') {
-        ui.pushToast({ textKey: 'toast.mossAwake' });
       } else if (e.type === 'ObjectActivated' && e.source === 'light') {
         ui.pushToast({ textKey: 'toast.sluiceOpen' });
       } else if (e.type === 'ObjectActivated' && e.source === 'player') {
@@ -49,6 +49,8 @@ export function installEventFeedback(): void {
         const placement = worldIndex.placement(e.placementId);
         const message = placement && worldIndex.prefab(placement.prefabId)?.activate?.message;
         if (message) ui.showMessage(message);
+      } else if (e.type === 'ObjectActivated' && e.source === 'puzzle') {
+        ui.pushToast({ textKey: 'toast.barrierOpen' });
       } else if (e.type === 'ObjectActivated' && e.source === 'quest') {
         const nameKey = objectNameKey(e.placementId);
         if (nameKey) ui.pushToast({ textKey: 'toast.objectReleased', vars: { name: t(nameKey) } });
@@ -67,7 +69,8 @@ export function installEventFeedback(): void {
       } else if (e.type === 'CommandRejected' && e.reason === 'missing-materials' && e.placementId) {
         // 列出需要的材料
         const placement = worldIndex.placement(e.placementId);
-        const materials = (placement && worldIndex.prefab(placement.prefabId)?.repair?.materials) ?? [];
+        const prefab = placement && worldIndex.prefab(placement.prefabId);
+        const materials = prefab?.repair?.materials ?? prefab?.activate?.consume ?? [];
         ui.pushToast({ textKey: 'toast.missingMaterials', vars: { materials: materials.map((m) => `${itemName(m.itemId)} ×${m.count}`).join('、') } });
       } else if (e.type === 'CommandRejected') {
         const key = rejectMessageKeys[e.reason];

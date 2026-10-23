@@ -24,7 +24,7 @@
         "itemId": "moondew_salve",
         "price": 15,
         "requires": {
-          "questCompleted": "quest_forest_001"
+          "questCompleted": "quest_dawn_003"
         }
       },
       {
@@ -70,6 +70,50 @@
       },
       {
         "itemId": "glow_pollen",
+        "price": 3
+      }
+    ]
+  },
+  {
+    "id": "shop_granny_mushroom",
+    "nameKey": "shop.granny.name",
+    "npc": "granny",
+    "stock": [
+      {
+        "itemId": "herb_potion",
+        "price": 12
+      },
+      {
+        "itemId": "moss_gel",
+        "price": 4
+      },
+      {
+        "itemId": "glow_spore",
+        "price": 5
+      },
+      {
+        "itemId": "pure_glowmoss",
+        "price": 10,
+        "requires": {
+          "questCompleted": "quest_forest_002"
+        }
+      }
+    ],
+    "buys": [
+      {
+        "itemId": "glow_moss",
+        "price": 1
+      },
+      {
+        "itemId": "moss_gel",
+        "price": 2
+      },
+      {
+        "itemId": "mist_fang",
+        "price": 3
+      },
+      {
+        "itemId": "thick_pelt",
         "price": 3
       }
     ]

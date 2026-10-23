@@ -1,17 +1,17 @@
-// 任務 8D：苔咚頭目戰的權威規則，以實際資料驗證——開戰條件（8D-2：守衛任務進行中）、水槽只在戰鬥中能注水、迷霧護盾、
+// 任務 8D：頭目戰的權威規則（戰場物件、護盾、縮殼、重試、存讀檔）。苔咚已從遊戲移除（任務 12A），
+// 以實際遊戲資料加上測試樣本 testing/legacyForest 驗證——開戰條件（8D-2：守衛任務進行中）、水槽只在戰鬥中能注水、迷霧護盾、
 // 水槽沒注滿前打不倒、招式傷害與睡眠孢子、倒下後重試（頭目回去、水槽保留）、擊敗後的掉落與紀錄、存讀檔。
 import { describe, expect, it } from 'vitest';
 import { applyEvents, filledTroughs, handleCommand, initialGameState, type GameCommand, type GameEvent, type GameState, type RulesContext } from '@/game-core/authority/rules';
 import { bossShieldScale } from '@/game-core/combat/combat';
 import { countItem } from '@/game-core/inventory/inventory';
 import { fromSaveData, toSaveData } from '@/game-core/save/convert';
-import { mapIdAt } from '@/game-core/world/maps';
-import { regionAt } from '@/game-core/world/regions';
+import { LEGACY_BOSS, withLegacyForest } from '@/game-core/testing/legacyForest';
 import { worldDataResult } from '../worldData';
 import { WorldIndex } from './worldIndex';
 
 if (!worldDataResult.ok) throw new Error(worldDataResult.error);
-const data = worldDataResult.data;
+const data = withLegacyForest(worldDataResult.data);
 const index = new WorldIndex(data);
 const ctx: RulesContext = {
   world: index,
@@ -23,10 +23,9 @@ const ctx: RulesContext = {
   weapons: data.weapons,
   spells: data.spells,
   buildables: data.buildables,
-  waterways: data.waterways,
   allowDebugCommands: true,
 };
-const BOSS = 'boss_moss_thump';
+const BOSS = LEGACY_BOSS;
 const def = data.combat.enemies.get(BOSS)!;
 const boss = def.boss!;
 
@@ -72,27 +71,6 @@ function beat(state: GameState, enemyId: string, attack = 'spell_starlight_burst
   }
   return state;
 }
-
-describe('苔咚的資料', () => {
-  it('戰場、入口、重試點、水槽都在螢苔祕林的苔冠空地；水槽 placement 存在且只在戰鬥中能注水', () => {
-    const [cx, cz] = boss.arena.center;
-    expect(mapIdAt(cx, cz)).toBe('glowmoss');
-    expect(regionAt(data.regions, cx, cz)).toBe('moss_crown');
-    expect(Math.hypot(boss.home[0] - cx, boss.home[1] - cz)).toBeLessThan(boss.arena.trigger);
-    // 入口在戰場外、重試點在入口外
-    const gateDist = Math.hypot(boss.gate!.center[0] - cx, boss.gate!.center[1] - cz);
-    expect(gateDist).toBeGreaterThan(boss.arena.trigger);
-    expect(Math.hypot(boss.retryAt[0] - cx, boss.retryAt[1] - cz)).toBeGreaterThan(gateDist);
-    for (const id of boss.troughs) {
-      const p = index.placement(id)!;
-      expect(p, id).toBeDefined();
-      expect(index.prefab(p.prefabId)?.activate?.boss).toBe(BOSS);
-      expect(Math.hypot(p.position[0] - cx, p.position[2] - cz)).toBeLessThan(boss.arena.radius);
-    }
-    expect(boss.shield).toHaveLength(boss.troughs.length + 1);
-    expect(data.combat.spawners.filter((s) => s.enemy === BOSS)).toHaveLength(1);
-  });
-});
 
 describe('苔咚頭目戰', () => {
   it('沒接「苔冠下的守衛」前不能開戰；接了以後開戰，重複開戰被拒絕；一般生成不會補出頭目', () => {

@@ -1,25 +1,23 @@
-// 任務 8A：螢苔祕林（Bible §6，地圖二）的 placement。由 gen-placements.ts 在晨曦谷地之後呼叫。
+// 螢苔祕林（第二章，Bible §6.3；任務 12B）的 placement。由 gen-placements.ts 在晨曦谷地之後呼叫。
 // 地圖在世界座標 GLOWMOSS_ORIGIN（決策 T-117），這裡以局部座標配置後加上原點。
-// 手動配置的地標（入口、月牙樹、發光石環、苔冠空地、斷流小渠與閘門、根鬚迷宮）＋ 各區散佈 ＋ 邊界樹。
+// 12B 只細緻佈置 A 迷霧入口與 B 螢苔花園（規格 Phase 1 垂直切片）；C–G 先有地形與一般的森林散佈，之後的任務再佈置。
 // 晨曦谷地這一側只加入林道入口與路標。全部使用獨立的固定種子，結果可重現。
 import { readFileSync } from 'node:fs';
 import { mulberry32 } from '../src/game-core/util/random.ts';
 import { boundaryDistance, boundaryOutline } from '../src/game-core/world/bounds.ts';
 import {
-  CHANNEL_CROSSINGS,
-  CHANNEL_HALF_WIDTH,
-  CHANNEL_PATH,
-  channelDistance,
-  CRESCENT_TREE,
+  ANCIENT_ALTAR,
+  CREEK_FALLS,
+  CRYSTAL_GROTTO,
+  GLOW_GARDEN,
   GLOWMOSS_ARRIVAL,
   GLOWMOSS_ORIGIN,
   GLOWMOSS_SIZE,
   GLOWMOSS_TRAILS,
   glowmossHeight,
   glowmossPathDistance,
-  MOSS_CROWN,
-  ROOT_MAZE,
-  STONE_RING,
+  MIST_ARCH,
+  MUSHROOM_VILLAGE,
   TRAIL_HALF_WIDTH,
 } from '../src/game-core/world/glowmossTerrain.ts';
 import { terrainHeight } from '../src/game-core/world/terrain.ts';
@@ -48,9 +46,9 @@ function segmentDistance(x: number, z: number, a: readonly [number, number], b: 
   return Math.hypot(x - (a[0] + dx * t), z - (a[1] + dz * t));
 }
 
-/** 與 game-core 的 regionAt 相同規則（權重最大、同權重取範圍較小者；預設為螢苔林地）；世界座標 */
+/** 與 game-core 的 regionAt 相同規則（權重最大、同權重取範圍較小者；預設為螢苔花園）；世界座標 */
 function regionAt(x: number, z: number): string {
-  let best = 'moss_glade';
+  let best = 'glow_garden';
   let bestWeight = 0.5;
   let bestRadius = Infinity;
   for (const r of regions) {
@@ -79,20 +77,9 @@ function slopeAt(x: number, z: number): number {
   return Math.hypot(height(x + 0.6, z) - height(x - 0.6, z), height(x, z + 0.6) - height(x, z - 0.6)) / 1.2;
 }
 
-/** 把模型的 X 軸對齊到與方向 (dx, dz) 垂直（拱門、閘門橫跨小徑或渠道） */
+/** 把模型的 X 軸對齊到與方向 (dx, dz) 垂直（拱門橫跨小徑） */
 function yawAcross(dx: number, dz: number): number {
   return Math.atan2(-dx, -dz);
-}
-
-/** 渠道在某個 z 的中心 x（沿線內插） */
-function channelCenterAt(z: number): number {
-  for (let i = 0; i + 1 < CHANNEL_PATH.length; i++) {
-    const a = CHANNEL_PATH[i]!;
-    const b = CHANNEL_PATH[i + 1]!;
-    if (z < Math.min(a[1], b[1]) || z > Math.max(a[1], b[1])) continue;
-    return a[0] + ((b[0] - a[0]) * (z - a[1])) / (b[1] - a[1]);
-  }
-  throw new Error(`渠道沒有經過 z = ${z}`);
 }
 
 /** 折線在某點附近的方向 */
@@ -112,43 +99,33 @@ function directionNear(line: readonly (readonly [number, number])[], x: number, 
   return dir;
 }
 
-/** 任務 8C：林緣小徑三盞路燈的 x（局部座標） */
-const LANTERN_X = [-80, -52, -22] as const;
-/** 任務 8C：水道謎題的位置（局部座標）。木輪站在渠道中央，三塊苔蘚節點在兩岸 */
-const WATERWAY = {
-  breach: [12, -48] as const,
-  wheel: [10, -32] as const,
-  nodes: [
-    [-1, -38],
-    [21, -38],
-    [-3, -24],
-  ] as const,
-};
-/** 任務 8C：苔冠空地入口（西側開口）封住的位置 */
-const CROWN_SEAL = { x: 70 } as const;
-/** 任務 8D：苔冠空地邊緣三個水槽的方向（從菌樹看出去，東、南、北），落在周圍大蘑菇之間；離菌樹 18 m */
-const CROWN_TROUGHS = { angles: [-0.0618, 1.509, -1.633], radius: 18 } as const;
-/** 任務 8D-2：森林根源石在菌樹東側（從入口看過去在菌樹後面），刻紋面向入口 */
-const ROOT_STONE = { x: MOSS_CROWN.x + 7, z: MOSS_CROWN.z } as const;
-/** 任務 8D-2：斷流小渠南端往澄鏡湖的林間水道（堵住的樹根與路標） */
-const LAKE_CHANNEL_Z = 136;
-
-/** 讓模型的 +X 朝東（操作桿、互動點放在 +X 那一側的岸上，靠近小徑與奇奇） */
-function eastFacing(yaw: number): number {
-  return Math.cos(yaw) >= 0 ? yaw : yaw + Math.PI;
-}
-
-/** 根鬚迷宮：5 × 5 格（每格 8 m）的迷宮，以固定種子的深度優先產生；西南角是入口 */
-const MAZE = { cells: 5, cell: 8 } as const;
-const mazeX0 = ROOT_MAZE.x - (MAZE.cells * MAZE.cell) / 2;
-const mazeZ0 = ROOT_MAZE.z - (MAZE.cells * MAZE.cell) / 2;
-function inMaze(x: number, z: number, margin = 0): boolean {
-  return x > mazeX0 - margin && x < mazeX0 + MAZE.cells * MAZE.cell + margin && z > mazeZ0 - margin && z < mazeZ0 + MAZE.cells * MAZE.cell + margin;
-}
+/** 迷霧入口的第一個寶箱：石拱門北側、小徑旁的樹根凹處（看得到但要離開小徑幾步） */
+const FIRST_CHEST = { x: -104, z: -9 } as const;
+/** 花園周圍的巨型蘑菇（角度、離中心的距離、大小）：南側與東側留出視線，從入口看得到花園深處 */
+const GARDEN_GIANTS: readonly [number, number, number][] = [
+  [-2.5, 28, 0.95],
+  [-1.85, 31, 0.8],
+  [-1.15, 29, 1.05],
+  [-0.45, 31, 0.78],
+  [0.35, 29, 0.85],
+  [1.1, 28, 0.9],
+  [1.75, 31, 1.0],
+  [2.45, 28, 0.82],
+];
+/** 不放散佈點綴的範圍：聚落台地（之後放房屋）、祭壇高台、祕窟窪地 */
+const RESERVED: readonly { x: number; z: number; r: number }[] = [
+  { x: MUSHROOM_VILLAGE.x, z: MUSHROOM_VILLAGE.z, r: MUSHROOM_VILLAGE.radius + 2 },
+  { x: ANCIENT_ALTAR.x, z: ANCIENT_ALTAR.z, r: ANCIENT_ALTAR.radius + 2 },
+  { x: CRYSTAL_GROTTO.x, z: CRYSTAL_GROTTO.z, r: CRYSTAL_GROTTO.radius + 1 },
+  { x: CREEK_FALLS.x, z: CREEK_FALLS.z, r: 8 },
+  // 從石拱門望向花園的視線（不放樹）
+  { x: -100, z: 3, r: 4 },
+  { x: -91, z: 4, r: 4 },
+];
 
 export function addGlowmoss(placements: Out[]): void {
   const out: Out[] = [];
-  const taken: Taken[] = [];
+  const taken: Taken[] = [...RESERVED];
   const ids = new Set(placements.map((p) => p.id));
   const push = (o: Out) => {
     if (ids.has(o.id)) throw new Error(`placement id 重複：${o.id}`);
@@ -194,182 +171,89 @@ export function addGlowmoss(placements: Out[]): void {
     for (const o of gateOut) push(o);
   }
 
-  // ── 2. 入口：林緣小徑西端的林道入口（回晨曦谷地）──
+  // ── 2. A 迷霧入口：林道入口（回晨曦谷地）、破損的路牌、石拱門、第一個寶箱 ──
   place('glowmoss_gate_dawnvale', 'gate_to_dawnvale', GLOWMOSS_ARRIVAL.x - 6, GLOWMOSS_ARRIVAL.z, { yaw: Math.PI / 2, r: 6 });
-  place('glowmoss_signpost_trail', 'signpost_moss_trail', GLOWMOSS_ARRIVAL.x + 4, GLOWMOSS_ARRIVAL.z + 4.5, { yaw: Math.PI / 2 + 0.3, r: 1 });
   taken.push({ x: GLOWMOSS_ARRIVAL.x, z: GLOWMOSS_ARRIVAL.z, r: 7 });
+  place('glowmoss_signpost_broken', 'signpost_broken', GLOWMOSS_ARRIVAL.x + 6, GLOWMOSS_ARRIVAL.z + 4.2, { yaw: -Math.PI / 2 + 0.5, r: 1.4 });
+  {
+    const [dx, dz] = directionNear(GLOWMOSS_TRAILS[0]!, MIST_ARCH.x, MIST_ARCH.z);
+    place('glowmoss_mist_arch', 'mist_arch', MIST_ARCH.x, MIST_ARCH.z, { yaw: yawAcross(dx, dz), dy: -0.1, r: 4.5 });
+  }
+  // 拱門兩側的立石與苔蘚
+  for (const side of [-1, 1]) {
+    place(`glowmoss_arch_stone_${side < 0 ? 'n' : 's'}`, 'gm_stone_large_c', MIST_ARCH.x + 1.5, MIST_ARCH.z + side * 5.4, { scale: 2.4, yaw: side, r: 1.5 });
+    place(`glowmoss_arch_moss_${side < 0 ? 'n' : 's'}`, 'glowmoss_patch', MIST_ARCH.x - 1, MIST_ARCH.z + side * 4.2, { scale: 1.2, yaw: side * 0.7 });
+  }
+  place('glowmoss_first_chest', 'chest_glowmoss', FIRST_CHEST.x, FIRST_CHEST.z, { yaw: Math.atan2(-2, 9), r: 2 });
+  place('glowmoss_first_chest_root', 'root_arch', FIRST_CHEST.x - 0.6, FIRST_CHEST.z - 2.4, { yaw: 0.2, scale: 0.7, dy: -0.2, r: 2.5 });
+  place('glowmoss_first_chest_mushroom', 'k_mushroom_red', FIRST_CHEST.x + 1.6, FIRST_CHEST.z + 0.6, { scale: 3.4, yaw: 1.2 });
+  // 第一座星光燈柱（規格 P-01）：拱門後方、小徑南側，走過去就看得見；純淨螢苔採集點在入口與小徑旁
+  place('glowmoss_star_lamp_01', 'star_lamp', -99, 8, { yaw: Math.PI / 2, r: 1.2 });
+  place('glowmoss_pure_node_01', 'glowmoss_node', -124, 8, { yaw: 0.6, r: 1 });
+  place('glowmoss_pure_node_02', 'glowmoss_node', -98, -5, { yaw: 2.1, r: 1 });
 
-  // 小徑上的樹根拱門
-  const archAt: [number, number][] = [
-    [-118, 0.8],
-    [-96, 4.6],
-    [-70, 5.4],
-    [-44, -3],
-  ];
-  archAt.forEach(([x, z], i) => {
-    const [dx, dz] = directionNear(GLOWMOSS_TRAILS[0]!, x, z);
-    place(`glowmoss_root_arch_${pad2(i + 1)}`, 'root_arch', x, z, { yaw: yawAcross(dx, dz), scale: 1 + (i % 2) * 0.12, dy: -0.15, r: 3.5 });
+  // ── 2b. C 倒流溪谷（規格 P-02）：三座水輪在溪岸（答案在石碑上）、石障擋住溪谷往上游的路、石碑讀得到 ──
+  place('creek_wheel_01', 'waterwheel', -44, -56, { yaw: Math.PI / 2, r: 2.5 });
+  place('creek_wheel_frame_01', 'waterwheel_frame', -44, -56, { yaw: Math.PI / 2 });
+  place('creek_wheel_02', 'waterwheel', -34, -70, { yaw: Math.PI / 2, r: 2.5 });
+  place('creek_wheel_frame_02', 'waterwheel_frame', -34, -70, { yaw: Math.PI / 2 });
+  place('creek_wheel_03', 'waterwheel', -44, -86, { yaw: Math.PI / 2, r: 2.5 });
+  place('creek_wheel_frame_03', 'waterwheel_frame', -44, -86, { yaw: Math.PI / 2 });
+  place('creek_barrier', 'creek_barrier', -20, -102, { yaw: Math.PI / 2, r: 4 });
+  place('creek_tablet', 'creek_tablet', -30, -60, { yaw: 0.6, r: 1.2 });
+
+  // ── 2c. C 星晶祕窟（規格 P-03）：祕窟內三面星晶鏡、東南面的星光石門（隱藏入口）、寶箱與石碑 ──
+  // 光路（lightPaths.json）：光源 → 鏡 1 → 鏡 2 → 鏡 3 → 石門；每面鏡子轉到朝向下一個目標（4 個方向）
+  // 局部座標（世界 − (2000, 0)）：祕窟中心 (20, −124)；答案是鏡 1 轉 2 格、鏡 2 轉 1 格、鏡 3 轉 1 格
+  place('crystal_mirror_01', 'crystal_mirror', 10, -124, { r: 1.5 });
+  place('crystal_mirror_02', 'crystal_mirror', 10, -136, { r: 1.5 });
+  place('crystal_mirror_03', 'crystal_mirror', 24, -136, { r: 1.5 });
+  // 石門在環狀山脊的開口上（半徑 26），面向祕窟中心
+  place('crystal_gate', 'crystal_gate', 43.6, -134.9, { yaw: Math.atan2(-12, 26) + Math.PI / 2, r: 2 });
+  // 污染根瘤（規格 P-06 / §5.2）：深層的紫色根，用一顆純淨螢苔淨化；隱藏的寶箱（需要照明）藏在花園的石頭後面
+  place('corruption_root_01', 'corruption_root', 50, 74, { yaw: 0.4, r: 2.5 });
+  place('corruption_root_02', 'corruption_root', 62, 108, { yaw: 2.2, r: 2.5 });
+  place('hidden_cache_01', 'hidden_cache', -60, -18, { yaw: 2.4, r: 2 });
+  // 寶箱與石碑放在祕窟中央較平的地面（高度 0.4），不在光路上
+  place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
+  place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });
+
+  // ── 2e. D 蘑菇居民聚落（規格 4.2 D）：幾間小屋、公告板；菇菇婆婆在聚落中央（NPC 位置在 npcs.json）──
+  place('village_house_01', 'house_small_yellow', 34, -6, { yaw: 0.6, r: 4 });
+  place('village_house_02', 'house_small_blue', 46, 10, { yaw: -0.8, r: 4 });
+  place('village_house_03', 'house_small_red', 22, 16, { yaw: 2.2, r: 4 });
+  place('village_board', 'notice_board', 30, 2, { yaw: 1.4, r: 1.2 });
+
+  // ── 2d. 古樹祭壇（規格 G、B-01）：三座共鳴石柱環繞戰場（淨化用），祭壇中心是古樹 ──
+  // 戰場中心 (112, 0)（局部座標，世界 2112, 0）；石柱在半徑 8 的圓上
+  place('altar_resonance_01', 'altar_resonance', 120, 0, { r: 1.2 });
+  place('altar_resonance_02', 'altar_resonance', 108, 6.93, { r: 1.2 });
+  place('altar_resonance_03', 'altar_resonance', 108, -6.93, { r: 1.2 });
+
+  // ── 3. B 螢苔花園：周圍的巨型蘑菇、發光立石、螢光花、樹根拱門 ──
+  GARDEN_GIANTS.forEach(([a, r, s], i) => {
+    const x = GLOW_GARDEN.x + Math.cos(a) * r;
+    const z = GLOW_GARDEN.z + Math.sin(a) * r;
+    if (glowmossPathDistance(x, z) < TRAIL_HALF_WIDTH + 5) return;
+    place(`glowmoss_garden_giant_${pad2(i + 1)}`, 'giant_mushroom', x, z, { scale: s, yaw: a * 1.7, r: 9 * s + 1 });
   });
-
-  // ── 3. 螢苔林地：月牙樹、發光石環 ──
-  place('glowmoss_crescent_tree', 'crescent_tree', CRESCENT_TREE.x, CRESCENT_TREE.z, { yaw: 0.4, scale: 1.15, dy: -0.1, r: 7 });
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + 0.3;
-    place(`glowmoss_crescent_moss_${pad2(i + 1)}`, 'glowmoss_patch', CRESCENT_TREE.x + Math.cos(a) * 4.2, CRESCENT_TREE.z + Math.sin(a) * 4.2, { scale: 1.3, yaw: a });
-  }
-  const ringStones = 8;
-  for (let i = 0; i < ringStones; i++) {
-    const a = (i / ringStones) * Math.PI * 2;
-    const x = STONE_RING.x + Math.cos(a) * 6.4;
-    const z = STONE_RING.z + Math.sin(a) * 6.4;
-    // 立石的刻紋（+Z 面）朝向圓心
-    place(`glowmoss_ring_stone_${pad2(i + 1)}`, 'glow_stone', x, z, { yaw: Math.atan2(STONE_RING.x - x, STONE_RING.z - z), scale: 1 + (i % 3) * 0.12 });
-  }
-  place('glowmoss_ring_altar', 'gm_stone_large_a', STONE_RING.x, STONE_RING.z, { scale: 2.6, yaw: 0.5, sy: 1.4 });
   for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2 + 0.6;
-    place(`glowmoss_ring_moss_${pad2(i + 1)}`, 'glowmoss_patch', STONE_RING.x + Math.cos(a) * 3.2, STONE_RING.z + Math.sin(a) * 3.2, { scale: 1.1, yaw: a });
+    const a = (i / 5) * Math.PI * 2 + 0.4;
+    const x = GLOW_GARDEN.x + Math.cos(a) * 9;
+    const z = GLOW_GARDEN.z + Math.sin(a) * 9;
+    if (glowmossPathDistance(x, z) < TRAIL_HALF_WIDTH + 1.5) continue;
+    // 符紋（+Z 面）朝向花園中心
+    place(`glowmoss_garden_stone_${pad2(i + 1)}`, 'glow_stone', x, z, { yaw: Math.atan2(GLOW_GARDEN.x - x, GLOW_GARDEN.z - z), scale: 0.9 + (i % 2) * 0.2, r: 1.2 });
   }
-  taken.push({ x: STONE_RING.x, z: STONE_RING.z, r: STONE_RING.radius + 3 });
-
-  // ── 4. 苔冠空地：巨大蘑菇樹與周圍的菌類 ──
-  place('glowmoss_giant_mushroom', 'giant_mushroom', MOSS_CROWN.x, MOSS_CROWN.z, { yaw: 0.8, scale: 1, r: 8 });
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2 + 0.2;
-    const r = MOSS_CROWN.radius - 3 - (i % 3) * 2;
-    const x = MOSS_CROWN.x + Math.cos(a) * r;
-    const z = MOSS_CROWN.z + Math.sin(a) * r;
-    if (Math.abs(Math.atan2(Math.sin(a - Math.PI), Math.cos(a - Math.PI))) < 0.45) continue; // 西側開口保持淨空
-    place(`glowmoss_crown_mushroom_${pad2(i + 1)}`, i % 2 ? 'gm_mushroom_tan_tall' : 'k_mushroom_tall', x, z, { scale: 4 + (i % 4), yaw: a });
-    place(`glowmoss_crown_glow_${pad2(i + 1)}`, 'glow_mushrooms', x + Math.cos(a + 1) * 1.6, z + Math.sin(a + 1) * 1.6, { scale: 2.2, yaw: a });
-  }
-  taken.push({ x: MOSS_CROWN.x, z: MOSS_CROWN.z, r: MOSS_CROWN.radius + 1 });
-  place('glowmoss_signpost_crown', 'signpost_moss_crown', MOSS_CROWN.x - MOSS_CROWN.radius - 8, MOSS_CROWN.z + 4, { yaw: -Math.PI / 2 + 0.3, r: 1 });
-
-  // ── 5. 斷流小渠：北邊的泉眼、被樹根堵住的渠道、兩座古水渠閘門 ──
-  const spring = CHANNEL_PATH[0]!;
-  const springAt = { x: spring[0] - 2, z: spring[1] + 14 };
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2;
-    place(`glowmoss_spring_stone_${pad2(i + 1)}`, i % 2 ? 'gm_stone_large_c' : 'gm_stone_large_a', springAt.x + Math.cos(a) * 5.5, springAt.z + Math.sin(a) * 5.5, { scale: 2.2 + (i % 3) * 0.5, yaw: a });
-  }
+  // 花園入口（西側）的發光樹根拱門
   {
-    // 堵住渠道的樹根（之後的任務移開）
-    const z = -126;
-    const x = 31.5;
-    const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
-    place('glowmoss_channel_roots', 'channel_roots', x, z, { yaw: yawAcross(dx, dz), scale: 1, dy: -0.4, r: 5 });
-  }
-  const gates: [number, number][] = [
-    [29.4, -100],
-    [13.1, -62],
-  ];
-  gates.forEach(([x, z], i) => {
-    const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
-    place(`glowmoss_water_gate_${pad2(i + 1)}`, 'water_gate', x, z, { yaw: yawAcross(dx, dz), dy: -0.1, r: 4.5 });
-  });
-  place('glowmoss_signpost_channel', 'signpost_channel', 8, -14, { yaw: 0.6, r: 1 });
-  // 渠道兩岸的碎石
-  {
-    const rand = mulberry32(8812);
-    for (let i = 0; i < 46; i++) {
-      const seg = Math.floor(rand() * (CHANNEL_PATH.length - 1));
-      const a = CHANNEL_PATH[seg]!;
-      const b = CHANNEL_PATH[seg + 1]!;
-      const t = rand();
-      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      const side = rand() < 0.5 ? -1 : 1;
-      const off = CHANNEL_HALF_WIDTH + 0.4 + rand() * 1.6;
-      const x = a[0] + (b[0] - a[0]) * t + (-(b[1] - a[1]) / len) * off * side;
-      const z = a[1] + (b[1] - a[1]) * t + ((b[0] - a[0]) / len) * off * side;
-      if (Math.max(Math.abs(x), Math.abs(z)) > 140) continue;
-      if (CHANNEL_CROSSINGS.some((c) => Math.hypot(c.x - x, c.z - z) < 6)) continue;
-      if (glowmossPathDistance(x, z) < TRAIL_HALF_WIDTH + 1) continue;
-      place(`glowmoss_channel_stone_${pad3(i + 1)}`, 'gm_stone_small_c', x, z, { scale: 2.5 + rand() * 2.5, yaw: rand() * 6.28 });
-    }
+    const at: [number, number] = [-80, 5];
+    const [dx, dz] = directionNear(GLOWMOSS_TRAILS[0]!, at[0], at[1]);
+    place('glowmoss_garden_root_arch', 'root_arch', at[0], at[1], { yaw: yawAcross(dx, dz), scale: 1.1, dy: -0.15, r: 3.5 });
   }
 
-  // ── 6. 根鬚迷宮：樹根牆圍出的通道，最深處有寶箱 ──
-  {
-    const rand = mulberry32(8813);
-    const n = MAZE.cells;
-    // 每格的四面牆：0 北 1 東 2 南 3 西（北為 -Z）
-    const walls = Array.from({ length: n * n }, () => [true, true, true, true]);
-    const seen = new Set<number>();
-    const depth = new Map<number, number>();
-    const stack = [n * (n - 1)]; // 西南角（i = 0, j = n − 1）
-    seen.add(stack[0]!);
-    depth.set(stack[0]!, 0);
-    const dirs = [
-      [0, -1, 0, 2],
-      [1, 0, 1, 3],
-      [0, 1, 2, 0],
-      [-1, 0, 3, 1],
-    ] as const;
-    while (stack.length > 0) {
-      const cur = stack[stack.length - 1]!;
-      const ci = cur % n;
-      const cj = Math.floor(cur / n);
-      const options = dirs.filter(([di, dj]) => {
-        const ni = ci + di;
-        const nj = cj + dj;
-        return ni >= 0 && nj >= 0 && ni < n && nj < n && !seen.has(nj * n + ni);
-      });
-      if (options.length === 0) {
-        stack.pop();
-        continue;
-      }
-      const [di, dj, wall, opposite] = options[Math.floor(rand() * options.length)]!;
-      const next = (cj + dj) * n + (ci + di);
-      walls[cur]![wall] = false;
-      walls[next]![opposite] = false;
-      seen.add(next);
-      depth.set(next, depth.get(cur)! + 1);
-      stack.push(next);
-    }
-    // 入口：西南角的西牆
-    walls[n * (n - 1)]![3] = false;
-    let w = 0;
-    const cellX = (i: number) => mazeX0 + (i + 0.5) * MAZE.cell;
-    const cellZ = (j: number) => mazeZ0 + (j + 0.5) * MAZE.cell;
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
-        const cw = walls[j * n + i]!;
-        // 每面牆只放一次：北牆與西牆屬於這一格，最東一排放東牆、最南一排放南牆
-        const edges: [boolean, number, number, number][] = [
-          [cw[0]!, cellX(i), cellZ(j) - MAZE.cell / 2, 0],
-          [cw[3]!, cellX(i) - MAZE.cell / 2, cellZ(j), Math.PI / 2],
-        ];
-        if (i === n - 1) edges.push([cw[1]!, cellX(i) + MAZE.cell / 2, cellZ(j), Math.PI / 2]);
-        if (j === n - 1) edges.push([cw[2]!, cellX(i), cellZ(j) + MAZE.cell / 2, 0]);
-        for (const [solid, x, z, yaw] of edges) {
-          if (!solid) continue;
-          w++;
-          place(`glowmoss_maze_wall_${pad3(w)}`, 'root_wall', x, z, { yaw: yaw + (rand() - 0.5) * 0.06, scale: 1, sy: 0.9 + rand() * 0.25, dy: -0.35 });
-        }
-      }
-    }
-    // 寶箱放在離入口最遠的格子
-    let far = 0;
-    for (const [cell, d] of depth) if (d > (depth.get(far) ?? -1)) far = cell;
-    const fx = cellX(far % n);
-    const fz = cellZ(Math.floor(far / n));
-    place('glowmoss_maze_chest', 'chest_glowmoss', fx, fz, { yaw: rand() * 6.28 });
-    place('glowmoss_maze_chest_moss', 'glowmoss_patch', fx + 1.8, fz + 1.2, { scale: 1.2 });
-    // 迷宮裡零星的蘑菇與蕨類
-    for (let k = 0; k < n * n; k++) {
-      if (rand() < 0.45) continue;
-      const x = cellX(k % n) + (rand() - 0.5) * 4;
-      const z = cellZ(Math.floor(k / n)) + (rand() - 0.5) * 4;
-      if (Math.hypot(x - fx, z - fz) < 2.5) continue;
-      place(`glowmoss_maze_plant_${pad2(k + 1)}`, rand() < 0.5 ? 'gm_fern_tall' : 'glow_mushrooms', x, z, { scale: 2.2 + rand() * 1.5, yaw: rand() * 6.28 });
-    }
-    place('glowmoss_signpost_maze', 'signpost_root_maze', mazeX0 - 4, mazeZ0 + MAZE.cell * (n - 0.5) - 4.5, { yaw: -Math.PI / 2 + 0.4, r: 1 });
-    console.log(`root maze: ${w} walls`);
-  }
-
-  // ── 7. 各區散佈 ──
-  const sr = mulberry32(20261014);
+  // ── 4. 散佈 ──
+  const sr = mulberry32(20261020);
   let scattered = 0;
   const half = GLOWMOSS_SIZE / 2;
   function scatter(opts: {
@@ -403,7 +287,6 @@ export function addGlowmoss(placements: Out[]): void {
       if (boundaryDistance(x, z) < 2.5) continue;
       if (opts.where && !opts.where(x, z)) continue;
       if (glowmossPathDistance(x, z) < TRAIL_HALF_WIDTH + (opts.trailClear ?? 1.4)) continue;
-      if (channelDistance(x, z) < CHANNEL_HALF_WIDTH + 1.2) continue;
       if (slopeAt(x, z) > (opts.maxSlope ?? 0.7)) continue;
       if (taken.some((t) => Math.hypot(t.x - x, t.z - z) < t.r + opts.spacing)) continue;
       if (!opts.loose) taken.push({ x, z, r: opts.spacing });
@@ -421,23 +304,32 @@ export function addGlowmoss(placements: Out[]): void {
     }
     if (placed < opts.count) console.warn(`scatter ${opts.prefix}: placed ${placed}/${opts.count}`);
   }
-  const outsideCrown = (x: number, z: number) => Math.hypot(x - MOSS_CROWN.x, z - MOSS_CROWN.z) > MOSS_CROWN.radius + 2;
-  const outsideMaze = (x: number, z: number) => !inMaze(x, z, 3);
-  const open = (x: number, z: number) => outsideCrown(x, z) && outsideMaze(x, z);
-  const glade = { x: -15, z: 15, r: 70 };
-  const nearGlade = (x: number, z: number) => Math.hypot(x - glade.x, z - glade.z) < glade.r;
+  const inGarden = (x: number, z: number) => Math.hypot(x - GLOW_GARDEN.x, z - GLOW_GARDEN.z) < GLOW_GARDEN.radius + 4;
+  const garden = { x: GLOW_GARDEN.x, z: GLOW_GARDEN.z, r: GLOW_GARDEN.radius + 2 };
+  const entrance = { x: -118, z: 2, r: 22 };
 
-  // 遠景框景的大樹（高大、可砍，留出遠景視線：只放在林地外圍）
+  // 花園裡的發光植物（Bible §6.4：發光只用於螢苔、蘑菇與星晶，有限度）與可採集的螢苔、月露草
+  scatter({ prefix: 'glowmoss_flowers', count: 46, prefabs: ['glow_flowers'], spacing: 1.2, scale: [1.6, 2.6], area: garden, trailClear: 0.6, loose: true });
+  scatter({ prefix: 'glowmoss_moss', count: 60, prefabs: ['glowmoss_patch'], spacing: 1.2, scale: [1, 2.2], area: garden, trailClear: 0.6, loose: true });
+  scatter({ prefix: 'glowmoss_glowcap', count: 30, prefabs: ['glow_mushrooms'], spacing: 1, scale: [1.6, 2.6], area: garden, loose: true });
+  scatter({ prefix: 'glowmoss_tuft', count: 16, prefabs: ['glowmoss_tuft'], spacing: 2.2, scale: [1.6, 1.9], area: garden, trailClear: 1 });
+  scatter({ prefix: 'glowmoss_moondew', count: 10, prefabs: ['moondew'], spacing: 2.5, scale: [1.6, 1.9], area: garden, trailClear: 1 });
+  scatter({ prefix: 'glowmoss_moondew_decor', count: 22, prefabs: ['moondew_decor'], spacing: 0.8, scale: [1.4, 1.8], area: garden, loose: true });
+  // 迷霧入口：淺綠的林地、粉紅蘑菇、少量螢苔（參考圖 A：淺綠森林、淡藍霧氣）
+  scatter({ prefix: 'glowmoss_entry_tuft', count: 5, prefabs: ['glowmoss_tuft'], spacing: 2.4, scale: [1.6, 1.9], area: entrance, trailClear: 1.2 });
+  scatter({ prefix: 'glowmoss_entry_mushroom', count: 26, prefabs: ['k_mushroom_red', 'k_mushroom_group', 'k_mushroom_tan'], spacing: 0.6, scale: [2.6, 4.2], area: entrance, loose: true });
+
+  // 樹木：花園盆地裡不放，留出開闊的空地
+  const notGarden = (x: number, z: number) => !inGarden(x, z);
   scatter({
     prefix: 'glowmoss_giant_tree',
-    count: 46,
+    count: 40,
     prefabs: ['gm_tree_oak', 'gm_tree_fat', 'gm_tree_detailed'],
     spacing: 6,
     scale: [12, 16],
     trailClear: 5,
-    where: (x, z) => open(x, z) && !nearGlade(x, z),
+    where: (x, z) => notGarden(x, z) && Math.hypot(x - entrance.x, z - entrance.z) > entrance.r,
   });
-  // 一般樹木：六種高大的森林樹＋暗色針葉
   scatter({
     prefix: 'glowmoss_tree',
     count: 430,
@@ -445,39 +337,17 @@ export function addGlowmoss(placements: Out[]): void {
     spacing: 3.1,
     scale: [6.5, 10.5],
     trailClear: 2.2,
-    where: open,
+    where: notGarden,
   });
-  scatter({ prefix: 'glowmoss_bush', count: 140, prefabs: ['k_bush', 'k_bush_large', 'k_bush_detailed', 'k_bush_small'], spacing: 1.2, scale: [2.5, 4.2], where: open });
-  scatter({ prefix: 'glowmoss_fern', count: 520, prefabs: ['gm_fern_short', 'gm_fern_tall', 'gm_fern_tall'], spacing: 0.4, scale: [2.8, 5], loose: true, trailClear: 0.4, where: outsideMaze });
-  scatter({
-    prefix: 'glowmoss_mushroom',
-    count: 170,
-    prefabs: ['gm_mushroom_tan', 'gm_mushroom_tan_tall', 'k_mushroom_red', 'k_mushroom_group', 'k_mushroom_tan'],
-    spacing: 0.5,
-    scale: [2.6, 5],
-    loose: true,
-    where: outsideMaze,
-  });
-  scatter({ prefix: 'glowmoss_stone', count: 44, prefabs: ['gm_stone_large_a', 'gm_stone_large_c', 'k_rock_large_a', 'k_rock_large_b'], spacing: 1.8, scale: [2.2, 4.2], where: open });
-  scatter({ prefix: 'glowmoss_pebble', count: 22, prefabs: ['gm_stone_small_a'], spacing: 1, scale: [3, 4.5], where: open });
-  scatter({ prefix: 'glowmoss_log', count: 26, prefabs: ['k_log_large', 'k_log'], spacing: 2, scale: [2.6, 4], where: open, maxSlope: 0.4 });
-  scatter({ prefix: 'glowmoss_stump', count: 24, prefabs: ['k_stump_old', 'k_stump_old_tall'], spacing: 1.4, scale: [2.4, 3.6], where: open });
-  // 發光只用在少數關鍵植物（Bible §6.3）：螢苔林地與地標附近
-  scatter({ prefix: 'glowmoss_moss', count: 90, prefabs: ['glowmoss_patch'], spacing: 1.2, scale: [1, 2.2], area: glade, trailClear: 0.6, loose: true });
-  scatter({ prefix: 'glowmoss_glowcap', count: 44, prefabs: ['glow_mushrooms'], spacing: 1, scale: [1.6, 2.6], area: glade, loose: true });
-  // 可採集的螢苔與月露草（之後的任務 quest_forest_001：螢苔 × 5、月露草 × 3）
-  scatter({ prefix: 'glowmoss_tuft', count: 26, prefabs: ['glowmoss_tuft'], spacing: 2, scale: [1.6, 1.9], area: glade, trailClear: 1, where: (x, z) => glowmossPathDistance(x, z) < 12 });
-  scatter({
-    prefix: 'glowmoss_moondew',
-    count: 18,
-    prefabs: ['moondew'],
-    spacing: 2.5,
-    scale: [1.6, 1.9],
-    where: (x, z) => open(x, z) && channelDistance(x, z) < CHANNEL_HALF_WIDTH + 9,
-  });
-  scatter({ prefix: 'glowmoss_moondew_decor', count: 34, prefabs: ['moondew_decor'], spacing: 0.8, scale: [1.4, 1.8], loose: true, where: (x, z) => channelDistance(x, z) < CHANNEL_HALF_WIDTH + 12 });
+  scatter({ prefix: 'glowmoss_bush', count: 140, prefabs: ['k_bush', 'k_bush_large', 'k_bush_detailed', 'k_bush_small'], spacing: 1.2, scale: [2.5, 4.2], where: notGarden });
+  scatter({ prefix: 'glowmoss_fern', count: 520, prefabs: ['gm_fern_short', 'gm_fern_tall', 'gm_fern_tall'], spacing: 0.4, scale: [2.8, 5], loose: true, trailClear: 0.4 });
+  scatter({ prefix: 'glowmoss_mushroom', count: 150, prefabs: ['gm_mushroom_tan', 'gm_mushroom_tan_tall', 'k_mushroom_red', 'k_mushroom_group', 'k_mushroom_tan'], spacing: 0.5, scale: [2.6, 5], loose: true });
+  scatter({ prefix: 'glowmoss_stone', count: 44, prefabs: ['gm_stone_large_a', 'gm_stone_large_c', 'k_rock_large_a', 'k_rock_large_b'], spacing: 1.8, scale: [2.2, 4.2], where: notGarden });
+  scatter({ prefix: 'glowmoss_pebble', count: 22, prefabs: ['gm_stone_small_a', 'gm_stone_small_c'], spacing: 1, scale: [3, 4.5] });
+  scatter({ prefix: 'glowmoss_log', count: 26, prefabs: ['k_log_large', 'k_log'], spacing: 2, scale: [2.6, 4], where: notGarden, maxSlope: 0.4 });
+  scatter({ prefix: 'glowmoss_stump', count: 24, prefabs: ['k_stump_old', 'k_stump_old_tall'], spacing: 1.4, scale: [2.4, 3.6], where: notGarden });
 
-  // ── 8. 地圖邊界：迷霧牆外兩排暗色的大樹 ──
+  // ── 5. 地圖邊界：迷霧牆外兩排暗色的大樹 ──
   {
     const edgeRand = mulberry32(20261015);
     const outline = boundaryOutline(3.2, 8, 0);
@@ -511,94 +381,6 @@ export function addGlowmoss(placements: Out[]): void {
     console.log(`placed ${n} glowmoss boundary trees`);
   }
 
-  // ── 9. 任務 8C：琳娜的路燈、奇奇的水道（崩塌的渠段、分水木輪、三塊苔蘚節點）、苔冠空地入口的樹根 ──
-  // 附加在最後，既有物件的 id 與位置不變；只移除與新物件重疊的散佈點綴（樹、灌木、蕨類、石頭等）。
-  const questOut: Out[] = [];
-  const clear: Taken[] = [];
-  const placeQuest = (id: string, prefabId: string, x: number, z: number, o: { yaw?: number; dy?: number; r: number; scale?: [number, number, number] }) => {
-    questOut.push({
-      id,
-      prefabId,
-      regionId: regionAt(x + O.x, z + O.z),
-      position: [round(x + O.x), round(height(x, z) - 0.03 + (o.dy ?? 0)), round(z + O.z)],
-      rotation: [0, round(o.yaw ?? 0), 0],
-      scale: o.scale ?? [1, 1, 1],
-    });
-    clear.push({ x, z, r: o.r });
-  };
-  {
-    // 林緣小徑的三盞路燈（quest_forest_001）：小徑南側 2.6 m
-    const trail = GLOWMOSS_TRAILS[0]!;
-    LANTERN_X.forEach((lx, i) => {
-      let at: [number, number] = [lx, 0];
-      for (let k = 0; k + 1 < trail.length; k++) {
-        const a = trail[k]!;
-        const b = trail[k + 1]!;
-        if (lx < a[0] || lx > b[0]) continue;
-        const t = (lx - a[0]) / (b[0] - a[0]);
-        at = [lx, a[1] + (b[1] - a[1]) * t];
-      }
-      const [dx, dz] = directionNear(trail, at[0], at[1]);
-      const x = at[0] - dz * 2.6;
-      const z = at[1] + dx * 2.6;
-      // 燈頭（+Z 面）朝向小徑
-      placeQuest(`glowmoss_lantern_${pad2(i + 1)}`, 'trail_lantern', x, z, { yaw: Math.atan2(dz, -dx), r: 1.6 });
-    });
-    // 崩塌的渠段：渠道中央，互動點在東岸
-    {
-      const [x, z] = WATERWAY.breach;
-      const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
-      placeQuest('glowmoss_channel_breach', 'channel_breach', x, z, { yaw: eastFacing(yawAcross(dx, dz)), dy: 0.03, r: 4 });
-    }
-    // 分水木輪：站在渠道中央，操作桿在東岸；三道木槽通往兩岸的苔蘚節點
-    {
-      const [x, z] = WATERWAY.wheel;
-      const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
-      placeQuest('glowmoss_water_wheel', 'water_wheel', x, z, { yaw: eastFacing(yawAcross(dx, dz)), dy: 0.03, r: 5 });
-      WATERWAY.nodes.forEach(([nx, nz], i) => {
-        placeQuest(`glowmoss_moss_node_${pad2(i + 1)}`, 'moss_node', nx, nz, { yaw: Math.atan2(x - nx, z - nz), r: 2.4 });
-        // 木槽底下也保持淨空
-        for (let t = 0.2; t < 1; t += 0.2) clear.push({ x: x + (nx - x) * t, z: z + (nz - z) * t, r: 1.2 });
-      });
-    }
-    // 苔冠空地入口的樹根（修好水渠後退開，Bible §6.4：解鎖頭目空地）
-    {
-      const x = CROWN_SEAL.x;
-      const z = MOSS_CROWN.z;
-      placeQuest('glowmoss_crown_roots', 'crown_roots', x, z, { yaw: Math.PI / 2, dy: -0.3, r: 5, scale: [2.1, 1.3, 1.3] });
-      for (const side of [-1, 1]) for (let k = 1; k <= 4; k++) clear.push({ x, z: z + side * k * 2, r: 1.8 });
-    }
-    // 苔冠空地邊緣的三個水槽（任務 8D，Bible §6.5：把水引入戰場邊緣的三個小水槽）：槽身的 +Z 面向菌樹
-    CROWN_TROUGHS.angles.forEach((a, i) => {
-      const x = MOSS_CROWN.x + Math.cos(a) * CROWN_TROUGHS.radius;
-      const z = MOSS_CROWN.z + Math.sin(a) * CROWN_TROUGHS.radius;
-      placeQuest(`glowmoss_crown_trough_${pad2(i + 1)}`, 'crown_trough', x, z, { yaw: Math.atan2(MOSS_CROWN.x - x, MOSS_CROWN.z - z), r: 2 });
-    });
-    // 任務 8D-2：森林根源石（Bible §6.7 prop_forest_root_stone）
-    placeQuest('glowmoss_root_stone', 'root_stone', ROOT_STONE.x, ROOT_STONE.z, { yaw: -Math.PI / 2, r: 2.6 });
-    // 任務 8D-2：小渠南端往澄鏡湖的林間水道：堵住渠道的樹根（完成後退開）與路標
-    {
-      const z = LAKE_CHANNEL_Z;
-      const x = channelCenterAt(z);
-      const [dx, dz] = directionNear(CHANNEL_PATH, x, z);
-      placeQuest('glowmoss_lake_roots', 'lake_roots', x, z, { yaw: yawAcross(dx, dz), dy: -0.2, r: 4 });
-      placeQuest('glowmoss_lake_sign', 'signpost_lake_channel', x + CHANNEL_HALF_WIDTH + 2.4, z - 3, { yaw: -Math.PI / 2, r: 1.2 });
-    }
-  }
-  const scatterPrefixes = /^glowmoss_(giant_tree|tree|bush|fern|mushroom|stone|pebble|log|stump|moss|glowcap|tuft|moondew|moondew_decor)_\d+$/;
-  const before = out.length;
-  const kept = out.filter((o) => {
-    if (!scatterPrefixes.test(o.id)) return true;
-    const x = o.position[0] - O.x;
-    const z = o.position[2] - O.z;
-    return !clear.some((c) => Math.hypot(c.x - x, c.z - z) < c.r + 0.6);
-  });
-  console.log(`quest 8C: removed ${before - kept.length} scattered placements overlapping ${questOut.length} quest objects`);
-  for (const o of questOut) {
-    if (ids.has(o.id)) throw new Error(`placement id 重複：${o.id}`);
-    ids.add(o.id);
-  }
-
-  placements.push(...kept, ...questOut);
-  console.log(`added ${kept.length + questOut.length} glowmoss placements (${scattered} scattered)`);
+  placements.push(...out);
+  console.log(`added ${out.length} glowmoss placements (${scattered} scattered)`);
 }

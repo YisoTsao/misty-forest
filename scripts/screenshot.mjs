@@ -5,7 +5,6 @@
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
 //   --menu：輸出主選單（單機、線上兩頁）、暫停選單與設定畫面（Phase 1 驗收：可回到主選單；任務 2C、2E、11L-2）
 //   --map：小地圖（村莊、農田）、世界地圖（探索一部分時的霧罩、全部探索、放大）（任務 7B）
-//   --waterway：螢苔祕林的琳娜 / 奇奇任務：路燈點亮前後、乾涸的水渠與木輪、水流通後的閘門與木槽、苔冠空地的樹根退開前後、夜晚的路燈（任務 8C）
 //   --cellar：燈塔下的影子（任務 7M）：奧林、地窖門、地窖內的石片與石環（放回前後）
 //   --footprints：河邊的腳印（任務 7L）：腳印、野果叢、小窩、角兔幼崽
 //   --garden：花園第一顆種子（任務 7K）：桃樂、田邊的鬆土、花圃三個成長階段
@@ -14,8 +13,6 @@
 //   --journal：任務日誌（任務 7F）：進行中 / 可接取 / 已完成三個分頁
 //   --puffking：霧團噗啾王（任務 7E）：開場、衝撞 / 霧球 / 膨脹震地的預兆、星光鏡讓牠暈眩、倒下縮小、村外的小噗啾
 //   --lighthouse：燈塔的最後一盞光（任務 7D）：燈罩碎片、迷霧核心（淨化前後）、熄滅 / 點亮的燈塔（白天、夜晚的光柱）、點亮瞬間的金光
-//   --guardian：苔冠下的守衛（任務 8D-2）：林間水道的樹根、沉睡 / 甦醒（白天、夜晚）的根源石、戰後的苔咚、芽之共鳴的光、回報後退開的樹根
-//   --boss：苔咚頭目戰：開場鑽出地面、HUD、根刺 / 震地 / 睡眠孢子的預兆與出招、縮入菌傘、震地後的破綻、入口的樹根、注滿的水槽與迷霧退去、倒下縮小（任務 8D）
 //   --monsters：每種怪物在自己的生成區域的近照與總覽（任務 7C）；--enemies=a,b 只拍這幾種（任務 8B）
 //   --magic：魔法：白天與夜晚各拍星光衝擊與星屑飛彈的蓄力 / 發動 / 命中、流星雨的預警 / 落下 / 光爆（任務 6E），以及魔法擊敗的淨化（任務 6D）
 //   --melee：近戰：每一招命中瞬間的定格與總覽、三種武器實際打中迷霧生物的拖尾與衝擊（任務 6C）
@@ -61,9 +58,6 @@ const withMelee = flags.has('--melee');
 const withMagic = flags.has('--magic');
 const withMap = flags.has('--map');
 const withMonsters = flags.has('--monsters');
-const withWaterway = flags.has('--waterway');
-const withBoss = flags.has('--boss');
-const withGuardian = flags.has('--guardian');
 const withLighthouse = flags.has('--lighthouse');
 const withPuffKing = flags.has('--puffking');
 const withJournal = flags.has('--journal');
@@ -874,169 +868,6 @@ try {
     await shot('lake_bridge_walk');
   }
 
-  if (withWaterway) {
-    const view = async (bookmark, name, wait = 1500) => {
-      await page.evaluate((b) => window.__mistwoodDebug.setBookmark(b), bookmark);
-      await page.waitForTimeout(wait);
-      await shot(name);
-    };
-    const send = (cmds) => page.evaluate((list) => list.forEach((c) => window.__mistwoodDebug.send(c)), cmds);
-    await page.evaluate(() => {
-      const d = window.__mistwoodDebug;
-      d.resetWorld();
-      d.setMist(null);
-      d.setQuestCompleted('wood_for_bridge');
-      d.setQuestCompleted('repair_bridge');
-      d.travelToMap('glowmoss');
-    });
-    await page.waitForTimeout(2500);
-    const lanterns = ['glowmoss_lantern_01', 'glowmoss_lantern_02', 'glowmoss_lantern_03'];
-    await send([{ type: 'AcceptQuest', quest: 'quest_forest_001' }]);
-    await view('glowmoss_lanterns', 'waterway_lanterns_unlit');
-    await send([
-      ...lanterns.map((placementId) => ({ type: 'ActivateObject', placementId })),
-      { type: 'DebugGiveItems', items: [{ itemId: 'glow_moss', count: 5 }, { itemId: 'moondew_herb', count: 3 }, { itemId: 'stone', count: 4 }] },
-      { type: 'TurnInQuest', quest: 'quest_forest_001' },
-      { type: 'AcceptQuest', quest: 'quest_forest_002' },
-    ]);
-    await view('glowmoss_lanterns', 'waterway_lanterns_lit');
-    await view('glowmoss_wheel', 'waterway_wheel_dry');
-    await view('glowmoss_channel', 'waterway_gate_closed');
-    await view('glowmoss_crown_gate', 'waterway_crown_sealed');
-    await send([
-      { type: 'ActivateObject', placementId: 'glowmoss_channel_roots' },
-      { type: 'ActivateObject', placementId: 'glowmoss_water_gate_01' },
-      { type: 'ActivateObject', placementId: 'glowmoss_water_gate_02' },
-      { type: 'RepairObject', placementId: 'glowmoss_channel_breach' },
-    ]);
-    // 水從泉眼一路流下來需要幾秒
-    await view('glowmoss_channel', 'waterway_gate_open', 9000);
-    await view('glowmoss_wheel', 'waterway_wheel_flowing', 3000);
-    await send([{ type: 'TurnObject', placementId: 'glowmoss_water_wheel' }]);
-    await view('glowmoss_wheel', 'waterway_wheel_turned', 3500);
-    await send([
-      { type: 'TurnObject', placementId: 'glowmoss_water_wheel' },
-      { type: 'TurnInQuest', quest: 'quest_forest_002' },
-    ]);
-    await view('glowmoss_crown_gate', 'waterway_crown_open');
-    await page.evaluate(() => window.__mistwoodDebug.setClock(21));
-    await view('glowmoss_lanterns', 'waterway_lanterns_night', 2000);
-    await view('glowmoss_wheel', 'waterway_wheel_night', 1500);
-  }
-
-  if (withBoss) {
-    const d = (fn, arg) => page.evaluate(fn, arg);
-    const look = (cam) => d((c) => window.__mistwoodDebug.camera(c), cam);
-    const heal = () => d(() => window.__mistwoodDebug.send({ type: 'Rest' }));
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      g.resetWorld();
-      g.setMist(null);
-      g.setClock(10);
-      g.setQuestCompleted('wood_for_bridge');
-      g.setQuestCompleted('repair_bridge');
-      g.setQuestCompleted('quest_forest_002');
-      // 任務 8D-2：接了「苔冠下的守衛」才開戰
-      g.send({ type: 'AcceptQuest', quest: 'quest_forest_003' });
-      for (const from of ['move', 'interact', 'harvest', 'inventory']) g.send({ type: 'AdvanceTutorial', from });
-      g.setCameraMode('follow');
-      g.travelToMap('glowmoss');
-    });
-    await page.waitForTimeout(2500);
-    // 從入口走進空地：開戰，苔咚從菌樹下鑽出來（攝影機在玩家西側、看向東）
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      g.setPeaceful(true);
-      g.teleport(2083, 47);
-      g.face(2100, 46);
-    });
-    await look({ yaw: -1.35, pitch: 0.22, distance: 9 });
-    await page.waitForTimeout(1300);
-    await shot('boss_intro');
-    await page.waitForTimeout(2600);
-    await shot('boss_hud');
-    // 入口的樹根：從空地裡往西看（自由攝影機，拍完回到跟隨）
-    await d(() => window.__mistwoodDebug.viewAt([2090, 5.5, 53], [2073, 2, 45]));
-    await page.waitForTimeout(900);
-    await shot('boss_gate');
-    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
-    const force = async (move, wait) => {
-      await heal();
-      await d((m) => {
-        const g = window.__mistwoodDebug;
-        g.setPeaceful(false);
-        g.forceBossMove(m);
-      }, move);
-      await page.waitForTimeout(wait);
-    };
-    await look({ yaw: -1.2, pitch: 0.42, distance: 12 });
-    await force('spikes', 750);
-    await shot('boss_spikes_warn');
-    await page.waitForTimeout(500);
-    await shot('boss_spikes');
-    await d(() => window.__mistwoodDebug.setPeaceful(true));
-    await page.waitForTimeout(2500);
-    // 震地：玩家退開，看得到落點圈
-    await d(() => window.__mistwoodDebug.teleport(2084, 56));
-    await look({ yaw: -0.9, pitch: 0.4, distance: 13 });
-    await page.waitForTimeout(600);
-    await force('slam', 550);
-    await shot('boss_slam_warn');
-    await page.waitForTimeout(500);
-    await shot('boss_slam_air');
-    await page.waitForTimeout(500);
-    await shot('boss_recover');
-    await d(() => window.__mistwoodDebug.setPeaceful(true));
-    await page.waitForTimeout(2500);
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      const b = g.boss();
-      if (b) g.teleport(b.x - 4.5, b.z + 0.5);
-    });
-    await look({ yaw: -2.2, pitch: 0.3, distance: 10 });
-    await page.waitForTimeout(400);
-    await force('spores', 900);
-    await shot('boss_spores');
-    await d(() => window.__mistwoodDebug.setPeaceful(true));
-    await page.waitForTimeout(2000);
-    // 連續被打：縮入菌傘
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      const b = g.boss();
-      for (let i = 0; i < 6 && b; i++) g.hitEnemy(b.enemyId, 'spell_star_bolt');
-    });
-    await page.waitForTimeout(500);
-    await shot('boss_guard');
-    await page.waitForTimeout(2500);
-    // 三個水槽注滿：迷霧退去
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      for (const id of ['glowmoss_crown_trough_01', 'glowmoss_crown_trough_02', 'glowmoss_crown_trough_03']) g.send({ type: 'ActivateObject', placementId: id });
-      g.teleport(2096, 30);
-      g.face(2099, 28);
-    });
-    await look({ yaw: 0.3, pitch: 0.35, distance: 6 });
-    await page.waitForTimeout(1500);
-    await shot('boss_trough_full');
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      const b = g.boss();
-      if (!b) return;
-      g.teleport(b.x - 7, b.z + 3);
-      g.viewAt([b.x - 9, 4.5, b.z + 7], [b.x, 2.6, b.z]);
-    });
-    await page.waitForTimeout(2000);
-    await shot('boss_cleared');
-    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      const b = g.boss();
-      for (let i = 0; i < 80 && g.boss(); i++) g.hitEnemy(b.enemyId, 'spell_starlight_burst');
-    });
-    await page.waitForTimeout(1200);
-    await shot('boss_defeated');
-  }
-
   if (withLighthouse) {
     const d = (fn, arg) => page.evaluate(fn, arg);
     const placementsData = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
@@ -1118,7 +949,7 @@ try {
       g.resetWorld();
       g.setMist(0);
       g.setClock(17);
-      for (const q of ['quest_dawn_003', 'quest_forest_003', 'quest_lake_001']) g.setQuestCompleted(q);
+      for (const q of ['quest_dawn_003', 'quest_lake_001']) g.setQuestCompleted(q);
       g.send({ type: 'AcceptQuest', quest: 'quest_lake_002' });
       g.setCameraMode('free');
       g.teleport(3996, -70);
@@ -1281,7 +1112,7 @@ try {
     // 草藥桌（任務 7J）：一個材料不足、一個可以做
     await page.evaluate(() => {
       const g = window.__mistwoodDebug;
-      g.setQuestCompleted('quest_forest_001');
+      g.setQuestCompleted('quest_dawn_003');
       g.send({ type: 'DebugGiveItems', items: [{ itemId: 'moondew_herb', count: 2 }, { itemId: 'glow_moss', count: 2 }] });
       g.openCraft('linna_herbtable');
     });
@@ -1322,7 +1153,7 @@ try {
       g.resetWorld();
       for (const q of ['wood_for_bridge', 'repair_bridge']) g.setQuestCompleted(q);
       g.send({ type: 'AcceptQuest', quest: 'clear_forest' });
-      g.send({ type: 'AcceptQuest', quest: 'quest_forest_001' });
+      g.send({ type: 'AcceptQuest', quest: 'quest_dawn_004' });
     });
     await page.keyboard.press('KeyJ');
     await page.getByTestId('quest-journal').waitFor({ timeout: 3000 });
@@ -1343,7 +1174,7 @@ try {
       g.resetWorld();
       g.setMist(null);
       g.setClock(16);
-      for (const q of ['quest_forest_003', 'quest_lake_001', 'quest_lake_002']) g.setQuestCompleted(q);
+      for (const q of ['quest_dawn_003', 'quest_lake_001', 'quest_lake_002']) g.setQuestCompleted(q);
       for (const from of ['move', 'interact', 'harvest', 'inventory']) g.send({ type: 'AdvanceTutorial', from });
       g.send({ type: 'AcceptQuest', quest: 'quest_lake_003' });
       g.setPeaceful(true);
@@ -1476,91 +1307,6 @@ try {
     await page.waitForTimeout(1500);
     await shot('puffking_buddy');
     await d(() => window.__mistwoodDebug.setClock(10));
-  }
-
-  if (withGuardian) {
-    const d = (fn, arg) => page.evaluate(fn, arg);
-    const placementsData = JSON.parse(readFileSync('src/data/placements.json', 'utf8'));
-    const at = (id) => placementsData.find((p) => p.id === id).position;
-    const stone = at('glowmoss_root_stone');
-    const lake = at('glowmoss_lake_roots');
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      g.resetWorld();
-      g.setMist(null);
-      g.setClock(10);
-      for (const q of ['wood_for_bridge', 'repair_bridge', 'quest_forest_001', 'quest_forest_002']) g.setQuestCompleted(q);
-      g.send({ type: 'AcceptQuest', quest: 'quest_forest_003' });
-      for (const from of ['move', 'interact', 'harvest', 'inventory']) g.send({ type: 'AdvanceTutorial', from });
-      g.setPeaceful(true);
-      g.setCameraMode('follow');
-      g.travelToMap('glowmoss');
-    });
-    await page.waitForTimeout(2500);
-    // 林間水道南端：還被樹根堵住（玩家站在渠道東岸）
-    await d(([x, z]) => {
-      const g = window.__mistwoodDebug;
-      g.teleport(x + 5, z - 6);
-      g.viewAt([x + 7, 4.5, z - 9], [x, 0, z]);
-    }, [lake[0], lake[2]]);
-    await page.waitForTimeout(1500);
-    await shot('guardian_lake_roots');
-    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
-    // 沉睡的根源石（從入口那一側看，菌樹後面）
-    await d(([x, z]) => {
-      const g = window.__mistwoodDebug;
-      g.teleport(x - 4, z + 3);
-      g.viewAt([x - 5.5, 2.6, z + 2.5], [x, 1.1, z]);
-    }, [stone[0], stone[2]]);
-    await page.waitForTimeout(1500);
-    await shot('guardian_stone_dormant');
-    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
-    // 打倒苔咚：縮小後成為 NPC
-    await d(() => window.__mistwoodDebug.teleport(2088, 46));
-    await page.waitForTimeout(1200);
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      for (const id of ['glowmoss_crown_trough_01', 'glowmoss_crown_trough_02', 'glowmoss_crown_trough_03']) g.send({ type: 'ActivateObject', placementId: id });
-      const b = g.boss();
-      for (let i = 0; i < 80 && g.boss(); i++) g.hitEnemy(b.enemyId, 'spell_starlight_burst');
-    });
-    await page.waitForTimeout(4000);
-    const buddy = JSON.parse(readFileSync('src/data/npcs.json', 'utf8')).find((n) => n.id === 'moss_thump').position;
-    await d(([x, z]) => {
-      const g = window.__mistwoodDebug;
-      g.teleport(x - 1.4, z - 2.4);
-      g.face(x, z);
-      g.viewAt([x - 3.4, 1.7, z + 1.2], [x, 0.5, z]);
-    }, buddy);
-    await page.waitForTimeout(1500);
-    await shot('guardian_buddy');
-    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
-    // 啟動根源石：綠光擴散（芽之共鳴）
-    await d(([x, z]) => {
-      const g = window.__mistwoodDebug;
-      g.teleport(x - 2.1, z);
-      g.face(x, z);
-      g.camera({ yaw: -1.9, pitch: 0.25, distance: 6 });
-      g.send({ type: 'ActivateObject', placementId: 'glowmoss_root_stone' });
-    }, [stone[0], stone[2]]);
-    await page.waitForTimeout(450);
-    await shot('guardian_resonance');
-    await d(([x, z]) => window.__mistwoodDebug.viewAt([x - 5.5, 2.6, z + 2.5], [x, 1.1, z]), [stone[0], stone[2]]);
-    await page.waitForTimeout(2500);
-    await shot('guardian_stone_awake');
-    await d(() => window.__mistwoodDebug.setClock(21));
-    await page.waitForTimeout(2000);
-    await shot('guardian_stone_night');
-    await d(() => {
-      const g = window.__mistwoodDebug;
-      g.setClock(10);
-      g.send({ type: 'TurnInQuest', quest: 'quest_forest_003' });
-    });
-    await d(([x, z]) => window.__mistwoodDebug.viewAt([x + 7, 4.5, z - 9], [x, 0, z]), [lake[0], lake[2]]);
-    await d(([x, z]) => window.__mistwoodDebug.teleport(x + 5, z - 6), [lake[0], lake[2]]);
-    await page.waitForTimeout(2500);
-    await shot('guardian_lake_open');
-    await d(() => window.__mistwoodDebug.setCameraMode('follow'));
   }
 
   if (withNpc) {

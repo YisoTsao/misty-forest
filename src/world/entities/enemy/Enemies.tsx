@@ -15,7 +15,6 @@ import { ModelEnemy, ModelEnemyWarmup } from './ModelEnemy';
 import { CritterEnemy, CritterEnemyWarmup } from './CritterEnemy';
 import { LakeCritter, LakeCritterWarmup, type LakeKind } from './LakeCritter';
 import { LiyiKoi, LiyiKoiWarmup } from './LiyiKoi';
-import { MossThump, MossThumpWarmup } from './MossThump';
 import { PuffKing, PuffKingWarmup } from './PuffKing';
 import { clearSpits, stepSpits } from '@/game/combat/enemySpits';
 import { isControllable } from '@/game-core/flow/gameFlow';
@@ -66,7 +65,8 @@ export function Enemies() {
         if (def?.boss) {
           const boss = { ...def, boss: def.boss };
           if (def.id === 'boss_liyi_echo_koi') return <LiyiKoi key={id} id={id} def={boss} />;
-          return def.id === 'boss_dawn_mist_puff' ? <PuffKing key={id} id={id} def={boss} /> : <MossThump key={id} id={id} def={boss} />;
+          // 其他頭目（第二章的根噬者）在各自的任務加入元件
+          return def.id === 'boss_dawn_mist_puff' ? <PuffKing key={id} id={id} def={boss} /> : null;
         }
         if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
         if (def?.procedural) {
@@ -107,7 +107,7 @@ function EnemyShaderWarmup({ geometry }: { geometry: { body: THREE.BufferGeometr
         const kind = def.procedural;
         if (kind) return isLakeKind(kind) ? <LakeCritterWarmup key={def.id} kind={kind} /> : <CritterEnemyWarmup key={def.id} kind={kind} />;
         if (def.boss && def.id === 'boss_liyi_echo_koi') return <LiyiKoiWarmup key={def.id} />;
-        if (def.boss) return def.id === 'boss_dawn_mist_puff' ? <PuffKingWarmup key={def.id} /> : <MossThumpWarmup key={def.id} />;
+        if (def.boss) return def.id === 'boss_dawn_mist_puff' ? <PuffKingWarmup key={def.id} /> : null;
         return null;
       })}
       <mesh geometry={geometry.body} material={wisp} castShadow />

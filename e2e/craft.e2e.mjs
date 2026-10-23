@@ -1,5 +1,5 @@
 // 端對端：任務 7J — 琳娜的草藥桌（Bible §26.1–26.2）。
-// 琳娜的任務完成後，對話選「借用草藥桌」開啟 → 材料不足時顯示還缺多少、按鈕停用 → 補齊材料製作小瓶草藥水 → 月露藥膏配方已解鎖 → Esc 關閉。
+// 琳娜在晨曦村（任務 12A），對話選「借用草藥桌」開啟 → 材料不足時顯示還缺多少、按鈕停用 → 補齊材料製作小瓶草藥水 → 月露藥膏配方已解鎖 → Esc 關閉。
 // 用法：pnpm build && node e2e/craft.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -16,10 +16,9 @@ await runE2e('craft e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
 
   await debug(() => {
     const d = window.__mistwoodDebug;
-    for (const q of ['wood_for_bridge', 'repair_bridge', 'quest_forest_001']) d.setQuestCompleted(q);
-    d.travelToMap('glowmoss');
+    // 任務 12A：琳娜回到晨曦村，月露藥膏改為第一章完成後解鎖
+    for (const q of ['wood_for_bridge', 'repair_bridge', 'quest_dawn_003']) d.setQuestCompleted(q);
   });
-  await page.waitForFunction(() => window.__mistwoodDebug.currentMap().shown === 'glowmoss', null, { timeout: 4000 });
   await page.waitForTimeout(1000);
 
   await check('和琳娜對話選「借用草藥桌」開啟工作台', async () => {

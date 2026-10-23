@@ -10,11 +10,11 @@ import { parseItemData, type ItemCatalog, type LootTables } from '../items/items
 import { parseNpcs, type NpcDef } from '../npc/npc';
 import { parseQuests, type QuestCatalog } from '../quest/quest';
 import { parseFlocks, type FlockDef } from '../ambient/sheep';
+import { parsePuzzles, type PuzzleDef } from './puzzles';
 import { parseInteriors, type InteriorDef } from './interiors';
 import { mapIdAt, mapIds } from './maps';
 import { parseRegions, type RegionDef } from './regions';
 import { parseLightPaths, type LightPathDef } from './lightPath';
-import { parseWaterways, type WaterwayDef } from './waterway';
 import { parseShops, type ShopDef } from '../shop/shop';
 import { parseCraftData, type CraftData } from '../craft/craft';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
@@ -38,9 +38,8 @@ export type GameData = WorldData & {
   spells: SpellCatalog;
   /** 世界地圖的地標（任務 7B） */
   landmarks: readonly Landmark[];
-  /** 水道謎題（任務 8C） */
-  waterways: readonly WaterwayDef[];
   lightPaths: readonly LightPathDef[];
+  puzzles: readonly PuzzleDef[];
   /** 商店（任務 7H） */
   shops: ReadonlyMap<string, ShopDef>;
   /** 工作台與配方（任務 7J） */
@@ -67,9 +66,8 @@ export function parseGameData(raw: {
   spells: unknown;
   /** 省略時沒有地標（測試用的最小資料） */
   landmarks?: unknown;
-  /** 省略時沒有水道（測試用的最小資料） */
-  waterways?: unknown;
   lightPaths?: unknown;
+  puzzles?: unknown;
   shops?: unknown;
   crafting?: unknown;
 }): GameData {
@@ -151,6 +149,9 @@ export function parseGameData(raw: {
     for (const need of [prefab.harvest?.quest, prefab.repair?.quest, prefab.activate?.quest]) {
       if (need !== undefined && !quests.has(need)) throw new WorldDataError(`prefab ${prefab.id} 參照不存在的任務：${need}`);
     }
+    for (const c of prefab.activate?.consume ?? []) {
+      if (!items.has(c.itemId)) throw new WorldDataError(`prefab ${prefab.id} 的啟動消耗參照不存在的物品：${c.itemId}`);
+    }
     const enter = prefab.enter;
     if (!enter) continue;
     for (const need of [enter.requires?.questCompleted, enter.requires?.questActive]) {
@@ -198,24 +199,6 @@ export function parseGameData(raw: {
       if (questId && !quests.has(questId)) throw new WorldDataError(`頭目 ${e.id} 的開戰條件參照不存在的任務：${questId}`);
     }
   }
-  let waterways: WaterwayDef[];
-  try {
-    waterways = parseWaterways(raw.waterways ?? [], new Set(world.placements.map((p) => p.id)));
-  } catch (err) {
-    throw new WorldDataError(`waterways 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
-  }
-  for (const w of waterways) {
-    const wheel = world.prefabs.get(placementsById.get(w.wheel)?.prefabId ?? '');
-    if (wheel?.turn?.positions !== w.outlets.length) throw new WorldDataError(`水道 ${w.id} 的水輪位置數與節點數不同`);
-    const prefabOf = (id: string) => world.prefabs.get(placementsById.get(id)?.prefabId ?? '');
-    for (const id of w.outlets) {
-      if (!prefabOf(id)?.activate) throw new WorldDataError(`水道 ${w.id} 的節點不是可啟動的物件：${id}`);
-    }
-    for (const id of w.blockers) {
-      const p = prefabOf(id);
-      if (!p?.activate && !p?.repair) throw new WorldDataError(`水道 ${w.id} 的阻擋點不能排除（需要 activate 或 repair）：${id}`);
-    }
-  }
   let lightPaths: LightPathDef[];
   try {
     lightPaths = parseLightPaths(raw.lightPaths ?? [], new Set(world.placements.map((p) => p.id)));
@@ -226,6 +209,19 @@ export function parseGameData(raw: {
     const prefabOf = (id: string) => world.prefabs.get(placementsById.get(id)?.prefabId ?? '');
     for (const id of l.mirrors) if (prefabOf(id)?.turn?.positions !== 4) throw new WorldDataError(`光路 ${l.id} 的水鏡必須能轉 4 個方向：${id}`);
     if (!prefabOf(l.target)?.activate) throw new WorldDataError(`光路 ${l.id} 的終點不是可啟動的物件：${l.target}`);
+  }
+  let puzzles: readonly PuzzleDef[];
+  try {
+    puzzles = parsePuzzles(raw.puzzles ?? [], new Set(world.placements.map((p) => p.id)));
+  } catch (err) {
+    throw new WorldDataError(`puzzles 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  for (const pz of puzzles) {
+    for (const m of pz.members) {
+      const turn = placementsById.get(m.placement) && world.prefabs.get(placementsById.get(m.placement)!.prefabId)?.turn;
+      if (!turn) throw new WorldDataError(`謎題 ${pz.id} 的成員不能轉動：${m.placement}`);
+      if (m.turn >= turn.positions) throw new WorldDataError(`謎題 ${pz.id} 的答案超出 ${m.placement} 的位置數`);
+    }
   }
   let shops: Map<string, ShopDef>;
   try {
@@ -239,5 +235,5 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`crafting 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, waterways, lightPaths, shops, crafting };
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, lightPaths, puzzles, shops, crafting };
 }

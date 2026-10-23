@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { mulberry32 } from '../src/game-core/util/random.ts';
 import { boundaryDistance, boundaryOutline } from '../src/game-core/world/bounds.ts';
-import { CHANNEL_PATH, GLOWMOSS_ORIGIN, glowmossHeight } from '../src/game-core/world/glowmossTerrain.ts';
+import { GLOWMOSS_ORIGIN, glowmossHeight, LAKE_EXIT } from '../src/game-core/world/glowmossTerrain.ts';
 import {
   LAKE_CAMP,
   MIRROR_PILLARS,
@@ -78,17 +78,6 @@ const TEMPLE_MIRRORS: [string, number, number][] = [
   ['mirrorlake_temple_mirror_east', MIRROR_TEMPLE.x + 13, MIRROR_TEMPLE.z - 4],
 ];
 
-/** 螢苔祕林小渠南端的水道入口（局部座標，渠道中央；堵住的樹根在北邊 7 m，任務 8D-2 完成後退開） */
-const GLOWMOSS_LAKE_GATE_Z = 143;
-function channelCenterAt(z: number): number {
-  for (let i = 0; i + 1 < CHANNEL_PATH.length; i++) {
-    const a = CHANNEL_PATH[i]!;
-    const b = CHANNEL_PATH[i + 1]!;
-    if (z < Math.min(a[1], b[1]) || z > Math.max(a[1], b[1])) continue;
-    return a[0] + ((b[0] - a[0]) * (z - a[1])) / (b[1] - a[1]);
-  }
-  throw new Error(`渠道沒有經過 z = ${z}`);
-}
 
 export function addMirrorlake(placements: Out[]): void {
   const out: Out[] = [];
@@ -113,10 +102,10 @@ export function addMirrorlake(placements: Out[]): void {
     if (o.r) taken.push({ x, z, r: o.r });
   };
 
-  // ── 1. 螢苔祕林這一側：小渠南端的水道入口（往南順著水道走到澄鏡湖），移除與它重疊的散佈點綴 ──
+  // ── 1. 螢苔祕林這一側：古樹祭壇東南往澄鏡湖的出口（任務 12B，Bible §6.12），移除與它重疊的散佈點綴 ──
   {
-    const gx = channelCenterAt(GLOWMOSS_LAKE_GATE_Z);
-    const gz = GLOWMOSS_LAKE_GATE_Z;
+    const gx = LAKE_EXIT.x;
+    const gz = LAKE_EXIT.z;
     const scatter = /^glowmoss_(giant_tree|tree|bush|fern|mushroom|stone|pebble|log|stump|moss|glowcap|moondew_decor|channel_stone|edge_tree)_\d+$/;
     for (let i = placements.length - 1; i >= 0; i--) {
       const p = placements[i]!;
@@ -125,10 +114,10 @@ export function addMirrorlake(placements: Out[]): void {
     push({
       id: 'glowmoss_gate_mirrorlake',
       prefabId: 'gate_to_mirrorlake',
-      regionId: 'moss_glade',
+      regionId: 'ancient_altar',
       position: [round(gx + GLOWMOSS_ORIGIN.x), round(glowmossHeight(gx, gz) - 0.05), round(gz + GLOWMOSS_ORIGIN.z)],
-      // 背對入口的方向是北（抵達螢苔祕林時面向北走回林地）
-      rotation: [0, round(Math.PI), 0],
+      // 背對入口的方向是西（抵達螢苔祕林時面向西，順著小徑走回古樹祭壇）
+      rotation: [0, round(-Math.PI / 2), 0],
       scale: [1, 1, 1],
     });
   }

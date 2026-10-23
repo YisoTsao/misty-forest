@@ -8,8 +8,7 @@ import { isControllable } from '@/game-core/flow/gameFlow';
 import { createSafePointTrail, defaultSafePointOptions, nearestSafePoint, recordSafePoint } from '@/game-core/world/safePoints';
 import { mapAt } from '@/game-core/world/maps';
 import { SPAWN_POINT, terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
-import { countItem } from '@/game-core/inventory/inventory';
-import { authority } from '@/game/authority';
+import { authority, currentModifiers } from '@/game/authority';
 import { combatRuntime } from '@/game/combat/combatRuntime';
 import { input } from '@/game/input/inputManager';
 import { cameraRuntime, playerRuntime } from '@/game/player/localRuntime';
@@ -26,7 +25,6 @@ const KILL_Y = -25;
 const DROWN_DEPTH = 0.6;
 /** 帶著水行護符（任務 9D，Bible §7.4：涉水與短距離潛入）時可以走進較深的水裡 */
 const CHARM_DEPTH = 2.2;
-const WATER_CHARM = 'water_charm';
 const deg = Math.PI / 180;
 const NO_MOVE = { right: 0, forward: 0, run: false, jumpPressed: false };
 
@@ -108,10 +106,18 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     }
     // 互動動作中、視窗開啟時或主選單中不接受移動輸入（仍持續套用重力與減速）
     const jumpPressed = input.consumePressed('jump');
+    const dodgePressed = input.consumePressed('dodge');
     const blocked = action !== null || isModalOpen() || !isControllable(screen);
+    // 翻滾（第二章 Phase 3）：權威層接受（沒有冷卻、沒有倒下）才開始滾；動作由 stepLocomotion 負責
+    let rolled = false;
+    if (dodgePressed && !blocked) {
+      const before = authority.getState().player.rollUntil;
+      authority.send({ type: 'Roll' });
+      rolled = authority.getState().player.rollUntil !== before;
+    }
     const move = blocked
       ? NO_MOVE
-      : { ...input.moveAxes(), run: input.isDown('run'), jumpPressed };
+      : { ...input.moveAxes(), run: input.isDown('run'), jumpPressed, roll: rolled };
     const { state, delta } = stepLocomotion(
       playerRuntime.locomotion,
       move,
@@ -144,7 +150,7 @@ export function Player({ def, colliderRef }: { def: CharacterDef; colliderRef: R
     const teleport = playerRuntime.teleportRequest;
     const feetY = next.y - footOffset;
     // 湖與溪共用水面高度：腳底沉到水面以下就是落水（淺灘水深不到 DROWN_DEPTH，可以涉水；水行護符可以走得更深）
-    const depth = countItem(authority.getState().inventory, WATER_CHARM) > 0 ? CHARM_DEPTH : DROWN_DEPTH;
+    const depth = currentModifiers().waterBreath ? CHARM_DEPTH : DROWN_DEPTH;
     const inWater = feetY < WATER_LEVEL - depth && terrainHeight(next.x, next.z) < WATER_LEVEL - depth;
     const fellOut = next.y < KILL_Y || inWater;
     if (teleport) {

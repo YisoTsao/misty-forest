@@ -57,7 +57,7 @@ await runE2e('liyi e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, 
 
   await g(() => {
     const d = window.__mistwoodDebug;
-    for (const q of ['quest_forest_003', 'quest_lake_001', 'quest_lake_002']) d.setQuestCompleted(q);
+    for (const q of ['quest_dawn_003', 'quest_lake_001', 'quest_lake_002']) d.setQuestCompleted(q);
   });
 
   await check('沒接「倒影中的守護者」時走進水鏡神殿不會開戰', async () => {

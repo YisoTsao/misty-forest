@@ -1,18 +1,17 @@
-// 任務 8B：螢苔祕林的三種怪物（Bible §6.6）——行為、權威層的傷害倍率與緩速、資料。
+// 任務 8B：盤旋（霧孢飛蛾）、縮殼與破綻（根鬚甲蟲）、吐泥（迷霧芽怪）的行為與權威層的傷害倍率、緩速。
+// 飛蛾與甲蟲已從遊戲移除（任務 12A），改用測試樣本 testing/legacyForest；迷霧芽怪仍在晨曦谷地。
 import { describe, expect, it } from 'vitest';
 import enemiesData from '@/data/enemies.json';
 import spawnersData from '@/data/spawners.json';
 import lootData from '@/data/lootTables.json';
-import regionsData from '@/data/regions.json';
 import { applyEvents, handleCommand, initialGameState, type GameState } from '../authority/rules';
 import { testContext } from '../testing/fixtures';
-import { mapIdAt } from '../world/maps';
-import { parseRegions, regionAt } from '../world/regions';
-import { terrainHeight, WATER_LEVEL } from '../world/terrain';
+import { legacyCombat } from '../testing/legacyForest';
 import { parseCombatData, stanceDamageScale, type EnemyDef } from './combat';
 import { aiStance, applyHitReaction, createEnemyAi, GUARD_COOLDOWN, stepEnemyAi, type EnemyAi } from './enemyAi';
 
-const data = parseCombatData(enemiesData, spawnersData, new Set(lootData.map((t) => t.id)));
+const real = parseCombatData(enemiesData, spawnersData, new Set(lootData.map((t) => t.id)));
+const data = { enemies: new Map([...real.enemies, ...legacyCombat.enemies]), spawners: [...real.spawners, ...legacyCombat.spawners] };
 const moth = data.enemies.get('mob_fog_moth')!;
 const beetle = data.enemies.get('mob_root_beetle')!;
 const sprout = data.enemies.get('mob_mist_sprout')!;
@@ -147,36 +146,5 @@ describe('迷霧芽怪：吐泥團', () => {
     expect(applyEvents(withEnemy('mob_mist_sprout', 45), events, ctx).player.hp).toBe(100 - b.damage);
     const bad = handleCommand(withEnemy('mob_fog_moth', 34), { type: 'EnemyStrike', enemyId: 'e1', spit: true }, ctx);
     expect(bad[0]?.type).toBe('CommandRejected');
-  });
-});
-
-describe('螢苔祕林的怪物資料', () => {
-  const regions = parseRegions(regionsData);
-  it('三種森林怪物都有生成點，生成點在螢苔祕林、區域一致、不在渠道或水裡', () => {
-    for (const kind of ['mob_fog_moth', 'mob_root_beetle', 'mob_mist_sprout']) {
-      const forest = data.spawners.filter((s) => s.enemy === kind && mapIdAt(s.center[0], s.center[1]) === 'glowmoss');
-      expect(forest.length, kind).toBeGreaterThanOrEqual(2);
-      for (const s of forest) {
-        expect(regionAt(regions, s.center[0], s.center[1]), s.id).toBe(s.regionId);
-        expect(terrainHeight(s.center[0], s.center[1]), s.id).toBeGreaterThan(WATER_LEVEL + 0.3);
-      }
-    }
-  });
-
-  it('掉落依 Bible：飛蛾螢光花粉 65%、霧凝膠 20%；甲蟲根纖維 70%、木材 30%', () => {
-    const table = (id: string) => lootData.find((t) => t.id === id)!.drops;
-    expect(table('mob_fog_moth_drop')).toEqual(
-      expect.arrayContaining([expect.objectContaining({ itemId: 'glow_pollen', chance: 0.65 }), expect.objectContaining({ itemId: 'mist_gel', chance: 0.2 })]),
-    );
-    expect(table('mob_root_beetle_drop')).toEqual(
-      expect.arrayContaining([expect.objectContaining({ itemId: 'root_fiber', chance: 0.7 }), expect.objectContaining({ itemId: 'wood', chance: 0.3 })]),
-    );
-  });
-
-  it('飛蛾每群 2–4 隻（Bible：不應成群壓迫玩家）', () => {
-    for (const s of data.spawners.filter((sp) => sp.enemy === 'mob_fog_moth')) {
-      expect(s.budget.dense, s.id).toBeLessThanOrEqual(4);
-      expect(Math.max(s.budget.dense, s.budget.light), s.id).toBeGreaterThanOrEqual(2);
-    }
   });
 });

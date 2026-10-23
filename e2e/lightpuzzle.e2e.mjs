@@ -44,7 +44,7 @@ await runE2e('lightpuzzle e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({
 
   await debug(() => {
     const d = window.__mistwoodDebug;
-    for (const q of ['quest_dawn_003', 'quest_forest_003', 'quest_lake_001']) d.setQuestCompleted(q);
+    for (const q of ['quest_dawn_003', 'quest_lake_001']) d.setQuestCompleted(q);
   });
 
   await check('沒接任務時按 E 轉水鏡：提示還不能轉', async () => {

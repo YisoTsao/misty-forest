@@ -6,19 +6,20 @@ import { bossRequirementsMet, bossShieldScale, bossSpawner, PLAYER_STATS, stance
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { canCastSpell, canUseWeapon, DEFAULT_HERO_CLASS, type HeroClassCatalog, type HeroClassId } from '../character/heroClass';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
-import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
+import { addItems, countItem, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
+import { equipmentModifiers, scaleDamage, type EquipSlot, type Equipment, type Modifiers } from '../equipment/equipment';
 import { type QuestDef, earlierObjectivesDone, isQuestTracked, talkObjectiveIndex, talksDone, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
-import type { MistStage } from '../world/mist';
+import { lowerMistStage, type MistStage } from '../world/mist';
 import { secondsUntilHour } from '../world/timeOfDay';
 import { initialMistStages, type MistStages } from '../world/regions';
 import type { RegionId } from '../world/types';
 import type { ObjectRuntimeMap, WorldLookup } from '../world/objects';
 import type { ObjectRuntime } from '../world/types';
 import { targetsToLight, type LightPathDef } from '../world/lightPath';
-import { outletsToWake, type WaterwayDef } from '../world/waterway';
+import { puzzleSolved, type PuzzleDef } from '../world/puzzles';
 import { availableStock, COIN, MAX_TRADE, type ShopCatalog } from '../shop/shop';
 import type { CraftData } from '../craft/craft';
 
@@ -30,6 +31,8 @@ export type GameState = {
   readonly clock: number;
   readonly objects: ObjectRuntimeMap;
   readonly inventory: Inventory;
+  /** 裝備格（第二章 Phase 2）：裝備中的道具不在背包裡，值是道具 id */
+  readonly equipment: Equipment;
   /** 教學引導目前的步驟 */
   readonly tutorial: TutorialStep;
   /** 各區域的迷霧階段（規格 1.4） */
@@ -45,6 +48,11 @@ export type GameState = {
     readonly weapon: WeaponId;
     readonly mp: number;
     readonly heroClass: HeroClassId;
+    /** 翻滾（第二章 Phase 3）：翻滾中（遊戲時間 < rollUntil）敵人打不到；rollReadyAt 之前不能再翻滾。不存檔 */
+    readonly rollUntil: number;
+    readonly rollReadyAt: number;
+    /** 星光照明（第二章 Phase 3）：照明中（遊戲時間 < lumenUntil）可以打開需要照明的寶箱。不存檔 */
+    readonly lumenUntil: number;
   };
   /** 目前存在的敵人（位置由本機模擬，權威層只管血量與存在） */
   readonly enemies: ReadonlyMap<string, EnemyRuntime>;
@@ -61,19 +69,20 @@ export type GameState = {
   readonly defeatedBosses: readonly string[];
 };
 
-export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number };
+export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number; /** 淨化中（第二章 B-01）：停在 1 點、不會被打倒 */ readonly purifying?: true };
 export type SpawnerRuntime = { readonly nextSpawnAt: number; readonly counter: number };
 
 export function initialGameState(): GameState {
   return {
     time: 0,
     clock: 0,
+    equipment: {},
     objects: new Map(),
     inventory: createInventory(),
     tutorial: 'move',
     mist: initialMistStages,
     quests: {},
-    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP, heroClass: DEFAULT_HERO_CLASS },
+    player: { hp: PLAYER_STATS.maxHp, lastDamagedAt: 0, defeated: false, weapon: DEFAULT_WEAPON, mp: MAX_MP, heroClass: DEFAULT_HERO_CLASS, rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 },
     enemies: new Map(),
     spawners: {},
     companion: { unlocked: false },
@@ -121,6 +130,13 @@ export type GameCommand =
   | { type: 'EquipWeapon'; weapon: WeaponId }
   /** 選職業（新遊戲開始時）：換成該職業的預設武器 */
   | { type: 'ChooseClass'; heroClass: HeroClassId }
+  | { type: 'EquipItem'; itemId: string }
+  | { type: 'Roll' }
+  /** 星光照明（第二章 Phase 3，規格 10.2）：消耗星光值，一段時間內揭露隱藏的寶箱 */
+  | { type: 'Lumen' }
+  /** 迷霧持續傷害（第二章 Phase 3）：客戶端在濃霧區域裡每隔一段時間送一次；權威層確認區域仍是濃霧才扣血 */
+  | { type: 'MistHarm'; region: RegionId }
+  | { type: 'UnequipItem'; slot: EquipSlot }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
   | { type: 'EnemyStrike'; enemyId: string; spit?: boolean; move?: BossMoveId }
@@ -156,6 +172,10 @@ export type GameCommand =
   | { type: 'DebugSetHp'; hp: number };
 
 export type RejectReason =
+  | 'cooldown'
+  | 'no-star-power'
+  | 'not-revealed'
+  | 'not-dense'
   | 'unknown-object'
   | 'wrong-interaction'
   | 'already-open'
@@ -203,10 +223,15 @@ export type GameEvent =
   | { type: 'QuestAccepted'; quest: string }
   | { type: 'QuestTracked'; quest: string; tracked: boolean }
   | { type: 'QuestCompleted'; quest: string }
-  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' | 'equip' }
+  | { type: 'ItemEquipped'; slot: EquipSlot; itemId: string }
+  | { type: 'EnemyPurifying'; enemyId: string }
+  | { type: 'PlayerRolled'; until: number; readyAt: number }
+  | { type: 'LumenCast'; until: number }
+  | { type: 'ItemUnequipped'; slot: EquipSlot; itemId: string }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
-  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'water' | 'quest' | 'light' }
+  | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'quest' | 'light' | 'puzzle' }
   | { type: 'ObjectTurned'; placementId: string; turn: number }
   | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
   | { type: 'EnemyDespawned'; enemyId: string }
@@ -256,10 +281,12 @@ export type RulesContext = {
   crafting?: CraftData;
   /** 商店（任務 7H）；省略時沒有商店 */
   shops?: ShopCatalog;
-  /** 水道謎題（任務 8C）；省略時沒有水道 */
-  waterways?: readonly WaterwayDef[];
   /** 水鏡光路（任務 9D） */
   lightPaths?: readonly LightPathDef[];
+  /** 會持續扣血的區域（濃霧時；第二章 Phase 3 迷霧深層）；省略時沒有 */
+  regionHarm?: ReadonlySet<RegionId>;
+  /** 轉動機關的謎題（第二章 Phase 2）；省略時沒有謎題 */
+  puzzles?: readonly PuzzleDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
   isOccupied?: (x: number, z: number, margin: number) => boolean;
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
@@ -304,11 +331,11 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       if (cmd.from !== state.tutorial || state.tutorial === 'done') return reject('AdvanceTutorial', 'tutorial-mismatch');
       return [{ type: 'TutorialAdvanced', step: nextTutorialStep(cmd.from) }];
     case 'RepairObject':
-      return withWater(state, repairObject(state, cmd.placementId, ctx), ctx);
+      return repairObject(state, cmd.placementId, ctx);
     case 'ActivateObject':
-      return withWater(state, activateObject(state, cmd.placementId, ctx), ctx);
+      return activateObject(state, cmd.placementId, ctx);
     case 'TurnObject':
-      return withLight(state, withWater(state, turnObject(state, cmd.placementId, ctx), ctx), ctx);
+      return withLight(state, turnObject(state, cmd.placementId, ctx), ctx);
     case 'AttackEnemy':
       return attackEnemy(state, cmd.enemyId, cmd.attack, ctx, cmd.stance);
     case 'CastSpell': {
@@ -340,6 +367,16 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       }
       if (state.player.weapon === cmd.weapon) return [];
       return [{ type: 'WeaponEquipped', weapon: cmd.weapon }];
+    case 'EquipItem':
+      return equipItem(state, cmd.itemId, ctx);
+    case 'Roll':
+      return roll(state);
+    case 'Lumen':
+      return lumen(state);
+    case 'MistHarm':
+      return mistHarm(state, cmd.region, ctx);
+    case 'UnequipItem':
+      return unequipItem(state, cmd.slot, ctx);
     case 'ChooseClass': {
       const def = ctx.heroClasses?.get(cmd.heroClass);
       if (!def) return reject('ChooseClass', 'invalid-command');
@@ -436,10 +473,16 @@ function lookup(ctx: RulesContext, placementId: string) {
 }
 
 /** 擲掉落表並確認背包放得下；放不下回傳 null */
+/** 目前裝備與背包的被動效果（守林者護腕、水行護符） */
+export function modifiersOf(state: Pick<GameState, 'equipment' | 'inventory' | 'player'>, ctx: Pick<RulesContext, 'items'>): Modifiers {
+  const held = state.inventory.slots.flatMap((s) => (s ? [s.itemId] : []));
+  return equipmentModifiers(state.equipment, held, (id) => ctx.items.get(id), state.player.weapon);
+}
+
 function rollIntoInventory(state: GameState, tableId: string, ctx: RulesContext): ItemStack[] | null {
   const table = ctx.lootTables.get(tableId);
   if (!table) throw new Error(`未知的掉落表：${tableId}`);
-  const items = rollLoot(table, ctx.random);
+  const items = rollLoot(table, ctx.random, modifiersOf(state, ctx).rareDropBonus);
   return addItems(state.inventory, items, ctx.items) ? items : null;
 }
 
@@ -469,6 +512,8 @@ function openChest(state: GameState, placementId: string, ctx: RulesContext): Ga
   // 規格 5.2：寶箱記錄開關，唯一獎勵不可重複領取
   if (state.objects.get(placementId)?.open) return reject('OpenChest', 'already-open', placementId);
   const contents = found.prefab.contents;
+  // 隱藏的寶箱要先用星光照明揭露（第二章 Phase 3，規格 10.2）
+  if (contents?.requiresLumen && state.player.lumenUntil <= state.time) return reject('OpenChest', 'not-revealed', placementId);
   if (!contents) return [{ type: 'ChestOpened', placementId }];
   // 背包放不下時寶箱保持關閉，獎勵不會遺失
   const items = rollIntoInventory(state, contents.lootTableId, ctx);
@@ -532,11 +577,27 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
   const events: GameEvent[] = [{ type: 'ObjectActivated', placementId, source: 'player' }];
   if (spec.consume) events.unshift({ type: 'ItemsRemoved', items: spec.consume.map((c) => ({ ...c })), reason: 'quest' });
   if (started) events.push({ type: 'QuestAccepted', quest: started.id });
+  if (spec.mistDown) {
+    const region = found.placement.regionId;
+    const next = lowerMistStage(state.mist[region]);
+    if (next !== state.mist[region]) events.push({ type: 'MistStageChanged', region, stage: next });
+  }
   if (spec.lootTableId) {
     // 背包放不下時不能啟動（物品不會遺失）
     const items = rollIntoInventory(state, spec.lootTableId, ctx);
     if (!items) return reject('ActivateObject', 'inventory-full', placementId);
     if (items.length > 0) events.push({ type: 'ItemsGained', items, source: placementId });
+  }
+  // 淨化（第二章 B-01）：共鳴石柱全部啟動、頭目正在淨化 → 打倒（只結算一次）
+  if (spec.boss) {
+    const purify = ctx.combat.enemies.get(spec.boss)?.boss?.purify;
+    const fighting = bossEnemies(state, spec.boss).find((e) => e.purifying);
+    if (purify && fighting) {
+      const lit = (id: string) => (id === placementId ? true : state.objects.get(id)?.active === true);
+      if (purify.pillars.every(lit)) {
+        events.push({ type: 'EnemyDefeated', enemyId: fighting.id, kind: fighting.kind, spawner: fighting.spawner }, { type: 'BossDefeated', boss: fighting.kind });
+      }
+    }
   }
   return events;
 }
@@ -548,17 +609,16 @@ function turnObject(state: GameState, placementId: string, ctx: RulesContext): G
   if (found.prefab.interaction !== 'turn' || !spec) return reject('TurnObject', 'wrong-interaction', placementId);
   if (spec.quest && state.quests[spec.quest]?.status !== 'active') return reject('TurnObject', 'quest-unavailable', placementId);
   const turn = ((state.objects.get(placementId)?.turn ?? 0) + 1) % spec.positions;
-  return [{ type: 'ObjectTurned', placementId, turn }];
-}
-
-/**
- * 水道（任務 8C）：機關改變後重新計算水流；水流到還沒喚醒的苔蘚節點時一併送出啟動事件。
- * 指令被拒絕時不加任何事件。
- */
-function withWater(state: GameState, events: GameEvent[], ctx: RulesContext): GameEvent[] {
-  if (!ctx.waterways?.length || events.some((e) => e.type === 'CommandRejected')) return events;
-  const next = applyEvents(state, events, ctx);
-  for (const placementId of outletsToWake(ctx.waterways, next.objects)) events.push({ type: 'ObjectActivated', placementId, source: 'water' });
+  const events: GameEvent[] = [{ type: 'ObjectTurned', placementId, turn }];
+  // 謎題：這一下轉動讓整組機關都對準了 → 啟動謎題開的物件（只在剛完成的那一刻啟動）
+  const turnOf = (id: string) => (id === placementId ? turn : state.objects.get(id)?.turn ?? 0);
+  for (const puzzle of ctx.puzzles ?? []) {
+    if (!puzzle.members.some((m) => m.placement === placementId)) continue;
+    if (!puzzleSolved(puzzle, turnOf) || puzzleSolved(puzzle, (id) => state.objects.get(id)?.turn ?? 0)) continue;
+    for (const opened of puzzle.opens) {
+      if (!state.objects.get(opened)?.active) events.push({ type: 'ObjectActivated', placementId: opened, source: 'puzzle' });
+    }
+  }
   return events;
 }
 
@@ -577,7 +637,7 @@ function attackDamage(state: GameState, attack: string, ctx: RulesContext): numb
   const entry = ctx.weapons.moves.get(attack);
   if (!entry) return 'unknown-move';
   if (entry.weapon !== state.player.weapon) return 'weapon-not-equipped';
-  return entry.move.damage;
+  return scaleDamage(entry.move.damage, modifiersOf(state, ctx).attackScale);
 }
 
 function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: RulesContext, stance?: EnemyStance): GameEvent[] {
@@ -595,10 +655,13 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   const veil = boss?.veil && stance !== 'recover' ? boss.veil.scale : 1;
   const amount = Math.round(base * stanceDamageScale(def, stance) * shield * veil);
   // 水槽還沒全部注水前，迷霧把傷口補回去：頭目打不倒（Bible §6.5 戰鬥提示）
-  const floor = boss && filled < boss.troughs.length ? 1 : 0;
+  // 淨化的頭目停在 1 點（第二章 B-01）：血量歸零時進入淨化，不會被打倒
+  const purifying = boss?.purify !== undefined;
+  const floor = boss && (filled < boss.troughs.length || purifying) ? 1 : 0;
   const hp = Math.max(floor, enemy.hp - amount);
   const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount: boss ? enemy.hp - hp : amount, hp, attack }];
-  if (hp > 0) return events;
+  if (purifying && hp === 1 && !enemy.purifying && enemy.hp > 1) events.push({ type: 'EnemyPurifying', enemyId });
+  if (hp > 0 || purifying) return events;
 
   events.push({ type: 'EnemyDefeated', enemyId, kind: enemy.kind, spawner: enemy.spawner });
   if (boss) events.push({ type: 'BossDefeated', boss: enemy.kind });
@@ -637,13 +700,17 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('EnemyStrike', 'unknown-enemy');
   if (state.player.defeated) return reject('EnemyStrike', 'player-defeated');
+  // 翻滾中躲開攻擊（第二章 Phase 3）：不扣血、不算失敗
+  if (state.time < state.player.rollUntil) return [];
   const behavior = def.behavior;
   if (spit && behavior?.kind !== 'spit') return reject('EnemyStrike', 'invalid-command');
   // 頭目只用招式攻擊，一般敵人不能帶招式
   if ((move !== undefined) !== Boolean(def.boss)) return reject('EnemyStrike', 'invalid-command');
   const bossMove = move && def.boss ? def.boss.moves[move] : undefined;
   if (move && !bossMove) return reject('EnemyStrike', 'invalid-command');
-  const amount = bossMove ? bossMove.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  const raw = bossMove ? bossMove.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  // 守林者護腕等防具減傷（裝備系統，Phase 2）
+  const amount = scaleDamage(raw, modifiersOf(state, ctx).damageTakenScale);
   const hp = Math.max(0, state.player.hp - amount);
   const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId }];
   if (spit && behavior?.kind === 'spit' && hp > 0) events.push({ type: 'PlayerSlowed', sec: behavior.slowSec, scale: behavior.slowScale });
@@ -656,6 +723,73 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
     for (const e of state.enemies.values()) if (ctx.combat.enemies.get(e.kind)?.boss) events.push({ type: 'EnemyDespawned', enemyId: e.id });
   }
   return events;
+}
+
+/** 迷霧持續傷害（第二章 Phase 3，規格 §7.3 守林者護腕）：濃霧裡每次 2 點，防具的迷霧倍率會減少 */
+export const MIST_HARM = 2;
+function mistHarm(state: GameState, region: RegionId, ctx: RulesContext): GameEvent[] {
+  if (state.player.defeated) return reject('MistHarm', 'player-defeated');
+  if (state.mist[region] !== 'dense' || !ctx.regionHarm?.has(region)) return reject('MistHarm', 'not-dense');
+  const amount = scaleDamage(MIST_HARM, modifiersOf(state, ctx).mistDamageScale);
+  const hp = Math.max(0, state.player.hp - amount);
+  const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId: 'mist' }];
+  if (hp <= 0) events.push({ type: 'PlayerDefeated' });
+  return events;
+}
+
+/** 星光照明（第二章 Phase 3）：花 LUMEN_COST 點星光值，LUMEN_SEC 秒內能打開隱藏的寶箱 */
+export const LUMEN_COST = 15;
+export const LUMEN_SEC = 12;
+function lumen(state: GameState): GameEvent[] {
+  if (state.player.defeated) return reject('Lumen', 'player-defeated');
+  if (state.player.mp < LUMEN_COST) return reject('Lumen', 'no-star-power');
+  return [
+    { type: 'MpChanged', mp: state.player.mp - LUMEN_COST },
+    { type: 'LumenCast', until: state.time + LUMEN_SEC },
+  ];
+}
+
+/** 翻滾的無敵時間與冷卻（遊戲時間秒，與 locomotion 的翻滾動作一致） */
+export const ROLL_SEC = 0.45;
+export const ROLL_COOLDOWN_SEC = 1.1;
+
+/** 翻滾（第二章 Phase 3，規格 10.1）：翻滾中敵人的攻擊不造成傷害；冷卻中不能再翻滾 */
+function roll(state: GameState): GameEvent[] {
+  if (state.player.defeated) return reject('Roll', 'player-defeated');
+  if (state.time < state.player.rollReadyAt) return reject('Roll', 'cooldown');
+  return [{ type: 'PlayerRolled', until: state.time + ROLL_SEC, readyAt: state.time + ROLL_COOLDOWN_SEC }];
+}
+
+/** 裝備道具（第二章 Phase 2）：道具從背包放進裝備格；原本在格子裡的裝備放回背包（放不下就拒絕） */
+function equipItem(state: GameState, itemId: string, ctx: RulesContext): GameEvent[] {
+  const def = ctx.items.get(itemId);
+  if (!def?.equip || countItem(state.inventory, itemId) < 1) return reject('EquipItem', 'invalid-command');
+  // 武器變體：職業不能用的基礎武器類型不能裝備
+  const cls = ctx.heroClasses?.get(state.player.heroClass);
+  if (def.equip.base !== undefined && cls && !canUseWeapon(cls, def.equip.base)) return reject('EquipItem', 'invalid-command');
+  const { slot } = def.equip;
+  const stack = [{ itemId, count: 1 }];
+  const removed = removeItems(state.inventory, stack);
+  if (!removed) return reject('EquipItem', 'invalid-command');
+  const events: GameEvent[] = [{ type: 'ItemsRemoved', items: stack, reason: 'equip' }];
+  const previous = state.equipment[slot];
+  if (previous) {
+    if (!addItems(removed, [{ itemId: previous, count: 1 }], ctx.items)) return reject('EquipItem', 'inventory-full');
+    events.push({ type: 'ItemUnequipped', slot, itemId: previous }, { type: 'ItemsGained', items: [{ itemId: previous, count: 1 }], source: 'unequip' });
+  }
+  events.push({ type: 'ItemEquipped', slot, itemId });
+  return events;
+}
+
+/** 卸下裝備（放回背包；背包放不下就拒絕，裝備留在格子裡） */
+function unequipItem(state: GameState, slot: EquipSlot, ctx: RulesContext): GameEvent[] {
+  const itemId = state.equipment[slot];
+  if (!itemId) return reject('UnequipItem', 'invalid-command');
+  if (!addItems(state.inventory, [{ itemId, count: 1 }], ctx.items)) return reject('UnequipItem', 'inventory-full');
+  return [
+    { type: 'ItemUnequipped', slot, itemId },
+    { type: 'ItemsGained', items: [{ itemId, count: 1 }], source: 'unequip' },
+  ];
 }
 
 /** 正在戰鬥中的這個頭目（通常 0 或 1 隻） */
@@ -894,7 +1028,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, clock, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
+  let { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -933,6 +1067,20 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'ObjectTurned':
         patch(e.placementId, { turn: e.turn || undefined });
         break;
+      case 'ItemEquipped':
+        equipment = { ...equipment, [e.slot]: e.itemId };
+        break;
+      case 'PlayerRolled':
+        player = { ...player, rollUntil: e.until, rollReadyAt: e.readyAt };
+        break;
+      case 'LumenCast':
+        player = { ...player, lumenUntil: e.until };
+        break;
+      case 'ItemUnequipped': {
+        equipment = { ...equipment };
+        delete equipment[e.slot];
+        break;
+      }
       case 'ItemsGained': {
         const next = addItems(inventory, e.items, ctx.items);
         // 規則已檢查過容量；走到這裡代表事件與狀態不一致，必須明確失敗
@@ -980,6 +1128,11 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'EnemyDamaged': {
         const enemy = mutableEnemies().get(e.enemyId);
         if (enemy) mutableEnemies().set(e.enemyId, { ...enemy, hp: e.hp });
+        break;
+      }
+      case 'EnemyPurifying': {
+        const enemy = mutableEnemies().get(e.enemyId);
+        if (enemy) mutableEnemies().set(e.enemyId, { ...enemy, purifying: true });
         break;
       }
       case 'SpawnerCooldown':
@@ -1039,5 +1192,5 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, clock, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
+  return { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
 }

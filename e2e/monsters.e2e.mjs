@@ -9,7 +9,10 @@ import { runE2e } from './lib.mjs';
 
 const enemies = JSON.parse(readFileSync('src/data/enemies.json', 'utf8'));
 const spawners = JSON.parse(readFileSync('src/data/spawners.json', 'utf8'));
-const modelEnemies = enemies.filter((e) => e.model);
+// 分裂出來的小怪（沒有生成點，只由母體分裂出來）不在這裡測，由各自的母體測試覆蓋
+const splitChildren = new Set(enemies.map((e) => e.splitInto?.enemy).filter(Boolean));
+// 頭目只能在戰場裡生成（手動生成點），由各自的頭目套件測試
+const modelEnemies = enemies.filter((e) => e.model && !e.boss && !splitChildren.has(e.id));
 const spawnerOf = (kind) => spawners.find((s) => s.enemy === kind);
 
 await runE2e('monsters e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, teleport, itemCount }) => {

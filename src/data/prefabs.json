@@ -2892,6 +2892,51 @@
     "castShadow": false
   },
   {
+    "id": "glowmoss_node",
+    "model": "procedural:glowmoss_tuft",
+    "collider": "none",
+    "interaction": "harvest",
+    "nameKey": "object.pureGlowmoss",
+    "interactRadius": 1.6,
+    "harvest": {
+      "lootTableId": "glow_node_basic",
+      "respawnSec": 480,
+      "anim": "interact"
+    },
+    "persists": true,
+    "cullDistance": 80,
+    "castShadow": false
+  },
+  {
+    "id": "star_lamp",
+    "model": "procedural:star_lamp",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.35,
+      "height": 2.2
+    },
+    "interaction": "activate",
+    "nameKey": "object.starLamp",
+    "verbKey": "interact.lightStar",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:star_lamp_lit",
+      "consume": [
+        {
+          "itemId": "pure_glowmoss",
+          "count": 1
+        }
+      ],
+      "mistDown": true,
+      "message": {
+        "titleKey": "lamp.lit.title",
+        "bodyKey": "lamp.lit.body"
+      }
+    },
+    "persists": true
+  },
+  {
     "id": "moondew",
     "model": "procedural:moondew",
     "collider": "none",
@@ -2946,20 +2991,6 @@
     "persists": false
   },
   {
-    "id": "root_wall",
-    "model": "procedural:root_wall",
-    "collider": "static",
-    "collision": {
-      "shape": "box",
-      "size": [
-        8.2,
-        2.8,
-        1.5
-      ]
-    },
-    "persists": false
-  },
-  {
     "id": "giant_mushroom",
     "model": "procedural:giant_mushroom",
     "collider": "static",
@@ -2967,17 +2998,6 @@
       "shape": "cylinder",
       "radius": 1.8,
       "height": 8
-    },
-    "persists": false
-  },
-  {
-    "id": "crescent_tree",
-    "model": "procedural:crescent_tree",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 1.15,
-      "height": 6.5
     },
     "persists": false
   },
@@ -2993,80 +3013,60 @@
     "persists": false
   },
   {
-    "id": "water_gate",
-    "model": "procedural:water_gate",
+    "id": "mist_arch",
+    "model": "procedural:mist_arch",
     "collider": "static",
     "collision": [
       {
         "shape": "cylinder",
-        "radius": 0.4,
-        "height": 2.4,
+        "radius": 0.6,
+        "height": 4.2,
         "offset": [
-          -2.9,
+          -2.8,
           0,
           0
-        ]
+        ],
+        "cameraIgnore": true
       },
       {
         "shape": "cylinder",
-        "radius": 0.4,
-        "height": 2.4,
+        "radius": 0.6,
+        "height": 4.2,
         "offset": [
-          2.9,
+          2.8,
           0,
           0
-        ]
-      },
-      {
-        "shape": "box",
-        "size": [
-          5.2,
-          1.5,
-          0.3
         ],
-        "offset": [
-          0,
-          -0.3,
-          0
-        ]
+        "cameraIgnore": true
       }
     ],
-    "interaction": "activate",
-    "nameKey": "object.waterGate",
-    "verbKey": "interact.open",
-    "interactRadius": 2.4,
-    "interactOffset": [
-      3.6,
-      0,
-      0.9
-    ],
-    "activate": {
-      "model": "procedural:water_gate_open",
-      "collision": [
-        {
-          "shape": "cylinder",
-          "radius": 0.4,
-          "height": 2.4,
-          "offset": [
-            -2.9,
-            0,
-            0
-          ]
-        },
-        {
-          "shape": "cylinder",
-          "radius": 0.4,
-          "height": 2.4,
-          "offset": [
-            2.9,
-            0,
-            0
-          ]
-        }
-      ],
-      "quest": "quest_forest_002"
+    "persists": false
+  },
+  {
+    "id": "signpost_broken",
+    "model": "procedural:signpost_broken",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 1.8
     },
-    "persists": true
+    "interaction": "read",
+    "nameKey": "object.signpostBroken",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "sign.mistGate.title",
+      "bodyKey": "sign.mistGate.body"
+    },
+    "persists": false
+  },
+  {
+    "id": "glow_flowers",
+    "model": "procedural:glow_flowers",
+    "collider": "none",
+    "persists": false,
+    "cullDistance": 80,
+    "castShadow": false
   },
   {
     "id": "chest_glowmoss",
@@ -3182,328 +3182,6 @@
     "read": {
       "titleKey": "sign.glowmossGate.title",
       "bodyKey": "sign.glowmossGate.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "signpost_moss_trail",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.mossTrail.title",
-      "bodyKey": "sign.mossTrail.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "signpost_root_maze",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.rootMaze.title",
-      "bodyKey": "sign.rootMaze.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "signpost_moss_crown",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.mossCrown.title",
-      "bodyKey": "sign.mossCrown.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "signpost_channel",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.channel.title",
-      "bodyKey": "sign.channel.body"
-    },
-    "persists": false
-  },
-  {
-    "id": "channel_roots",
-    "model": "procedural:root_wall",
-    "collider": "static",
-    "collision": {
-      "shape": "box",
-      "size": [
-        8.2,
-        2.8,
-        1.5
-      ]
-    },
-    "interaction": "activate",
-    "nameKey": "object.channelRoots",
-    "verbKey": "interact.clear",
-    "interactRadius": 3.2,
-    "activate": {
-      "quest": "quest_forest_002",
-      "lootTableId": "channel_roots_fiber",
-      "anim": "attack"
-    },
-    "persists": true
-  },
-  {
-    "id": "crown_roots",
-    "model": "procedural:root_wall",
-    "collider": "static",
-    "collision": {
-      "shape": "box",
-      "size": [
-        8.2,
-        2.8,
-        1.5
-      ]
-    },
-    "interaction": "read",
-    "nameKey": "object.crownRoots",
-    "interactRadius": 3.5,
-    "read": {
-      "titleKey": "object.crownRoots",
-      "bodyKey": "crownRoots.body"
-    },
-    "activate": {},
-    "persists": true
-  },
-  {
-    "id": "crown_trough",
-    "model": "procedural:crown_trough",
-    "collider": "static",
-    "collision": {
-      "shape": "box",
-      "size": [
-        2.4,
-        0.7,
-        1.2
-      ]
-    },
-    "interaction": "activate",
-    "nameKey": "object.crownTrough",
-    "verbKey": "interact.pourWater",
-    "interactRadius": 2.6,
-    "activate": {
-      "model": "procedural:crown_trough_full",
-      "collision": {
-        "shape": "box",
-        "size": [
-          2.4,
-          0.7,
-          1.2
-        ]
-      },
-      "boss": "boss_moss_thump",
-      "anim": "interact"
-    },
-    "persists": true
-  },
-  {
-    "id": "trail_lantern",
-    "model": "procedural:trail_lantern",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.16,
-      "height": 2.3
-    },
-    "interaction": "activate",
-    "nameKey": "object.trailLantern",
-    "verbKey": "interact.light",
-    "interactRadius": 2.2,
-    "activate": {
-      "model": "procedural:trail_lantern_lit",
-      "collision": {
-        "shape": "cylinder",
-        "radius": 0.16,
-        "height": 2.3
-      },
-      "quest": "quest_forest_001"
-    },
-    "persists": true
-  },
-  {
-    "id": "channel_breach",
-    "model": "procedural:channel_breach",
-    "collider": "none",
-    "interaction": "repair",
-    "nameKey": "object.channelBreach",
-    "interactRadius": 2.8,
-    "interactOffset": [
-      4.2,
-      0,
-      0
-    ],
-    "repair": {
-      "model": "procedural:channel_breach_fixed",
-      "materials": [
-        {
-          "itemId": "stone",
-          "count": 4
-        },
-        {
-          "itemId": "root_fiber",
-          "count": 2
-        }
-      ],
-      "quest": "quest_forest_002"
-    },
-    "persists": true
-  },
-  {
-    "id": "water_wheel",
-    "model": "procedural:water_wheel_frame",
-    "collider": "static",
-    "collision": [
-      {
-        "shape": "box",
-        "size": [
-          0.9,
-          6.2,
-          0.9
-        ],
-        "offset": [
-          -1.0,
-          0,
-          0
-        ]
-      },
-      {
-        "shape": "box",
-        "size": [
-          0.9,
-          6.2,
-          0.9
-        ],
-        "offset": [
-          1.0,
-          0,
-          0
-        ]
-      }
-    ],
-    "interaction": "turn",
-    "nameKey": "object.waterWheel",
-    "verbKey": "interact.turn",
-    "interactRadius": 2.4,
-    "interactOffset": [
-      5.4,
-      0,
-      0.9
-    ],
-    "turn": {
-      "positions": 3
-    },
-    "persists": true
-  },
-  {
-    "id": "moss_node",
-    "model": "procedural:moss_node_dry",
-    "collider": "none",
-    "activate": {
-      "model": "procedural:moss_node"
-    },
-    "persists": true
-  },
-  {
-    "id": "root_stone",
-    "model": "procedural:root_stone",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 1.25,
-      "height": 2.2
-    },
-    "interaction": "activate",
-    "nameKey": "object.rootStone",
-    "verbKey": "interact.awaken",
-    "interactRadius": 2.8,
-    "activate": {
-      "model": "procedural:root_stone_awake",
-      "collision": {
-        "shape": "cylinder",
-        "radius": 1.25,
-        "height": 2.2
-      },
-      "quest": "quest_forest_003",
-      "afterBoss": "boss_moss_thump",
-      "lootTableId": "root_stone_resonance",
-      "anim": "interact"
-    },
-    "persists": true
-  },
-  {
-    "id": "lake_roots",
-    "model": "procedural:root_wall",
-    "collider": "static",
-    "collision": {
-      "shape": "box",
-      "size": [
-        8.2,
-        2.8,
-        1.5
-      ]
-    },
-    "interaction": "read",
-    "nameKey": "object.lakeRoots",
-    "interactRadius": 3.5,
-    "read": {
-      "titleKey": "object.lakeRoots",
-      "bodyKey": "lakeRoots.body"
-    },
-    "activate": {},
-    "persists": true
-  },
-  {
-    "id": "signpost_lake_channel",
-    "model": "procedural:signpost",
-    "collider": "static",
-    "collision": {
-      "shape": "cylinder",
-      "radius": 0.15,
-      "height": 2.2
-    },
-    "interaction": "read",
-    "nameKey": "object.signpost",
-    "interactRadius": 2.2,
-    "read": {
-      "titleKey": "sign.lakeChannel.title",
-      "bodyKey": "sign.lakeChannel.body"
     },
     "persists": false
   },
@@ -3943,7 +3621,7 @@
       "arriveAt": "mirrorlake_gate_glowmoss",
       "arriveDistance": 4,
       "requires": {
-        "questCompleted": "quest_forest_003"
+        "questCompleted": "quest_forest_008"
       },
       "lockedKey": "gate.mirrorlake.locked"
     },
@@ -5235,5 +4913,211 @@
       "bodyKey": "sign.meadowTower.body"
     },
     "persists": false
+  },
+  {
+    "id": "waterwheel_frame",
+    "model": "procedural:water_wheel_frame",
+    "collider": "none",
+    "persists": true,
+    "cullDistance": 120,
+    "castShadow": false
+  },
+  {
+    "id": "waterwheel",
+    "model": "procedural:water_wheel_rotor",
+    "collider": "none",
+    "interaction": "turn",
+    "nameKey": "object.waterWheel",
+    "verbKey": "interact.turn",
+    "interactRadius": 2.6,
+    "turn": {
+      "positions": 4
+    },
+    "persists": true,
+    "cullDistance": 120
+  },
+  {
+    "id": "creek_barrier",
+    "model": "procedural:root_wall",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        7,
+        3,
+        1.2
+      ]
+    },
+    "activate": {},
+    "persists": true
+  },
+  {
+    "id": "creek_tablet",
+    "model": "procedural:signpost_broken",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 1.8
+    },
+    "interaction": "read",
+    "nameKey": "object.creekTablet",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "creek.tablet.title",
+      "bodyKey": "creek.tablet.body"
+    },
+    "persists": true
+  },
+  {
+    "id": "crystal_mirror",
+    "model": "procedural:mirror_pillar_base",
+    "collider": "static",
+    "collision": [
+      {
+        "shape": "cylinder",
+        "radius": 1.4,
+        "height": 0.5,
+        "cameraIgnore": true
+      },
+      {
+        "shape": "cylinder",
+        "radius": 0.45,
+        "height": 4.4
+      }
+    ],
+    "interaction": "turn",
+    "nameKey": "object.crystalMirror",
+    "verbKey": "interact.turnMirror",
+    "interactRadius": 2.6,
+    "turn": {
+      "positions": 4
+    },
+    "persists": true
+  },
+  {
+    "id": "crystal_gate",
+    "model": "procedural:lake_gate",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        10,
+        5,
+        1.4
+      ]
+    },
+    "activate": {},
+    "persists": true
+  },
+  {
+    "id": "crystal_chest",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.chest",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_crystal"
+    }
+  },
+  {
+    "id": "crystal_tablet",
+    "model": "procedural:signpost_broken",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.15,
+      "height": 1.8
+    },
+    "interaction": "read",
+    "nameKey": "object.crystalTablet",
+    "interactRadius": 2.2,
+    "read": {
+      "titleKey": "crystal.tablet.title",
+      "bodyKey": "crystal.tablet.body"
+    },
+    "persists": true
+  },
+  {
+    "id": "altar_resonance",
+    "model": "procedural:star_lamp",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.35,
+      "height": 2.2
+    },
+    "interaction": "activate",
+    "nameKey": "object.altarResonance",
+    "verbKey": "interact.lightStar",
+    "interactRadius": 2.4,
+    "activate": {
+      "model": "procedural:star_lamp_lit",
+      "boss": "boss_root_devourer"
+    },
+    "persists": true
+  },
+  {
+    "id": "corruption_root",
+    "model": "procedural:root_arch",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        2.4,
+        1.6,
+        1.2
+      ]
+    },
+    "interaction": "activate",
+    "nameKey": "object.corruptionRoot",
+    "verbKey": "interact.purify",
+    "interactRadius": 2.4,
+    "activate": {
+      "consume": [
+        {
+          "itemId": "pure_glowmoss",
+          "count": 1
+        }
+      ],
+      "message": {
+        "titleKey": "corruption.cleared.title",
+        "bodyKey": "corruption.cleared.body"
+      }
+    },
+    "persists": true
+  },
+  {
+    "id": "hidden_cache",
+    "model": "models/props/kaykit-dungeon/chest.glb",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [
+        1.6,
+        0.8,
+        1.25
+      ]
+    },
+    "entity": "chest",
+    "interaction": "open",
+    "nameKey": "object.hiddenCache",
+    "interactRadius": 1.8,
+    "persists": true,
+    "contents": {
+      "lootTableId": "chest_glowmoss",
+      "requiresLumen": true
+    }
   }
 ]

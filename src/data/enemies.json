@@ -330,48 +330,6 @@
     }
   },
   {
-    "id": "mob_fog_moth",
-    "nameKey": "enemy.mob_fog_moth",
-    "maxHp": 34,
-    "damage": 7,
-    "moveSpeed": 3.6,
-    "aggroRadius": 10,
-    "attackRange": 1.7,
-    "attackWindup": 0.6,
-    "attackCooldown": 1.8,
-    "leashRadius": 18,
-    "lootTableId": "mob_fog_moth_drop",
-    "procedural": "fog_moth",
-    "behavior": {
-      "kind": "orbit",
-      "radius": 3.2,
-      "sec": 2.4,
-      "speed": 4
-    }
-  },
-  {
-    "id": "mob_root_beetle",
-    "nameKey": "enemy.mob_root_beetle",
-    "maxHp": 80,
-    "damage": 13,
-    "moveSpeed": 2.6,
-    "aggroRadius": 8,
-    "attackRange": 2.0,
-    "attackWindup": 0.75,
-    "attackCooldown": 2.2,
-    "leashRadius": 16,
-    "lootTableId": "mob_root_beetle_drop",
-    "lunge": 8,
-    "procedural": "root_beetle",
-    "behavior": {
-      "kind": "shell",
-      "guardSec": 1.6,
-      "guardScale": 0.25,
-      "recoverSec": 1.4,
-      "recoverScale": 1.5
-    }
-  },
-  {
     "id": "boss_dawn_mist_puff",
     "nameKey": "enemy.boss_dawn_mist_puff",
     "maxHp": 520,
@@ -385,11 +343,31 @@
     "lootTableId": "boss_dawn_mist_puff_drop",
     "hitRadius": 1.5,
     "boss": {
-      "arena": { "center": [-4, -118], "radius": 13, "trigger": 10 },
-      "home": [-4, -122],
-      "requires": { "questCompleted": "quest_dawn_003" },
-      "retryAt": [14, -112],
-      "stun": { "mirrors": ["highland_star_mirror"], "sec": 3 },
+      "arena": {
+        "center": [
+          -4,
+          -118
+        ],
+        "radius": 13,
+        "trigger": 10
+      },
+      "home": [
+        -4,
+        -122
+      ],
+      "requires": {
+        "questCompleted": "quest_dawn_003"
+      },
+      "retryAt": [
+        14,
+        -112
+      ],
+      "stun": {
+        "mirrors": [
+          "highland_star_mirror"
+        ],
+        "sec": 3
+      },
       "introSec": 2.2,
       "moveSpeed": 3,
       "bodyRadius": 1.3,
@@ -398,46 +376,108 @@
       "recoverScale": 1.5,
       "textKey": "puffKing",
       "moves": {
-        "charge": { "windup": 0.8, "speed": 13, "distance": 12, "damage": 12, "radius": 1.5, "minRange": 4, "cooldown": 2 },
-        "orbs": { "windup": 0.8, "damage": 8, "radius": 1.2, "count": 4, "count2": 6, "ring": 4.5, "cooldown": 2 },
-        "slam": { "windup": 0.8, "air": 0.5, "damage": 16, "radius": 3.5, "recoverSec": 1.2, "minRange": 0, "cooldown": 2.2 }
+        "charge": {
+          "windup": 0.8,
+          "speed": 13,
+          "distance": 12,
+          "damage": 12,
+          "radius": 1.5,
+          "minRange": 4,
+          "cooldown": 2
+        },
+        "orbs": {
+          "windup": 0.8,
+          "damage": 8,
+          "radius": 1.2,
+          "count": 4,
+          "count2": 6,
+          "ring": 4.5,
+          "cooldown": 2
+        },
+        "slam": {
+          "windup": 0.8,
+          "air": 0.5,
+          "damage": 16,
+          "radius": 3.5,
+          "recoverSec": 1.2,
+          "minRange": 0,
+          "cooldown": 2.2
+        }
       }
     }
   },
   {
-    "id": "boss_moss_thump",
-    "nameKey": "enemy.boss_moss_thump",
-    "maxHp": 900,
-    "damage": 14,
+    "id": "mob_moss_slime",
+    "nameKey": "enemy.mob_moss_slime",
+    "maxHp": 28,
+    "damage": 6,
     "moveSpeed": 2.4,
-    "aggroRadius": 30,
-    "attackRange": 3,
-    "attackWindup": 1,
-    "attackCooldown": 2,
-    "leashRadius": 30,
-    "lootTableId": "boss_moss_thump_drop",
-    "hitRadius": 1.8,
-    "boss": {
-      "arena": { "center": [2100, 46], "radius": 22, "trigger": 18 },
-      "home": [2091, 46],
-      "avoid": { "center": [2100, 46], "radius": 2.2 },
-      "requires": { "questActive": "quest_forest_003" },
-      "gate": { "center": [2073, 46], "width": 22, "yaw": 1.5708 },
-      "retryAt": [2063, 46],
-      "troughs": ["glowmoss_crown_trough_01", "glowmoss_crown_trough_02", "glowmoss_crown_trough_03"],
-      "shield": [0.15, 0.4, 0.7, 1],
-      "introSec": 2.8,
-      "moveSpeed": 2.4,
-      "phase2Below": 0.5,
-      "phase2Cooldown": 0.7,
-      "recoverScale": 1.4,
-      "guard": { "afterHits": 6, "sec": 2.2, "scale": 0.15 },
-      "moves": {
-        "spikes": { "windup": 1.1, "damage": 14, "radius": 1.3, "count": 3, "count2": 5, "spread": 3.2, "cooldown": 1.8 },
-        "slam": { "windup": 0.8, "air": 0.75, "damage": 20, "radius": 4, "recoverSec": 1.6, "minRange": 6, "cooldown": 2 },
-        "spores": { "windup": 1.2, "damage": 6, "range": 7, "arcDeg": 70, "slowSec": 3, "slowScale": 0.5, "cooldown": 2.2 }
+    "aggroRadius": 8,
+    "attackRange": 1.6,
+    "attackWindup": 0.6,
+    "attackCooldown": 1.9,
+    "leashRadius": 16,
+    "lootTableId": "mob_moss_slime_drop",
+    "model": {
+      "path": "models/monsters/GreenBlob.glb",
+      "height": 0.85,
+      "radius": 0.4,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Jump",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Green_Main": "#9fe3b8"
       }
+    },
+    "lunge": 3,
+    "behavior": {
+      "kind": "spit",
+      "minRange": 2.5,
+      "range": 6,
+      "windup": 0.8,
+      "cooldown": 5,
+      "speed": 6,
+      "damage": 3,
+      "slowSec": 1.2,
+      "slowScale": 0.7
+    },
+    "splitInto": {
+      "enemy": "mob_moss_slime_small",
+      "count": 2
     }
+  },
+  {
+    "id": "mob_moss_slime_small",
+    "nameKey": "enemy.mob_moss_slime_small",
+    "maxHp": 12,
+    "damage": 3,
+    "moveSpeed": 3,
+    "aggroRadius": 10,
+    "attackRange": 1.3,
+    "attackWindup": 0.45,
+    "attackCooldown": 1.5,
+    "leashRadius": 18,
+    "lootTableId": "mob_moss_slime_small_drop",
+    "model": {
+      "path": "models/monsters/GreenBlob.glb",
+      "height": 0.55,
+      "radius": 0.3,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Jump",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Green_Main": "#b6f0cf"
+      }
+    },
+    "lunge": 2
   },
   {
     "id": "mob_bubble_wisp",
@@ -617,6 +657,227 @@
           "recoverSec": 1.8,
           "minRange": 5,
           "cooldown": 2.4
+        }
+      }
+    }
+  },
+  {
+    "id": "mob_mist_wolf",
+    "nameKey": "enemy.mob_mist_wolf",
+    "maxHp": 40,
+    "damage": 8,
+    "moveSpeed": 4.2,
+    "aggroRadius": 12,
+    "attackRange": 1.8,
+    "attackWindup": 0.5,
+    "attackCooldown": 1.4,
+    "leashRadius": 20,
+    "lootTableId": "mob_mist_wolf_drop",
+    "model": {
+      "path": "models/monsters/GreenSpikyBlob.glb",
+      "height": 0.9,
+      "radius": 0.5,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Walk",
+        "attack": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Green_Main": "#7b8590"
+      }
+    },
+    "lunge": 6,
+    "behavior": {
+      "kind": "orbit",
+      "radius": 3.6,
+      "sec": 2.4,
+      "speed": 5
+    }
+  },
+  {
+    "id": "mob_fog_wisp",
+    "nameKey": "enemy.mob_fog_wisp",
+    "maxHp": 34,
+    "damage": 7,
+    "moveSpeed": 3.2,
+    "aggroRadius": 12,
+    "attackRange": 1.6,
+    "attackWindup": 0.6,
+    "attackCooldown": 2,
+    "leashRadius": 20,
+    "lootTableId": "mob_fog_wisp_drop",
+    "model": {
+      "path": "models/monsters/Ghost.glb",
+      "height": 1.4,
+      "radius": 0.45,
+      "clips": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "attack": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      },
+      "hover": 0.5,
+      "colors": {
+        "Ghost_Main": "#bff7ff"
+      }
+    },
+    "behavior": {
+      "kind": "spit",
+      "minRange": 4,
+      "range": 10,
+      "windup": 0.8,
+      "cooldown": 3.5,
+      "speed": 10,
+      "damage": 7,
+      "slowSec": 1,
+      "slowScale": 0.8,
+      "retreat": 4
+    }
+  },
+  {
+    "id": "mob_root_guard",
+    "nameKey": "enemy.mob_root_guard",
+    "maxHp": 160,
+    "damage": 14,
+    "moveSpeed": 2.4,
+    "aggroRadius": 12,
+    "attackRange": 2.6,
+    "attackWindup": 1.0,
+    "attackCooldown": 3,
+    "leashRadius": 22,
+    "lootTableId": "mob_root_guard_drop",
+    "model": {
+      "path": "models/monsters/Goleling.glb",
+      "height": 2.0,
+      "radius": 0.65,
+      "clips": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "attack": "CharacterArmature|Headbutt",
+        "hit": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "Goleling_Main": "#7a6a4f",
+        "Goleling_Secondary": "#4f5b3c"
+      }
+    },
+    "behavior": {
+      "kind": "shell",
+      "guardSec": 2.5,
+      "guardScale": 0.3,
+      "recoverSec": 1.6,
+      "recoverScale": 1.8
+    }
+  },
+  {
+    "id": "boss_root_devourer",
+    "nameKey": "enemy.boss_root_devourer",
+    "maxHp": 320,
+    "damage": 14,
+    "moveSpeed": 2.6,
+    "aggroRadius": 24,
+    "attackRange": 3,
+    "attackWindup": 0.8,
+    "attackCooldown": 2,
+    "leashRadius": 24,
+    "lootTableId": "boss_root_drop",
+    "hitRadius": 2.4,
+    "model": {
+      "path": "models/monsters/MushroomKing.glb",
+      "height": 2.8,
+      "radius": 0.9,
+      "clips": {
+        "idle": "CharacterArmature|Idle",
+        "move": "CharacterArmature|Run",
+        "attack": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      },
+      "colors": {
+        "MushroomKing_Main": "#d8574a"
+      }
+    },
+    "boss": {
+      "arena": {
+        "center": [
+          2112,
+          0
+        ],
+        "radius": 10,
+        "trigger": 13
+      },
+      "home": [
+        2112,
+        0
+      ],
+      "avoid": {
+        "center": [
+          2112,
+          0
+        ],
+        "radius": 2
+      },
+      "requires": {
+        "questActive": "quest_forest_007"
+      },
+      "retryAt": [
+        2128,
+        0
+      ],
+      "purify": {
+        "pillars": [
+          "altar_resonance_01",
+          "altar_resonance_02",
+          "altar_resonance_03"
+        ]
+      },
+      "introSec": 3,
+      "moveSpeed": 2.6,
+      "bodyRadius": 2.2,
+      "phase2Below": 0.6,
+      "phase2Cooldown": 0.7,
+      "recoverScale": 1.5,
+      "textKey": "root",
+      "moves": {
+        "spikes": {
+          "windup": 0.8,
+          "damage": 12,
+          "radius": 1.4,
+          "count": 3,
+          "count2": 5,
+          "spread": 3.5,
+          "cooldown": 2
+        },
+        "slam": {
+          "windup": 0.8,
+          "air": 0.9,
+          "damage": 18,
+          "radius": 4,
+          "recoverSec": 1.8,
+          "minRange": 5,
+          "cooldown": 2.4
+        },
+        "charge": {
+          "windup": 1,
+          "speed": 9,
+          "distance": 12,
+          "damage": 14,
+          "radius": 2,
+          "minRange": 5,
+          "cooldown": 3.2
+        },
+        "orbs": {
+          "windup": 0.9,
+          "damage": 9,
+          "radius": 1.6,
+          "count": 3,
+          "count2": 5,
+          "ring": 4,
+          "cooldown": 3
         }
       }
     }

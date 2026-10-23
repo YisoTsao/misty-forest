@@ -14,8 +14,8 @@ import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import type { Landmark } from '@/game-core/map/markers';
 import type { LightPathDef } from '@/game-core/world/lightPath';
-import type { WaterwayDef } from '@/game-core/world/waterway';
-import { initialGameState } from '@/game-core/authority/rules';
+import type { PuzzleDef } from '@/game-core/world/puzzles';
+import { initialGameState, modifiersOf } from '@/game-core/authority/rules';
 import { parseHeroClasses, type HeroClassCatalog } from '@/game-core/character/heroClass';
 import classesRaw from '@/data/classes.json';
 import { characterIds } from './character/characters';
@@ -43,8 +43,8 @@ const data = worldDataResult.ok
       weapons: { weapons: new Map(), moves: new Map() } as WeaponCatalog,
       spells: new Map() as SpellCatalog,
       landmarks: [] as Landmark[],
-      waterways: [] as WaterwayDef[],
       lightPaths: [] as LightPathDef[],
+      puzzles: [] as PuzzleDef[],
       shops: new Map() as ShopCatalog,
       crafting: { stations: [], recipes: [] } as CraftData,
     };
@@ -71,8 +71,6 @@ export const flocks: readonly FlockDef[] = data.flocks;
 /** 世界地圖的地標（任務 7B） */
 export const landmarks: readonly Landmark[] = data.landmarks;
 
-/** 水道謎題（任務 8C） */
-export const waterways: readonly WaterwayDef[] = data.waterways;
 export const lightPaths: readonly LightPathDef[] = data.lightPaths;
 
 /** 商店（任務 7H） */
@@ -90,6 +88,9 @@ const allowDebugCommands = import.meta.env.DEV || new URLSearchParams(window.loc
 /** 世界查詢索引（啟動時建立一次，之後唯讀） */
 export const worldIndex = new WorldIndex(data);
 
+/** 目前的被動效果與裝備倍率（裝備系統，Phase 2） */
+export const currentModifiers = () => modifiersOf(authority.getState(), { items: data.items });
+
 export const authority = new LocalAuthority(initialGameState(), {
   world: worldIndex,
   items: data.items,
@@ -101,8 +102,9 @@ export const authority = new LocalAuthority(initialGameState(), {
   spells: data.spells,
   heroClasses,
   buildables: data.buildables,
-  waterways: data.waterways,
   lightPaths: data.lightPaths,
+  puzzles: data.puzzles,
+  regionHarm: new Set(data.regions.filter((r) => r.mistHarm).map((r) => r.id)),
   shops: data.shops,
   crafting: data.crafting,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),

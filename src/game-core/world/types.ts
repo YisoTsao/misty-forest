@@ -16,11 +16,14 @@ export const regionIds = [
   'highland',
   'farmland',
   'river',
-  // 螢苔祕林（任務 8A，Bible §6.2）
-  'moss_trail',
-  'moss_glade',
-  'root_maze',
-  'moss_crown',
+  // 螢苔祕林（第二章，任務 12B，Bible §6.3）：A 迷霧入口、B 螢苔花園、C 倒流溪谷、D 蘑菇居民聚落、E 迷霧深層、F 星晶祕窟、G 古樹祭壇
+  'mist_gate',
+  'glow_garden',
+  'reverse_creek',
+  'mushroom_village',
+  'deep_mist',
+  'crystal_grotto',
+  'ancient_altar',
   // 澄鏡湖（任務 9A，Bible §7.2）：湖岸（含淺水石徑）、湖畔營地、倒影蘆葦島、水鏡遺構、水鏡神殿
   'lake_shore',
   'lake_camp',
@@ -105,6 +108,8 @@ export const prefabSchema = z
     /** 寶箱內容（打開時給予，只能領一次） */
     contents: z.object({
       lootTableId: z.string().min(1),
+      /** 隱藏的寶箱：要先用星光照明揭露才能打開（第二章 Phase 3） */
+      requiresLumen: z.boolean().optional(),
       /** 打開時解鎖星光夥伴（序章：碎片裡飛出了小星星） */
       unlocksCompanion: z.boolean().optional(),
       /** 打開時開始這個任務（任務 7O：芽芽說要帶你去晨曦村；任務必須可接取） */
@@ -147,6 +152,8 @@ export const prefabSchema = z
         /** 另一個物件啟動 seconds 秒（遊戲時間）後才能啟動（任務 7L：離開一陣子再回來觀察） */
         after: z.object({ placement: z.string().min(1), seconds: z.number().positive() }).optional(),
         anim: z.enum(['attack', 'interact']).optional(),
+        /** 啟動後所在區域的迷霧降一段（任務 12C 星光燈柱：點亮後局部迷霧降低） */
+        mistDown: z.boolean().optional(),
         /** 玩家啟動時顯示的訊息（任務 9C：倒影裡看到的景象） */
         message: z.object({ titleKey: z.string().min(1), bodyKey: z.string().min(1) }).optional(),
       })

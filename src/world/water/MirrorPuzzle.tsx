@@ -22,9 +22,14 @@ const BEAM_RADIUS = 0.07;
  * 鏡面朝向依權威狀態（轉動次數 × 90°）平滑轉過去；光路依權威狀態追光後畫成發光的細光柱（任務開始後才有光）。
  */
 export function MirrorPuzzle() {
-  const def = lightPaths[0];
-  if (!def) return null;
-  return <MirrorPuzzleScene def={def} />;
+  // 每一條光路各自畫（湖底閘門、祕窟石門；第二章 Phase 4）
+  return (
+    <>
+      {lightPaths.map((def) => (
+        <MirrorPuzzleScene key={def.id} def={def} />
+      ))}
+    </>
+  );
 }
 
 function MirrorPuzzleScene({ def }: { def: LightPathDef }) {
@@ -84,11 +89,11 @@ function MirrorPuzzleScene({ def }: { def: LightPathDef }) {
     });
   }, [def, objects, shining]);
   useEffect(() => {
-    lightPathRuntime.beams = beams.length;
+    lightPathRuntime[def.id] = beams.length;
     return () => {
-      lightPathRuntime.beams = 0;
+      lightPathRuntime[def.id] = 0;
     };
-  }, [beams]);
+  }, [beams, def.id]);
   const beamMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color('#fff2c0').multiplyScalar(2.4), toneMapped: false, transparent: true, opacity: 0.85, depthWrite: false }), []);
   const beamGeometry = useMemo(() => new THREE.CylinderGeometry(BEAM_RADIUS, BEAM_RADIUS, 1, 6, 1, true), []);
   useEffect(

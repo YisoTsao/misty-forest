@@ -35,6 +35,80 @@ const icons: Record<string, ReactNode> = {
       <circle cx="24" cy="7" r="3" fill="#f4fff0" stroke="#7fb27a" strokeWidth="1.2" />
     </>
   ),
+  fang: (
+    <>
+      <path d="M14 10 Q26 14 32 40 Q24 30 14 28 Q18 20 14 10 Z" fill="#f2efe6" stroke="#8c8476" strokeWidth="2" strokeLinejoin="round" />
+    </>
+  ),
+  pelt: (
+    <>
+      <path d="M10 14 Q24 8 38 14 L40 36 Q24 42 8 36 Z" fill="#9c6b44" stroke="#5e3d24" strokeWidth="2" />
+      <path d="M16 20 L18 34 M24 18 L24 36 M32 20 L30 34" stroke="#c99b6c" strokeWidth="1.6" strokeLinecap="round" />
+    </>
+  ),
+  bark: (
+    <>
+      <path d="M16 6 Q12 24 18 42 L30 42 Q36 24 32 6 Z" fill="#7a5638" stroke="#4a3322" strokeWidth="2" />
+      <path d="M22 10 L23 40 M27 12 L26 38" stroke="#4a3322" strokeWidth="1.4" />
+    </>
+  ),
+  heartwood: (
+    <>
+      <circle cx="24" cy="24" r="16" fill="#b98656" stroke="#6b4a2c" strokeWidth="2.2" />
+      <circle cx="24" cy="24" r="10" fill="none" stroke="#8c5f36" strokeWidth="1.6" />
+      <circle cx="24" cy="24" r="4" fill="#d9a870" stroke="#6b4a2c" strokeWidth="1.2" />
+    </>
+  ),
+  crystal: (
+    <>
+      <path d="M24 6 L36 22 L24 42 L12 22 Z" fill="#8fd3ff" stroke="#3f7fb8" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M24 6 L24 42 M12 22 L36 22" stroke="#d9f1ff" strokeWidth="1.2" />
+    </>
+  ),
+  resin: (
+    <>
+      <path d="M24 6 Q36 24 34 32 Q30 42 24 42 Q16 42 14 32 Q12 24 24 6 Z" fill="#e2a24a" stroke="#9a6320" strokeWidth="2" />
+      <ellipse cx="20" cy="30" rx="2.4" ry="4" fill="#fff0c2" opacity="0.8" />
+    </>
+  ),
+  glow_knife: (
+    <>
+      <path d="M12 36 L34 10 L38 14 L16 40 Z" fill="#d6f7ea" stroke="#3f8a6a" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M10 38 L16 32" stroke="#6b4a2c" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="34" cy="12" r="3" fill="#8de6be" />
+    </>
+  ),
+  glow_staff: (
+    <>
+      <path d="M24 44 L24 14" stroke="#6b4a2c" strokeWidth="3.4" strokeLinecap="round" />
+      <circle cx="24" cy="12" r="6" fill="#8de6be" stroke="#3f8a6a" strokeWidth="1.8" />
+      <circle cx="24" cy="12" r="2.4" fill="#f4fff8" />
+    </>
+  ),
+  forest_bracer: (
+    <>
+      <path d="M10 18 Q24 12 38 18 L36 34 Q24 40 12 34 Z" fill="#7a5638" stroke="#3f2c1c" strokeWidth="2" />
+      <path d="M14 22 L34 22 M13 28 L35 28" stroke="#b98656" strokeWidth="1.6" />
+      <circle cx="24" cy="25" r="2.6" fill="#8de6be" />
+    </>
+  ),
+  star_compass: (
+    <>
+      <circle cx="24" cy="24" r="17" fill="#2b3a52" stroke="#d9b75a" strokeWidth="2.5" />
+      <circle cx="24" cy="24" r="12" fill="none" stroke="#8fa6c9" strokeWidth="1.2" />
+      <path d="M24 8 L27 24 L24 40 L21 24 Z" fill="#f4e3a1" stroke="#b8923a" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M24 24 L40 24 L24 27 Z" fill="#7fc8ff" opacity="0.8" />
+      <circle cx="24" cy="24" r="2.2" fill="#fff8dc" />
+    </>
+  ),
+  pure_glowmoss: (
+    <>
+      <path d="M8 38 Q10 28 18 27 Q21 20 28 22 Q36 20 40 29 Q44 36 38 40 Q24 44 8 38 Z" fill="#2f6f58" stroke="#1d4d3c" strokeWidth="2" />
+      <path d="M14 35 Q20 31 24 33 M27 29 Q32 26 36 30" stroke="#b8fff0" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M24 30 L26 22 L24 14 L22 22 Z M24 30 L31 25 L33 29 Z M24 30 L17 25 L15 29 Z" fill="#e8fffb" stroke="#7fe3d0" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="24" cy="30" r="2.6" fill="#ffffff" />
+    </>
+  ),
   glow_moss: (
     <>
       <path d="M7 36 Q9 26 17 25 Q20 18 28 20 Q36 18 40 27 Q44 34 38 38 Q24 42 7 36 Z" fill="#3f8a63" stroke="#245a40" strokeWidth="2" />

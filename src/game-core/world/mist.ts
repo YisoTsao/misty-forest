@@ -22,3 +22,8 @@ export function approachMist(current: number, target: number, rate: number, dt: 
   const next = target + (current - target) * Math.exp(-rate * dt);
   return Math.abs(next - target) < 1e-4 ? target : next;
 }
+
+/** 迷霧往清楚的方向降一段（任務 12C 星光燈柱）：濃霧 → 淡霧 → 清楚，清楚就維持不變。 */
+export function lowerMistStage(stage: MistStage): MistStage {
+  return stage === 'dense' ? 'light' : 'clear';
+}

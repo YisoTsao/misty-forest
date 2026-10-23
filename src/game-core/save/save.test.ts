@@ -9,6 +9,7 @@ import { MemoryStorage } from './memoryStorage';
 import { migrateSave, SaveFormatError, type Migration } from './migrate';
 import { SAVE_VERSION, type SaveData } from './schema';
 import { createExplored, encodeExplored, exploredRatio, isCellExplored, MAP_CELLS, withCells } from '../map/explore';
+import { GLOWMOSS_ARRIVAL, GLOWMOSS_ORIGIN } from '../world/glowmossTerrain';
 
 const ctx = testContext();
 const player = { position: { x: 1.5, y: 0.9, z: -3 }, facingYaw: 0.7 };
@@ -161,7 +162,7 @@ describe('版本遷移', () => {
       quests: { mend: { status: 'completed' } },
     };
     const loaded = fromSaveData(v4, ctx);
-    expect(loaded.state.player).toEqual({ weapon: 'sword', heroClass: 'traveler', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false });
+    expect(loaded.state.player).toEqual({ weapon: 'sword', heroClass: 'traveler', mp: 100, hp: 100, lastDamagedAt: 5, defeated: false, rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 });
     expect(loaded.state.enemies.size).toBe(0);
     expect(loaded.state.objects.get('b1')?.repaired).toBe(true);
   });
@@ -171,7 +172,7 @@ describe('版本遷移', () => {
     const state: GameState = {
       ...base,
       quests: { hunt: { status: 'active', progress: [2] } },
-      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42, heroClass: 'traveler' },
+      player: { hp: 37, lastDamagedAt: 0, defeated: false, weapon: 'knife', mp: 42, heroClass: 'traveler', rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 },
       enemies: new Map([['sp#1', { id: 'sp#1', kind: 'wisp', spawner: 'sp', hp: 20 }]]),
       spawners: { sp: { nextSpawnAt: 12, counter: 1 } },
     };
@@ -182,7 +183,7 @@ describe('版本遷移', () => {
     expect(loaded.spawners.sp).toEqual({ nextSpawnAt: 12, counter: 1 });
     expect(loaded.player.weapon).toBe('knife');
     expect(loaded.player.mp).toBe(42);
-    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10, heroClass: 'traveler' } }, player, new Date())).state;
+    const downed = roundTrip(toSaveData({ ...state, player: { hp: 0, lastDamagedAt: 0, defeated: true, weapon: 'fist', mp: 10, heroClass: 'traveler', rollUntil: 0, rollReadyAt: 0, lumenUntil: 0 } }, player, new Date())).state;
     expect(downed.player).toMatchObject({ hp: 100, defeated: false, weapon: 'fist' });
   });
 
@@ -308,8 +309,9 @@ describe('版本遷移', () => {
     const loaded = fromSaveData(v11, ctx);
     expect(loaded.warnings).toEqual([]);
     expect(loaded.state.mist.forest).toBe('clear');
-    expect(loaded.state.mist.moss_glade).toBe(initialGameState().mist.moss_glade);
-    expect(loaded.state.mist.root_maze).toBe('dense');
+    // 螢苔祕林的區域在 v19 換成第二章的七個區域（任務 12B），都補上新遊戲的初始值
+    expect(loaded.state.mist.glow_garden).toBe(initialGameState().mist.glow_garden);
+    expect(loaded.state.mist.reverse_creek).toBe('dense');
     expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
     expect(isCellExplored(loaded.state.explored, 2)).toBe(true);
     expect(exploredRatio(loaded.state.explored, 'glowmoss')).toBe(0);
@@ -340,9 +342,9 @@ describe('版本遷移', () => {
     old[MAP_CELLS / 8] = 0b10; // 螢苔祕林第 1 格
     const lakeRegions = ['lake_shore', 'lake_camp', 'reed_isle', 'mirror_ruins', 'mirror_temple'];
     const mist = Object.fromEntries(Object.entries(current.mist).filter(([id]) => !lakeRegions.includes(id)));
-    const loaded = fromSaveData({ ...current, version: 14, mist: { ...mist, moss_crown: 'clear' }, map: { explored: encodeExplored(old) } }, ctx);
+    const loaded = fromSaveData({ ...current, version: 14, mist: { ...mist, forest: 'clear' }, map: { explored: encodeExplored(old) } }, ctx);
     expect(loaded.warnings).toEqual([]);
-    expect(loaded.state.mist.moss_crown).toBe('clear');
+    expect(loaded.state.mist.forest).toBe('clear');
     expect(loaded.state.mist.mirror_temple).toBe('dense');
     expect(loaded.state.mist.lake_shore).toBe('light');
     expect(isCellExplored(loaded.state.explored, 0)).toBe(true);
@@ -375,6 +377,44 @@ describe('版本遷移', () => {
     expect(loaded.state.player.weapon).toBe('knife');
     const mage = { ...initialGameState(), player: { ...initialGameState().player, heroClass: 'mage' as const, weapon: 'staff' as const } };
     expect(roundTrip(toSaveData(mage, player, new Date())).state.player).toMatchObject({ heroClass: 'mage', weapon: 'staff' });
+  });
+
+  it('v17 存檔升到 v18：清掉舊版螢苔祕林的任務、機關、苔咚與芽之共鳴，其他進度不變（任務 12A）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const v17 = {
+      ...current,
+      version: 17,
+      quests: { quest_dawn_003: { status: 'completed' }, quest_forest_001: { status: 'completed' }, quest_forest_003: { status: 'active', progress: [1] }, quest_lake_001: { status: 'completed' } },
+      world: { ...current.world, objects: [{ placementId: 'glowmoss_lantern_01', active: true }, { placementId: 'glowmoss_water_wheel', turn: 2 }, { placementId: 'meadow_chest_001', open: true }] },
+      inventory: { slots: [{ itemId: 'seed_resonance_bud', count: 1 }, { itemId: 'wood', count: 3 }, null] },
+      combat: { ...current.combat, defeatedBosses: ['boss_moss_thump', 'boss_dawn_mist_puff'], spawners: { glade_moths: { nextSpawnAt: 5, counter: 2 }, deepwood_sprouts: { nextSpawnAt: 9, counter: 1 } } },
+    };
+    const migrated = migrateSave(v17) as SaveData;
+    expect(migrated.version).toBe(SAVE_VERSION);
+    expect(migrated.quests).toEqual({ quest_dawn_003: { status: 'completed' }, quest_lake_001: { status: 'completed' } });
+    expect(migrated.world.objects).toEqual([{ placementId: 'meadow_chest_001', open: true }]);
+    expect(migrated.inventory.slots).toEqual([null, { itemId: 'wood', count: 3 }, null]);
+    expect(migrated.combat.defeatedBosses).toEqual(['boss_dawn_mist_puff']);
+    expect(migrated.combat.spawners).toEqual({ deepwood_sprouts: { nextSpawnAt: 9, counter: 1 } });
+    expect(fromSaveData(v17, ctx).state.quests.quest_forest_001).toBeUndefined();
+  });
+
+  it('v18 存檔升到 v19：祕林的舊區域迷霧換成七個新區域；站在祕林裡的玩家移到入口，其他地圖的玩家不動（任務 12B）', () => {
+    const current = toSaveData(initialGameState(), player, new Date());
+    const newRegions = ['mist_gate', 'glow_garden', 'reverse_creek', 'mushroom_village', 'deep_mist', 'crystal_grotto', 'ancient_altar'];
+    const mist = Object.fromEntries(Object.entries(current.mist).filter(([id]) => !newRegions.includes(id)));
+    const v18 = { ...current, version: 18, mist: { ...mist, moss_glade: 'clear', root_maze: 'light', forest: 'clear' }, player: { position: { x: 2050, y: 3, z: -70 }, facingYaw: 1 } };
+    const migrated = migrateSave(v18) as SaveData;
+    expect(Object.keys(migrated.mist)).not.toContain('moss_glade');
+    expect(migrated.mist.forest).toBe('clear');
+    expect(migrated.mist.glow_garden).toBe(initialGameState().mist.glow_garden);
+    expect(migrated.mist.mist_gate).toBe('dense');
+    expect(migrated.player.position.x).toBeCloseTo(GLOWMOSS_ORIGIN.x + GLOWMOSS_ARRIVAL.x);
+    expect(migrated.player.position.z).toBeCloseTo(GLOWMOSS_ORIGIN.z + GLOWMOSS_ARRIVAL.z);
+    expect(migrated.player.facingYaw).toBeCloseTo(Math.PI / 2);
+    const dawn = migrateSave({ ...v18, player: { position: { x: 5, y: 1, z: 6 }, facingYaw: 1 } }) as SaveData;
+    expect(dawn.player).toEqual({ position: { x: 5, y: 1, z: 6 }, facingYaw: 1 });
+    expect(fromSaveData(v18, ctx).warnings).toEqual([]);
   });
 
   it('v13 存檔升到 v14 補上空的已擊敗頭目；未知的頭目略過並回報（任務 8D）', () => {

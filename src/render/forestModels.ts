@@ -304,34 +304,6 @@ function giantMushroom(): ForestModel {
   return { solid: merge(solid, '巨大蘑菇樹'), glow: merge(glow, '巨大蘑菇樹光點') };
 }
 
-/** 月牙樹（林地地標）：粗壯的老樹，樹冠長成一彎新月的形狀，枝頭垂著發光的苔蘚球 */
-function crescentTree(): ForestModel {
-  const rand = mulberry32(817);
-  const solid: THREE.BufferGeometry[] = [cylinder(0.65, 1.15, 6.5, [0, 0, 0], BARK, 10)];
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + 0.4;
-    solid.push(root([[Math.cos(a) * 0.8, 1.2, Math.sin(a) * 0.8], [Math.cos(a) * 1.8, 0.35, Math.sin(a) * 1.8], [Math.cos(a) * 2.7, -0.15, Math.sin(a) * 2.7]], 0.32, BARK_DARK, 0.3, 8));
-  }
-  // 兩根主枝撐起新月形的樹冠
-  solid.push(root([[0, 5.5, 0], [-1.6, 7.2, 0.2], [-2.6, 8.8, 0]], 0.42, BARK, 0.5, 8));
-  solid.push(root([[0, 5.8, 0], [1.5, 7.6, -0.2], [2.4, 9.6, 0]], 0.38, BARK, 0.5, 8));
-  const glow: THREE.BufferGeometry[] = [];
-  // 新月：沿 C 字形弧線排列的葉團，兩端漸細
-  const arcCenter = new THREE.Vector3(0.6, 9.4, 0);
-  for (let i = 0; i <= 14; i++) {
-    const t = i / 14;
-    const a = Math.PI * (0.55 + t * 1.25);
-    const thick = Math.sin(t * Math.PI);
-    const r = 3.6 - thick * 0.6;
-    const x = arcCenter.x + Math.cos(a) * r;
-    const y = arcCenter.y + Math.sin(a) * r * 0.85;
-    const size = 0.7 + thick * 1.3;
-    solid.push(sphere(size, [x, y, (rand() - 0.5) * 0.8], i % 3 === 0 ? MOSS_LIGHT : MOSS, [1, 0.85, 1.1]));
-    if (i % 2 === 0) glow.push(sphere(0.12, [x + (rand() - 0.5) * 0.6, y - size * 0.9 - 0.3, (rand() - 0.5) * 0.9], glowColor(MINT, 1.8), [1, 1.3, 1], 0));
-  }
-  return { solid: merge(solid, '月牙樹'), glow: merge(glow, '月牙樹光點') };
-}
-
 /** 發光石環的立石：苔蘚覆頂，石面刻著一圈會發光的符紋 */
 function glowStone(): ForestModel {
   const rand = mulberry32(818);
@@ -347,33 +319,6 @@ function glowStone(): ForestModel {
     glow.push(paint(g, glowColor(MINT, 1.7)));
   }
   return { solid: merge(solid, '發光立石'), glow: merge(glow, '立石符紋') };
-}
-
-/** 古水渠閘門（`prop_forest_watergate`）：兩根石柱、橫樑與卡住的木閘板（乾涸期：閘板歪斜、纏著樹根）；沿 X 軸跨過渠道 */
-/** 古水渠閘門：兩根石柱與橫樑、中間五片木閘板；open 時閘板拉起到橫樑下（任務 8C） */
-function waterGate(open = false): ForestModel {
-  const stone = c('#9a9a92');
-  const wood = c('#8a5a33');
-  const solid = [
-    cylinder(0.32, 0.38, 2.6, [-2.9, -0.4, 0], stone, 8),
-    cylinder(0.32, 0.38, 2.6, [2.9, -0.4, 0], stone, 8),
-    cylinder(0.2, 0.2, 6.2, [-3.1, 2.15, 0], stone, 8, [0, 0, -Math.PI / 2]),
-  ];
-  for (let i = 0; i < 5; i++) {
-    const g = new THREE.BoxGeometry(1.15, 1.6, 0.14);
-    g.rotateZ((open ? 0 : 1) * (i - 2) * 0.06);
-    g.translate(-2.3 + i * 1.15, open ? 1.78 : 0.45 - Math.abs(i - 2) * 0.12, 0);
-    solid.push(paint(g, i % 2 ? wood : c('#a06a3d')));
-  }
-  if (open) {
-    // 拉起閘板的鏈條與轉輪
-    for (const x of [-1.2, 1.2]) solid.push(cylinder(0.03, 0.03, 0.5, [x, 2.0, 0.12], c('#5c5a55'), 4));
-    solid.push(cylinder(0.32, 0.32, 0.12, [3.25, 2.15, 0.25], c('#6b4a35'), 10, [Math.PI / 2, 0, 0]));
-  } else {
-    solid.push(root([[-3.2, 2.2, 0.3], [-1.4, 1.1, 0.35], [0.6, 0.6, 0.3], [2.6, 1.4, 0.32]], 0.22, BARK_DARK, 0.6, 12));
-  }
-  solid.push(sphere(0.5, [2.9, 2.3, 0], MOSS, [1, 0.45, 1]));
-  return { solid: merge(solid, open ? '水渠閘門（打開）' : '水渠閘門') };
 }
 
 /** 林道入口（兩張地圖之間的出入口）：兩根纏著樹根的木柱、橫樑上掛著路牌與發光苔蘚燈；寬 4.4 m，沿 X 軸 */
@@ -404,74 +349,28 @@ function forestGate(): ForestModel {
 // ── 任務 8C：琳娜的路燈與奇奇的水道（Bible §6.4、§6.7 prop_forest_waterwheel / watergate） ──
 
 /** 林間路燈：木柱、彎出的橫桿掛著一盞小燈籠；lit 時燈裡的螢苔發光（+Z 面朝向小徑） */
-function trailLantern(lit: boolean): ForestModel {
-  const wood = c('#6e4a2f');
+/**
+ * 星光燈柱（任務 12C，規格 P-01）：石柱頂端的晶座。未啟動時晶體暗淡、像嵌在石頭裡；
+ * 點亮後晶體發出星光（光暈與漂浮的光點）。原點在底座中央，高約 2.6 m。
+ */
+function starLamp(lit: boolean): ForestModel {
   const solid = [
-    cylinder(0.09, 0.12, 2.2, [0, 0, 0], wood, 7),
-    cylinder(0.05, 0.05, 0.75, [0, 2.05, 0], wood, 5, [Math.PI / 2, 0, 0]),
-    cylinder(0.012, 0.012, 0.22, [0, 1.84, 0.68], c('#4a3524'), 4),
+    sphere(0.42, [0, 0.12, 0], MOSS, [1.2, 0.3, 1.2]),
+    cylinder(0.3, 0.38, 0.3, [0, 0.15, 0], STONE_DARK, 8),
+    cylinder(0.14, 0.18, 1.6, [0, 1.1, 0], STONE, 8),
+    cylinder(0.26, 0.2, 0.2, [0, 1.98, 0], STONE_DARK, 8),
+    cylinder(0.12, 0.2, 0.25, [0, 2.2, 0], STONE_DARK, 6),
   ];
-  // 燈籠：上下兩片木蓋、四根細柱
-  solid.push(cylinder(0.17, 0.2, 0.07, [0, 1.8, 0.68], wood, 6), cylinder(0.2, 0.16, 0.06, [0, 1.42, 0.68], wood, 6));
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-    solid.push(cylinder(0.014, 0.014, 0.32, [Math.cos(a) * 0.15, 1.48, 0.68 + Math.sin(a) * 0.15], wood, 4));
-  }
-  solid.push(sphere(0.28, [0, 0.05, 0], MOSS, [1.3, 0.35, 1.2]));
   if (!lit) {
-    solid.push(sphere(0.1, [0, 1.58, 0.68], c('#7c7f74'), [1, 0.8, 1], 0));
-    return { solid: merge(solid, '林間路燈') };
+    solid.push(sphere(0.16, [0, 2.45, 0], c('#5d6b7a'), [1, 1.5, 1], 0));
+    return { solid: merge(solid, '星光燈柱') };
   }
-  const glow = [sphere(0.15, [0, 1.6, 0.68], glowColor(MINT, 2.6), [1, 1.1, 1], 1)];
+  const glow = [sphere(0.2, [0, 2.45, 0], glowColor(MINT, 2.6), [1, 1.5, 1], 1)];
   for (let i = 0; i < 5; i++) {
     const a = (i / 5) * Math.PI * 2;
-    glow.push(sphere(0.035, [Math.cos(a) * 0.32, 0.12, Math.sin(a) * 0.32], glowColor(MINT, 1.6), [1, 1, 1], 0));
+    glow.push(sphere(0.035, [Math.cos(a) * 0.45, 1.6 + (i % 2) * 0.5, Math.sin(a) * 0.45], glowColor(MINT, 1.6), [1, 1, 1], 0));
   }
-  return { solid: merge(solid, '林間路燈'), glow: merge(glow, '林間路燈光') };
-}
-
-/** 崩塌的渠段（原點在渠底中央，X 橫跨渠道）：broken 時東側渠壁塌成碎石、木襯板斷裂；修好後兩側整齊的石塊與木襯板 */
-function channelBreach(fixed: boolean): ForestModel {
-  const rand = mulberry32(816);
-  const stone = c('#8f8e86');
-  const wood = c('#8a5a33');
-  const solid: THREE.BufferGeometry[] = [];
-  if (fixed) {
-    for (const side of [-1, 1]) {
-      for (let k = 0; k < 5; k++) {
-        const g = new THREE.BoxGeometry(0.55, 0.9, 1.05);
-        g.translate(side * 2.35, 0.45, -2.1 + k * 1.05);
-        solid.push(paint(g, stone, 0.12, rand));
-      }
-      const plank = new THREE.BoxGeometry(0.08, 0.5, 5.2);
-      plank.translate(side * 2.04, 0.55, 0);
-      solid.push(paint(plank, wood));
-    }
-    // 新補上的苔蘚與一根釘牢的橫木
-    solid.push(cylinder(0.08, 0.08, 4.8, [-2.4, 0.95, 0.9], c('#7a5032'), 6, [0, 0, -Math.PI / 2]));
-    solid.push(sphere(0.3, [2.4, 0.95, -1.4], MOSS, [1.4, 0.4, 1.2]));
-    return { solid: merge(solid, '修好的渠段') };
-  }
-  // 西側還在的渠壁
-  for (let k = 0; k < 5; k++) {
-    const g = new THREE.BoxGeometry(0.55, 0.9, 1.05);
-    g.translate(-2.35, 0.45, -2.1 + k * 1.05);
-    solid.push(paint(g, stone, 0.12, rand));
-  }
-  // 東側塌下來的碎石與斷掉的木板
-  for (let k = 0; k < 9; k++) {
-    solid.push(sphere(0.22 + rand() * 0.22, [1.2 + rand() * 1.4, 0.12, -2.2 + rand() * 4.4], stone.clone().multiplyScalar(0.85 + rand() * 0.2), [1.2, 0.7, 1], 0));
-  }
-  for (let k = 0; k < 3; k++) {
-    const plank = new THREE.BoxGeometry(0.08, 0.45, 1.4);
-    plank.rotateX(0.4 - k * 0.35);
-    plank.rotateZ(0.5 + k * 0.2);
-    plank.translate(1.7 + k * 0.25, 0.25, -1.4 + k * 1.3);
-    solid.push(paint(plank, wood.clone().multiplyScalar(0.8)));
-  }
-  // 渠水從缺口滲走留下的濕泥
-  solid.push(paint(new THREE.CylinderGeometry(1.4, 1.5, 0.04, 12).translate(1.6, 0.02, 0), c('#3d3229')));
-  return { solid: merge(solid, '崩塌的渠段') };
+  return { solid: merge(solid, '星光燈柱'), glow: merge(glow, '星光燈柱光') };
 }
 
 /** 分水木輪的骨架（原點在渠底中央，X 橫跨渠道）：兩根石柱、輪軸、頂上的平台；高約 6 m */
@@ -547,165 +446,117 @@ function waterWheelLever(): ForestModel {
   return { solid: merge(solid, '木輪操作桿') };
 }
 
-/** 苔蘚節點（木槽的出水處）：dry 時灰褐乾裂、捲曲的枯苔；喚醒後是飽滿的螢苔與發光小菌（+Z 面朝向木輪） */
-function mossNode(awake: boolean): ForestModel {
-  const rand = mulberry32(awake ? 817 : 818);
-  const stone = c('#8f8e86');
+// ── 任務 12B：第二章 A 迷霧入口、B 螢苔花園（Bible §6.3、§6.13；參考圖 docs/art/reference/螢苔祕林/） ──
+
+const STONE = c('#9a9aa6');
+const STONE_DARK = c('#6f6f7d');
+const CRYSTAL = '#7fc8ff';
+
+/** 迷霧入口的石拱門：兩根疊石柱與一道石塊拱，拱心嵌著一顆藍色晶石，頂上覆著苔蘚；柱心距 5.6 m、高約 5.2 m，沿 X 軸跨過小徑 */
+function mistArch(): ForestModel {
+  const rand = mulberry32(1201);
   const solid: THREE.BufferGeometry[] = [];
-  // 承水的石槽（木槽的水落在這裡）
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2;
-    solid.push(sphere(0.26 + rand() * 0.1, [Math.cos(a) * 0.75, 0.1, 0.9 + Math.sin(a) * 0.42], stone, [1.2, 0.6, 1], 0));
-  }
-  if (!awake) {
-    const plant = [carpet(1.7, c('#7d7a68'), c('#5d5a4c'), rand), carpet(0.9, c('#8a8572'), c('#6c6857'), rand, 0.05)];
-    for (let i = 0; i < 8; i++) plant.push(leaf((i / 8) * Math.PI * 2 + 0.2, 0.28, 0.06, 1.1, c('#6c6857'), c('#9a9480'), 0.04));
-    solid.push(paint(new THREE.CylinderGeometry(0.55, 0.6, 0.03, 10).translate(0, 0.02, 0.9), c('#4a3f33')));
-    return { solid: merge(solid, '乾枯的苔蘚節點'), plant: merge(plant, '乾枯的苔') };
-  }
-  const plant = [carpet(1.9, MOSS_LIGHT, MOSS, rand), carpet(1.1, c('#6fae7a'), MOSS_LIGHT, rand, 0.06)];
-  for (let i = 0; i < 12; i++) plant.push(leaf((i / 12) * Math.PI * 2, 0.36, 0.09, 0.5, MOSS, c('#7fc49a'), 0.05));
-  const glow: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 22; i++) {
-    const a = rand() * Math.PI * 2;
-    const r = Math.sqrt(rand()) * 1.5;
-    glow.push(sphere(0.04 + rand() * 0.03, [Math.cos(a) * r, 0.1 + rand() * 0.2, Math.sin(a) * r], glowColor(MINT, 1.7 + rand() * 0.5), [1, 1, 1], 0));
-  }
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + 0.7;
-    const x = Math.cos(a) * 1.2;
-    const z = Math.sin(a) * 1.2;
-    solid.push(cylinder(0.03, 0.04, 0.26, [x, 0, z], c('#efe3c8'), 6));
-    const cap = new THREE.SphereGeometry(0.11, 9, 5, 0, Math.PI * 2, 0, Math.PI / 2);
-    cap.scale(1, 0.62, 1);
-    cap.translate(x, 0.26, z);
-    glow.push(paint(cap, glowColor(i % 2 ? MINT : '#9fe9ff', 1.5)));
-  }
-  solid.push(paint(new THREE.CylinderGeometry(0.55, 0.6, 0.03, 10).translate(0, 0.04, 0.9), c('#77c9df')));
-  return { solid: merge(solid, '苔蘚節點'), plant: merge(plant, '甦醒的苔'), glow: merge(glow, '苔蘚節點光點') };
-}
-
-/**
- * 苔冠空地邊緣的水槽（任務 8D，Bible §6.5）：石槽 2.4 × 1.2 m（沿 X），+Z 面向菌樹；
- * 背面（−Z）有一截樹根空心木管把水接進來。乾涸時槽底是龜裂的泥、苔蘚灰灰的；注滿時水面發光、木管流下水柱、苔蘚冒出光點
- */
-function crownTrough(full: boolean): ForestModel {
-  const stone = c('#9a978c');
-  const stoneDark = c('#7d7a70');
-  const box = (size: [number, number, number], at: [number, number, number], color: THREE.Color) => {
-    const g = new THREE.BoxGeometry(...size);
-    g.translate(...at);
-    return paint(g, color);
-  };
-  const solid = [
-    box([2.4, 0.16, 1.2], [0, 0.08, 0], stoneDark),
-    box([2.4, 0.56, 0.18], [0, 0.36, 0.51], stone),
-    box([2.4, 0.56, 0.18], [0, 0.36, -0.51], stone),
-    box([0.18, 0.56, 0.84], [1.11, 0.36, 0], stone),
-    box([0.18, 0.56, 0.84], [-1.11, 0.36, 0], stone),
-    // 空心木管：從背後斜斜伸進槽的上方
-    cylinder(0.13, 0.15, 1.1, [0.3, 0.72, -1.45], BARK, 8, [Math.PI / 2 - 0.25, 0, 0]),
-    root([[-0.4, 0, -1.3], [-0.1, 0.5, -1.2], [0.25, 0.8, -1.1], [0.55, 0.62, -0.9]], 0.07, BARK_DARK, 0.5, 10),
-  ];
-  const rand = mulberry32(full ? 41 : 40);
   const plant: THREE.BufferGeometry[] = [];
   const glow: THREE.BufferGeometry[] = [];
-  // 四個角落的苔蘚
-  for (const [x, z] of [[-1.1, 0.5], [1.1, 0.5], [-1.1, -0.5], [1.1, -0.5]] as const) {
-    solid.push(sphere(0.2, [x, 0.66, z], full ? MOSS : c('#77766a'), [1.2, 0.45, 1.2]));
-  }
-  if (!full) {
-    // 槽底龜裂的泥塊
-    for (let i = 0; i < 9; i++) {
-      const g = new THREE.CylinderGeometry(0.2 + rand() * 0.1, 0.22 + rand() * 0.1, 0.04, 6);
-      g.translate(-0.8 + (i % 5) * 0.4 + rand() * 0.08, 0.18, i < 5 ? -0.17 : 0.18);
-      solid.push(paint(g, i % 2 ? c('#7a6a55') : c('#6c5d4a')));
-    }
-    for (let i = 0; i < 6; i++) plant.push(leaf((i / 6) * Math.PI * 2, 0.22, 0.05, 1.1, c('#6c6857'), c('#9a9480'), 0.68).translate(i % 2 ? 1.1 : -1.1, 0, i < 3 ? 0.5 : -0.5));
-    return { solid: merge(solid, '乾涸的水槽'), plant: merge(plant, '乾枯的苔') };
-  }
-  glow.push(box([2.04, 0.04, 0.84], [0, 0.52, 0], glowColor('#77c9df', 1.25)));
-  // 木管流下的水柱
-  glow.push(box([0.12, 0.42, 0.1], [0.3, 0.72, -0.4], glowColor('#9fe9ff', 1.4)));
-  for (let i = 0; i < 10; i++) {
-    const a = rand() * Math.PI * 2;
-    glow.push(sphere(0.035 + rand() * 0.02, [Math.cos(a) * 0.9, 0.58 + rand() * 0.25, Math.sin(a) * 0.35], glowColor(MINT, 1.8), [1, 1, 1], 0));
-  }
-  for (let i = 0; i < 8; i++) plant.push(leaf((i / 8) * Math.PI * 2 + 0.3, 0.3, 0.07, 0.6, MOSS, c('#7fc49a'), 0.68).translate(i % 2 ? 1.1 : -1.1, 0, i < 4 ? 0.5 : -0.5));
-  return { solid: merge(solid, '注滿的水槽'), plant: merge(plant, '甦醒的苔'), glow: merge(glow, '水槽的水光') };
-}
-
-/**
- * 森林根源石（`prop_forest_root_stone`，任務 8D-2）：半人高的圓頂石，被樹根環抱，正面刻著一株嫩芽。
- * 沉睡時石面灰暗、苔蘚枯黃、刻紋沒有光；喚醒後刻紋與根縫發出螢光薄荷色，周圍冒出新芽與光點（芽之共鳴）。
- */
-function rootStone(awake: boolean): ForestModel {
-  const rand = mulberry32(awake ? 43 : 42);
-  const body = new THREE.DodecahedronGeometry(0.75, 1);
-  body.scale(1.05, 1.45, 0.8);
-  body.translate(0, 1.0, 0);
-  const solid: THREE.BufferGeometry[] = [paint(body, awake ? c('#8d978f') : c('#80807c'), 0.06, rand), cylinder(1.25, 1.45, 0.3, [0, 0, 0], c('#6f6e66'), 10)];
-  // 環抱的樹根：從地面繞上石頭側面
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2 + 0.5;
-    const r0 = 1.9;
-    solid.push(
-      root(
-        [
-          [Math.cos(a) * r0, -0.1, Math.sin(a) * r0],
-          [Math.cos(a) * 1.15, 0.45, Math.sin(a) * 0.95],
-          [Math.cos(a + 0.5) * 0.82, 1.2 + (i % 2) * 0.3, Math.sin(a + 0.5) * 0.62],
-          [Math.cos(a + 0.9) * 0.55, 1.75 + (i % 2) * 0.2, Math.sin(a + 0.9) * 0.42],
-        ],
-        0.16,
-        i % 2 ? BARK : BARK_DARK,
-        0.35,
-        14,
-      ),
-    );
-  }
-  // 頂上的苔蘚
-  solid.push(sphere(0.5, [0, 2.05, 0], awake ? MOSS_LIGHT : c('#8a8566'), [1.3, 0.38, 1.1]));
-  // 正面（+Z）的嫩芽刻紋：莖與兩片葉
-  const carve: THREE.BufferGeometry[] = [];
-  const rune = awake ? glowColor(MINT, 2.4) : c('#5b5c58');
-  const stem = new THREE.BoxGeometry(0.07, 0.62, 0.05);
-  stem.translate(0, 1.0, 0.63);
-  carve.push(paint(stem, rune));
+  const span = 2.8;
   for (const side of [-1, 1]) {
-    const leafG = new THREE.SphereGeometry(0.16, 8, 6);
-    leafG.scale(1.4, 0.55, 0.3);
-    leafG.rotateZ(side * 0.5);
-    leafG.translate(side * 0.17, 1.3, 0.62);
-    carve.push(paint(leafG, rune));
+    // 柱基與四段疊石（每段略為錯位，看得出是一塊一塊砌的）
+    const base = new THREE.BoxGeometry(1.25, 0.45, 1.25);
+    base.translate(side * span, 0.22, 0);
+    solid.push(paint(base, STONE_DARK));
+    for (let k = 0; k < 4; k++) {
+      const b = new THREE.BoxGeometry(0.95 - k * 0.03, 0.82, 0.95 - k * 0.03);
+      b.rotateY((rand() - 0.5) * 0.12);
+      b.translate(side * span + (rand() - 0.5) * 0.06, 0.45 + 0.41 + k * 0.84, (rand() - 0.5) * 0.06);
+      solid.push(paint(b, k % 2 ? STONE : STONE_DARK, 0.06, rand));
+    }
+    // 柱腳的苔蘚與小藤
+    plant.push(sphere(0.55, [side * span + side * 0.35, 0.2, 0.45], MOSS, [1.3, 0.35, 1], 1));
   }
-  const seed = new THREE.SphereGeometry(0.11, 8, 6);
-  seed.scale(1.2, 0.8, 0.4);
-  seed.translate(0, 0.66, 0.64);
-  carve.push(paint(seed, rune));
+  // 拱：沿半橢圓（寬 span、高 rise）排 13 塊楔石，每塊沿著拱線的切線擺放（中央那塊是拱心石）
+  const n = 13;
+  const top = 3.8;
+  const rise = 1.3;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const a = Math.PI - t * Math.PI;
+    const x = Math.cos(a) * span;
+    const y = top + Math.sin(a) * rise;
+    // 切線方向：d(x, y)/da = (−span·sin a, rise·cos a)；往右走所以取反
+    const tangent = Math.atan2(-rise * Math.cos(a), span * Math.sin(a));
+    const block = new THREE.BoxGeometry(0.78, 0.66, 0.88);
+    block.rotateZ(tangent);
+    block.translate(x, y, 0);
+    solid.push(paint(block, i === (n - 1) / 2 ? STONE_DARK : STONE, 0.05, rand));
+  }
+  // 拱頂的苔蘚
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI * (0.15 + i * 0.14);
+    plant.push(sphere(0.32 + rand() * 0.12, [Math.cos(a) * span, top + Math.sin(a) * 1.3 + 0.38, (rand() - 0.5) * 0.3], MOSS_LIGHT, [1.4, 0.45, 1.2], 1));
+  }
+  // 拱心的晶石（前後兩面都看得到）
+  const gem = new THREE.OctahedronGeometry(0.34, 0);
+  gem.scale(0.75, 1.15, 0.5);
+  gem.translate(0, top + 1.3, 0);
+  glow.push(paint(gem, glowColor(CRYSTAL, 2.2)));
+  // 柱面的符紋
+  for (const side of [-1, 1]) {
+    for (const face of [-1, 1]) {
+      const rune = new THREE.BoxGeometry(0.18, 0.5, 0.03);
+      rune.translate(side * span, 2.1, face * 0.49);
+      glow.push(paint(rune, glowColor(CRYSTAL, 1.4)));
+    }
+  }
+  return { solid: merge(solid, '石拱門'), plant: merge(plant, '石拱門的苔蘚'), glow: merge(glow, '石拱門的晶石') };
+}
+
+/** 破損的路牌：歪斜的木柱上剩一塊斜掛的牌子，另一塊掉在柱腳（+Z 面是字面） */
+function brokenSignpost(): ForestModel {
+  const wood = c('#8a5f3c');
+  const solid = [cylinder(0.08, 0.1, 1.9, [0, 0, 0], c('#6e4a2e'), 6, [0.12, 0, -0.16])];
+  const hanging = new THREE.BoxGeometry(1.1, 0.32, 0.06);
+  hanging.rotateZ(-0.38);
+  hanging.translate(0.32, 1.42, 0.12);
+  solid.push(paint(hanging, wood));
+  const fallen = new THREE.BoxGeometry(1.0, 0.3, 0.06);
+  fallen.rotateX(-Math.PI / 2 + 0.12);
+  fallen.rotateY(0.6);
+  fallen.translate(-0.45, 0.06, 0.5);
+  solid.push(paint(fallen, c('#7a5236')));
+  const plant = [sphere(0.28, [0.05, 0.08, 0.15], MOSS, [1.6, 0.4, 1.2], 1)];
+  return { solid: merge(solid, '破損的路牌'), plant: merge(plant, '路牌腳的苔蘚') };
+}
+
+/** 螢光花叢：細莖頂著下垂的鈴鐺花，花冠發出青、紫、粉三種光（Bible §6.4：螢苔與星光用青綠、湖水藍與少量的紫） */
+function glowFlowers(): ForestModel {
+  const rand = mulberry32(1203);
   const plant: THREE.BufferGeometry[] = [];
-  if (!awake) {
-    solid.push(...carve);
-    for (let i = 0; i < 7; i++) plant.push(leaf((i / 7) * Math.PI * 2, 0.4, 0.08, 0.5, c('#7d7860'), c('#a39d80')).translate(Math.cos(i) * 1.3, 0.12, Math.sin(i) * 1.3));
-    return { solid: merge(solid, '沉睡的根源石'), plant: merge(plant, '枯黃的苔') };
+  const glow: THREE.BufferGeometry[] = [];
+  const colors = ['#7ff5e0', '#b48cff', '#ff9fd6', '#8fd8ff'];
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + rand() * 0.6;
+    const r = i === 0 ? 0 : 0.1 + rand() * 0.18;
+    const h = 0.32 + rand() * 0.26;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    // 莖往外彎一點
+    const lean = 0.08 + rand() * 0.06;
+    plant.push(cylinder(0.008, 0.012, h, [x, 0, z], MOSS_LIGHT, 4, [Math.sin(a) * lean, 0, -Math.cos(a) * lean]));
+    const bell = new THREE.ConeGeometry(0.05, 0.08, 6, 1, true);
+    bell.rotateX(Math.PI);
+    bell.translate(x + Math.cos(a) * h * lean, h - 0.02, z + Math.sin(a) * h * lean);
+    glow.push(paint(bell, glowColor(colors[i % colors.length]!, 1.5 + rand() * 0.5)));
   }
-  const glow = carve;
-  // 根縫的光與周圍浮起的光點
-  for (let i = 0; i < 14; i++) {
-    const a = rand() * Math.PI * 2;
-    const r = 1.1 + rand() * 1.0;
-    glow.push(sphere(0.04 + rand() * 0.03, [Math.cos(a) * r, 0.25 + rand() * 1.9, Math.sin(a) * r], glowColor(MINT, 1.9), [1, 1, 1], 0));
-  }
-  // 冒出來的新芽
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * Math.PI * 2 + rand() * 0.3;
-    const r = 1.35 + rand() * 0.5;
-    for (let k = 0; k < 3; k++) plant.push(leaf((k / 3) * Math.PI * 2 + a, 0.32, 0.09, 0.95, MOSS, c('#9fe0b0')).translate(Math.cos(a) * r, 0.1, Math.sin(a) * r));
-  }
-  return { solid: merge(solid, '甦醒的根源石'), plant: merge(plant, '新芽'), glow: merge(glow, '芽之共鳴的光') };
+  // 根部的葉子
+  for (let k = 0; k < 5; k++) plant.push(sphere(0.06, [Math.cos(k * 1.3) * 0.12, 0.03, Math.sin(k * 1.3) * 0.12], MOSS, [1.8, 0.3, 0.8], 0));
+  return { plant: merge(plant, '螢光花的莖葉'), glow: merge(glow, '螢光花') };
 }
 
 export const forestBuilders: Record<string, () => ForestModel> = {
+  mist_arch: mistArch,
+  signpost_broken: brokenSignpost,
+  glow_flowers: glowFlowers,
   glowmoss_patch: glowmossPatch,
   glowmoss_tuft: glowmossTuft,
   moondew: moondew,
@@ -713,23 +564,12 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   root_arch: rootArch,
   root_wall: rootWall,
   giant_mushroom: giantMushroom,
-  crescent_tree: crescentTree,
   glow_stone: glowStone,
-  water_gate: () => waterGate(false),
-  water_gate_open: () => waterGate(true),
   forest_gate: forestGate,
-  trail_lantern: () => trailLantern(false),
-  trail_lantern_lit: () => trailLantern(true),
-  channel_breach: () => channelBreach(false),
-  channel_breach_fixed: () => channelBreach(true),
+  star_lamp: () => starLamp(false),
+  star_lamp_lit: () => starLamp(true),
   water_wheel_frame: waterWheelFrame,
   water_wheel_rotor: waterWheelRotor,
   water_wheel_spout: waterWheelSpout,
   water_wheel_lever: waterWheelLever,
-  moss_node_dry: () => mossNode(false),
-  moss_node: () => mossNode(true),
-  crown_trough: () => crownTrough(false),
-  crown_trough_full: () => crownTrough(true),
-  root_stone: () => rootStone(false),
-  root_stone_awake: () => rootStone(true),
 };

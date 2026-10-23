@@ -89,6 +89,7 @@ export function ObjectiveRow({ objective: o, progress, state }: { objective: Obj
     case 'boss':
     case 'talk':
     case 'visit':
+    case 'puzzle':
       return <SimpleRow descKey={o.descKey} progress={progress} />;
     case 'build': {
       // 建造目標（任務 7K 花圃）：還沒蓋好時列出需要的材料與目前持有數

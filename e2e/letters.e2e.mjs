@@ -1,6 +1,6 @@
 // 端對端：任務 7G — quest_dawn_004「郵袋裡的三封信」（Bible §22.1）。
 // 木橋修好後尼可出現 → 實際按 E 與對話選項接取（拿到三封信）→ 按 E 撿兩籃乾布 → 先送波木（第一封的回應）、
-// 再送米菈、進螢苔祕林送琳娜 → 回報尼可（依第一封換感謝語）→ 明信片與種籽幣；任務日誌分在「角色故事」。
+// 再送米菈、送琳娜（任務 12A 起在晨曦村）→ 回報尼可（依第一封換感謝語）→ 明信片與種籽幣；任務日誌分在「角色故事」。
 // 用法：pnpm build && node e2e/letters.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -90,14 +90,8 @@ await runE2e('letters e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pag
     assert.equal(await itemCount('letter_elder'), 0);
   });
 
-  await check('進螢苔祕林送琳娜；回到村子向尼可回報，感謝語提到先送了波木', async () => {
-    await debug(() => window.__mistwoodDebug.travelToMap('glowmoss'));
-    await page.waitForFunction(() => window.__mistwoodDebug.currentMap().shown === 'glowmoss', null, { timeout: 4000 });
-    await page.waitForTimeout(1000);
+  await check('在村裡送琳娜；向尼可回報，感謝語提到先送了波木', async () => {
     await deliver('linna', 'linna_letter');
-    await debug(() => window.__mistwoodDebug.travelToMap('dawnvale'));
-    await page.waitForFunction(() => window.__mistwoodDebug.currentMap().shown === 'dawnvale', null, { timeout: 4000 });
-    await page.waitForTimeout(1000);
     await talkTo('niko');
     assert.equal((await dialogue()).dialogueId, 'niko_turnin_balu');
     await choose('都送到了');

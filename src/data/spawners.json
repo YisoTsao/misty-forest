@@ -1,37 +1,517 @@
 [
-  { "id": "forest_north", "regionId": "forest", "enemy": "mist_wisp", "center": [56, -62], "radius": 9, "budget": { "dense": 3, "light": 1, "clear": 0 }, "respawnSec": 20 },
-  { "id": "forest_south", "regionId": "forest", "enemy": "mist_wisp", "center": [64, -50], "radius": 9, "budget": { "dense": 3, "light": 1, "clear": 0 }, "respawnSec": 20 },
-  { "id": "deepwood_sprouts", "regionId": "forest", "enemy": "mob_mist_sprout", "center": [92, -92], "radius": 10, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
-  { "id": "deepwood_slimes", "regionId": "forest", "enemy": "mob_mist_slime", "center": [70, -108], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 40 },
-  { "id": "farm_fluffs", "regionId": "farmland", "enemy": "mob_windfluff", "center": [-112, -56], "radius": 10, "budget": { "dense": 3, "light": 3, "clear": 3 }, "respawnSec": 45 },
-  { "id": "south_fluffs", "regionId": "meadow", "enemy": "mob_windfluff", "center": [-40, 124], "radius": 11, "budget": { "dense": 3, "light": 3, "clear": 3 }, "respawnSec": 45 },
-  { "id": "river_bubbles", "regionId": "river", "enemy": "mob_bubble_wisp", "center": [117, 50], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 2 }, "respawnSec": 45 },
-  { "id": "river_frogs", "regionId": "river", "enemy": "mob_marsh_frog", "center": [118, -32], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 2 }, "respawnSec": 50 },
-  { "id": "highland_bats", "regionId": "highland", "enemy": "mob_dusk_bat", "center": [-82, -136], "radius": 12, "budget": { "dense": 4, "light": 3, "clear": 2 }, "respawnSec": 45 },
-  { "id": "highland_golems", "regionId": "highland", "enemy": "mob_pebble_golem", "center": [40, -122], "radius": 10, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
-  { "id": "highland_yetis", "regionId": "highland", "enemy": "mob_snow_yeti", "center": [-122, -122], "radius": 10, "budget": { "dense": 2, "light": 2, "clear": 1 }, "respawnSec": 70 },
-  { "id": "ruins_thorns", "regionId": "ruins", "enemy": "mob_thorn_puff", "center": [80, 124], "radius": 10, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 50 },
-  { "id": "ruins_ghosts", "regionId": "ruins", "enemy": "mob_mist_ghost", "center": [44, 120], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 50 },
-  { "id": "ruins_king", "regionId": "ruins", "enemy": "mob_mushroom_king", "center": [62, 112], "radius": 6, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 240 },
-  { "id": "east_dinos", "regionId": "meadow", "enemy": "mob_horn_dino", "center": [132, 40], "radius": 12, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
-  { "id": "lighthouse_wisps", "regionId": "highland", "enemy": "mist_wisp", "center": [-26, -117], "radius": 7, "budget": { "dense": 3, "light": 3, "clear": 0 }, "respawnSec": 25 },
-  { "id": "stargaze_wisps", "regionId": "overlook", "enemy": "mist_wisp", "center": [-66, 112], "radius": 10, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 30 },
-  { "id": "glade_moths", "regionId": "moss_glade", "enemy": "mob_fog_moth", "center": [1992, 28], "radius": 9, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
-  { "id": "ring_moths", "regionId": "moss_glade", "enemy": "mob_fog_moth", "center": [2036, 32], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 40 },
-  { "id": "trail_moths", "regionId": "moss_trail", "enemy": "mob_fog_moth", "center": [1922, 20], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 45 },
-  { "id": "maze_beetles", "regionId": "root_maze", "enemy": "mob_root_beetle", "center": [2076, -74], "radius": 14, "budget": { "dense": 3, "light": 3, "clear": 2 }, "respawnSec": 60 },
-  { "id": "channel_beetles", "regionId": "moss_glade", "enemy": "mob_root_beetle", "center": [2040, -96], "radius": 10, "budget": { "dense": 2, "light": 2, "clear": 2 }, "respawnSec": 60 },
-  { "id": "glade_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1972, 84], "radius": 10, "budget": { "dense": 4, "light": 3, "clear": 1 }, "respawnSec": 40 },
-  { "id": "maze_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [2038, -46], "radius": 8, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 45 },
-  { "id": "highland_boss", "regionId": "highland", "enemy": "boss_dawn_mist_puff", "center": [-4, -122], "radius": 3, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true },
-  { "id": "crown_boss", "regionId": "moss_crown", "enemy": "boss_moss_thump", "center": [2091, 46], "radius": 4, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true },
-  { "id": "crescent_sprouts", "regionId": "moss_glade", "enemy": "mob_mist_sprout", "center": [1952, -44], "radius": 9, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 },
-  { "id": "lake_wisps_north", "regionId": "lake_shore", "enemy": "mob_bubble_wisp", "center": [3930, -30], "radius": 7, "budget": { "dense": 3, "light": 2, "clear": 0 }, "respawnSec": 40 },
-  { "id": "lake_wisps_east", "regionId": "lake_shore", "enemy": "mob_bubble_wisp", "center": [4104, 22], "radius": 6, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 40 },
-  { "id": "lake_herons_south", "regionId": "lake_shore", "enemy": "mob_mist_heron", "center": [3944, 62], "radius": 8, "budget": { "dense": 2, "light": 2, "clear": 1 }, "respawnSec": 50 },
-  { "id": "lake_herons_east", "regionId": "lake_shore", "enemy": "mob_mist_heron", "center": [4084, 58], "radius": 8, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 50 },
-  { "id": "lake_crabs_ruins", "regionId": "mirror_ruins", "enemy": "mob_mirror_crab", "center": [4018, 88], "radius": 6, "budget": { "dense": 3, "light": 2, "clear": 1 }, "respawnSec": 45 },
-  { "id": "lake_crabs_isle", "regionId": "reed_isle", "enemy": "mob_mirror_crab", "center": [3998, -16], "radius": 5, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 },
-  { "id": "lake_crabs_south", "regionId": "lake_shore", "enemy": "mob_mirror_crab", "center": [3966, 82], "radius": 6, "budget": { "dense": 2, "light": 1, "clear": 0 }, "respawnSec": 45 },
-  { "id": "temple_boss", "regionId": "mirror_temple", "enemy": "boss_liyi_echo_koi", "center": [4046, 24], "radius": 4, "budget": { "dense": 1, "light": 1, "clear": 1 }, "respawnSec": 1, "manual": true }
+  {
+    "id": "forest_north",
+    "regionId": "forest",
+    "enemy": "mist_wisp",
+    "center": [
+      56,
+      -62
+    ],
+    "radius": 9,
+    "budget": {
+      "dense": 3,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 20
+  },
+  {
+    "id": "forest_south",
+    "regionId": "forest",
+    "enemy": "mist_wisp",
+    "center": [
+      64,
+      -50
+    ],
+    "radius": 9,
+    "budget": {
+      "dense": 3,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 20
+  },
+  {
+    "id": "deepwood_sprouts",
+    "regionId": "forest",
+    "enemy": "mob_mist_sprout",
+    "center": [
+      92,
+      -92
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 4,
+      "light": 3,
+      "clear": 1
+    },
+    "respawnSec": 40
+  },
+  {
+    "id": "deepwood_slimes",
+    "regionId": "forest",
+    "enemy": "mob_mist_slime",
+    "center": [
+      70,
+      -108
+    ],
+    "radius": 9,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 0
+    },
+    "respawnSec": 40
+  },
+  {
+    "id": "farm_fluffs",
+    "regionId": "farmland",
+    "enemy": "mob_windfluff",
+    "center": [
+      -112,
+      -56
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 3,
+      "light": 3,
+      "clear": 3
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "south_fluffs",
+    "regionId": "meadow",
+    "enemy": "mob_windfluff",
+    "center": [
+      -40,
+      124
+    ],
+    "radius": 11,
+    "budget": {
+      "dense": 3,
+      "light": 3,
+      "clear": 3
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "glowmoss_slimes_a",
+    "regionId": "mist_gate",
+    "enemy": "mob_moss_slime",
+    "center": [
+      1880,
+      -8
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 2,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "glowmoss_slimes_b",
+    "regionId": "glow_garden",
+    "enemy": "mob_moss_slime",
+    "center": [
+      1944,
+      6
+    ],
+    "radius": 8,
+    "budget": {
+      "dense": 2,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "river_bubbles",
+    "regionId": "river",
+    "enemy": "mob_bubble_wisp",
+    "center": [
+      117,
+      50
+    ],
+    "radius": 8,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 2
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "river_frogs",
+    "regionId": "river",
+    "enemy": "mob_marsh_frog",
+    "center": [
+      118,
+      -32
+    ],
+    "radius": 8,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 2
+    },
+    "respawnSec": 50
+  },
+  {
+    "id": "highland_bats",
+    "regionId": "highland",
+    "enemy": "mob_dusk_bat",
+    "center": [
+      -82,
+      -136
+    ],
+    "radius": 12,
+    "budget": {
+      "dense": 4,
+      "light": 3,
+      "clear": 2
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "highland_golems",
+    "regionId": "highland",
+    "enemy": "mob_pebble_golem",
+    "center": [
+      40,
+      -122
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 2,
+      "light": 2,
+      "clear": 2
+    },
+    "respawnSec": 60
+  },
+  {
+    "id": "highland_yetis",
+    "regionId": "highland",
+    "enemy": "mob_snow_yeti",
+    "center": [
+      -122,
+      -122
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 2,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 70
+  },
+  {
+    "id": "ruins_thorns",
+    "regionId": "ruins",
+    "enemy": "mob_thorn_puff",
+    "center": [
+      80,
+      124
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 50
+  },
+  {
+    "id": "ruins_ghosts",
+    "regionId": "ruins",
+    "enemy": "mob_mist_ghost",
+    "center": [
+      44,
+      120
+    ],
+    "radius": 9,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 0
+    },
+    "respawnSec": 50
+  },
+  {
+    "id": "ruins_king",
+    "regionId": "ruins",
+    "enemy": "mob_mushroom_king",
+    "center": [
+      62,
+      112
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 1,
+      "light": 1,
+      "clear": 1
+    },
+    "respawnSec": 240
+  },
+  {
+    "id": "east_dinos",
+    "regionId": "meadow",
+    "enemy": "mob_horn_dino",
+    "center": [
+      132,
+      40
+    ],
+    "radius": 12,
+    "budget": {
+      "dense": 2,
+      "light": 2,
+      "clear": 2
+    },
+    "respawnSec": 60
+  },
+  {
+    "id": "lighthouse_wisps",
+    "regionId": "highland",
+    "enemy": "mist_wisp",
+    "center": [
+      -26,
+      -117
+    ],
+    "radius": 7,
+    "budget": {
+      "dense": 3,
+      "light": 3,
+      "clear": 0
+    },
+    "respawnSec": 25
+  },
+  {
+    "id": "stargaze_wisps",
+    "regionId": "overlook",
+    "enemy": "mist_wisp",
+    "center": [
+      -66,
+      112
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 0
+    },
+    "respawnSec": 30
+  },
+  {
+    "id": "highland_boss",
+    "regionId": "highland",
+    "enemy": "boss_dawn_mist_puff",
+    "center": [
+      -4,
+      -122
+    ],
+    "radius": 3,
+    "budget": {
+      "dense": 1,
+      "light": 1,
+      "clear": 1
+    },
+    "respawnSec": 1,
+    "manual": true
+  },
+  {
+    "id": "lake_wisps_north",
+    "regionId": "lake_shore",
+    "enemy": "mob_bubble_wisp",
+    "center": [
+      3930,
+      -30
+    ],
+    "radius": 7,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 0
+    },
+    "respawnSec": 40
+  },
+  {
+    "id": "lake_wisps_east",
+    "regionId": "lake_shore",
+    "enemy": "mob_bubble_wisp",
+    "center": [
+      4104,
+      22
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 40
+  },
+  {
+    "id": "lake_herons_south",
+    "regionId": "lake_shore",
+    "enemy": "mob_mist_heron",
+    "center": [
+      3944,
+      62
+    ],
+    "radius": 8,
+    "budget": {
+      "dense": 2,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 50
+  },
+  {
+    "id": "lake_herons_east",
+    "regionId": "lake_shore",
+    "enemy": "mob_mist_heron",
+    "center": [
+      4084,
+      58
+    ],
+    "radius": 8,
+    "budget": {
+      "dense": 2,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 50
+  },
+  {
+    "id": "lake_crabs_ruins",
+    "regionId": "mirror_ruins",
+    "enemy": "mob_mirror_crab",
+    "center": [
+      4018,
+      88
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 1
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "lake_crabs_isle",
+    "regionId": "reed_isle",
+    "enemy": "mob_mirror_crab",
+    "center": [
+      3998,
+      -16
+    ],
+    "radius": 5,
+    "budget": {
+      "dense": 2,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "lake_crabs_south",
+    "regionId": "lake_shore",
+    "enemy": "mob_mirror_crab",
+    "center": [
+      3966,
+      82
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 2,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "temple_boss",
+    "regionId": "mirror_temple",
+    "enemy": "boss_liyi_echo_koi",
+    "center": [
+      4046,
+      24
+    ],
+    "radius": 4,
+    "budget": {
+      "dense": 1,
+      "light": 1,
+      "clear": 1
+    },
+    "respawnSec": 1,
+    "manual": true
+  },
+  {
+    "id": "deep_wolves",
+    "regionId": "deep_mist",
+    "enemy": "mob_mist_wolf",
+    "center": [
+      2044,
+      92
+    ],
+    "radius": 12,
+    "budget": {
+      "dense": 3,
+      "light": 2,
+      "clear": 0
+    },
+    "respawnSec": 40
+  },
+  {
+    "id": "deep_wisps",
+    "regionId": "deep_mist",
+    "enemy": "mob_fog_wisp",
+    "center": [
+      2062,
+      84
+    ],
+    "radius": 10,
+    "budget": {
+      "dense": 2,
+      "light": 2,
+      "clear": 0
+    },
+    "respawnSec": 45
+  },
+  {
+    "id": "deep_guard",
+    "regionId": "deep_mist",
+    "enemy": "mob_root_guard",
+    "center": [
+      2078,
+      122
+    ],
+    "radius": 6,
+    "budget": {
+      "dense": 1,
+      "light": 1,
+      "clear": 0
+    },
+    "respawnSec": 180
+  },
+  {
+    "id": "altar_boss",
+    "regionId": "ancient_altar",
+    "enemy": "boss_root_devourer",
+    "center": [
+      2112,
+      0
+    ],
+    "radius": 3,
+    "budget": {
+      "dense": 1,
+      "light": 1,
+      "clear": 1
+    },
+    "respawnSec": 1,
+    "manual": true
+  }
 ]

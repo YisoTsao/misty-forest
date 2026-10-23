@@ -24,7 +24,7 @@
 
 | 音效（腳步、砍樹、敲石頭、拾取、寶箱、任務、建造、戰鬥、介面等 46 個） | `public/audio/kenney/` | Kenney：RPG Audio、Impact Sounds、Interface Sounds（kenney.nl） | CC0 1.0（授權檔同目錄 `License_*.txt`） | 可 | 可（不強制署名） | 音效（`game/audio/sounds.ts`） | 正式使用 |
 
-程式產生（不需授權）：環境音（風、鳥叫、迷霧嗡鳴、水聲）與背景音樂（Web Audio 合成，`game/audio/audioEngine.ts`）、地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火、酒館室內（牆、地板、壁爐）與門墊（`render/proceduralModels.ts`）、迷霧噗啾（迷霧生物）、星光夥伴芽芽、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層、湖與溪共用的水面與水深貼圖（任務 7A）；地圖邊界迷霧牆（任務 6A）；太陽、月亮與月相、星空、螢火蟲、夜晚燈光光暈、蟲鳴（任務 6B）；揮砍拖尾、命中火花與衝擊塵（任務 6C）。
+程式產生（不需授權）：環境音（風、鳥叫、迷霧嗡鳴、水聲）與背景音樂（Web Audio 合成，`game/audio/audioEngine.ts`）、地形顏色（shader 雜訊）、草叢與花朵幾何、可採集的花叢與草藥、木橋、營火、酒館室內（牆、地板、壁爐）與門墊（`render/proceduralModels.ts`）、迷霧噗啾（迷霧生物）、星光夥伴芽芽、物品圖示（`ui/ItemIcon.tsx` SVG）、遠山環狀山脈與地圖外地面延伸、天空漸層、湖與溪共用的水面與水深貼圖（任務 7A）；地圖邊界迷霧牆（任務 6A）；太陽、月亮與月相、星空、螢火蟲、夜晚燈光光暈、蟲鳴（任務 6B）；揮砍拖尾、命中火花與衝擊塵（任務 6C）；第二章螢苔祕林的石拱門、破損路牌、螢光花叢（任務 12B，`render/forestModels.ts`）。
 
 參考圖請放在 `docs/art/reference/`（目前尚未提供）。
 

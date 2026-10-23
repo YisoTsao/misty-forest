@@ -39,9 +39,9 @@ describe('製作', () => {
     expect(() => parseCraftData({ stations: [{ ...station, npc: 'nobody' }], recipes: [{ id: 'r', station: 't', output: { itemId: 'herb', count: 1 }, inputs: [{ itemId: 'herb', count: 1 }] }] }, refs)).toThrow(/NPC/);
   });
 
-  it('月露藥膏的配方在琳娜的任務完成後才會做（Bible：月露藥膏配方是任務獎勵）', () => {
+  it('月露藥膏的配方在第一章完成後才會做（任務 12A：原本是舊版祕林任務的獎勵，新主線之前先以第一章為條件）', () => {
     expect(unlockedRecipes(data.crafting, 'linna_herbtable', {}).map((r) => r.id)).toEqual(['recipe_small_heal']);
-    expect(unlockedRecipes(data.crafting, 'linna_herbtable', { quest_forest_001: { status: 'completed' } }).map((r) => r.id)).toContain('recipe_moondew_balm');
+    expect(unlockedRecipes(data.crafting, 'linna_herbtable', { quest_dawn_003: { status: 'completed' } }).map((r) => r.id)).toContain('recipe_moondew_balm');
     expect(rejection(withItems([{ itemId: 'moondew_herb', count: 5 }, { itemId: 'glow_moss', count: 5 }]), { type: 'Craft', recipe: 'recipe_moondew_balm' })).toBe('recipe-locked');
   });
 
@@ -64,8 +64,9 @@ describe('製作', () => {
     expect(rejection(full, { type: 'Craft', recipe: 'recipe_small_heal' })).toBe('inventory-full');
   });
 
-  it('琳娜完成任務後的對話有「借用草藥桌」', () => {
-    const effects = ['linna_after_path', 'linna_after_water'].flatMap((id) => Object.values(data.dialogues.get(id)!.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => o.effects ?? [])));
+  it('琳娜在晨曦村，對話一開始就有「借用草藥桌」（任務 12A）', () => {
+    expect(data.npcs.find((n) => n.id === 'linna')?.regionId).toBe('village');
+    const effects = Object.values(data.dialogues.get('linna_intro')!.nodes).flatMap((n) => (n.options ?? []).flatMap((o) => o.effects ?? []));
     expect(effects).toContainEqual({ type: 'openCraft', station: 'linna_herbtable' });
   });
 });

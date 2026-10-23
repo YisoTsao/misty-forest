@@ -219,6 +219,15 @@ export function installBossRuntime(): void {
           if (v) vfx({ type: 'burst', preset: 'purify', x: v.ai.x, y: terrainHeight(v.ai.x, v.ai.z) + 3, z: v.ai.z, color: [0.62, 0.9, 1], scale: 2 });
           break;
         }
+        case 'EnemyPurifying': {
+          // 淨化（第二章 B-01）：頭目停下來，等共鳴石柱
+          const v = enemyRuntime.get(e.enemyId);
+          const hud = useBossStore.getState().hud;
+          const def = bosses.find((b) => b.id === hud?.bossId);
+          if (v?.boss) v.boss.state = 'purify';
+          if (def) ui.pushToast({ textKey: bossText(def, 'purify') });
+          break;
+        }
         case 'BossDefeated':
           ui.pushToast({ textKey: bossText(bosses.find((b) => b.id === e.boss), 'defeated') });
           useBossStore.setState({ hud: null });

@@ -1,5 +1,5 @@
 // 端對端：任務 9A — 澄鏡湖（Bible §7，地圖三）。
-// 螢苔祕林小渠南端的水道入口：苔冠下的守衛完成前說明原因、不能通過；完成後轉場到澄鏡湖北邊的林間水道出口，
+// 螢苔祕林古樹祭壇東南往澄鏡湖的出口（任務 12B）：第一章完成前說明原因、不能通過（過渡條件 T-187）；完成後轉場到澄鏡湖北邊的林間水道出口，
 // 顯示地圖與區域名稱；淺水石徑涉水走得過去、不會落水；走進深水會回到安全點（仍在澄鏡湖）；
 // 月弧木橋走得上蘆葦島；水鏡神殿是濃霧；存檔重開後仍在澄鏡湖，從入口回到螢苔祕林。外觀以截圖檢查（mirrorlake_* 書籤）。
 // 用法：pnpm build && node e2e/mirrorlake.e2e.mjs
@@ -45,22 +45,24 @@ async function runToward(page, debug, tx, tz, ms) {
 await runE2e('mirrorlake e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env }, async ({ page, check, debug, state, teleport, interactTarget }) => {
   const currentMap = () => debug(() => window.__mistwoodDebug.currentMap());
 
-  await check('螢苔祕林小渠南端的水道入口：守衛的事還沒解決前說明原因、不能通過', async () => {
+  await check('螢苔祕林往澄鏡湖的入口：第一章還沒完成前說明原因、不能通過（過渡條件，T-187）', async () => {
     await faceGate(forestGate, { page, debug });
     assert.equal(await interactTarget(), 'glowmoss_gate_mirrorlake');
-    assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /前往\s*水道入口：澄鏡湖/);
+    assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /前往\s*林道出口：澄鏡湖/);
     await page.keyboard.press('KeyE');
     const dialog = page.locator('[data-testid="message-dialog"]');
     await dialog.waitFor({ timeout: 2000 });
-    assert.match(await dialog.innerText(), /守衛/);
+    assert.match(await dialog.innerText(), /古樹記憶/);
     await page.keyboard.press('KeyE');
     await dialog.waitFor({ state: 'detached', timeout: 2000 });
     await page.waitForTimeout(900);
     assert.equal((await currentMap()).at, 'glowmoss');
   });
 
-  await check('完成「苔冠下的守衛」後：轉場到澄鏡湖北邊的林間水道出口，站在地面上', async () => {
-    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_003'));
+  await check('第一章完成後：轉場到澄鏡湖北邊的林間水道出口，站在地面上', async () => {
+    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_dawn_003'));
+    // 第二章完成（古樹記憶找回）後湖邊的路才開（T-186）
+    await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_008'));
     await faceGate(forestGate, { page, debug });
     await page.keyboard.press('KeyE');
     await page.waitForFunction(() => window.__mistwoodDebug.currentMap().at === 'mirrorlake', null, { timeout: 3000 });
@@ -141,14 +143,18 @@ await runE2e('mirrorlake e2e（2/2 讀檔）', { query: 'debug=1', env }, async 
     assert.deepEqual(await debug(() => window.__mistwoodDebug.currentMap()), { at: 'mirrorlake', shown: 'mirrorlake' });
   });
 
-  await check('從林間水道出口回到螢苔祕林（小渠南端）', async () => {
+  await check('從林間水道出口回到螢苔祕林（古樹祭壇東南的出口，任務 12B）', async () => {
     await faceGate(lakeGate, { page, debug });
     assert.equal(await interactTarget(), 'mirrorlake_gate_glowmoss');
     await page.keyboard.press('KeyE');
     await page.waitForFunction(() => window.__mistwoodDebug.currentMap().at === 'glowmoss', null, { timeout: 3000 });
     await page.waitForTimeout(1200);
     const s = await state();
-    assert.ok(Math.hypot(s.x - forestGate.position[0], s.z - (forestGate.position[2] - 4)) < 0.8, `位置 (${s.x.toFixed(1)}, ${s.z.toFixed(1)})`);
+    // 抵達點在出口前方 4 m（出口面向的方向）
+    const yaw = forestGate.rotation[1];
+    const ax = forestGate.position[0] + Math.sin(yaw) * 4;
+    const az = forestGate.position[2] + Math.cos(yaw) * 4;
+    assert.ok(Math.hypot(s.x - ax, s.z - az) < 0.8, `抵達點 (${ax.toFixed(1)}, ${az.toFixed(1)})，實際 (${s.x.toFixed(1)}, ${s.z.toFixed(1)})`);
     assert.ok(s.grounded);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { approachMist, mistLevelOf, parseMistLevel } from './mist';
+import { approachMist, lowerMistStage, mistLevelOf, parseMistLevel } from './mist';
 
 describe('mist', () => {
   it('三段對應 1 / 0.5 / 0（裁決 R-03）', () => {
@@ -26,5 +26,13 @@ describe('mist', () => {
     let c = 0;
     for (let i = 0; i < 200; i++) c = approachMist(c, 1, 3, 0.1);
     expect(c).toBe(1);
+  });
+});
+
+describe('lowerMistStage（任務 12C 星光燈柱）', () => {
+  it('濃霧 → 淡霧 → 清楚，清楚維持不變', () => {
+    expect(lowerMistStage('dense')).toBe('light');
+    expect(lowerMistStage('light')).toBe('clear');
+    expect(lowerMistStage('clear')).toBe('clear');
   });
 });

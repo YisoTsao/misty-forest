@@ -1,7 +1,7 @@
 # 開發進度
 
 ## 目前階段
-**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行。**
+**第二章改版（2026-10-20，使用者指示，DECISIONS T-185、T-186）：螢苔祕林改依 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` 重做，現有內容都算第一章。設計文件已改完（Bible §6、GAME_DESIGN §2.2 / §2.3 / §9）；程式還是 Phase 8 的舊版。Phase 0 盤點完成（`docs/chapter02/PHASE0_INVENTORY.md`），使用者確認 §6 四項都採用建議（T-187）。Phase 1 垂直切片（任務 12A–12E）在分支 `wip/ch2-glowmoss` 進行：**12A–12E 完成，第二章 Phase 1 垂直切片完成（待使用者驗收；見下方 12E 的未做項）**（移除舊版祕林、存檔 v18；新地形與 A 迷霧入口、B 螢苔花園、存檔 v19；第一座星光燈柱、純淨螢苔與採集點；螢苔史萊姆；莉露與 `quest_forest_001`）。**下一步：Phase 2（倒流溪谷、蘑菇居民聚落、主要 NPC 與商店、裝備流程），見 `docs/CHAPTER_02_GLOWMOSS_WOOD_SPEC.md` §15。**
 
 **Phase 11 多人連線（使用者指示提前開始，依〈3D RPG 多人連線技術規劃〉文件，DECISIONS T-166–T-171）：任務 11A（Colyseus 伺服器與連線骨架）、11B（移動同步）、11C（斷線續玩）、11D（部署：Vercel + Render 上線，2026-10-15 使用者以兩個瀏覽器在正式網址驗收連線成功）、11E（攻擊與施法的同步）、11F（聊天）完成。正式網址 https://mistwood-blue.vercel.app。路線圖（使用者 2026-10-16 決定）：聊天 → 登入與雲端存檔（11G）→ 日光與資源共享 → 怪物共享 → 手機版（先做能玩）。** **任務 9F 風語草原（地圖四，Bible §8）的地圖與場景完成（2026-10-15）；草原的居民、怪物與任務（`quest_meadow_001`–`003`）還沒開始。** **Phase 9 澄鏡湖（Bible §7）開始：任務 9A（地圖與場景）、9B（湖區怪物）、9C（伊芙與「湖面不肯忘記」）、9D（水鏡光路謎題）、9E-1（頭目璃漪）、9E-2（潮之共鳴）完成，Phase 9 澄鏡湖的主線完成。Phase 8 螢苔祕林（Bible §6）完成：任務 8A（地圖切換與場景）、8B（森林怪物）、8C（琳娜 / 奇奇與水道謎題）、8D-1（頭目苔咚的戰鬥）、8D-2（苔冠下的守衛與芽之共鳴）。Phase 7 晨曦谷地 MVP：任務 7D「燈塔的最後一盞光」、7E「霧團噗啾王」、7F「任務日誌」、7G「郵袋裡的三封信」、7H「米菈的雜貨補給」、7I「使用消耗品」、7J「製作（琳娜的草藥桌）」、7K「花園第一顆種子」、7L「河邊的腳印」、7M「燈塔下的影子」、7N「村屋窗燈」、7O「找到回家的路」、7P「動物居民」完成。Phase 7 晨曦谷地的任務 `quest_dawn_001`–`007` 都已完成，下一步見「下一步」。** Phase 7（擴大地圖、世界地圖與小地圖、場景豐富化、多樣怪物）7A–7C 已完成。 Phase 6 任務 6A–6F 已完成；任務 5E（效能與發行）與 Phase 5、6 驗收延後。規格 v3（`GAME_DESIGN.md`）已取代 `mistwood_dev_spec_final.md`，整合 World Bible v2。Phase 4、Phase 2 已通過驗收（見下方）。
 Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖比對與 B 級機器量測仍待使用者，見「待使用者處理」。
@@ -92,6 +92,110 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - 限制：手機版還不支援建造模式；聊天輸入依賴手機鍵盤，未在實機測過。
 - 順帶修正的 e2e：`world`、`region`、`cellar` 的白天 / 畫面飽和度檢查改為先 `setClock(12)`（共享世界時鐘在夜裡會失準）；`melee` 的存檔斷言補上 v17 的 `heroClass`。
 - 測試：`pnpm check`（Vitest 989 項，新增 `touch.test.ts`）、`pnpm build` 通過。新增 `e2e/touch.e2e.mjs` 11 項（橫向 844×390 與直向 390×844 的 HUD 不超出、不重疊；搖桿走路與跑步；拖曳視角；雙指縮放；跳躍與攻擊鈕；點提示開寶箱；背包與暫停；主選單 → 選職業 → 開始）。完整 e2e（48 個 suite）：第一輪在 `world` 因時間問題中斷 → 修正；第二輪到 `melee` 失敗 1 項 → 修正；其餘 28 個逐一跑，`cellar` 失敗 1 項 → 修正；三項修正後重跑全過。截圖 `docs/screenshots/mobile/`。
+### 任務 13B：倒流溪谷水輪（第二章 Phase 2，規格 P-02）
+- 通用謎題（`src/game-core/world/puzzles.ts`、`src/data/puzzles.json`）：一組轉動機關全部轉到答案時，啟動開的物件（`ObjectActivated`，source `puzzle`），只在剛完成的那一刻啟動。答案由石碑（`creek_tablet`）讀出：1、3、2 格。
+- 三座水輪（`waterwheel`，`turn` 4 個位置，轉軸沿模型 X 軸，`TurnableGroup` 渲染）；石障 `creek_barrier` 擋住溪谷往上游的路，啟動後移除碰撞與模型。
+- 規格的「可推動石塊」與「壓力板」沒有做（需要推動與物理互動的新機制），留到之後。
+- 測試：`pnpm check`（Vitest 979 項，新增 `waterwheel.test.ts` 5 項）、`pnpm build`。e2e `creek`（讀石碑、轉錯不開、依答案開、存讀檔）全過；`glowmoss`、`forestquest` 重跑全過。截圖 `docs/screenshots/phase13/glowmoss_creek.png`：水輪外形偏簡，溪水在這個角度看不到，美術待改。
+- `pnpm check` 一次出現 1 項失敗、重跑全過（與 PROGRESS 已知的 WorldRoom 偶發逾時同類），未追查。
+
+### 任務 13C：聚落主線 quest_forest_002–004（第二章 Phase 2，規格 8.2 CH2-MQ-02 至 04）
+- 菇菇婆婆（`granny`，D 區，placeholder 模型）是聚落的主要 NPC：開啟聚落工作台（13A）、交付主線。
+- `quest_forest_002` 螢苔的呼吸：交出螢苔凝膠 ×2 → 純淨螢苔 ×2。`quest_forest_003` 倒流的溪水：新目標類型 `puzzle`（機關全部轉到位，進度以目前的轉動位置判斷；任務自動達成，回報時拿星晶碎片 ×2）。`quest_forest_004` 不願相信旅人的居民：交出微光孢子 ×2 → 螢光提燈（新道具）。
+- 規格 CH2-MQ-04 寫的是「協助聚落並取得信任」，目前只做了上面的交付，還沒有其他村民與信任度。
+- 測試：`pnpm check`（Vitest 979 項）、`pnpm build`。e2e `granny` 新增（接取、交付、水輪、交付、提燈）全過；`quest`、`npc`、`journal`、`forestquest`、`creek`、`equipment` 重跑未見失敗。
+- 教訓：改了資料之後沒重新 build，e2e 會跑舊的建置；之後每次改資料都先 `pnpm build`。
+
+### 任務 13D：翻滾閃避（第二章 Phase 3，規格 10.1）
+- 動作 `dodge`（鍵盤 Z，手把沒有按鈕可用，測試中豁免並記在下方）。權威指令 `Roll`：無敵 0.45 秒（`rollUntil`），冷卻 1.1 秒（`rollReadyAt`），倒下時不能翻滾；翻滾中敵人的攻擊不扣血（`EnemyStrike` 回傳空事件）。不存檔。
+- 動作：`stepLocomotion` 的 `roll`（沿移動方向、沒有方向就沿面向，8 m/s，翻滾中不接受移動與跳躍）；只有權威層接受時才開始滾。
+- 測試：`roll.test.ts` 6 項（冷卻、倒下、方向與恢復）；e2e `roll` 3 項（翻滾、冷卻中無效、翻滾中不扣血／結束後照常扣血）。`pnpm check` 982 項通過；e2e `movement`、`bounds`、`combat`、`melee`（存檔的 loadout 欄位）、`settings`、`gamepad`、`dev` 全過。
+- 未做：翻滾的專屬動畫（目前沿用走路／跑步）、手把翻滾鍵。
+
+### 任務 13E：迷霧深層的怪物與濃霧傷害（第二章 Phase 3，規格 §6.2 M-03、M-04、M-05）
+- 霧紋森林狼（`mob_mist_wolf`）：盤旋（orbit）後衝撞（lunge），掉落霧紋獸牙、厚實獸皮（稀有）。幻霧螢靈（`mob_fog_wisp`）：遠距離攻擊（spit）後瞬移（retreat）。枯根守衛（`mob_root_guard`，精英）：縮殼擋傷（shell）、掉落守衛木核。生成點都在 `deep_mist`（深層）。
+- 濃霧傷害（`MistHarm` 指令）：只對 `regions.json` 標記 `mistHarm` 的區域（迷霧深層）生效，每 2 秒扣 2 點，守林者護腕的迷霧倍率減半。客戶端在 `RegionTracker` 計時送出。
+- 規格的差異（未做）：枯根守衛的兩階段（目前只有縮殼）；幻霧螢靈的致盲與提燈現形（要等星光照明與螢光提燈）；森林狼的硬直與叫同伴；迷霧深層的週期濃霧。模型是暫用的 GreenSpikyBlob（狼）、Ghost（螢靈）、Goleling（守衛）。
+- 測試：`deepWoods.test.ts` 4 項、`equipment.test.ts` 迷霧傷害 2 項；e2e 新增 `deepwoods`（生成、深層扣血、A 區不扣血、狼被打倒）全過。`monsters` 的涵蓋範圍改為排除只由分裂產生的小怪（`mob_moss_slime_small`）；`region` 的飽和度項目這次通過（已知的共享時鐘時刻問題）。
+- `pnpm check` 991 項通過。
+
+### 任務 13F：星晶祕窟與 P-03 光路機關（第二章 Phase 4，規格 P-03、§9.3）
+- 祕窟在環狀山脊的東南開口，平時被星光石門（`crystal_gate`，沒有互動，只由光照啟動）擋住。祕窟內三面星晶鏡（`crystal_mirror`，4 個方向，沒有任務限制）、寶箱（`chest_crystal`：星晶碎片、古代共鳴石片）、石碑（答案：鏡 1 轉 2 次、鏡 2 轉 1 次、鏡 3 轉 1 次）。
+- 光路 `crystal_light` 沿用 9D 的水鏡光路（`lightPaths.json`）。`MirrorPuzzle` 改為畫出所有光路；`lightPathRuntime` 依光路 id 分開記錄（否則兩條路的光束數會互相覆蓋，lightpuzzle 的 debug 讀數就錯了）。
+- 測試：`crystalCave.test.ts` 4 項（答案照到石門、只在完成時啟動、不重複啟動、位置）；e2e `crystal`（石碑、轉鏡、石門開、寶箱拿共鳴石片）全過；`lightpuzzle`、`mirrorlake`、`glowmoss`、`creek` 重跑全過。
+- 修正過程：寶箱與石碑一開始放在地形隆起處，玩家站上去、互動距離不夠；改到地面平的地方（高度 0.4）。
+- 未做：星晶祕窟的「地下湖、晶柱」場景與隱藏入口的提示（只有石門與光路，沒有線索指向它）；星晶鏡的模型用 9D 的石柱造型，外觀待看。石門的 `gate` 區域是 glow_garden（生成時的區域判定，不影響功能）。
+
+### 任務 13G：古樹祭壇與根噬者（第二章 Phase 4，規格 B-01、G 區、CH2-MQ-05 至 08）
+- 根噬者（`boss_root_devourer`，placeholder 模型：MushroomKing 的骨架）：戰場在古樹祭壇（半徑 10，中心是古樹）。招式：根刺（spikes）、手臂揮擊（slam）、衝撞（charge）、霧球（orbs）；血量低於 60% 進入第二階段（冷卻縮短）。
+- 淨化（新機制 `purify`）：血量歸零時不會死，停在 1 點、進入「淨化」（`EnemyPurifying` 事件，頭目停下不出招）。祭壇三座古樹共鳴石柱（`altar_resonance`，沿用星光燈柱造型，activate 時帶 `boss`，只能在戰鬥中啟動）全部點亮 → 打倒（`EnemyDefeated` + `BossDefeated`，只結算一次）。
+- 任務：`quest_forest_005` 被遺忘的守護者（擊敗枯根守衛）、`006` 星晶的記憶（星光石門開）、`007` 古樹最後的呼吸（淨化根噬者，菇菇婆婆回報）、`008` 湖面上的倒影（走到澄鏡湖入口，無發起人自動完成）。菇菇婆婆的對話依任務狀態接續。
+- 澄鏡湖入口改為 `quest_forest_008` 完成後才開（T-186）：`maps.test.ts` 與 mirrorlake e2e 同步更新。過渡期間的 T-187 規則取代。
+- 測試：e2e `altar`（接任務、進戰場、淨化不死、三座石柱、回報）全過；`puffking`、`liyi`、`combat`、`lightpuzzle`、`granny`、`forestquest`、`crystal`、`creek`、`mirrorlake` 全過；`pnpm check` 1001 項。
+- 未做：第二階段的三座共鳴石柱「安全區」與召喚幻霧螢靈（目前只有霧球）；章節結尾的過場與對話（只有戰後的提示與菇菇婆婆的回報）；第三章「澄鏡湖」的正式入口文字（目前沿用既有的湖區）；根噬者的專屬模型與美術。
+
+### 任務 13H：星光照明、污染根瘤、隱藏的寶箱（第二章 Phase 3，規格 10.2、§5.2）
+- 星光照明（動作 `lumen`，鍵盤 G；手把沒有按鈕，測試中豁免）：花 15 點星光值，12 秒內揭露隱藏的寶箱（`contents.requiresLumen`）。權威指令 `Lumen`；星光不夠時拒絕並提示。不存檔。
+- 污染根瘤（`corruption_root`，兩個在迷霧深層）：用一顆純淨螢苔淨化，根瘤消失並顯示訊息。
+- 隱藏的寶箱（`hidden_cache_01`，花園石頭後面）：沒有照明打不開，照明中打得開。
+- 規格的差異：照明還不會「揭露」畫面上的線索（隱藏寶箱一直看得見，只是打不開），幻霧螢靈的現形也還沒做；污染根瘤沒有戰鬥淨化的路徑。
+- 測試：`starLumen.test.ts` 4 項；e2e `lumen`（沒照明打不開、按 G、照明中打開）全過；`combat`、`melee`、`dev`、`settings`、`gamepad`、`save` 重跑全過。`pnpm check` 1007 項通過。
+
+### 任務 13I：蘑菇居民聚落的建築與公告板（第二章 Phase 2，規格 4.2 D）
+- D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
+- 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
+
+### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
+- 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
+- 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。
+- 三件裝備：螢晶短劍（短刀變體）、螢苔法杖（法杖變體）、守林者護腕（減傷 0.9、稀有 +15%、迷霧傷害 ×0.5，迷霧傷害要到 Phase 3 才有作用）。材料：霧紋獸牙、厚實獸皮、柔韌樹皮、守衛木核、星晶碎片、古樹樹脂（只有定義與配方，來源在後續任務加入）。
+- 水行護符改成被動效果（`passive: waterBreath`），`Player.tsx` 的寫死檢查移除（行為不變）。
+- 聚落工作台 `glow_workbench` 的配方由菇菇婆婆開啟（NPC 在 D 區，對話 `openCraft`）。
+- 存檔 v20：`loadout.equipment`；v19 → v20 遷移為空裝備。
+- UI：背包加裝備格與「裝備 / 卸下」按鈕。
+- 測試：`pnpm check`（Vitest 970 項，新增 `equipment.test.ts` 10 項）、`pnpm build`。e2e 新增 `equipment`（裝備、卸下、武器變體職業限制，3 項）全過；`save`（存檔欄位）、`craft`、`lightpuzzle`、`lake`、`dev` 全過。減傷的實際扣血數值只有單元測試，沒有 e2e。
+
+### 任務 12E：莉露與 quest_forest_001「失去光芒的森林」（2026-10-23，分支 `wip/ch2-glowmoss`，規格 CH2-MQ-01）
+- 莉露（`lilu`，placeholder 模型：KayKit Rogue，之後換正式模型）在迷霧入口的燈柱旁。第一章完成（`quest_dawn_003`）後提出委託，接取 → 採集純淨螢苔 → 點亮 `glowmoss_star_lamp_01` → 回報，拿到星光羅盤（`star_compass`，只給道具，指引功能之後做）。之後莉露改說後續的話。
+- 目標只有「點亮燈柱」。規格的「採集」由燈柱的素材需求承接（純淨螢苔被燈柱消耗，所以不能做成「持有數量」的收集目標）；莉露的「回報」是 `turnInQuest`，不另設 `talk` 目標（對話在任務就緒後才出現，不能當作目標）。
+- 存檔不改版（任務紀錄與道具本來就在存檔裡）。
+- 測試：`pnpm check`（Vitest 961 項，新增 `forestQuest.test.ts` 4 項）、`pnpm build` 通過。e2e 新增 `forestquest`（接取、採集、點亮、回報、存檔、讀檔，共 7 項）全過；`glowmoss`、`glowslime`、`npc`、`quest`、`journal` 重跑未見失敗。截圖 `docs/screenshots/phase12/glowmoss_lilu.png`（已檢視：莉露在燈柱旁，外形為暫用模型）。
+- 未做（Phase 1 驗收前）：完整 `pnpm e2e`（收尾前跑）、`perf.mjs`（規格的階段驗收，需要使用者離開電腦時跑）、合回 `develop`（分支落後 `develop` 很多，且決策編號 T-188 撞號，見 DECISIONS）。
+
+### 任務 12D：螢苔史萊姆（2026-10-23，分支 `wip/ch2-glowmoss`，規格 M-01）
+- `mob_moss_slime`：GreenBlob 換色（薄荷綠）、跳撞（沿用 `lunge`）、黏液噴射（沿用 `spit`，距離 2.5–6 m、減速）、擊破後分裂成兩隻 `mob_moss_slime_small`（沿用 `splitInto`，小的不再分裂）。生成點 `glowmoss_slimes_a`（A）、`glowmoss_slimes_b`（B）。
+- 掉落：螢苔凝膠（`moss_gel`，60%）、微光孢子（`glow_spore`，35%）；小史萊姆只掉凝膠 20%。新增兩個材料，圖示沿用既有的凝膠與花粉造型。
+- 與規格的差異：規格寫「低血量時分裂」，現有的分裂機制是擊破時分裂（水泡精同），沿用之；「星光攻擊弱點」目前沒有屬性剋制系統，未做。
+- 測試：`pnpm check`（Vitest 957 項，新增 `mossSlime.test.ts` 6 項）、`pnpm build` 通過。e2e 新增 `glowslime`（A、B 生成、分裂與小的不再分裂）全過。截圖 `docs/screenshots/phase12/monster_mob_moss_slime.png`（已檢視：外形可辨識，顏色偏灰白，霧重時尤其明顯，之後可調）。
+
+### 任務 12C：星光燈柱與純淨螢苔（2026-10-23，分支 `wip/ch2-glowmoss`，規格 P-01、Bible §6.4）
+- 第一座星光燈柱（`glowmoss_star_lamp_01`）放在 A 迷霧入口的拱門後方、小徑南側。未啟動的晶體暗淡；消耗一顆純淨螢苔點亮，所在區域（`mist_gate`）的迷霧從濃霧降到淡霧（`activate.mistDown`，純函式 `lowerMistStage`），顯示訊息。素材不足時的提示列出需要的材料（沿用 `missing-materials` 的吐司）。
+- `pure_glowmoss`（純淨螢苔，材料，圖示 `ItemIcon`）；採集點 `glowmoss_node`（`glow_node_basic`：純淨螢苔 1，螢苔 50%；480 秒重生），兩個放在 A 區入口與小徑旁。
+- 只放一座燈柱：Phase 1 的範圍是「一座星光燈柱」；規格的三座（A、B 各一座以上）與 B 區的燈柱留到之後。
+- 存檔沒有改版（燈柱的 `active` 與迷霧本來就存在存檔裡，v19 不變）。gen-glowmoss 新增 3 個 placement，`pnpm data:placements` 重產 placements.json（只有祕林的散佈因共用的佔位而重排）。
+- 測試：`pnpm check`（Vitest 949 項，新增 `starLamp.test.ts` 6 項、`mist.test.ts` 1 項）、`pnpm build` 通過。e2e：`glowmoss`（新增：沒有純淨螢苔時不點亮、採集、點亮後消耗與迷霧降一段與訊息、讀檔後保持點亮）全過；`mirrorlake`、`dev` 全過。截圖 `docs/screenshots/phase12/glowmoss_lamp.png`（燈柱未啟動的外觀，已檢視：石柱與晶座可辨識，晶體偏暗）。
+- 未做：燈柱「可互動」的外觀（目前只用互動提示表示）；燈柱與採集點目前是程式造型（`star_lamp` 為新造型，採集點沿用螢苔叢造型），正式模型待定。
+- 完整 `pnpm e2e` 尚未跑（收尾前再跑）。
+
+### 任務 12B：螢苔祕林新地形、迷霧入口與螢苔花園（2026-10-20，分支 `wip/ch2-glowmoss`）
+- 地形重寫（`glowmossTerrain.ts`）：七區 A–G 的版面（T-188，Bible §6.3 版面表）、新的小徑（入口 → 花園環狀步道 → 溪谷 → 聚落 → 深層 → 祭壇 → 澄鏡湖出口）、溪谷谷地、聚落 / 祭壇 / 祕窟的環狀山脊；移除舊的小渠、石環、苔冠空地、根鬚迷宮。
+- 區域：`moss_trail` / `moss_glade` / `root_maze` / `moss_crown` 換成七個新區域（`types.ts`、`regions.json`、`regions.ts` 初始迷霧，預設區域 `glow_garden`）。
+- 擺放（`gen-glowmoss.ts` 重寫）：A 迷霧入口的石拱門、破損的路牌（可閱讀）、第一個寶箱；B 螢苔花園的 8 朵巨型蘑菇、發光立石、樹根拱門、螢光花叢、螢苔與月露草採集點；C–G 一般森林散佈；拱門到花園留一條視線。新的程式造型：石拱門、破損路牌、螢光花叢（`forestModels.ts`）；移除月牙樹、迷宮樹根牆的 prefab。
+- 往澄鏡湖的出口移到古樹祭壇東南（`gen-mirrorlake.ts`），名稱改為「林道出口：澄鏡湖」；其他地圖的 placement 完全沒變（已比對）。
+- 螢光孢子集中在花園與聚落（入口的螢火蟲「失去光芒」）；地形材質與地圖圖片改用 `GLOWMOSS_WATER_LEVEL`；地標、相機書籤、翻譯、區域提示同步更新。
+- 存檔 v19：舊的四個區域迷霧換成七個新區域的初始值；站在祕林裡的玩家移到入口、面向東。
+- **順帶修正的 bug**：打開任何寶箱都會跳出序章寶箱的紙條（「迷路的旅人啊，循著小路往北走……」），改為只有放出星光夥伴的寶箱才顯示（`InteractionSystem.tsx`）。
+- 測試：`pnpm check`（Vitest 940 項：`maps.test` 的祕林地形與區域改寫、新增 v18 → v19 遷移）、`pnpm build` 通過。e2e：`glowmoss`（改寫：迷霧入口、路牌、第一個寶箱且沒有紙條、穿過石拱門進花園、花園採集）、`mirrorlake`（新出口）、`save`、`map`、`bounds`、`world`、`companion` 全過；`region` 的「森林清除後畫面變鮮豔」失敗 1 項，**12A 的版本在同一時間也失敗**（見「已知問題」）。
+- 截圖 `docs/screenshots/phase12/glowmoss_{entry,arch,chest,garden,garden_center,lake_exit,overview}.png`（拍攝時共享時鐘在傍晚 18:27；拱門與花園修正後重拍了 entry、arch、garden）。
+
+### 任務 12A：移除舊版螢苔祕林、存檔 v18（2026-10-20，分支 `wip/ch2-glowmoss`）
+- 資料：移除 `quest_forest_001`–`003`、苔咚（`boss_moss_thump`）、霧孢飛蛾、根鬚甲蟲與祕林的 9 個生成點（迷霧芽怪留在晨曦谷地）、13 種舊任務物件的 prefab 與 20 個 placement（`gen-glowmoss.ts` 輸出時濾掉，地形與點綴保留到 12B）、水道（`waterways.json`、`waterway.ts`、`Waterway.tsx`、`waterwayRuntime.ts`）、`MossThump.tsx`、林間水道地標、只屬於舊任務的對話、芽芽提示與 98 個翻譯 key。
+- 琳娜搬回晨曦村（米菈旁），對話一開始就有「借用草藥桌」，送信改在村裡交；奇奇搬到澄鏡湖營地（伊芙旁），接 `quest_lake_002` 的流程不變。月露藥膏的配方與商店改為第一章完成後解鎖。
+- 過渡條件（T-187）：澄鏡湖入口與 `quest_lake_001` 只要求 `quest_dawn_003`；奧林的對話把「燈塔下的影子」排在澄鏡湖委託之前（否則第一章一完成就被推去澄鏡湖）。
+- 存檔 v18：清掉舊森林任務紀錄（新主線會沿用 `quest_forest_001`–`003` 的 id）、芽之共鳴、20 個舊物件、苔咚的擊敗紀錄與舊生成點。
+- 共用規則的測試保留：頭目 AI、戰場物件與護盾、盤旋與縮殼行為改用測試樣本 `src/game-core/testing/legacyForest.{json,ts}`（從 git 取出的舊資料）；刪除 `forestGuard.test`、`forestQuests.test`、`waterway.test`。
+- e2e：刪除 `boss`、`forestguard`、`forestquest`、`forestmobs`（`e2e:all` 剩 42 個）；`craft`、`letters`、`mirrorlake`、`lakequest`、`lightpuzzle`、`liyi`、`puffking` 改前置條件。截圖腳本移除 `--waterway`、`--boss`、`--guardian`。`mistwood-verify` 對照表與 CLAUDE.md 同步。
+- 測試：`pnpm check`（Vitest 940 項）、`pnpm build` 通過。e2e 跑 14 個受影響的 suite：`save`、`craft`、`letters`、`mirrorlake`、`lakequest`、`lightpuzzle`、`liyi`、`puffking`、`cellar`、`glowmoss`、`map`、`monsters`、`npc` 全過；`world` 的「迷霧時畫面去飽和」失敗 1 項（0.822 → 0.871），**改動前的版本在同一時間也失敗**（0.817 → 0.870），見「已知問題」。沒有截圖（12A 只移除內容，12B 換地形時再拍）。
 
 ### 第二章 Phase 0：盤點（2026-10-20）
 - `docs/chapter02/PHASE0_INVENTORY.md`：技術盤點（重用 / 擴充 / 新建）、資產盤點、差距清單、裝備系統規劃、Phase 1 拆成 12A–12E 與檔案變更計畫。
@@ -652,6 +756,9 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 ## 已知問題
 - `garden`「回報桃樂；時間過去後花圃開花」偶發失敗（0 !== 2，2026-10-22）：測試用 `setClock(20)` 推進遊玩時間看花圃成長，結果偶爾停在第 0 階段；同一程式單獨跑 4 次全過。之後若再出現，要檢查測試開始時的共享時鐘（測試沒有固定時段）。
 - `garden` e2e 的「時間過去後花圃開花」在完整連跑時失敗一次（2026-10-21，1 !== 2），單獨重跑通過；若再出現，檢查快轉時間與花圃生長的判定時機。
+- **`world.e2e`「迷霧滑桿：迷霧時畫面明顯去飽和」與 `region.e2e`「森林清除後畫面變鮮豔」都與時間有關**（2026-10-20 發現；`world` 在傍晚重跑又通過）：日光改看共享世界時鐘（T-181）後，測試沒有固定時刻；在遊戲夜晚執行時迷霧反而讓飽和度變高（0.817 → 0.870），改動前的版本同樣失敗。修法：測試開始時 `setClock` 到白天。
+- **截圖腳本的書籤沒有固定時刻**：共享世界時鐘一直在走，同一書籤不同時間拍的光線不同（12B 的截圖是傍晚）。之後可以讓截圖預設 `setClock` 到白天。
+- **第二章過渡期（12A–12E）**：螢苔祕林目前沒有怪物、沒有任務，只有地形、點綴、採集點與寶箱；C–G 只有地形與一般散佈；`activate.afterBoss`（擊敗頭目後才能啟動）沒有資料在用、也沒有測試，根噬者用到時補。
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。

@@ -52,6 +52,11 @@ export const bossDefSchema = z
     recoverScale: z.number().min(1),
     /** 連續被打 afterHits 下後縮起來防禦；省略時不會防禦 */
     guard: z.object({ afterHits: z.number().int().positive(), sec: z.number().positive(), scale: z.number().min(0).max(1) }).optional(),
+    /**
+     * 淨化（第二章 Phase 4，規格 B-01 第三階段）：血量歸零時不會死，而是停在 1 點並進入淨化；
+     * 戰場上的共鳴石柱（pillars，activate 時帶這個頭目）全部啟動後才算打倒（BossDefeated）。
+     */
+    purify: z.object({ pillars: z.array(z.string().min(1)).min(1) }).optional(),
     /** 文字（提示、戰前台詞）的 i18n 前綴，例如 boss → boss.intro、boss.hint */
     textKey: z.string().min(1).default('boss'),
     moves: z.object({

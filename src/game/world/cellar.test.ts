@@ -80,6 +80,7 @@ describe('quest_dawn_007 燈塔下的影子', () => {
     s = ok(s, { type: 'TurnInQuest', quest: Q }).state;
     expect(countItem(s.inventory, 'lore_tablet_resonance_01')).toBe(1);
     expect(countItem(s.inventory, 'seed_coin')).toBe(40);
-    expect(talk(s)).toBe('orin_after');
+    // 過渡期間澄鏡湖只要求第一章完成（T-187）：影子的任務結束後，奧林接著提起澄鏡湖
+    expect(talk(s)).toBe('orin_lake_offer');
   });
 });

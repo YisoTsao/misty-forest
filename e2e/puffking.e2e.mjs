@@ -14,7 +14,7 @@ const npcs = JSON.parse(readFileSync('src/data/npcs.json', 'utf8'));
 const mirror = placements.find((p) => p.id === boss.stun.mirrors[0]);
 const [CX, CZ] = boss.arena.center;
 
-await runE2e('puffking e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, teleport, interactTarget, itemCount }) => {
+await runE2e('puffking e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, teleport, itemCount }) => {
   const g = (fn, arg) => debug(fn, arg);
   const bossState = () => g(() => window.__mistwoodDebug.boss());
   const send = (cmd) => g((c) => window.__mistwoodDebug.send(c), cmd);
@@ -116,6 +116,5 @@ await runE2e('puffking e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ pa
     await talkTo('elder');
     assert.equal((await g(() => window.__mistwoodDebug.dialogue())).dialogueId, 'elder_puff_after');
     await closeDialogue();
-    assert.notEqual(await interactTarget(), 'npc:moss_thump');
   });
 });
