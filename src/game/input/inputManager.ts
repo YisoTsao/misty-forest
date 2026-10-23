@@ -26,6 +26,8 @@ const PAD_LOOK_X = 1040;
 const PAD_LOOK_Y = 640;
 /** 視角不在跟隨模式時（自由視角）不會被讀取，累積上限避免切回時突然轉一大圈 */
 const LOOK_CAP = 400;
+/** 觸控後多久內的滑鼠事件視為點擊補送的相容事件（iOS 會在 touchend 後補送 mousedown） */
+const COMPAT_MOUSE_WINDOW_MS = 800;
 
 function readNavigatorPad(): PadSnapshot | null {
   const pads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : [];
@@ -58,6 +60,8 @@ class InputManager {
   private nav = initialNavRepeat();
   private wasUi = false;
   private lastPoll = 0;
+  /** 最近一次觸碰螢幕的時間（performance.now），用來辨認點擊後補送的相容滑鼠事件 */
+  private lastTouchAt = -Infinity;
   private rafId = 0;
   /** 是否處於選單操作（主選單、暫停、對話、背包等），由 InputBinder 提供 */
   private uiMode: () => boolean = () => false;
@@ -78,6 +82,7 @@ class InputManager {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onBlur);
+    window.addEventListener('touchstart', this.onTouchStart, { passive: true });
     target.addEventListener('mousedown', this.onMouseDown);
     window.addEventListener('mouseup', this.onMouseUp);
     window.addEventListener('mousemove', this.onMouseMove);
@@ -92,6 +97,7 @@ class InputManager {
       window.removeEventListener('keydown', this.onKeyDown);
       window.removeEventListener('keyup', this.onKeyUp);
       window.removeEventListener('blur', this.onBlur);
+      window.removeEventListener('touchstart', this.onTouchStart);
       target.removeEventListener('mousedown', this.onMouseDown);
       window.removeEventListener('mouseup', this.onMouseUp);
       window.removeEventListener('mousemove', this.onMouseMove);
@@ -305,9 +311,15 @@ class InputManager {
     this.downCodes.delete(e.code);
   };
 
+  private onTouchStart = (): void => {
+    this.lastTouchAt = performance.now();
+  };
+
   private onMouseDown = (e: MouseEvent): void => {
-    // 觸控螢幕在點擊後補送的相容滑鼠事件（sourceCapabilities.firesTouchEvents）不算滑鼠操作
+    // 觸控螢幕在點擊後補送的相容滑鼠事件不算滑鼠操作。iOS Safari 不提供 sourceCapabilities，所以另外以「剛碰過觸控」判斷
+    // （否則點 💬 之後補送的 mousedown 會把輸入裝置切回鍵盤，觸控按鈕整組消失，任務 11M-8）
     if ((e as MouseEvent & { sourceCapabilities?: { firesTouchEvents?: boolean } }).sourceCapabilities?.firesTouchEvents) return;
+    if (performance.now() - this.lastTouchAt < COMPAT_MOUSE_WINDOW_MS) return;
     if (e.isTrusted) setInputDevice('keyboard');
     if (this.pointerLockEnabled && !this.pointerLocked) {
       this.requestPointerLock();

@@ -31,6 +31,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 11M-8：手機版點聊天後觸控按鈕消失（2026-10-23）
+- 現象（使用者 iPhone 截圖）：直式手機點 💬 打開聊天後，觸控搖桿與按鈕整組消失，畫面換成鍵盤版的提示（滑鼠左鍵、Q、F、C）。
+- 原因：`InputManager.onMouseDown` 收到「觸控後補送的相容滑鼠事件」時會把輸入裝置切回 keyboard。iOS Safari 沒有 `sourceCapabilities`，原本的排除條件無效。
+- 修正：監聽 `touchstart` 記下時間，800 ms 內的 mousedown 直接忽略（不切換裝置、不攻擊、不鎖定滑鼠）。
+- 驗證：`pnpm check` 通過；e2e `touch`、`multiplayer-web`（含手機版點聊天鈕）通過。**未在真機 iOS 上重現或驗證**（Chromium 不會補送相容滑鼠事件，本機無法重現），需使用者在 iPhone 上確認。
+- 同時看到：截圖中的「重新連線中」是 Render 免費方案伺服器休眠後的自動重連，屬預期行為。
+
 ### 任務 11M-7：部署修正、iOS 指標鎖定錯誤、同一帳號只能一處連線（2026-10-22）
 - Render 部署失敗：`buildCommand` 的 `npm install -g pnpm@12.11.2` 寫入 `/usr/lib/node_modules`（Render 映像唯讀，`EROFS`）。改為 `npx --yes pnpm@12.11.2 ...`，啟動改為 `node --enable-source-maps dist-server/server.mjs`（不需要 pnpm）。在乾淨的 `git archive` 副本實際跑過 install、build:server，並以 `node` 啟動、`/health` 200。Render 與 Vercel 各自由 GitHub 的 `main` 推送觸發，Vercel 不會觸發 Render；之前同一指令在 `278e2b1` 成功過，`8722f15` 失敗，原因不明，新指令不依賴全域安裝。`vercel.json` 的全域安裝沒有改（Vercel 的建置環境可以寫入）。
 - 手機上的錯誤 `this.target.requestPointerLock is not a function`：iOS Safari 沒有 Pointer Lock API。`InputManager.requestPointerLock` 先做功能偵測、再包 try，不支援就不鎖定（手機版本來就用觸控）。e2e `assets-web` 新增「模擬沒有 Pointer Lock API，點畫面不丟錯」；暫時還原修正後確認該項會失敗。
