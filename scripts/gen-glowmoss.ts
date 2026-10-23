@@ -191,6 +191,12 @@ export function addGlowmoss(placements: Out[]): void {
   place('glowmoss_star_lamp_01', 'star_lamp', -99, 8, { yaw: Math.PI / 2, r: 1.2 });
   place('glowmoss_pure_node_01', 'glowmoss_node', -124, 8, { yaw: 0.6, r: 1 });
   place('glowmoss_pure_node_02', 'glowmoss_node', -98, -5, { yaw: 2.1, r: 1 });
+  // P-01 另外兩座星光燈柱（規格 9.1：入口與花園共三座）：花園一座、入口北側一座，各有一叢純淨螢苔；
+  // 入口一開始是濃霧、花園是淡霧，每座都讓所在區域的霧降一段。不佔散佈的位置，選在原本空著的地方
+  place('glowmoss_star_lamp_02', 'star_lamp', -70, -6, { yaw: 0.4 });
+  place('glowmoss_pure_node_03', 'glowmoss_node', -66, -10, { yaw: 1.1 });
+  place('glowmoss_star_lamp_03', 'star_lamp', -126, 16, { yaw: Math.PI / 2 });
+  place('glowmoss_pure_node_04', 'glowmoss_node', -122, 19, { yaw: 2.7 });
   // 支線 CH2-SQ-02 螢火蟲回家：三隻失散的螢靈躲在 A 入口、B 花園、C 溪谷的小蘑菇下
   place('lost_firefly_01', 'lost_firefly', -118, -12, { yaw: 0.4, r: 1 });
   place('lost_firefly_02', 'lost_firefly', -44, 24, { yaw: 1.8, r: 1 });

@@ -1,5 +1,6 @@
 // 任務 12C：星光燈柱（規格 P-01、Bible §6.4）——未啟動、素材不足的提示、消耗一顆純淨螢苔、
 // 點亮後所在區域的迷霧降一段、不能重複消耗、存讀檔後保持；純淨螢苔採集點。
+// 任務 13U：規格 9.1 的三座燈柱——另外兩座在花園，兩座都點亮後花園的迷霧從濃霧降到晴朗。
 import { describe, expect, it } from 'vitest';
 import { applyEvents, handleCommand, initialGameState, type GameCommand, type GameState, type RulesContext } from '@/game-core/authority/rules';
 import { addItems, countItem } from '@/game-core/inventory/inventory';
@@ -83,5 +84,15 @@ describe('任務 12C 星光燈柱', () => {
     expect(countItem(r.state.inventory, 'pure_glowmoss')).toBe(1);
     expect(r.state.objects.get(NODE)?.harvested).toBe(true);
     expect(index.prefab('glowmoss_node')!.harvest?.respawnSec).toBeGreaterThan(0);
+  });
+
+  it('另外兩座燈柱（入口北側、花園）：各消耗一顆純淨螢苔；入口兩座都點亮後入口晴朗，花園的一座讓花園晴朗；旁邊各有純淨螢苔採集點', () => {
+    expect(['glowmoss_star_lamp_02', 'glowmoss_star_lamp_03'].map((id) => index.placement(id)?.regionId)).toEqual(['glow_garden', 'mist_gate']);
+    let s = withPure(initialGameState(), 3);
+    expect([s.mist.mist_gate, s.mist.glow_garden]).toEqual(['dense', 'light']);
+    for (const id of [LAMP, 'glowmoss_star_lamp_03', 'glowmoss_star_lamp_02']) s = ok(s, { type: 'ActivateObject', placementId: id }).state;
+    expect([s.mist.mist_gate, s.mist.glow_garden]).toEqual(['clear', 'clear']);
+    expect(countItem(s.inventory, 'pure_glowmoss')).toBe(0);
+    for (const id of ['glowmoss_pure_node_03', 'glowmoss_pure_node_04']) expect(index.placement(id)?.prefabId).toBe('glowmoss_node');
   });
 });

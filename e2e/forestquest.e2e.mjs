@@ -139,6 +139,29 @@ await runE2e('forestquest e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', e
     await closeDialogue();
   });
 
+  await check('入口北側的第二座燈柱：採旁邊的純淨螢苔、點亮，入口的迷霧變晴朗', async () => {
+    const lamp3 = placements.find((p) => p.id === 'glowmoss_star_lamp_03');
+    const node4 = placements.find((p) => p.id === 'glowmoss_pure_node_04');
+    await teleport(node4.position[0] + 1.2, node4.position[2], 700);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [node4.position[0], node4.position[2]]);
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'glowmoss_pure_node_04', null, { timeout: 3000 });
+    const pure = await itemCount('pure_glowmoss');
+    await page.keyboard.press('KeyE');
+    await page.waitForFunction(() => window.__mistwoodDebug.objectState('glowmoss_pure_node_04')?.harvested === true, null, { timeout: 5000 });
+    assert.ok((await itemCount('pure_glowmoss')) > pure, '沒有採到純淨螢苔');
+    await teleport(lamp3.position[0] + 1.6, lamp3.position[2], 700);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [lamp3.position[0], lamp3.position[2]]);
+    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'glowmoss_star_lamp_03', null, { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForFunction(() => window.__mistwoodDebug.objectState('glowmoss_star_lamp_03')?.active === true, null, { timeout: 5000 });
+    const dialog = page.locator('[data-testid="message-dialog"]');
+    if ((await dialog.count()) > 0) {
+      await page.keyboard.press('KeyE');
+      await dialog.waitFor({ state: 'detached', timeout: 2000 });
+    }
+    assert.equal(await debug(() => window.__mistwoodDebug.mistStages().mist_gate), 'clear');
+  });
+
   await check('在螢苔祕林存檔，任務與星光羅盤寫進存檔', async () => {
     assert.equal(await debug(() => window.__mistwoodDebug.saveNow()), true);
     const data = JSON.parse(readFileSync(primary, 'utf8'));

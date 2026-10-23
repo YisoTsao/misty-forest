@@ -53255,6 +53255,86 @@
     ]
   },
   {
+    "id": "glowmoss_star_lamp_02",
+    "prefabId": "star_lamp",
+    "regionId": "glow_garden",
+    "position": [
+      1930,
+      0.42,
+      -6
+    ],
+    "rotation": [
+      0,
+      0.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_pure_node_03",
+    "prefabId": "glowmoss_node",
+    "regionId": "glow_garden",
+    "position": [
+      1934,
+      0.42,
+      -10
+    ],
+    "rotation": [
+      0,
+      1.1,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_star_lamp_03",
+    "prefabId": "star_lamp",
+    "regionId": "mist_gate",
+    "position": [
+      1874,
+      1.35,
+      16
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "glowmoss_pure_node_04",
+    "prefabId": "glowmoss_node",
+    "regionId": "mist_gate",
+    "position": [
+      1878,
+      0.89,
+      19
+    ],
+    "rotation": [
+      0,
+      2.7,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "lost_firefly_01",
     "prefabId": "lost_firefly",
     "regionId": "mist_gate",
