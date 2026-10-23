@@ -763,5 +763,30 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_sq06",
+    "nameKey": "quest.forestSq6.name",
+    "category": "side",
+    "descKey": "quest.forestSq6.desc",
+    "giver": "granny",
+    "requires": [
+      "quest_forest_007"
+    ],
+    "objectives": [
+      {
+        "type": "talk",
+        "npc": "root_guardian",
+        "descKey": "quest.forestSq6.talk"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "guardian_charm",
+          "count": 1
+        }
+      ]
+    }
   }
 ]

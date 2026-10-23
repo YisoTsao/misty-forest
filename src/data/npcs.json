@@ -971,6 +971,21 @@
       {
         "when": {
           "type": "questReady",
+          "quest": "quest_forest_sq06"
+        },
+        "dialogue": "granny_dream_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq06",
+          "is": "active"
+        },
+        "dialogue": "granny_dream_progress"
+      },
+      {
+        "when": {
+          "type": "questReady",
           "quest": "quest_forest_007"
         },
         "dialogue": "granny_root_turnin"
@@ -1107,6 +1122,14 @@
         "dialogue": "granny_gel_offer"
       },
       {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq06",
+          "is": "available"
+        },
+        "dialogue": "granny_dream_offer"
+      },
+      {
         "dialogue": "granny_intro"
       }
     ]
@@ -1200,6 +1223,55 @@
     "talk": [
       {
         "dialogue": "wanderer_words"
+      }
+    ]
+  },
+  {
+    "id": "root_guardian",
+    "nameKey": "npc.root_guardian",
+    "regionId": "ancient_altar",
+    "model": "models/monsters/MushroomKing.glb",
+    "scale": 1,
+    "hiddenNodes": [],
+    "clips": {
+      "idle": "CharacterArmature|Idle",
+      "walk": "CharacterArmature|Walk",
+      "talk": "CharacterArmature|Wave"
+    },
+    "visible": {
+      "type": "bossDefeated",
+      "boss": "boss_root_devourer"
+    },
+    "position": [
+      2116,
+      -3
+    ],
+    "facingYaw": -1.9,
+    "interactRadius": 3,
+    "talk": [
+      {
+        "when": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "questStatus",
+              "quest": "quest_forest_sq06",
+              "is": "active"
+            },
+            {
+              "type": "not",
+              "condition": {
+                "type": "questTalkDone",
+                "quest": "quest_forest_sq06",
+                "npc": "root_guardian"
+              }
+            }
+          ]
+        },
+        "dialogue": "guardian_dream"
+      },
+      {
+        "dialogue": "guardian_calm"
       }
     ]
   }

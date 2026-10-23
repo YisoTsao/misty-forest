@@ -2,10 +2,12 @@
 // 接下 quest_forest_007 後走進祭壇的戰場，把根噬者打到只剩 1 點 → 進入淨化（不會死）；
 // 依序點亮三座古樹共鳴石柱 → 根噬者被淨化、打倒只結算一次；回報菇菇婆婆後任務完成。
 // 章節結尾（CH2-MQ-08）：回報時拿到古樹核心、接下 quest_forest_008；觀看古樹核心的記憶、走到澄鏡湖的入口 → 完成；無名旅人出現在出口。
+// 支線 CH2-SQ-06 守護者的夢：菇菇婆婆提出 → 和淨化後的守護者說話 → 回報拿古樹守護符（截圖 docs/screenshots/phase13/glowmoss_guardian.png）。
 // 第二階段（血量跌破門檻）召喚幻霧螢靈；離開戰場時頭目、召喚物與點亮的石柱都重置（規格 §6.4 重試）。
 // 用法：pnpm build && node e2e/altar.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
 import { placements, runE2e } from './lib.mjs';
 
 const at = (id) => placements.find((p) => p.id === id);
@@ -131,5 +133,53 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
     await page.keyboard.press('KeyE');
     await page.locator('[data-testid="dialogue"]').waitFor({ timeout: 2000 });
     assert.equal((await debug(() => window.__mistwoodDebug.dialogue())).dialogueId, 'wanderer_words');
+  });
+
+  await check('守護者的夢：菇菇婆婆提出；和淨化後的守護者說完話，回報拿到古樹守護符', async () => {
+    const npcs = JSON.parse(await (await import('node:fs')).promises.readFile('src/data/npcs.json', 'utf8'));
+    const box = page.locator('[data-testid="dialogue"]');
+    const talk = async (id, expected) => {
+      for (let i = 0; i < 8 && (await box.count()) > 0; i++) {
+        await page.keyboard.press('Space');
+        await page.waitForTimeout(200);
+      }
+      if ((await box.count()) > 0) await page.keyboard.press('Escape');
+      await box.waitFor({ state: 'detached', timeout: 2000 });
+      const n = npcs.find((x) => x.id === id);
+      await teleport(n.position[0] + Math.sin(n.facingYaw) * 1.8, n.position[1] + Math.cos(n.facingYaw) * 1.8, 800);
+      await debug(([x, z]) => window.__mistwoodDebug.face(x, z), n.position);
+      await page.waitForFunction((x) => window.__mistwoodDebug.interactTarget() === `npc:${x}`, id, { timeout: 5000 }).catch(async (err) => {
+        throw new Error(`${id} 不是互動目標（目前 ${await debug(() => window.__mistwoodDebug.interactTarget())}）：${err.message}`);
+      });
+      await page.keyboard.press('KeyE');
+      await box.waitFor({ timeout: 2000 });
+      assert.equal((await debug(() => window.__mistwoodDebug.dialogue())).dialogueId, expected);
+    };
+    const choose = async (text) => {
+      const option = page.locator('[data-testid="dialogue-option"]', { hasText: text });
+      for (let i = 0; i < 10 && (await option.count()) === 0; i++) {
+        await page.keyboard.press('Space');
+        await page.waitForTimeout(300);
+      }
+      await option.click();
+      await page.waitForTimeout(200);
+    };
+    await talk('granny', 'granny_dream_offer');
+    await choose('好');
+    assert.equal(await questState('quest_forest_sq06'), 'active');
+    await talk('root_guardian', 'guardian_dream');
+    await choose('靜靜聽它說完');
+    await debug(() => {
+      window.__mistwoodDebug.setClock(12);
+      window.__mistwoodDebug.setBookmark('glowmoss_guardian');
+    });
+    await page.waitForTimeout(900);
+    mkdirSync('docs/screenshots/phase13', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/phase13/glowmoss_guardian.png' });
+    await debug(() => window.__mistwoodDebug.setCameraMode('follow'));
+    await talk('granny', 'granny_dream_turnin');
+    await choose('說說守護者的夢');
+    assert.equal(await questState('quest_forest_sq06'), 'completed');
+    assert.equal(await itemCount('guardian_charm'), 1);
   });
 });

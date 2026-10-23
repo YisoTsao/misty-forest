@@ -2315,5 +2315,111 @@
         "textKey": "dlg.lilu.firefly.gift"
       }
     }
+  },
+  {
+    "id": "granny_dream_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dream.offer",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.yes",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_sq06"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dream.accept"
+      }
+    }
+  },
+  {
+    "id": "granny_dream_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dream.progress"
+      }
+    }
+  },
+  {
+    "id": "granny_dream_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dream.done",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.tellDream",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_sq06"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.dream.gift"
+      }
+    }
+  },
+  {
+    "id": "guardian_dream",
+    "start": "a",
+    "nodes": {
+      "a": {
+        "speakerKey": "npc.root_guardian",
+        "textKey": "dlg.guardian.dream.a",
+        "next": "b"
+      },
+      "b": {
+        "speakerKey": "npc.root_guardian",
+        "textKey": "dlg.guardian.dream.b",
+        "options": [
+          {
+            "textKey": "dlg.guardian.opt.listen",
+            "next": "c",
+            "effects": [
+              {
+                "type": "questTalk",
+                "quest": "quest_forest_sq06"
+              }
+            ]
+          }
+        ]
+      },
+      "c": {
+        "speakerKey": "npc.root_guardian",
+        "textKey": "dlg.guardian.dream.c"
+      }
+    }
+  },
+  {
+    "id": "guardian_calm",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.root_guardian",
+        "textKey": "dlg.guardian.calm"
+      }
+    }
   }
 ]

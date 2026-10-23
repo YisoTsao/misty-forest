@@ -152,6 +152,10 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
 - 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
 
+### 任務 13P：支線 CH2-SQ-06「守護者的夢」（第二章 Phase 4，規格 8.3）
+- 淨化後的古樹守護者（`root_guardian`，MushroomKing 模型原色、Wave 當說話動作）在根噬者被打倒後出現在祭壇。菇菇婆婆在 007 之後提出 `quest_forest_sq06`：到祭壇聽守護者說夢（`talk` 目標，夢裡湖邊捧燈收走星光的人，銜接第三章）→ 回報拿古樹守護符（`guardian_charm`，護符格：受傷 ×0.92、迷霧傷害 ×0.7）。
+- 測試：`chapterEnding.test.ts` 新增 1 項；`pnpm check`（Vitest 1044 項）、`pnpm build`；e2e `altar` 新增 1 項共 10 項全過（第一輪對話框沒關掉導致逾時 → 測試補上 Escape）。截圖 `docs/screenshots/phase13/glowmoss_guardian.png`（altar e2e 拍，已檢視；祭壇的迷霧在戰後仍是「濃」，之後可考慮淨化後降霧）。
+
 ### 任務 13O：支線 CH2-SQ-02「螢火蟲回家」（第二章 Phase 2，規格 8.3、NPC-02）
 - 莉露在 `quest_forest_001` 之後提出（`quest_forest_sq02`）：找回三隻失散的螢靈（`lost_firefly_01`–`03`，A 入口、B 花園、C 溪谷；新程式造型 `procedural:lost_firefly`——發光小蘑菇下的一團光），任務進行中才能「輕聲呼喚」，叫回來後物件消失。回報拿微光孢子 ×3、純淨螢苔 ×2、種籽幣 ×20。規格的「燈籠外觀」沒有外觀系統，暫不做。
 - 莉露的對話順序：001 → 螢火蟲支線（提出 / 進行中 / 回報）→ `lilu_after`。
