@@ -5140,6 +5140,20 @@
     "persists": true
   },
   {
+    "id": "lost_firefly",
+    "model": "procedural:lost_firefly",
+    "collider": "none",
+    "interaction": "activate",
+    "nameKey": "object.lostFirefly",
+    "verbKey": "interact.callFirefly",
+    "interactRadius": 2.2,
+    "activate": {
+      "quest": "quest_forest_sq02",
+      "anim": "interact"
+    },
+    "persists": true
+  },
+  {
     "id": "hidden_cache",
     "model": "models/props/kaykit-dungeon/chest.glb",
     "collider": "static",

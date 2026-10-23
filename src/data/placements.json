@@ -53255,6 +53255,66 @@
     ]
   },
   {
+    "id": "lost_firefly_01",
+    "prefabId": "lost_firefly",
+    "regionId": "mist_gate",
+    "position": [
+      1882,
+      0.07,
+      -12
+    ],
+    "rotation": [
+      0,
+      0.4,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "lost_firefly_02",
+    "prefabId": "lost_firefly",
+    "regionId": "glow_garden",
+    "position": [
+      1956,
+      0.47,
+      24
+    ],
+    "rotation": [
+      0,
+      1.8,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "lost_firefly_03",
+    "prefabId": "lost_firefly",
+    "regionId": "reverse_creek",
+    "position": [
+      1966,
+      2.49,
+      -96
+    ],
+    "rotation": [
+      0,
+      2.6,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "creek_wheel_01",
     "prefabId": "waterwheel",
     "regionId": "reverse_creek",
@@ -69676,22 +69736,22 @@
   },
   {
     "id": "glowmoss_bush_100",
-    "prefabId": "k_bush_small",
-    "regionId": "reverse_creek",
+    "prefabId": "k_bush_large",
+    "regionId": "glow_garden",
     "position": [
-      1965.67,
-      2.43,
-      -94.26
+      2112.51,
+      6.48,
+      116.79
     ],
     "rotation": [
       0,
-      2.49,
+      2.34,
       0
     ],
     "scale": [
-      3.95,
-      3.96,
-      3.95
+      3.17,
+      3.27,
+      3.17
     ]
   },
   {

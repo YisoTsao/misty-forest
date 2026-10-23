@@ -1,6 +1,6 @@
 // 端對端：任務 12E — quest_forest_001「失去光芒的森林」（Bible §6.5、規格 8.2 CH2-MQ-01）與第二章 Phase 1 的完整流程。
 // 第一章的燈塔完成後，莉露在迷霧入口：按 E 與選項接取 → 採集純淨螢苔 → 點亮星光燈柱 → 回報拿到星光羅盤 →
-// 存檔重開後任務與羅盤都還在，莉露改說後續的話。外觀以截圖檢查（glowmoss_* 書籤、--npc）。
+// 支線 CH2-SQ-02 螢火蟲回家：莉露提出 → 找回三隻失散的螢靈 → 回報；之後莉露改說後續的話。存檔重開後任務與羅盤都還在。外觀以截圖檢查（glowmoss_* 書籤、--npc）。
 // 用法：pnpm build && node e2e/forestquest.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -96,6 +96,44 @@ await runE2e('forestquest e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', e
     await closeDialogue();
     assert.equal(await questState(), 'completed');
     assert.equal(await itemCount('star_compass'), 1);
+  });
+
+  await check('螢火蟲回家：莉露提出支線；三隻螢靈只有任務進行中才叫得回來；回報後莉露改說後續的話', async () => {
+    const fly = (id) => placements.find((p) => p.id === id);
+    await teleport(fly('lost_firefly_01').position[0] + 1.4, fly('lost_firefly_01').position[2], 700);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [fly('lost_firefly_01').position[0], fly('lost_firefly_01').position[2]]);
+    await page.waitForTimeout(300);
+    assert.notEqual(await debug(() => window.__mistwoodDebug.interactTarget()), 'lost_firefly_01', '還沒接任務就能呼喚螢靈');
+    await talkTo();
+    assert.equal((await dialogue()).dialogueId, 'lilu_firefly_offer');
+    await advanceTo('ask');
+    for (let i = 0; i < 8 && (await page.locator('[data-testid="dialogue-option"]').count()) === 0; i++) {
+      await page.keyboard.press('Space');
+      await page.waitForTimeout(250);
+    }
+    await choose('我去找找看');
+    await closeDialogue();
+    for (const id of ['lost_firefly_01', 'lost_firefly_02', 'lost_firefly_03']) {
+      const p = fly(id);
+      await teleport(p.position[0] + 1.4, p.position[2], 700);
+      await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [p.position[0], p.position[2]]);
+      await page.waitForFunction((x) => window.__mistwoodDebug.interactTarget() === x, id, { timeout: 3000 });
+      await page.keyboard.press('KeyE');
+      await page.waitForFunction((x) => window.__mistwoodDebug.objectState(x)?.active === true, id, { timeout: 3000 });
+    }
+    assert.equal(await debug(() => window.__mistwoodDebug.questProgress('quest_forest_sq02')), 3);
+    const spores = await itemCount('glow_spore');
+    await talkTo();
+    assert.equal((await dialogue()).dialogueId, 'lilu_firefly_turnin');
+    await advanceTo('ask');
+    for (let i = 0; i < 8 && (await page.locator('[data-testid="dialogue-option"]').count()) === 0; i++) {
+      await page.keyboard.press('Space');
+      await page.waitForTimeout(250);
+    }
+    await choose('牠們都回來了');
+    await closeDialogue();
+    assert.equal(await debug(() => window.__mistwoodDebug.questState('quest_forest_sq02')), 'completed');
+    assert.equal(await itemCount('glow_spore'), spores + 3);
     await talkTo();
     assert.equal((await dialogue()).dialogueId, 'lilu_after');
     await closeDialogue();

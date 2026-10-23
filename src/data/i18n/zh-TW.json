@@ -1214,6 +1214,7 @@
   "bookmark.glowmoss_barrier": "祕林・溪谷石障",
   "bookmark.glowmoss_deep": "祕林・迷霧深層",
   "bookmark.glowmoss_toto": "祕林・旅行商人托托",
+  "bookmark.glowmoss_firefly": "祕林・失散的螢靈",
   "bookmark.glowmoss_garden": "祕林・螢苔花園",
   "bookmark.glowmoss_garden_center": "祕林・花園中心",
   "bookmark.glowmoss_lake_exit": "祕林・往澄鏡湖",
@@ -1292,5 +1293,18 @@
   "dlg.wanderer.line": "如果你想知道是誰奪走森林的星光，就去看看湖中那個不屬於你的倒影。",
   "dlg.wanderer.opt.who": "你是誰？",
   "dlg.wanderer.opt.bye": "（點點頭）",
-  "dlg.wanderer.who": "一個追著星形記號走的人。路牌、樹根、石碑——你會在更多地方看到它。我們會再見的。"
+  "dlg.wanderer.who": "一個追著星形記號走的人。路牌、樹根、石碑——你會在更多地方看到它。我們會再見的。",
+  "object.lostFirefly": "失散的螢靈",
+  "interact.callFirefly": "輕聲呼喚",
+  "quest.forestSq2.name": "螢火蟲回家",
+  "quest.forestSq2.desc": "迷霧把幾隻螢靈嚇散了。牠們躲在發光的小蘑菇底下，輕聲呼喚就會跟著回到燈柱旁。",
+  "quest.forestSq2.find": "找回失散的螢靈 ×3",
+  "dlg.lilu.opt.findFireflies": "我去找找看",
+  "dlg.lilu.opt.notNow": "晚點再說",
+  "dlg.lilu.opt.fireflyReport": "牠們都回來了",
+  "dlg.lilu.firefly.offer": "燈柱亮了以後，我才發現守著它的螢靈少了三隻。牠們怕霧，大概躲到哪朵小蘑菇底下去了……一隻在迷霧入口附近，一隻在花園，還有一隻好像跑到溪谷那邊。",
+  "dlg.lilu.firefly.accept": "找到的話輕聲叫牠們就好，牠們認得燈柱的光，會自己飛回來的。",
+  "dlg.lilu.firefly.progress": "還有螢靈沒回來。入口、花園、溪谷——仔細看看會發光的小蘑菇。",
+  "dlg.lilu.firefly.done": "你看，燈柱旁邊又熱鬧起來了！三隻都回來了。",
+  "dlg.lilu.firefly.gift": "這是螢靈們留下的孢子和純淨螢苔，收下吧。以後族人看到燈柱這麼亮，也許就願意回森林了。"
 }

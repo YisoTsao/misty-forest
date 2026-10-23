@@ -553,7 +553,20 @@ function glowFlowers(): ForestModel {
   return { plant: merge(plant, '螢光花的莖葉'), glow: merge(glow, '螢光花') };
 }
 
+/** 失散的螢靈（支線 CH2-SQ-02）：縮在發光小蘑菇下的一團光，身邊飄著幾顆小光點；找到後整個物件消失（跟著回家） */
+function lostFirefly(): ForestModel {
+  const rand = mulberry32(823);
+  const solid = [cylinder(0.05, 0.07, 0.42, [0, 0.21, 0], c('#e9dcc2'), 6), sphere(0.26, [0, 0.46, 0], c('#c58bd6'), [1, 0.45, 1])];
+  const glow: THREE.BufferGeometry[] = [sphere(0.14, [0.18, 0.78, 0.05], glowColor('#ffe9a3', 2.2), [1, 1, 1], 1)];
+  for (let i = 0; i < 6; i++) {
+    const a = rand() * Math.PI * 2;
+    glow.push(sphere(0.035, [Math.cos(a) * (0.3 + rand() * 0.25), 0.55 + rand() * 0.5, Math.sin(a) * (0.3 + rand() * 0.25)], glowColor('#fff3c4', 1.8), [1, 1, 1], 0));
+  }
+  return { solid: merge(solid, '螢靈的小蘑菇'), glow: merge(glow, '失散的螢靈') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
+  lost_firefly: lostFirefly,
   mist_arch: mistArch,
   signpost_broken: brokenSignpost,
   glow_flowers: glowFlowers,

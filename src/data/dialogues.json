@@ -2250,5 +2250,70 @@
         "textKey": "dlg.wanderer.who"
       }
     }
+  },
+  {
+    "id": "lilu_firefly_offer",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.firefly.offer",
+        "options": [
+          {
+            "textKey": "dlg.lilu.opt.findFireflies",
+            "next": "accept",
+            "effects": [
+              {
+                "type": "acceptQuest",
+                "quest": "quest_forest_sq02"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.lilu.opt.notNow"
+          }
+        ]
+      },
+      "accept": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.firefly.accept"
+      }
+    }
+  },
+  {
+    "id": "lilu_firefly_progress",
+    "start": "say",
+    "nodes": {
+      "say": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.firefly.progress"
+      }
+    }
+  },
+  {
+    "id": "lilu_firefly_turnin",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.firefly.done",
+        "options": [
+          {
+            "textKey": "dlg.lilu.opt.fireflyReport",
+            "next": "done",
+            "effects": [
+              {
+                "type": "turnInQuest",
+                "quest": "quest_forest_sq02"
+              }
+            ]
+          }
+        ]
+      },
+      "done": {
+        "speakerKey": "npc.lilu",
+        "textKey": "dlg.lilu.firefly.gift"
+      }
+    }
   }
 ]

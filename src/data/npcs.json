@@ -920,6 +920,29 @@
       },
       {
         "when": {
+          "type": "questReady",
+          "quest": "quest_forest_sq02"
+        },
+        "dialogue": "lilu_firefly_turnin"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq02",
+          "is": "active"
+        },
+        "dialogue": "lilu_firefly_progress"
+      },
+      {
+        "when": {
+          "type": "questStatus",
+          "quest": "quest_forest_sq02",
+          "is": "available"
+        },
+        "dialogue": "lilu_firefly_offer"
+      },
+      {
+        "when": {
           "type": "questStatus",
           "quest": "quest_forest_001",
           "is": "completed"

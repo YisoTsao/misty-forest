@@ -152,6 +152,12 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - D 區加入三間小屋（KayKit 小屋造型）與公告板（沿用 `notice_board`）；菇菇婆婆（13A、13C）在聚落中央。
 - 未做（規格 Phase 2 仍有的項目）：支線任務 CH2-SQ-01 至 06、壓力板與可推動石塊（P-02 的另外兩種機關）、村民的正式模型與信任機制、以及聚落主入口的開啟（目前溪谷石障是唯一的入口）。
 
+### 任務 13O：支線 CH2-SQ-02「螢火蟲回家」（第二章 Phase 2，規格 8.3、NPC-02）
+- 莉露在 `quest_forest_001` 之後提出（`quest_forest_sq02`）：找回三隻失散的螢靈（`lost_firefly_01`–`03`，A 入口、B 花園、C 溪谷；新程式造型 `procedural:lost_firefly`——發光小蘑菇下的一團光），任務進行中才能「輕聲呼喚」，叫回來後物件消失。回報拿微光孢子 ×3、純淨螢苔 ×2、種籽幣 ×20。規格的「燈籠外觀」沒有外觀系統，暫不做。
+- 莉露的對話順序：001 → 螢火蟲支線（提出 / 進行中 / 回報）→ `lilu_after`。
+- 重新產生 placement：新增三隻螢靈，另有一叢裝飾灌木（`glowmoss_bush_100`）被擠開位置。
+- 測試：`pnpm check`（Vitest 1043 項）、`pnpm build`；e2e `forestquest` 新增支線 1 項共 8 項全過。截圖 `docs/screenshots/phase13/glowmoss_firefly.png`（書籤 `glowmoss_firefly`，已檢視）。
+
 ### 任務 13N：章節結尾——古樹核心的記憶與無名旅人（第二章 Phase 4，規格 CH2-MQ-07、08、§2.4、NPC-04）
 - **修正缺口**：`quest_forest_008` 沒有發起人，原本沒有任何地方會接取它，正常遊玩永遠打不開往澄鏡湖的出口。現在菇菇婆婆的 007 回報對話同時接下 008。
 - `quest_forest_007` 的獎勵：古樹核心（`ancient_core`，任務道具）。`quest_forest_008` 改為兩個目標：在祭壇觀看古樹核心的記憶（`ancient_memory_01`，沿用倒影的程式造型，`activate.message` 顯示看到的湖與星形符號）→ 走到澄鏡湖的入口；兩者完成後自動完成，出口打開。

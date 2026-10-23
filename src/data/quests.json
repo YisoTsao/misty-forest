@@ -726,5 +726,42 @@
         }
       ]
     }
+  },
+  {
+    "id": "quest_forest_sq02",
+    "nameKey": "quest.forestSq2.name",
+    "category": "side",
+    "descKey": "quest.forestSq2.desc",
+    "giver": "lilu",
+    "requires": [
+      "quest_forest_001"
+    ],
+    "objectives": [
+      {
+        "type": "activate",
+        "placementIds": [
+          "lost_firefly_01",
+          "lost_firefly_02",
+          "lost_firefly_03"
+        ],
+        "descKey": "quest.forestSq2.find"
+      }
+    ],
+    "rewards": {
+      "items": [
+        {
+          "itemId": "glow_spore",
+          "count": 3
+        },
+        {
+          "itemId": "pure_glowmoss",
+          "count": 2
+        },
+        {
+          "itemId": "seed_coin",
+          "count": 20
+        }
+      ]
+    }
   }
 ]

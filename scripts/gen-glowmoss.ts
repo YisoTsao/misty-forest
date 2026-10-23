@@ -191,6 +191,10 @@ export function addGlowmoss(placements: Out[]): void {
   place('glowmoss_star_lamp_01', 'star_lamp', -99, 8, { yaw: Math.PI / 2, r: 1.2 });
   place('glowmoss_pure_node_01', 'glowmoss_node', -124, 8, { yaw: 0.6, r: 1 });
   place('glowmoss_pure_node_02', 'glowmoss_node', -98, -5, { yaw: 2.1, r: 1 });
+  // 支線 CH2-SQ-02 螢火蟲回家：三隻失散的螢靈躲在 A 入口、B 花園、C 溪谷的小蘑菇下
+  place('lost_firefly_01', 'lost_firefly', -118, -12, { yaw: 0.4, r: 1 });
+  place('lost_firefly_02', 'lost_firefly', -44, 24, { yaw: 1.8, r: 1 });
+  place('lost_firefly_03', 'lost_firefly', -34, -96, { yaw: 2.6, r: 1 });
 
   // ── 2b. C 倒流溪谷（規格 P-02）：三座水輪在溪岸（答案在石碑上）、石障擋住溪谷往上游的路、石碑讀得到 ──
   place('creek_wheel_01', 'waterwheel', -44, -56, { yaw: Math.PI / 2, r: 2.5 });
