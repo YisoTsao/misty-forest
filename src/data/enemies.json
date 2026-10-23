@@ -841,6 +841,10 @@
       "phase2Below": 0.6,
       "phase2Cooldown": 0.7,
       "recoverScale": 1.5,
+      "summon": {
+        "enemy": "mob_fog_wisp",
+        "count": 2
+      },
       "textKey": "root",
       "moves": {
         "spikes": {

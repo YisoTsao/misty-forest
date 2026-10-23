@@ -1,6 +1,7 @@
 // 端對端：第二章 Phase 4 — 古樹祭壇與根噬者（規格 B-01、G 區、CH2-MQ-07）。
 // 接下 quest_forest_007 後走進祭壇的戰場，把根噬者打到只剩 1 點 → 進入淨化（不會死）；
 // 依序點亮三座古樹共鳴石柱 → 根噬者被淨化、打倒只結算一次；回報菇菇婆婆後任務完成。
+// 第二階段（血量跌破門檻）召喚幻霧螢靈；離開戰場時頭目、召喚物與點亮的石柱都重置（規格 §6.4 重試）。
 // 用法：pnpm build && node e2e/altar.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -27,6 +28,34 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
     await teleport(2112, 11, 900);
     await page.waitForFunction((k) => window.__mistwoodDebug.enemies().some((e) => e.kind === k), BOSS, { timeout: 20000 });
     assert.ok(await bossOf(), '根噬者沒有出現');
+  });
+
+  const wisps = () => debug(() => window.__mistwoodDebug.enemies().filter((e) => e.kind === 'mob_fog_wisp' && e.x > 2090 && e.x < 2130 && Math.abs(e.z) < 20).length);
+  await check('第二階段：血量跌破門檻時召喚幻霧螢靈', async () => {
+    for (let i = 0; i < 40 && (await wisps()) === 0; i++) {
+      const b = await bossOf();
+      await debug((id) => window.__mistwoodDebug.hitEnemy(id, 'sword_slash_diag'), b.id);
+      await page.waitForTimeout(150);
+    }
+    assert.equal(await wisps(), 2);
+  });
+
+  await check('重試：點亮一座石柱後離開戰場，頭目、召喚的螢靈與石柱都重置', async () => {
+    const p = at(PILLARS[0]);
+    await teleport(p.position[0] + 1.2, p.position[2] + 0.6, 800);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [p.position[0], p.position[2]]);
+    await page.waitForFunction((x) => window.__mistwoodDebug.interactTarget() === x, PILLARS[0], { timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    await page.waitForFunction((x) => window.__mistwoodDebug.objectState(x)?.active === true, PILLARS[0], { timeout: 3000 });
+    await teleport(2106, 18, 800);
+    await page.waitForFunction((k) => !window.__mistwoodDebug.enemies().some((e) => e.kind === k), BOSS, { timeout: 5000 });
+    await page.waitForTimeout(1500);
+    assert.equal(await wisps(), 0, '召喚的螢靈還在');
+    assert.notEqual(await debug((x) => window.__mistwoodDebug.objectState(x)?.active, PILLARS[0]), true, '石柱沒有熄滅');
+    await teleport(2112, 11, 900);
+    await page.waitForFunction((k) => window.__mistwoodDebug.enemies().some((e) => e.kind === k), BOSS, { timeout: 20000 });
+    const b = await bossOf();
+    assert.equal(b.hp, 320);
   });
 
   await check('把根噬者打到只剩 1 點：進入淨化，不會被打倒', async () => {

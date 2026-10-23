@@ -232,6 +232,8 @@ export type GameEvent =
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
   | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'quest' | 'light' | 'puzzle' }
+  /** 機關回到未啟動（第二章 B-01：頭目戰重試時共鳴石柱熄滅） */
+  | { type: 'ObjectDeactivated'; placementId: string }
   | { type: 'ObjectTurned'; placementId: string; turn: number }
   | { type: 'EnemySpawned'; enemyId: string; kind: string; spawner: string; hp: number }
   | { type: 'EnemyDespawned'; enemyId: string }
@@ -388,9 +390,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
     case 'StartBossFight':
       return startBossFight(state, cmd.boss, ctx);
     case 'EndBossFight': {
-      const fighting = bossEnemies(state, cmd.boss);
-      if (fighting.length === 0) return reject('EndBossFight', 'not-in-fight');
-      return fighting.map((e) => ({ type: 'EnemyDespawned', enemyId: e.id }));
+      if (bossEnemies(state, cmd.boss).length === 0) return reject('EndBossFight', 'not-in-fight');
+      return endBossFight(state, cmd.boss, ctx);
     }
     case 'RespawnPlayer':
       if (!state.player.defeated) return reject('RespawnPlayer', 'invalid-command');
@@ -596,6 +597,8 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
       const lit = (id: string) => (id === placementId ? true : state.objects.get(id)?.active === true);
       if (purify.pillars.every(lit)) {
         events.push({ type: 'EnemyDefeated', enemyId: fighting.id, kind: fighting.kind, spawner: fighting.spawner }, { type: 'BossDefeated', boss: fighting.kind });
+        // 淨化完成：召喚出來的幻霧螢靈跟著散去
+        for (const add of bossSummons(state, fighting.kind, ctx)) events.push({ type: 'EnemyDespawned', enemyId: add.id });
       }
     }
   }
@@ -661,6 +664,10 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   const hp = Math.max(floor, enemy.hp - amount);
   const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount: boss ? enemy.hp - hp : amount, hp, attack }];
   if (purifying && hp === 1 && !enemy.purifying && enemy.hp > 1) events.push({ type: 'EnemyPurifying', enemyId });
+  // 迷霧暴走（第二章 B-01 第二階段）：血量跌破第二階段的門檻時召喚小怪（id 為「頭目 id+序號」，在頭目的生成點出現）
+  if (boss?.summon && enemy.hp / def.maxHp >= boss.phase2Below && hp / def.maxHp < boss.phase2Below) {
+    for (let k = 1; k <= boss.summon.count; k++) events.push({ type: 'EnemySpawned', enemyId: `${enemyId}+${k}`, kind: boss.summon.enemy, spawner: enemy.spawner, hp: ctx.combat.enemies.get(boss.summon.enemy)?.maxHp ?? 1 });
+  }
   if (hp > 0 || purifying) return events;
 
   events.push({ type: 'EnemyDefeated', enemyId, kind: enemy.kind, spawner: enemy.spawner });
@@ -719,8 +726,9 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   if (move === 'spores' && spores && hp > 0) events.push({ type: 'PlayerSlowed', sec: spores.slowSec, scale: spores.slowScale, cause: 'spores' });
   if (hp <= 0) {
     events.push({ type: 'PlayerDefeated' });
-    // 失敗後重試（Bible §27.4）：頭目回去、血量回滿，已注水的水槽保留
-    for (const e of state.enemies.values()) if (ctx.combat.enemies.get(e.kind)?.boss) events.push({ type: 'EnemyDespawned', enemyId: e.id });
+    // 失敗後重試（Bible §27.4）：頭目回去、血量回滿，已注水的水槽保留；召喚物消失、淨化的共鳴石柱熄滅（第二章 B-01）
+    const fighting = new Set([...state.enemies.values()].filter((e) => ctx.combat.enemies.get(e.kind)?.boss).map((e) => e.kind));
+    for (const bossId of fighting) events.push(...endBossFight(state, bossId, ctx));
   }
   return events;
 }
@@ -795,6 +803,19 @@ function unequipItem(state: GameState, slot: EquipSlot, ctx: RulesContext): Game
 /** 正在戰鬥中的這個頭目（通常 0 或 1 隻） */
 function bossEnemies(state: GameState, bossId: string): EnemyRuntime[] {
   return [...state.enemies.values()].filter((e) => e.kind === bossId);
+}
+
+/** 頭目召喚出來的小怪（和頭目同一個生成點、種類不是頭目） */
+function bossSummons(state: GameState, bossId: string, ctx: RulesContext): EnemyRuntime[] {
+  const spawner = bossSpawner(ctx.combat, bossId);
+  return spawner ? [...state.enemies.values()].filter((e) => e.spawner === spawner.id && e.kind !== bossId) : [];
+}
+
+/** 頭目戰結束（離開戰場、玩家倒下）：頭目與召喚物回去；淨化用的共鳴石柱熄滅，重試時從頭來（第二章 B-01） */
+function endBossFight(state: GameState, bossId: string, ctx: RulesContext): GameEvent[] {
+  const events: GameEvent[] = [...bossEnemies(state, bossId), ...bossSummons(state, bossId, ctx)].map((e) => ({ type: 'EnemyDespawned', enemyId: e.id }));
+  for (const id of ctx.combat.enemies.get(bossId)?.boss?.purify?.pillars ?? []) if (state.objects.get(id)?.active) events.push({ type: 'ObjectDeactivated', placementId: id });
+  return events;
 }
 
 /** 已注水的水槽數 */
@@ -1063,6 +1084,9 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
         break;
       case 'ObjectActivated':
         patch(e.placementId, { active: true, activatedAt: time });
+        break;
+      case 'ObjectDeactivated':
+        patch(e.placementId, { active: undefined, activatedAt: undefined });
         break;
       case 'ObjectTurned':
         patch(e.placementId, { turn: e.turn || undefined });

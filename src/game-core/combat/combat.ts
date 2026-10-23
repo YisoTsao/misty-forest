@@ -57,6 +57,8 @@ export const bossDefSchema = z
      * 戰場上的共鳴石柱（pillars，activate 時帶這個頭目）全部啟動後才算打倒（BossDefeated）。
      */
     purify: z.object({ pillars: z.array(z.string().min(1)).min(1) }).optional(),
+    /** 迷霧暴走（第二章 B-01）：血量跌破 phase2Below 時召喚 count 隻小怪（重試時消失） */
+    summon: z.object({ enemy: z.string().min(1), count: z.number().int().positive().max(4) }).optional(),
     /** 文字（提示、戰前台詞）的 i18n 前綴，例如 boss → boss.intro、boss.hint */
     textKey: z.string().min(1).default('boss'),
     moves: z.object({
@@ -197,6 +199,10 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
     if (e.boss && e.boss.shield.length !== e.boss.troughs.length + 1) throw new Error(`頭目 ${e.id} 的護盾倍率數量必須是水槽數 + 1`);
     if (e.boss && e.boss.shield.at(-1) !== 1) throw new Error(`頭目 ${e.id} 的水槽全部注水後護盾倍率必須是 1`);
     enemies.set(e.id, e);
+  }
+  for (const e of enemies.values()) {
+    const summoned = e.boss?.summon && enemies.get(e.boss.summon.enemy);
+    if (e.boss?.summon && (!summoned || summoned.boss)) throw new Error(`頭目 ${e.id} 召喚的敵人不存在或是頭目：${e.boss.summon.enemy}`);
   }
   for (const e of enemies.values()) {
     if (!e.splitInto) continue;
