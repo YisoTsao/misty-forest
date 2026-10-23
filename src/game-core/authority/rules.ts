@@ -6,9 +6,10 @@ import { bossRequirementsMet, bossShieldScale, bossSpawner, PLAYER_STATS, stance
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { canCastSpell, canUseWeapon, DEFAULT_HERO_CLASS, type HeroClassCatalog, type HeroClassId } from '../character/heroClass';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
-import { addItems, createInventory, removeItems, type Inventory } from '../inventory/inventory';
+import { addItems, countItem, createInventory, removeItems, type Inventory } from '../inventory/inventory';
 import { cellsToReveal, createExplored, EXPLORE_CELLS, withCells, type Explored } from '../map/explore';
 import { rollLoot, type ItemCatalog, type ItemStack, type LootTables } from '../items/items';
+import { equipmentModifiers, scaleDamage, type EquipSlot, type Equipment, type Modifiers } from '../equipment/equipment';
 import { type QuestDef, earlierObjectivesDone, isQuestTracked, talkObjectiveIndex, talksDone, MAX_TRACKED_SIDE, questConsumption, questStatus, isQuestReady, trackedSideCount, type QuestCatalog, type QuestRecord } from '../quest/quest';
 import { nextTutorialStep, type TutorialStep } from '../tutorial/tutorial';
 import { lowerMistStage, type MistStage } from '../world/mist';
@@ -29,6 +30,8 @@ export type GameState = {
   readonly clock: number;
   readonly objects: ObjectRuntimeMap;
   readonly inventory: Inventory;
+  /** 裝備格（第二章 Phase 2）：裝備中的道具不在背包裡，值是道具 id */
+  readonly equipment: Equipment;
   /** 教學引導目前的步驟 */
   readonly tutorial: TutorialStep;
   /** 各區域的迷霧階段（規格 1.4） */
@@ -67,6 +70,7 @@ export function initialGameState(): GameState {
   return {
     time: 0,
     clock: 0,
+    equipment: {},
     objects: new Map(),
     inventory: createInventory(),
     tutorial: 'move',
@@ -120,6 +124,8 @@ export type GameCommand =
   | { type: 'EquipWeapon'; weapon: WeaponId }
   /** 選職業（新遊戲開始時）：換成該職業的預設武器 */
   | { type: 'ChooseClass'; heroClass: HeroClassId }
+  | { type: 'EquipItem'; itemId: string }
+  | { type: 'UnequipItem'; slot: EquipSlot }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
   | { type: 'EnemyStrike'; enemyId: string; spit?: boolean; move?: BossMoveId }
@@ -202,7 +208,9 @@ export type GameEvent =
   | { type: 'QuestAccepted'; quest: string }
   | { type: 'QuestTracked'; quest: string; tracked: boolean }
   | { type: 'QuestCompleted'; quest: string }
-  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' }
+  | { type: 'ItemsRemoved'; items: ItemStack[]; reason: 'quest' | 'repair' | 'shop' | 'use' | 'craft' | 'equip' }
+  | { type: 'ItemEquipped'; slot: EquipSlot; itemId: string }
+  | { type: 'ItemUnequipped'; slot: EquipSlot; itemId: string }
   | { type: 'ObjectRepaired'; placementId: string }
   /** 機關啟動；source：玩家互動、水流喚醒（苔蘚節點）或任務獎勵 */
   | { type: 'ObjectActivated'; placementId: string; source: 'player' | 'quest' | 'light' }
@@ -337,6 +345,10 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       }
       if (state.player.weapon === cmd.weapon) return [];
       return [{ type: 'WeaponEquipped', weapon: cmd.weapon }];
+    case 'EquipItem':
+      return equipItem(state, cmd.itemId, ctx);
+    case 'UnequipItem':
+      return unequipItem(state, cmd.slot, ctx);
     case 'ChooseClass': {
       const def = ctx.heroClasses?.get(cmd.heroClass);
       if (!def) return reject('ChooseClass', 'invalid-command');
@@ -433,10 +445,16 @@ function lookup(ctx: RulesContext, placementId: string) {
 }
 
 /** 擲掉落表並確認背包放得下；放不下回傳 null */
+/** 目前裝備與背包的被動效果（守林者護腕、水行護符） */
+export function modifiersOf(state: Pick<GameState, 'equipment' | 'inventory' | 'player'>, ctx: Pick<RulesContext, 'items'>): Modifiers {
+  const held = state.inventory.slots.flatMap((s) => (s ? [s.itemId] : []));
+  return equipmentModifiers(state.equipment, held, (id) => ctx.items.get(id), state.player.weapon);
+}
+
 function rollIntoInventory(state: GameState, tableId: string, ctx: RulesContext): ItemStack[] | null {
   const table = ctx.lootTables.get(tableId);
   if (!table) throw new Error(`未知的掉落表：${tableId}`);
-  const items = rollLoot(table, ctx.random);
+  const items = rollLoot(table, ctx.random, modifiersOf(state, ctx).rareDropBonus);
   return addItems(state.inventory, items, ctx.items) ? items : null;
 }
 
@@ -568,7 +586,7 @@ function attackDamage(state: GameState, attack: string, ctx: RulesContext): numb
   const entry = ctx.weapons.moves.get(attack);
   if (!entry) return 'unknown-move';
   if (entry.weapon !== state.player.weapon) return 'weapon-not-equipped';
-  return entry.move.damage;
+  return scaleDamage(entry.move.damage, modifiersOf(state, ctx).attackScale);
 }
 
 function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: RulesContext, stance?: EnemyStance): GameEvent[] {
@@ -634,7 +652,9 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   if ((move !== undefined) !== Boolean(def.boss)) return reject('EnemyStrike', 'invalid-command');
   const bossMove = move && def.boss ? def.boss.moves[move] : undefined;
   if (move && !bossMove) return reject('EnemyStrike', 'invalid-command');
-  const amount = bossMove ? bossMove.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  const raw = bossMove ? bossMove.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  // 守林者護腕等防具減傷（裝備系統，Phase 2）
+  const amount = scaleDamage(raw, modifiersOf(state, ctx).damageTakenScale);
   const hp = Math.max(0, state.player.hp - amount);
   const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId }];
   if (spit && behavior?.kind === 'spit' && hp > 0) events.push({ type: 'PlayerSlowed', sec: behavior.slowSec, scale: behavior.slowScale });
@@ -647,6 +667,38 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
     for (const e of state.enemies.values()) if (ctx.combat.enemies.get(e.kind)?.boss) events.push({ type: 'EnemyDespawned', enemyId: e.id });
   }
   return events;
+}
+
+/** 裝備道具（第二章 Phase 2）：道具從背包放進裝備格；原本在格子裡的裝備放回背包（放不下就拒絕） */
+function equipItem(state: GameState, itemId: string, ctx: RulesContext): GameEvent[] {
+  const def = ctx.items.get(itemId);
+  if (!def?.equip || countItem(state.inventory, itemId) < 1) return reject('EquipItem', 'invalid-command');
+  // 武器變體：職業不能用的基礎武器類型不能裝備
+  const cls = ctx.heroClasses?.get(state.player.heroClass);
+  if (def.equip.base !== undefined && cls && !canUseWeapon(cls, def.equip.base)) return reject('EquipItem', 'invalid-command');
+  const { slot } = def.equip;
+  const stack = [{ itemId, count: 1 }];
+  const removed = removeItems(state.inventory, stack);
+  if (!removed) return reject('EquipItem', 'invalid-command');
+  const events: GameEvent[] = [{ type: 'ItemsRemoved', items: stack, reason: 'equip' }];
+  const previous = state.equipment[slot];
+  if (previous) {
+    if (!addItems(removed, [{ itemId: previous, count: 1 }], ctx.items)) return reject('EquipItem', 'inventory-full');
+    events.push({ type: 'ItemUnequipped', slot, itemId: previous }, { type: 'ItemsGained', items: [{ itemId: previous, count: 1 }], source: 'unequip' });
+  }
+  events.push({ type: 'ItemEquipped', slot, itemId });
+  return events;
+}
+
+/** 卸下裝備（放回背包；背包放不下就拒絕，裝備留在格子裡） */
+function unequipItem(state: GameState, slot: EquipSlot, ctx: RulesContext): GameEvent[] {
+  const itemId = state.equipment[slot];
+  if (!itemId) return reject('UnequipItem', 'invalid-command');
+  if (!addItems(state.inventory, [{ itemId, count: 1 }], ctx.items)) return reject('UnequipItem', 'inventory-full');
+  return [
+    { type: 'ItemUnequipped', slot, itemId },
+    { type: 'ItemsGained', items: [{ itemId, count: 1 }], source: 'unequip' },
+  ];
 }
 
 /** 正在戰鬥中的這個頭目（通常 0 或 1 隻） */
@@ -885,7 +937,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, clock, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
+  let { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -924,6 +976,14 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'ObjectTurned':
         patch(e.placementId, { turn: e.turn || undefined });
         break;
+      case 'ItemEquipped':
+        equipment = { ...equipment, [e.slot]: e.itemId };
+        break;
+      case 'ItemUnequipped': {
+        equipment = { ...equipment };
+        delete equipment[e.slot];
+        break;
+      }
       case 'ItemsGained': {
         const next = addItems(inventory, e.items, ctx.items);
         // 規則已檢查過容量；走到這裡代表事件與狀態不一致，必須明確失敗
@@ -1030,5 +1090,5 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, clock, objects, inventory, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
+  return { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
 }

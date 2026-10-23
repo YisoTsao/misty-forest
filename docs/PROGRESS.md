@@ -31,6 +31,16 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 任務 13A：裝備系統（第二章 Phase 2，PHASE0 §4、規格 §7.3–7.4）
+- 三個裝備格（武器變體、防具、飾品）；裝備中的道具不在背包裡（不能被賣、交給任務或製作）。`items.json` 新增 `equipment` 類別、`equip`（格、基礎武器、效果）與 `passive`（持有即生效）；掉落表的 `rare` 項目受稀有加成影響。純函式 `equipmentModifiers` 合併倍率（`src/game-core/equipment/equipment.ts`）。
+- 規則：`EquipItem` / `UnequipItem`；武器變體受職業限制；換裝時原本的裝備放回背包（放不下就拒絕）。`enemyStrike` 套用防具減傷、`attackDamage` 套用武器倍率（只在基礎武器是目前的武器時）、`rollIntoInventory` 套用稀有加成。
+- 三件裝備：螢晶短劍（短刀變體）、螢苔法杖（法杖變體）、守林者護腕（減傷 0.9、稀有 +15%、迷霧傷害 ×0.5，迷霧傷害要到 Phase 3 才有作用）。材料：霧紋獸牙、厚實獸皮、柔韌樹皮、守衛木核、星晶碎片、古樹樹脂（只有定義與配方，來源在後續任務加入）。
+- 水行護符改成被動效果（`passive: waterBreath`），`Player.tsx` 的寫死檢查移除（行為不變）。
+- 聚落工作台 `glow_workbench` 的配方由菇菇婆婆開啟（NPC 在 D 區，對話 `openCraft`）。
+- 存檔 v20：`loadout.equipment`；v19 → v20 遷移為空裝備。
+- UI：背包加裝備格與「裝備 / 卸下」按鈕。
+- 測試：`pnpm check`（Vitest 970 項，新增 `equipment.test.ts` 10 項）、`pnpm build`。e2e 新增 `equipment`（裝備、卸下、武器變體職業限制，3 項）全過；`save`（存檔欄位）、`craft`、`lightpuzzle`、`lake`、`dev` 全過。減傷的實際扣血數值只有單元測試，沒有 e2e。
+
 ### 任務 12E：莉露與 quest_forest_001「失去光芒的森林」（2026-10-23，分支 `wip/ch2-glowmoss`，規格 CH2-MQ-01）
 - 莉露（`lilu`，placeholder 模型：KayKit Rogue，之後換正式模型）在迷霧入口的燈柱旁。第一章完成（`quest_dawn_003`）後提出委託，接取 → 採集純淨螢苔 → 點亮 `glowmoss_star_lamp_01` → 回報，拿到星光羅盤（`star_compass`，只給道具，指引功能之後做）。之後莉露改說後續的話。
 - 目標只有「點亮燈柱」。規格的「採集」由燈柱的素材需求承接（純淨螢苔被燈柱消耗，所以不能做成「持有數量」的收集目標）；莉露的「回報」是 `turnInQuest`，不另設 `talk` 目標（對話在任務就緒後才出現，不能當作目標）。

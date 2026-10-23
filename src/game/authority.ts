@@ -14,7 +14,7 @@ import type { FlockDef } from '@/game-core/ambient/sheep';
 import type { RegionDef } from '@/game-core/world/regions';
 import type { Landmark } from '@/game-core/map/markers';
 import type { LightPathDef } from '@/game-core/world/lightPath';
-import { initialGameState } from '@/game-core/authority/rules';
+import { initialGameState, modifiersOf } from '@/game-core/authority/rules';
 import { parseHeroClasses, type HeroClassCatalog } from '@/game-core/character/heroClass';
 import classesRaw from '@/data/classes.json';
 import { characterIds } from './character/characters';
@@ -85,6 +85,9 @@ const allowDebugCommands = import.meta.env.DEV || new URLSearchParams(window.loc
 
 /** 世界查詢索引（啟動時建立一次，之後唯讀） */
 export const worldIndex = new WorldIndex(data);
+
+/** 目前的被動效果與裝備倍率（裝備系統，Phase 2） */
+export const currentModifiers = () => modifiersOf(authority.getState(), { items: data.items });
 
 export const authority = new LocalAuthority(initialGameState(), {
   world: worldIndex,

@@ -50,7 +50,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     },
     companion: { ...state.companion },
     build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
-    loadout: { weapon: state.player.weapon, heroClass: state.player.heroClass },
+    loadout: { weapon: state.player.weapon, heroClass: state.player.heroClass, equipment: { ...state.equipment } },
     map: { explored: encodeExplored(state.explored) },
   };
 }
@@ -113,6 +113,7 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
       clock: 0,
       objects,
       inventory: { slots },
+      equipment: { ...(data.loadout.equipment ?? {}) },
       tutorial: data.tutorial,
       mist: data.mist,
       quests: data.quests,

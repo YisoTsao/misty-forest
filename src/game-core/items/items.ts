@@ -1,8 +1,9 @@
 // 物品定義與掉落表（規格 6.3：物品定義與玩家背包分離；6.2：資源有數量與條件）。
 import { z } from 'zod';
+import { equipEffectSchema, equipSpecSchema } from '../equipment/equipment';
 
 /** consumable：藥膏與藥水（任務 8C 的獎勵；使用功能在之後的任務加入）；currency：種籽幣（任務 7G，商店之後再做） */
-export const itemCategories = ['material', 'special', 'quest', 'consumable', 'currency'] as const;
+export const itemCategories = ['material', 'special', 'quest', 'consumable', 'currency', 'equipment'] as const;
 
 export const itemDefSchema = z.object({
   id: z.string().min(1),
@@ -16,6 +17,10 @@ export const itemDefSchema = z.object({
   maxStack: z.number().int().positive(),
   /** 可以使用（任務 7I，Bible §25.3）：回復 heal 點體力；cureSlow 時同時解除泥巴 / 孢子造成的緩速 */
   use: z.object({ heal: z.number().int().positive(), cureSlow: z.boolean().optional() }).optional(),
+  /** 裝備（第二章 Phase 2）：裝到哪個格、數值與效果（規格 §7.3） */
+  equip: equipSpecSchema.optional(),
+  /** 被動效果：放在背包裡就生效，不必裝備（水行護符） */
+  passive: z.array(equipEffectSchema).min(1).optional(),
 });
 export type ItemDef = z.infer<typeof itemDefSchema>;
 
@@ -30,6 +35,8 @@ export const lootTableSchema = z.object({
           max: z.number().int().positive(),
           /** 掉落機率（0–1，預設 1） */
           chance: z.number().min(0).max(1).optional(),
+          /** 稀有項目：守林者護腕的稀有掉落加成只套用在這些項目（機率乘上加成） */
+          rare: z.boolean().optional(),
         })
         .refine((d) => d.max >= d.min, { message: 'max 必須 ≥ min' }),
     )
@@ -72,10 +79,11 @@ export function parseItemData(rawItems: unknown, rawLootTables: unknown): { item
 }
 
 /** 擲一次掉落表。random 由呼叫端注入（測試用固定種子，伺服器用自己的亂數）。數量 0 的項目不列出。 */
-export function rollLoot(table: LootTable, random: () => number): ItemStack[] {
+export function rollLoot(table: LootTable, random: () => number, rareBonus = 0): ItemStack[] {
   const result: ItemStack[] = [];
   for (const drop of table.drops) {
-    if (drop.chance !== undefined && random() >= drop.chance) continue;
+    const chance = drop.chance !== undefined && drop.rare ? Math.min(1, drop.chance * (1 + rareBonus)) : drop.chance;
+    if (chance !== undefined && random() >= chance) continue;
     const count = drop.min + Math.floor(random() * (drop.max - drop.min + 1));
     if (count <= 0) continue;
     const existing = result.find((s) => s.itemId === drop.itemId);

@@ -150,6 +150,7 @@ export type MistwoodDebugApi = {
   resetWorld: () => void;
   /** 背包格子快照 */
   inventory: () => InventorySlot[];
+  equipment: () => Record<string, string | undefined>;
   itemCount: (itemId: string) => number;
   /** 敵人是否還在權威狀態裡；enemyAnim 為模型怪物目前播放的動畫（含正在倒下消失的） */
   enemyKnown: (id: string) => boolean;
@@ -398,6 +399,7 @@ export function installDebugApi(): void {
       useUiStore.getState().closeMessage();
     },
     inventory: () => [...authority.getState().inventory.slots],
+    equipment: () => ({ ...authority.getState().equipment }),
     itemCount: (itemId) => countItem(authority.getState().inventory, itemId),
     enemyKnown: (id) => authority.getState().enemies.has(id),
     enemyAnim: (id) => enemyRuntime.get(id)?.anim ?? null,

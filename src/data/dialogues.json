@@ -1693,5 +1693,29 @@
         "textKey": "dlg.lilu.after"
       }
     }
+  },
+  {
+    "id": "granny_intro",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "speakerKey": "npc.granny",
+        "textKey": "dlg.granny.greet",
+        "options": [
+          {
+            "textKey": "dlg.granny.opt.craft",
+            "effects": [
+              {
+                "type": "openCraft",
+                "station": "glow_workbench"
+              }
+            ]
+          },
+          {
+            "textKey": "dlg.granny.opt.later"
+          }
+        ]
+      }
+    }
   }
 ]

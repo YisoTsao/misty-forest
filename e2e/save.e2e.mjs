@@ -56,7 +56,7 @@ await runE2e('save e2e（1/5 存檔）', { query: 'debug=1', env }, async ({ pag
     assert.equal(file.version, SAVE_VERSION);
     assert.equal(typeof file.tutorial, 'string');
     assert.ok(file.world.objects.some((o) => o.placementId === chest.id && o.open), '存檔內沒有寶箱狀態');
-    assert.deepEqual(file.loadout, { weapon: 'greatsword', heroClass: 'knight' });
+    assert.deepEqual(file.loadout, { weapon: 'greatsword', heroClass: 'knight', equipment: {} });
   });
 
   await check('匯出存檔內容與存檔檔案相同', async () => {

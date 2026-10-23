@@ -6,8 +6,8 @@ import { mistStagesSchema } from '../world/regions';
 import { weaponIds } from '../combat/weapons';
 import { heroClassIds } from '../character/heroClass';
 
-/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion。v7：加入建造物 buildings。v8：裝備。v9：星光值。v10：地圖擴大後新增的區域迷霧（任務 7A）。v11：世界地圖的探索紀錄（任務 7B）。v12：螢苔祕林的區域迷霧與探索紀錄（任務 8A）。v13：機關的開關與水輪位置（任務 8C）。v14：已擊敗的頭目（任務 8D）。v15–v16：澄鏡湖、風語草原。v17：職業（loadout.heroClass）。v18：移除舊版螢苔祕林的任務與機關（任務 12A，T-185）。v19：螢苔祕林的新地形與七個區域（任務 12B） */
-export const SAVE_VERSION = 19;
+/** v1：Phase 2 第一版。v2：加入教學進度 tutorial。v3：加入各區域迷霧 mist。v4：加入任務 quests。v5：加入戰鬥 combat。v6：加入星光夥伴 companion。v7：加入建造物 buildings。v8：裝備。v9：星光值。v10：地圖擴大後新增的區域迷霧（任務 7A）。v11：世界地圖的探索紀錄（任務 7B）。v12：螢苔祕林的區域迷霧與探索紀錄（任務 8A）。v13：機關的開關與水輪位置（任務 8C）。v14：已擊敗的頭目（任務 8D）。v15–v16：澄鏡湖、風語草原。v17：職業（loadout.heroClass）。v18：移除舊版螢苔祕林的任務與機關（任務 12A，T-185）。v19：螢苔祕林的新地形與七個區域（任務 12B）。v20：裝備格 loadout.equipment（第二章 Phase 2） */
+export const SAVE_VERSION = 20;
 
 const finite = z.number().refine(Number.isFinite, '必須是有限數值');
 
@@ -62,7 +62,12 @@ export const saveDataSchema = z.object({
     nextBuildingId: z.number().int().positive(),
   }),
   /** 裝備（v8，GAME_DESIGN 5.3）：目前的近戰武器；職業（v17） */
-  loadout: z.object({ weapon: z.enum(weaponIds), heroClass: z.enum(heroClassIds) }),
+  // equipment（第二章 Phase 2）是選填欄位：沒有裝備時為空物件
+  loadout: z.object({
+    weapon: z.enum(weaponIds),
+    heroClass: z.enum(heroClassIds),
+    equipment: z.object({ weapon: z.string().min(1).optional(), armor: z.string().min(1).optional(), charm: z.string().min(1).optional() }).optional(),
+  }),
   /** 世界地圖（v11，Bible §31.3）：探索紀錄（每 8 m 一格的位元組，base64） */
   map: z.object({ explored: z.string() }),
 });

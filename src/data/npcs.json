@@ -930,5 +930,24 @@
         "dialogue": "lilu_intro"
       }
     ]
+  },
+  {
+    "id": "granny",
+    "nameKey": "npc.granny",
+    "regionId": "mushroom_village",
+    "model": "procedural:villager_bomu",
+    "scale": 1,
+    "hiddenNodes": [],
+    "position": [
+      2030,
+      10
+    ],
+    "facingYaw": 0.6,
+    "interactRadius": 2.6,
+    "talk": [
+      {
+        "dialogue": "granny_intro"
+      }
+    ]
   }
 ]

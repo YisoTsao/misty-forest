@@ -118,6 +118,8 @@ export const saveMigrations: Readonly<Record<number, Migration>> = {
         : player,
     };
   },
+  // v19 → v20：裝備格（第二章 Phase 2，規格 §7.3）。舊存檔沒有裝備；水行護符是被動效果，留在背包裡照常生效
+  19: (data) => ({ ...data, loadout: { ...(data.loadout as Record<string, unknown>), equipment: {} } }),
 };
 
 /** 任務 12B 換掉的舊版螢苔祕林區域 */

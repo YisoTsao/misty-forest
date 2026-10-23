@@ -4,6 +4,11 @@
       "id": "linna_herbtable",
       "nameKey": "craft.station.linna_herbtable",
       "npc": "linna"
+    },
+    {
+      "id": "glow_workbench",
+      "nameKey": "craft.station.glow_workbench",
+      "npc": "granny"
     }
   ],
   "recipes": [
@@ -45,6 +50,72 @@
       "requires": {
         "questCompleted": "quest_dawn_003"
       }
+    },
+    {
+      "id": "recipe_glow_knife",
+      "station": "glow_workbench",
+      "output": {
+        "itemId": "glow_knife",
+        "count": 1
+      },
+      "inputs": [
+        {
+          "itemId": "mist_fang",
+          "count": 3
+        },
+        {
+          "itemId": "star_crystal",
+          "count": 1
+        },
+        {
+          "itemId": "tough_bark",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "recipe_glow_staff",
+      "station": "glow_workbench",
+      "output": {
+        "itemId": "glow_staff",
+        "count": 1
+      },
+      "inputs": [
+        {
+          "itemId": "glow_spore",
+          "count": 3
+        },
+        {
+          "itemId": "star_crystal",
+          "count": 1
+        },
+        {
+          "itemId": "ancient_resin",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "recipe_forest_bracer",
+      "station": "glow_workbench",
+      "output": {
+        "itemId": "forest_bracer",
+        "count": 1
+      },
+      "inputs": [
+        {
+          "itemId": "guardian_heartwood",
+          "count": 1
+        },
+        {
+          "itemId": "thick_pelt",
+          "count": 2
+        },
+        {
+          "itemId": "ancient_resin",
+          "count": 1
+        }
+      ]
     }
   ]
 }
