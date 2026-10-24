@@ -18,9 +18,9 @@ describe('按鍵綁定', () => {
   });
 
   it('反查表可由按鍵找到動作；重新綁定後生效', () => {
-    const b = parseBindings({ ...keybindings, jump: ['KeyK'] });
+    const b = parseBindings({ ...keybindings, jump: ['KeyP'] });
     const lookup = buildCodeLookup(b);
-    expect(lookup.get('KeyK')).toEqual(['jump']);
+    expect(lookup.get('KeyP')).toEqual(['jump']);
     expect(lookup.get('Space')).toBeUndefined();
   });
 });

@@ -1,5 +1,6 @@
 import type { GameEvent } from '@/game-core/authority/rules';
-import { authority, quests, worldIndex } from './authority';
+import { codexName } from './codexNames';
+import { authority, codex, quests, worldIndex } from './authority';
 import { t } from './i18n';
 import { worldDataResult } from './worldData';
 import { useUiStore } from './state/uiStore';
@@ -71,6 +72,11 @@ export function installEventFeedback(): void {
         if (objectNameKey(e.placementId) === 'object.waterWheel') ui.pushToast({ textKey: 'toast.wheelTurned' });
         // 推石（規格 P-02）：還沒推到壓力板上時提示（推到底時由水閘的訊息說明）
         else if (objectNameKey(e.placementId) === 'object.pushStone' && !events.some((x) => x.type === 'ObjectActivated')) ui.pushToast({ textKey: 'toast.stonePushed' });
+      } else if (e.type === 'CodexUnlocked') {
+        for (const id of e.entries) {
+          const entry = codex.find((c) => c.id === id);
+          if (entry) ui.pushToast({ textKey: 'toast.codexUnlocked', vars: { name: codexName(entry) } });
+        }
       } else if (e.type === 'ItemsRemoved') {
         // 喝藥不顯示「交出」（體力條本身就會變化）
         if (e.reason === 'use' || e.reason === 'craft') continue;

@@ -17,6 +17,7 @@ import { parseRegions, type RegionDef } from './regions';
 import { parseLightPaths, type LightPathDef } from './lightPath';
 import { parseShops, type ShopDef } from '../shop/shop';
 import { parseCraftData, type CraftData } from '../craft/craft';
+import { parseCodex, type CodexEntry } from '../codex/codex';
 import { parseWorldData, WorldDataError, type WorldData } from './worldData';
 
 /** 遊戲啟動時載入的全部靜態資料：世界物件 + 物品與掉落表。 */
@@ -44,6 +45,8 @@ export type GameData = WorldData & {
   shops: ReadonlyMap<string, ShopDef>;
   /** 工作台與配方（任務 7J） */
   crafting: CraftData;
+  /** 圖鑑（第二章規格 §11.3） */
+  codex: readonly CodexEntry[];
 };
 
 /** 驗證全部資料並檢查跨檔參照（prefab 的掉落表必須存在）。失敗時拋錯，不得默默略過。 */
@@ -70,6 +73,8 @@ export function parseGameData(raw: {
   puzzles?: unknown;
   shops?: unknown;
   crafting?: unknown;
+  /** 省略時沒有圖鑑條目（測試用的最小資料） */
+  codex?: unknown;
 }): GameData {
   const world = parseWorldData(raw.prefabs, raw.placements);
   const { items, lootTables } = parseItemData(raw.items, raw.lootTables);
@@ -241,5 +246,11 @@ export function parseGameData(raw: {
   } catch (err) {
     throw new WorldDataError(`crafting 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
   }
-  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, lightPaths, puzzles, shops, crafting };
+  let codex: CodexEntry[];
+  try {
+    codex = parseCodex(raw.codex ?? [], { enemies: new Set(combat.enemies.keys()), items: new Set(items.keys()), placements: new Set(world.placements.map((p) => p.id)) });
+  } catch (err) {
+    throw new WorldDataError(`codex 資料錯誤：${err instanceof Error ? err.message : String(err)}`);
+  }
+  return { ...world, items, lootTables, regions, dialogues, npcs, quests, combat, companion, buildables, interiors, flocks, weapons, spells, landmarks, lightPaths, puzzles, shops, crafting, codex };
 }

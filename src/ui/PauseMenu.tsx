@@ -8,6 +8,7 @@ import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen, useGameStore } from '@/game/state/gameStore';
 import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 import { setWorldMapOpen } from './map/WorldMap';
+import { setCodexOpen } from './CodexPanel';
 import { setJournalOpen } from './QuestJournal';
 import { accountEnabled } from '@/account/supabase';
 import { useOnlineStore } from '@/online/onlineStore';
@@ -110,6 +111,9 @@ function PauseWindow({ resume }: { resume: () => void }) {
         </button>
         <button type="button" data-testid="pause-journal" onClick={() => setJournalOpen(true)} className="rounded-full bg-white/15 py-2 hover:bg-white/25">
           {t('pause.journal')}
+        </button>
+        <button type="button" data-testid="pause-codex" onClick={() => setCodexOpen(true)} className="rounded-full bg-white/15 py-2 hover:bg-white/25">
+          {t('pause.codex')}
         </button>
         {showNet && (
           <button

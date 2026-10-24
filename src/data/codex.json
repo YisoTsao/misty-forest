@@ -1,0 +1,242 @@
+[
+  {
+    "id": "creature_moss_slime",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "mob_moss_slime"
+    },
+    "textPrefix": "codex.creature.moss_slime"
+  },
+  {
+    "id": "creature_moss_slime_small",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "mob_moss_slime_small"
+    },
+    "textPrefix": "codex.creature.moss_slime_small"
+  },
+  {
+    "id": "creature_cap_imp",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "mob_cap_imp"
+    },
+    "textPrefix": "codex.creature.cap_imp"
+  },
+  {
+    "id": "creature_mist_wolf",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "mob_mist_wolf"
+    },
+    "textPrefix": "codex.creature.mist_wolf"
+  },
+  {
+    "id": "creature_fog_wisp",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "mob_fog_wisp"
+    },
+    "textPrefix": "codex.creature.fog_wisp"
+  },
+  {
+    "id": "creature_root_guard",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "mob_root_guard"
+    },
+    "textPrefix": "codex.creature.root_guard"
+  },
+  {
+    "id": "creature_root_devourer",
+    "category": "creature",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "encounter",
+      "enemy": "boss_root_devourer"
+    },
+    "textPrefix": "codex.creature.root_devourer"
+  },
+  {
+    "id": "material_glow_moss",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "glow_moss"
+    },
+    "textPrefix": "codex.material.glow_moss"
+  },
+  {
+    "id": "material_pure_glowmoss",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "pure_glowmoss"
+    },
+    "textPrefix": "codex.material.pure_glowmoss"
+  },
+  {
+    "id": "material_moondew_herb",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "moondew_herb"
+    },
+    "textPrefix": "codex.material.moondew_herb"
+  },
+  {
+    "id": "material_moss_gel",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "moss_gel"
+    },
+    "textPrefix": "codex.material.moss_gel"
+  },
+  {
+    "id": "material_glow_spore",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "glow_spore"
+    },
+    "textPrefix": "codex.material.glow_spore"
+  },
+  {
+    "id": "material_fungus_cap",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "fungus_cap"
+    },
+    "textPrefix": "codex.material.fungus_cap"
+  },
+  {
+    "id": "material_tough_bark",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "tough_bark"
+    },
+    "textPrefix": "codex.material.tough_bark"
+  },
+  {
+    "id": "material_creek_fish",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "creek_fish"
+    },
+    "textPrefix": "codex.material.creek_fish"
+  },
+  {
+    "id": "material_mist_fang",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "mist_fang"
+    },
+    "textPrefix": "codex.material.mist_fang"
+  },
+  {
+    "id": "material_thick_pelt",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "thick_pelt"
+    },
+    "textPrefix": "codex.material.thick_pelt"
+  },
+  {
+    "id": "material_guardian_heartwood",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "guardian_heartwood"
+    },
+    "textPrefix": "codex.material.guardian_heartwood"
+  },
+  {
+    "id": "material_ancient_resin",
+    "category": "material",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "item",
+      "item": "ancient_resin"
+    },
+    "textPrefix": "codex.material.ancient_resin"
+  },
+  {
+    "id": "lore_mist_gate_sign",
+    "category": "lore",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "read",
+      "placement": "glowmoss_signpost_broken"
+    },
+    "textPrefix": "codex.lore.mist_gate_sign"
+  },
+  {
+    "id": "lore_creek_tablet",
+    "category": "lore",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "read",
+      "placement": "creek_tablet"
+    },
+    "textPrefix": "codex.lore.creek_tablet"
+  },
+  {
+    "id": "lore_star_tablet",
+    "category": "lore",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "read",
+      "placement": "star_tablet"
+    },
+    "textPrefix": "codex.lore.star_tablet"
+  },
+  {
+    "id": "lore_crystal_tablet",
+    "category": "lore",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "read",
+      "placement": "crystal_tablet"
+    },
+    "textPrefix": "codex.lore.crystal_tablet"
+  },
+  {
+    "id": "lore_ancient_memory",
+    "category": "lore",
+    "map": "glowmoss",
+    "unlock": {
+      "type": "activate",
+      "placement": "ancient_memory_01"
+    },
+    "textPrefix": "codex.lore.ancient_memory"
+  }
+]

@@ -213,6 +213,8 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
       ui.setInteractTarget(null);
       if (document.pointerLockElement) document.exitPointerLock();
       ui.showMessage(target.spec.prefab.read);
+      // 古代石碑會記進圖鑑（權威層判斷；不是每個告示牌都有條目）
+      authority.send({ type: 'ReadObject', placementId: target.spec.id });
       return;
     }
     const command = commandFor(target.spec.prefab, target.spec.id);

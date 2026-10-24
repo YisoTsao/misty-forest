@@ -31,6 +31,21 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 完整 e2e（2026-10-25，分支 `feat/ch2-completion`，圖鑑收尾）＋修正：按移動鍵重新鎖定滑鼠造成背景視窗暫停
+- `pnpm e2e` 停在第 6 個 suite `tutorial`（「新遊戲開始時顯示第一步：移動」，已知問題，2026-10-23 起在 `main` 也失敗）；`e2e:all` 用 `&&` 串接，之後的 suite 改用 Node 腳本逐一跑完。
+- 結果：`tutorial` 之後 50 個 suite 中，`lake`（單獨重跑通過，偶發）、`touch`（已知問題）、`bounds`、`melee`（飛踢）失敗。
+- **`bounds`、`melee` 是 2026-10-24 的修正造成的**：原本「遊玩中沒鎖定時按移動鍵就要求鎖定滑鼠」，背景執行的 e2e 視窗鎖定後立刻被解除 → 跳出暫停選單 → 角色走不動、招式打不出去（加上焦點檢查也擋不住，Electron 背景視窗也回報有焦點；暫時拿掉補鎖後 `bounds` 9 項全過，確認是它）。改成只有「重新鎖定曾被瀏覽器拒絕」之後（`pointerlockerror` 或 promise 被拒）才用下一個移動鍵補鎖，鎖定成功就清掉標記。網頁版用 Esc 關視窗的情境不變。
+- 修正後重跑：`bounds` 9、`melee` 15、`lake` 10、`movement` 11、`settings` 11、`dev` 9、`gamepad` 11、`npc` 12、`journal` 6、`map` 11、`codex` 5、`creek` 10 項全過；`touch` 仍是已知的那一項。`pnpm check` 1101 項（`WorldRoom`「兩個人看得到彼此」並行時逾時一次，已知，重跑通過）。
+- 在 `tutorial` 之前的 5 個 suite（`movement`、`account`、`world`、`harvest`、`save`）在完整執行中通過。
+
+### 圖鑑（2026-10-25，第二章規格 §11.3、Bible §30.1；使用者決定要做）
+- 三個分頁：生物 7（交手：打到牠、被牠打到、頭目戰開始）、素材 12（第一次取得，顯示取得方式）、記錄 5（讀古代石碑、看古樹核心的記憶）。上方顯示完成度，各分頁顯示數量；未解鎖的條目顯示「？？？」與解鎖方式。解鎖時提示「圖鑑新增：X」。按 K（可重新設定）或暫停選單的「圖鑑」打開；手機版有關閉鈕。
+- game-core：`codex/codex.ts`（資料結構、`codexUnlocks`、`codexProgress`）；`handleCommand` 收尾時依事件附上 `CodexUnlocked`；新指令 `ReadObject`（讀告示牌原本只在畫面上開視窗、不經過權威層）；`GameState.codex`；存檔用選填欄位 `codex`（舊存檔沒有也能讀，不升版本）。資料 `src/data/codex.json`（`textPrefix` 是文字 key 前綴）。名稱沿用敵人、物品、石碑既有的文字，圖鑑另補介紹、棲息地、行為與弱點、取得方式、記錄摘要。
+- 測試：`src/game/world/codex.test.ts` 8 項；i18n 新增「每個圖鑑條目需要的文字都有」。新增 e2e `codex`（K 開關、讀石碑解鎖記錄、打螢靈解鎖生物、取得素材、暫停選單打開、內容與「？？？」、截圖 `docs/screenshots/phase13/codex.png`），已加進 `e2e:all` 與 `e2e:chapter2`。
+- 按鍵：新增動作 `codex`（預設 K）；`actions.test.ts` 原本拿 K 當「沒用到的鍵」，改用 P；手把沒有對應按鈕（和地圖、日誌一樣由暫停選單打開）。
+- **發現**：`node_modules/.vitest-cache`（Vitest 的轉譯快取）不會因為 `import.meta.glob` 多出新檔案而失效——i18n 測試一開始沒看到新的 `codex.json` 而誤判通過，刪掉快取後才抓到。新增資料檔後若 glob 類的測試結果可疑，先刪這個快取。
+- 未做：成就（Bible §30.2）、第一章與第三章以後的條目、圖鑑邊框等獎勵。
+
 ### P-02：倒流溪谷的推石、壓力板與水閘（2026-10-25，第二章規格 §9.2「移動石塊或啟動附近機關」）
 - 溪谷西岸（第二、三座水輪之間）新增刻著箭頭的苔石、壓力板與水閘。苔石沿固定軌道每次互動往南前進 3 公尺，推兩格壓住壓力板 → 壓力板下沉亮起、水閘升起並顯示訊息。水閘打開前水輪轉不動（`not-powered`，提示「上游的水閘好像關著」）。沿軌道推動，不會因跳躍或卡位推不動（規格驗收）。
 - game-core：新互動 `push`（prefab `push.track`、`push.activates`；狀態沿用物件的 `turn` 欄位當格數，事件沿用 `ObjectTurned`，存檔格式不變）、指令 `PushObject`、水輪 `turn.requires`；資料檢查（啟動對象要可啟動、軌道第一格是 [0, 0]）；`pushPosition`。本機端：互動目標跟著石塊目前的位置、`PushableGroup`（平滑滑過去）、`PushStoneColliders`（碰撞體在 `<Physics>` 內）。程式模型 `push_stone`、`pressure_plate(_pressed)`、`creek_sluice(_open)`。`gen-glowmoss` 新增 3 個 placement（其餘 7703 個不變）。

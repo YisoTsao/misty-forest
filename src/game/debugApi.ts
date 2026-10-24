@@ -164,6 +164,8 @@ export type MistwoodDebugApi = {
   gameTime: () => number;
   /** 直接送出指令給權威層（測試用，例如快轉時間驗證重生） */
   send: (command: GameCommand) => void;
+  /** 已解鎖的圖鑑條目（第二章規格 §11.3） */
+  codex: () => string[];
   /** 立即存檔（等同暫停選單的「儲存遊戲」），回傳是否成功 */
   saveNow: () => Promise<boolean>;
   /** 匯出主存檔的內容（JSON 字串） */
@@ -415,6 +417,7 @@ export function installDebugApi(): void {
     enemyAnim: (id) => enemyRuntime.get(id)?.anim ?? null,
     gameTime: () => authority.getState().time,
     send: (command) => authority.send(command),
+    codex: () => [...authority.getState().codex],
     saveNow: () => saveGame(),
     exportSave: async () => (await saveStorage.export(MAIN_SLOT)).text(),
     settings: () => ({ quality: useSettingsStore.getState().quality, volumes: { ...useSettingsStore.getState().volumes } }),

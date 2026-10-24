@@ -22,6 +22,8 @@ type UiState = {
   mapOpen: boolean;
   /** 任務日誌（任務 7F） */
   journalOpen: boolean;
+  /** 圖鑑（第二章規格 §11.3） */
+  codexOpen: boolean;
   /** 開著的商店（任務 7H），null 表示沒有 */
   shop: string | null;
   /** 開著的工作台（任務 7J），null 表示沒有 */
@@ -46,6 +48,7 @@ type UiState = {
   setInventoryOpen: (open: boolean) => void;
   setMapOpen: (open: boolean) => void;
   setJournalOpen: (open: boolean) => void;
+  setCodexOpen: (open: boolean) => void;
   setShop: (shop: string | null) => void;
   setCraft: (craft: string | null) => void;
   setSettingsOpen: (open: boolean) => void;
@@ -63,6 +66,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   inventoryOpen: false,
   mapOpen: false,
   journalOpen: false,
+  codexOpen: false,
   shop: null,
   craft: null,
   settingsOpen: false,
@@ -82,6 +86,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setMapOpen: (mapOpen) => set({ mapOpen }),
   setJournalOpen: (journalOpen) => set({ journalOpen }),
+  setCodexOpen: (codexOpen) => set({ codexOpen }),
   setShop: (shop) => set({ shop }),
   setCraft: (craft) => set({ craft }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
@@ -96,12 +101,13 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  const { message, inventoryOpen, mapOpen, journalOpen, shop, craft, settingsOpen, multiplayerOpen, chatOpen, dialogue, build } = useUiStore.getState();
+  const { message, inventoryOpen, mapOpen, journalOpen, codexOpen, shop, craft, settingsOpen, multiplayerOpen, chatOpen, dialogue, build } = useUiStore.getState();
   return (
     message !== null ||
     inventoryOpen ||
     mapOpen ||
     journalOpen ||
+    codexOpen ||
     shop !== null ||
     craft !== null ||
     settingsOpen ||

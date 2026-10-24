@@ -52,6 +52,7 @@ export function toSaveData(state: GameState, player: PlayerSnapshot, savedAt: Da
     build: { buildings: state.buildings.map((b) => ({ ...b })), nextBuildingId: state.nextBuildingId },
     loadout: { weapon: state.player.weapon, heroClass: state.player.heroClass, equipment: { ...state.equipment } },
     map: { explored: encodeExplored(state.explored) },
+    ...(state.codex.length > 0 ? { codex: [...state.codex] } : {}),
   };
 }
 
@@ -143,6 +144,8 @@ export function fromSaveData(raw: unknown, ctx: { world: WorldLookup; items: Ite
         warnings.push(`略過已不存在的頭目：${id}`);
         return false;
       }),
+      // 圖鑑：舊存檔沒有這個欄位；資料裡已經移除的條目留著無妨（畫面只列出資料裡的條目）
+      codex: data.codex ?? [],
     },
     player: data.player,
     savedAt: data.savedAt,

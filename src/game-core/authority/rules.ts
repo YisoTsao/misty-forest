@@ -4,6 +4,7 @@
 import { isBuildableUnlocked, placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
 import { bossRequirementsMet, bossShieldScale, bossSpawner, PLAYER_STATS, stanceDamageScale, type BossDef, type BossMoveId, type CombatData, type EnemyStance } from '../combat/combat';
 import { bossMistRising, inBossMist } from '../combat/bossMist';
+import { codexUnlocks, type CodexEntry } from '../codex/codex';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { canCastSpell, canUseWeapon, DEFAULT_HERO_CLASS, type HeroClassCatalog, type HeroClassId } from '../character/heroClass';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
@@ -68,6 +69,8 @@ export type GameState = {
   readonly explored: Explored;
   /** 已擊敗的頭目（任務 8D，存檔 v14）：擊敗後不再開戰 */
   readonly defeatedBosses: readonly string[];
+  /** 已解鎖的圖鑑條目（第二章規格 §11.3；存檔的選填欄位） */
+  readonly codex: readonly string[];
 };
 
 export type EnemyRuntime = { readonly id: string; readonly kind: string; readonly spawner: string; readonly hp: number; /** 淨化中（第二章 B-01）：停在 1 點、不會被打倒 */ readonly purifying?: true };
@@ -91,6 +94,7 @@ export function initialGameState(): GameState {
     nextBuildingId: 1,
     explored: createExplored(),
     defeatedBosses: [],
+    codex: [],
   };
 }
 
@@ -121,6 +125,8 @@ export type GameCommand =
   | { type: 'TurnObject'; placementId: string }
   /** 推動石塊一格（規格 P-02） */
   | { type: 'PushObject'; placementId: string }
+  /** 讀告示牌 / 石碑（圖鑑的世界觀記錄；不改變世界） */
+  | { type: 'ReadObject'; placementId: string }
   /**
    * 玩家攻擊命中敵人（命中判定在本機以招式範圍計算，規則驗證目標存在並結算傷害）。
    * attack：近戰招式 id（必須屬於目前裝備的武器，data/weapons.json），或法術 id（data/spells.json）
@@ -263,6 +269,10 @@ export type GameEvent =
   | { type: 'PlayerSlowed'; sec: number; scale: number; cause?: 'spores' }
   /** 幻霧螢靈的光球（第二章 M-04）：短暫致盲，畫面變暗 sec 秒（只是表現，不改狀態） */
   | { type: 'PlayerBlinded'; sec: number }
+  /** 讀了告示牌 / 石碑 */
+  | { type: 'ObjectRead'; placementId: string }
+  /** 圖鑑新解鎖的條目 */
+  | { type: 'CodexUnlocked'; entries: string[] }
   | { type: 'PlayerHealed'; hp: number }
   /** 用月露藥膏解除緩速（本機表現，任務 7I） */
   | { type: 'PlayerSlowCured' }
@@ -301,6 +311,8 @@ export type RulesContext = {
   puzzles?: readonly PuzzleDef[];
   /** 世界靜態物件的佔用查詢（建造檢查用）；省略時視為沒有障礙 */
   isOccupied?: (x: number, z: number, margin: number) => boolean;
+  /** 圖鑑（第二章規格 §11.3）；省略時不解鎖 */
+  codex?: readonly CodexEntry[];
   /** 是否接受除錯指令（單人開發 / 測試為 true；日後伺服器為 false） */
   allowDebugCommands?: boolean;
 };
@@ -309,7 +321,36 @@ export type RulesContext = {
 export const RESPAWN_CLEARANCE = 2.5;
 
 export function handleCommand(state: GameState, cmd: GameCommand, ctx: RulesContext): GameEvent[] {
-  return withAutoComplete(state, handleCommandInner(state, cmd, ctx), ctx);
+  return withCodex(state, withAutoComplete(state, handleCommandInner(state, cmd, ctx), ctx), ctx);
+}
+
+/** 圖鑑：這個指令的事件裡有第一次交手的敵人、第一次取得的物品、讀過或啟動的物件時，附上 CodexUnlocked */
+function withCodex(state: GameState, events: GameEvent[], ctx: RulesContext): GameEvent[] {
+  if (!ctx.codex || events.length === 0 || events.some((e) => e.type === 'CommandRejected')) return events;
+  const enemies = new Set<string>();
+  const items = new Set<string>();
+  const read = new Set<string>();
+  const activated = new Set<string>();
+  const kindOf = (id: string) => state.enemies.get(id)?.kind;
+  for (const e of events) {
+    if (e.type === 'EnemyDamaged' || e.type === 'PlayerDamaged') {
+      const kind = kindOf(e.enemyId);
+      if (kind) enemies.add(kind);
+    } else if (e.type === 'EnemyDefeated') enemies.add(e.kind);
+    else if (e.type === 'EnemySpawned' && ctx.combat.enemies.get(e.kind)?.boss) enemies.add(e.kind);
+    else if (e.type === 'ItemsGained') for (const it of e.items) items.add(it.itemId);
+    else if (e.type === 'ObjectRead') read.add(e.placementId);
+    else if (e.type === 'ObjectActivated') activated.add(e.placementId);
+  }
+  const unlocked = codexUnlocks(ctx.codex, state.codex, { enemies, items, read, activated });
+  return unlocked.length > 0 ? [...events, { type: 'CodexUnlocked', entries: unlocked }] : events;
+}
+
+function readObject(placementId: string, ctx: RulesContext): GameEvent[] {
+  const found = lookup(ctx, placementId);
+  if (!found) return reject('ReadObject', 'unknown-object', placementId);
+  if (found.prefab.interaction !== 'read') return reject('ReadObject', 'wrong-interaction', placementId);
+  return [{ type: 'ObjectRead', placementId }];
 }
 
 /**
@@ -350,6 +391,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return withLight(state, turnObject(state, cmd.placementId, ctx), ctx);
     case 'PushObject':
       return pushObject(state, cmd.placementId, ctx);
+    case 'ReadObject':
+      return readObject(cmd.placementId, ctx);
     case 'AttackEnemy':
       return attackEnemy(state, cmd.enemyId, cmd.attack, ctx, cmd.stance);
     case 'CastSpell': {
@@ -1114,7 +1157,7 @@ function advanceTime(state: GameState, cmd: Extract<GameCommand, { type: 'Advanc
 
 /** 套用事件，回傳新狀態（不修改輸入）。沒有物件事件時保留原本的 objects 參照，讓 selector 不必重新計算。 */
 export function applyEvents(state: GameState, events: readonly GameEvent[], ctx: Pick<RulesContext, 'items'>): GameState {
-  let { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses } = state;
+  let { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses, codex } = state;
   let nextEnemies: Map<string, EnemyRuntime> | null = null;
   const mutableEnemies = () => (nextEnemies ??= new Map(enemies));
   let nextObjects: Map<string, ObjectRuntime> | null = null;
@@ -1275,11 +1318,14 @@ export function applyEvents(state: GameState, events: readonly GameEvent[], ctx:
       case 'BossDefeated':
         if (!defeatedBosses.includes(e.boss)) defeatedBosses = [...defeatedBosses, e.boss];
         break;
+      case 'CodexUnlocked':
+        codex = [...codex, ...e.entries.filter((id) => !codex.includes(id))];
+        break;
       case 'CommandRejected':
         break;
     }
   }
   if (nextObjects) objects = nextObjects;
   if (nextEnemies) enemies = nextEnemies;
-  return { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses };
+  return { time, clock, objects, inventory, equipment, tutorial, mist, quests, player, enemies, spawners, companion, buildings, nextBuildingId, explored, defeatedBosses, codex };
 }

@@ -70,6 +70,8 @@ export const saveDataSchema = z.object({
   }),
   /** 世界地圖（v11，Bible §31.3）：探索紀錄（每 8 m 一格的位元組，base64） */
   map: z.object({ explored: z.string() }),
+  /** 已解鎖的圖鑑條目（第二章規格 §11.3）：選填欄位，舊存檔沒有也能讀，不升版本 */
+  codex: z.array(z.string().min(1)).optional(),
 });
 export type SaveData = z.infer<typeof saveDataSchema>;
 

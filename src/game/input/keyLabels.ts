@@ -101,6 +101,7 @@ export function keyVars(bindings: Bindings): Record<string, string> {
     journal: actionKey(bindings, 'journal'),
     quickHeal: actionKey(bindings, 'quickHeal'),
     lumen: actionKey(bindings, 'lumen'),
+    codex: actionKey(bindings, 'codex'),
     // {esc}：接在按鍵後面的「 / Esc 關閉」；手機版為空字串
     esc: close ? ` / ${close}` : '',
     close,

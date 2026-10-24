@@ -1,5 +1,6 @@
 import type { ShopCatalog } from '@/game-core/shop/shop';
 import type { CraftData } from '@/game-core/craft/craft';
+import type { CodexEntry } from '@/game-core/codex/codex';
 import { LocalAuthority } from '@/game-core/authority/authority';
 import type { DialogueDef } from '@/game-core/dialogue/dialogue';
 import type { NpcDef } from '@/game-core/npc/npc';
@@ -47,6 +48,7 @@ const data = worldDataResult.ok
       puzzles: [] as PuzzleDef[],
       shops: new Map() as ShopCatalog,
       crafting: { stations: [], recipes: [] } as CraftData,
+      codex: [] as CodexEntry[],
     };
 
 /** NPC 與對話資料 */
@@ -79,6 +81,9 @@ export const shops: ShopCatalog = data.shops;
 /** 工作台與配方（任務 7J） */
 export const crafting: CraftData = data.crafting;
 
+/** 圖鑑（第二章規格 §11.3） */
+export const codex: readonly CodexEntry[] = data.codex;
+
 /** 區域範圍（迷霧混合、區域名稱、生成規則使用） */
 export const regions: readonly RegionDef[] = data.regions;
 
@@ -107,6 +112,7 @@ export const authority = new LocalAuthority(initialGameState(), {
   regionHarm: new Set(data.regions.filter((r) => r.mistHarm).map((r) => r.id)),
   shops: data.shops,
   crafting: data.crafting,
+  codex: data.codex,
   isOccupied: (x, z, margin) => worldIndex.isOccupied(x, z, margin),
   allowDebugCommands,
 });

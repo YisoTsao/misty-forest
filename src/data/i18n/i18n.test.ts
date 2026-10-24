@@ -66,4 +66,12 @@ describe('i18n', () => {
     }
     expect(missing).toEqual([]);
   });
+
+  it('每個圖鑑條目需要的文字都有（生物：介紹、棲息地、行為；素材：來源；記錄：標題、內容）', () => {
+    if (!worldDataResult.ok) throw new Error(worldDataResult.error);
+    const need: Record<string, string[]> = { creature: ['desc', 'habitat', 'notes'], material: ['source'], lore: ['title', 'desc'] };
+    const missing = worldDataResult.data.codex.flatMap((e) => need[e.category]!.map((n) => `${e.textPrefix}.${n}`)).filter((key) => !(key in dictionary));
+    expect(missing).toEqual([]);
+    for (const c of ['creature', 'material', 'lore']) expect(`codex.tab.${c}` in dictionary && `codex.locked.${c}` in dictionary).toBe(true);
+  });
 });

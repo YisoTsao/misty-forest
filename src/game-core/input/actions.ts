@@ -35,6 +35,8 @@ export const actionIds = [
   'dodge',
   /** 星光照明（第二章 Phase 3）：揭露隱藏的寶箱 */
   'lumen',
+  /** 圖鑑（第二章規格 §11.3） */
+  'codex',
   'pause',
 ] as const;
 export type ActionId = (typeof actionIds)[number];
