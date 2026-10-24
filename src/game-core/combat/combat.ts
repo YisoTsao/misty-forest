@@ -144,6 +144,18 @@ export const enemyDefSchema = z.object({
     ])
     .optional(),
   /**
+   * 第二階段（第二章 M-05 枯根守衛，規格 §6.3）：血量低於 below 之後會放地面根刺——玩家腳下與周圍出現 count 個標記（spread 公尺內），
+   * windup 秒後根刺突起、標記半徑內受傷；放完後停下來 coreSec 秒、胸口核心暴露（破綻，傷害倍率同 behavior 的 recoverScale）。
+   * 需要 shell 或 carapace 行為（破綻倍率）。
+   */
+  phase2: z
+    .object({
+      below: z.number().gt(0).lt(1),
+      spikes: z.object({ windup: z.number().positive(), damage: z.number().positive(), radius: z.number().positive(), count: z.number().int().positive().max(6), spread: z.number().positive(), cooldown: z.number().positive() }),
+      coreSec: z.number().positive(),
+    })
+    .optional(),
+  /**
    * 幻影（第二章 M-04 幻霧螢靈，規格 §6.2 弱點）：平常是半透明的幻影，受到的傷害 × scale；
    * 玩家帶著螢光提燈走進 revealRadius 內時現形 revealSec 秒（全額傷害）。
    */
@@ -206,6 +218,7 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
     if (e.model && e.procedural) throw new Error(`敵人 ${e.id} 不能同時有模型與程式造型`);
     if (e.behavior?.kind === 'spit' && e.behavior.minRange >= e.behavior.range) throw new Error(`敵人 ${e.id} 的吐泥距離範圍無效`);
     if (e.splitInto && e.boss) throw new Error(`頭目 ${e.id} 不能分裂`);
+    if (e.phase2 && e.behavior?.kind !== 'shell' && e.behavior?.kind !== 'carapace') throw new Error(`敵人 ${e.id} 的第二階段需要 shell 或 carapace 行為（核心暴露的破綻倍率）`);
     if (e.veil && e.boss) throw new Error(`頭目 ${e.id} 不能用一般敵人的幻影（頭目用 boss.veil）`);
     if (e.boss && e.boss.shield.length !== e.boss.troughs.length + 1) throw new Error(`頭目 ${e.id} 的護盾倍率數量必須是水槽數 + 1`);
     if (e.boss && e.boss.shield.at(-1) !== 1) throw new Error(`頭目 ${e.id} 的水槽全部注水後護盾倍率必須是 1`);

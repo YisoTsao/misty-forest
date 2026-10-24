@@ -1,5 +1,6 @@
 // 端對端：第二章的森林怪物 — 迷霧深層（規格 M-03 霧紋森林狼、M-04 幻霧螢靈）與花園的菌帽小妖（M-02）；
 // 深層的濃霧沒有螢光提燈時扣血較重並提示。
+// 枯根守衛（2026-10-25）：血量低於一半進入第二階段，放地面根刺。
 // 幻霧螢靈（2026-10-25）：沒有提燈時是幻影；帶著提燈靠近就現形；光球命中時畫面變暗（致盲）。
 // 深層的生成點會生成森林狼與幻霧螢靈；狼被打倒後掉落霧紋獸牙或厚實獸皮（機率，只檢查數量變化的可能性，不強制）。
 // 外觀以截圖檢查（--monsters --enemies=mob_mist_wolf,mob_fog_wisp）。
@@ -73,6 +74,27 @@ await runE2e('deepwoods e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ p
   await check('螢苔花園生成菌帽小妖，靠近時會追擊', async () => {
     const imp = await goTo('glowmoss_imps_garden', 'mob_cap_imp');
     assert.ok(imp && imp.x > 1940, '菌帽小妖沒有在花園生成');
+  });
+
+  await check('枯根守衛：打到一半以下進入第二階段，提示並放出地面根刺', async () => {
+    const guard = await goTo('deep_guard', 'mob_root_guard');
+    for (let i = 0; i < 40; i++) {
+      const g = (await list()).find((e) => e.id === guard.id);
+      if (!g || g.hp < 160 * 0.45) break;
+      await debug((id) => window.__mistwoodDebug.hitEnemy(id, 'spell_starlight_burst'), guard.id);
+      await page.waitForTimeout(250);
+    }
+    const g = (await list()).find((e) => e.id === guard.id);
+    assert.ok(g && g.hp > 0 && g.hp < 80, `守衛的血量不在第二階段（${g?.hp}）`);
+    await send({ type: 'DebugSetHp', hp: 100 });
+    await teleport(g.x, g.z + 4, 200);
+    await debug(() => window.__mistwoodDebug.setPeaceful(false));
+    try {
+      await page.waitForFunction((id) => window.__mistwoodDebug.enemies().find((e) => e.id === id)?.state === 'spikes', guard.id, { timeout: 12000 });
+      assert.ok(await debug(() => window.__mistwoodDebug.toasts().some((x) => x.textKey === 'combat.rootGuardPhase2')), '沒有第二階段的提示');
+    } finally {
+      await debug(() => window.__mistwoodDebug.setPeaceful(true));
+    }
   });
 
   await check('森林狼被打倒後從列表消失', async () => {

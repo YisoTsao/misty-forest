@@ -3,7 +3,8 @@
 import type { EnemyDef, EnemyStance } from './combat';
 
 // 任務 8B：orbit（飛蛾繞圈）、spit（芽怪吐泥前搖）、guard（甲蟲縮殼）、recover（甲蟲出手後的破綻）；retreat（菌帽小妖出手後跑開）
-export type AiState = 'idle' | 'patrol' | 'chase' | 'orbit' | 'attack' | 'spit' | 'guard' | 'recover' | 'retreat' | 'return' | 'dead';
+// spikes：枯根守衛第二階段的地面根刺前搖（第二章 M-05）
+export type AiState = 'idle' | 'patrol' | 'chase' | 'orbit' | 'attack' | 'spit' | 'spikes' | 'guard' | 'recover' | 'retreat' | 'return' | 'dead';
 
 export type EnemyAi = {
   state: AiState;
@@ -28,13 +29,18 @@ export type EnemyAi = {
   guardCooldown: number;
   /** 幻影現形的剩餘時間（第二章 M-04，提燈照到時重設） */
   revealed: number;
+  /** 地面根刺（第二章 M-05）：標記位置與冷卻 */
+  markers: { x: number; z: number }[];
+  spikeCooldown: number;
+  /** 這次破綻要停多久（根刺後的核心暴露；0 表示用行為資料的 recoverSec） */
+  holdSec: number;
 };
 
 /** 縮殼結束後的冷卻（秒） */
 export const GUARD_COOLDOWN = 2.5;
 
 export function createEnemyAi(x: number, z: number, yaw = 0): EnemyAi {
-  return { state: 'idle', x, z, yaw, timer: 0, cooldown: 0, patrolTarget: null, knockback: { x: 0, z: 0 }, orbitAngle: 0, orbitFor: 0, spitCooldown: 0, guardCooldown: 0, revealed: 0 };
+  return { state: 'idle', x, z, yaw, timer: 0, cooldown: 0, patrolTarget: null, knockback: { x: 0, z: 0 }, orbitAngle: 0, orbitFor: 0, spitCooldown: 0, guardCooldown: 0, revealed: 0, markers: [], spikeCooldown: 0, holdSec: 0 };
 }
 
 export type AiInput = {
@@ -45,6 +51,8 @@ export type AiInput = {
   random: () => number;
   /** 玩家帶著螢光提燈（幻影靠近時現形） */
   lantern?: boolean;
+  /** 目前血量 / 最大血量（第二階段的門檻；省略時 1） */
+  hpRatio?: number;
 };
 
 export type AiOutput = {
@@ -54,7 +62,12 @@ export type AiOutput = {
   spit: { x: number; z: number } | null;
   /** 這一幀吐完後向後瞬移（霧鷺影）：瞬移前的位置（泥團 / 霧羽從這裡射出、留下一團霧） */
   blink: { x: number; z: number } | null;
+  /** 這一幀根刺突起（第二章 M-05）：標記位置與半徑，玩家在任一標記內就受傷 */
+  spikes: { points: { x: number; z: number }[]; radius: number } | null;
 };
+
+/** 第二階段的根刺：玩家在這個距離內才會放 */
+const SPIKE_RANGE = 10;
 
 /** 盤旋時離目標點多近才開始繞圈（超過時先飛過去） */
 const ORBIT_ENTER = 1.6;
@@ -80,12 +93,14 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
   let strike = false;
   let spit: AiOutput['spit'] = null;
   let blink: AiOutput['blink'] = null;
+  let spikes: AiOutput['spikes'] = null;
   const behavior = def.behavior;
   ai.timer += dt;
   ai.cooldown = Math.max(0, ai.cooldown - dt);
   ai.spitCooldown = Math.max(0, ai.spitCooldown - dt);
   ai.guardCooldown = Math.max(0, ai.guardCooldown - dt);
   ai.revealed = Math.max(0, ai.revealed - dt);
+  ai.spikeCooldown = Math.max(0, ai.spikeCooldown - dt);
 
   // 擊退（任何狀態都會被推開，死亡除外）
   if (ai.state !== 'dead') {
@@ -156,6 +171,20 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       } else if (ai.state === 'orbit') {
         set('chase');
       }
+      // 枯根守衛第二階段：在玩家腳下與周圍放地面根刺
+      if (def.phase2 && (input.hpRatio ?? 1) < def.phase2.below && ai.spikeCooldown <= 0 && toPlayer <= SPIKE_RANGE) {
+        const { count, spread } = def.phase2.spikes;
+        ai.markers = [{ x: player.x, z: player.z }];
+        const offset = input.random() * Math.PI * 2;
+        for (let i = 1; i < count; i++) {
+          const a = offset + ((i - 1) / Math.max(1, count - 1)) * Math.PI * 2;
+          const r = spread * (0.55 + 0.45 * input.random());
+          ai.markers.push({ x: player.x + Math.cos(a) * r, z: player.z + Math.sin(a) * r });
+        }
+        ai.yaw = Math.atan2(player.x - ai.x, player.z - ai.z);
+        set('spikes');
+        break;
+      }
       // 迷霧芽怪：距離適中時吐泥團（近身時改用咬）
       if (behavior?.kind === 'spit' && ai.spitCooldown <= 0 && toPlayer >= behavior.minRange && toPlayer <= behavior.range) {
         ai.yaw = Math.atan2(player.x - ai.x, player.z - ai.z);
@@ -214,6 +243,22 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
         set('chase');
       }
       break;
+    case 'spikes': {
+      const p2 = def.phase2;
+      if (!p2) {
+        set('chase');
+        break;
+      }
+      if (ai.timer >= p2.spikes.windup) {
+        spikes = { points: ai.markers.map((m) => ({ ...m })), radius: p2.spikes.radius };
+        ai.markers = [];
+        ai.spikeCooldown = p2.spikes.cooldown;
+        // 根刺放完：停下來、胸口核心暴露
+        ai.holdSec = p2.coreSec;
+        set('recover');
+      }
+      break;
+    }
     case 'guard':
       // 縮在殼裡不動，時間到再繼續追
       if (behavior?.kind !== 'shell' || ai.timer >= behavior.guardSec) {
@@ -224,7 +269,10 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       }
       break;
     case 'recover':
-      if ((behavior?.kind !== 'shell' && behavior?.kind !== 'carapace') || ai.timer >= behavior.recoverSec) set('chase');
+      if ((behavior?.kind !== 'shell' && behavior?.kind !== 'carapace') || ai.timer >= (ai.holdSec || behavior.recoverSec)) {
+        ai.holdSec = 0;
+        set('chase');
+      }
       break;
     case 'retreat': {
       if (behavior?.kind !== 'skirmish' || ai.timer >= behavior.retreatSec || !player.alive) {
@@ -246,7 +294,7 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       if (moveToward(ai, home.x, home.z, def.moveSpeed * 1.2, dt) <= 0.3) set('idle');
       break;
   }
-  return { strike, spit, blink };
+  return { strike, spit, blink, spikes };
 }
 
 /** 攻擊者是否在敵人的正面（面向兩側 arcDeg / 2 以內） */
@@ -293,7 +341,7 @@ export function applyHitReaction(ai: EnemyAi, from: { x: number; z: number }, st
     return;
   }
   // 縮殼（已經縮著，或不在出手 / 破綻中且縮殼冷卻已過）：幾乎推不動
-  const guards = shell && ai.state !== 'attack' && ai.state !== 'recover' && (ai.state === 'guard' || ai.guardCooldown <= 0);
+  const guards = shell && ai.state !== 'attack' && ai.state !== 'spikes' && ai.state !== 'recover' && (ai.state === 'guard' || ai.guardCooldown <= 0);
   const dx = ai.x - from.x;
   const dz = ai.z - from.z;
   const d = Math.hypot(dx, dz) || 1;
@@ -308,7 +356,7 @@ export function applyHitReaction(ai: EnemyAi, from: { x: number; z: number }, st
     return;
   }
   // 跑開中被打不會回頭（打了就跑的怪物要追著打）
-  if (ai.state !== 'attack' && ai.state !== 'recover' && ai.state !== 'spit' && ai.state !== 'retreat') {
+  if (ai.state !== 'attack' && ai.state !== 'spikes' && ai.state !== 'recover' && ai.state !== 'spit' && ai.state !== 'retreat') {
     ai.state = 'chase';
     ai.timer = 0;
   }

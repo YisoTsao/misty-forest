@@ -1,5 +1,6 @@
 // 敵人 AI 的每幀更新（迷霧噗啾與模型怪物共用）：遊玩中才更新、依距離降頻、出手時交給權威層判定。
 import type { EnemyDef, SpawnerDef } from '@/game-core/combat/combat';
+import { PLAYER_HIT_RADIUS } from '@/game-core/combat/bossAi';
 import { aiUpdateInterval, stepEnemyAi } from '@/game-core/combat/enemyAi';
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { authority, currentModifiers } from '@/game/authority';
@@ -9,6 +10,7 @@ import { vfx } from '@/game/vfx/vfxQueue';
 import { playerRuntime } from '@/game/player/localRuntime';
 import { useDebugStore } from '@/game/state/debugStore';
 import { currentScreen } from '@/game/state/gameStore';
+import { useUiStore } from '@/game/state/uiStore';
 
 /** 出手時玩家還在這個距離內才算命中（給攻擊距離一點寬容） */
 export const STRIKE_SLACK = 0.45;
@@ -31,11 +33,22 @@ export function updateEnemyAi(id: string, v: EnemyVisual, def: EnemyDef, spawner
     random: Math.random,
     // 幻霧螢靈：帶著螢光提燈靠近就現形（持有即生效，與迷霧減傷同一個道具）
     lantern: def.veil !== undefined && currentModifiers().revealVeil,
+    hpRatio: (authority.getState().enemies.get(id)?.hp ?? def.maxHp) / def.maxHp,
   });
   v.sinceUpdate = 0;
   // 出手：玩家仍在範圍內且不在無敵時間，交給權威層結算傷害
   if (out.strike && alive && combatRuntime.invulnerable <= 0 && toPlayer <= def.attackRange + STRIKE_SLACK) {
     authority.send({ type: 'EnemyStrike', enemyId: id });
+  }
+  // 枯根守衛第二階段（第二章 M-05）：第一次跌破門檻時提示；根刺突起時在標記上冒出根，玩家在標記內就受傷
+  if (def.phase2 && !v.phase2Told && (authority.getState().enemies.get(id)?.hp ?? def.maxHp) / def.maxHp < def.phase2.below) {
+    v.phase2Told = true;
+    useUiStore.getState().pushToast({ textKey: 'combat.rootGuardPhase2' });
+  }
+  if (out.spikes) {
+    for (const p of out.spikes.points) vfx({ type: 'burst', preset: 'purify', x: p.x, y: enemyY(p.x, p.z) + 0.4, z: p.z, color: [0.62, 0.86, 0.5], scale: 0.9 });
+    const r = out.spikes.radius + PLAYER_HIT_RADIUS;
+    if (alive && combatRuntime.invulnerable <= 0 && out.spikes.points.some((p) => Math.hypot(player.x - p.x, player.z - p.z) <= r)) authority.send({ type: 'EnemyStrike', enemyId: id, spikes: true });
   }
   // 霧孢飛蛾出手時散出迷霧粉塵（Bible §6.6）
   if (out.strike && def.procedural === 'fog_moth') {

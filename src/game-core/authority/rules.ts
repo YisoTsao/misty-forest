@@ -142,7 +142,7 @@ export type GameCommand =
   | { type: 'UnequipItem'; slot: EquipSlot }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
-  | { type: 'EnemyStrike'; enemyId: string; spit?: boolean; move?: BossMoveId }
+  | { type: 'EnemyStrike'; enemyId: string; spit?: boolean; move?: BossMoveId; /** 枯根守衛第二階段的地面根刺（第二章 M-05） */ spikes?: boolean }
   /** 玩家走進頭目戰場：開戰（任務 8D） */
   | { type: 'StartBossFight'; boss: string }
   /** 玩家離開戰場（傳送、換地圖）：頭目回去，下次走進來重新開戰 */
@@ -395,7 +395,7 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return [{ type: 'ClassChosen', heroClass: def.id, weapon: def.defaultWeapon }];
     }
     case 'EnemyStrike':
-      return enemyStrike(state, cmd.enemyId, ctx, cmd.spit === true, cmd.move);
+      return enemyStrike(state, cmd.enemyId, ctx, cmd.spit === true, cmd.move, cmd.spikes === true);
     case 'StartBossFight':
       return startBossFight(state, cmd.boss, ctx);
     case 'EndBossFight': {
@@ -711,7 +711,7 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   return events;
 }
 
-function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit: boolean, move?: BossMoveId): GameEvent[] {
+function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit: boolean, move?: BossMoveId, spikes = false): GameEvent[] {
   const enemy = state.enemies.get(enemyId);
   const def = enemy && ctx.combat.enemies.get(enemy.kind);
   if (!enemy || !def) return reject('EnemyStrike', 'unknown-enemy');
@@ -724,7 +724,8 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   if ((move !== undefined) !== Boolean(def.boss)) return reject('EnemyStrike', 'invalid-command');
   const bossMove = move && def.boss ? def.boss.moves[move] : undefined;
   if (move && !bossMove) return reject('EnemyStrike', 'invalid-command');
-  const raw = bossMove ? bossMove.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
+  if (spikes && (!def.phase2 || spit || move)) return reject('EnemyStrike', 'invalid-command');
+  const raw = bossMove ? bossMove.damage : spikes && def.phase2 ? def.phase2.spikes.damage : spit && behavior?.kind === 'spit' ? behavior.damage : def.damage;
   // 守林者護腕等防具減傷（裝備系統，Phase 2）
   const amount = scaleDamage(raw, modifiersOf(state, ctx).damageTakenScale);
   const hp = Math.max(0, state.player.hp - amount);

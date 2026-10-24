@@ -26,6 +26,8 @@ export type EnemyVisual = {
   anim?: string;
   /** 頭目自己的 AI 狀態（任務 8D）；位置仍在 ai */
   boss?: BossAi;
+  /** 已提示過第二階段（枯根守衛，第二章 M-05） */
+  phase2Told?: boolean;
 };
 
 export const enemyRuntime = new Map<string, EnemyVisual>();

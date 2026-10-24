@@ -12,6 +12,7 @@ import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 import { assetUrl } from '@/game/worldData';
 import { toToonMaterial } from '@/render/toon';
 import { updateEnemyAi } from './enemyUpdate';
+import { GroundMarks, type GroundMark } from './GroundMarks';
 
 type ModelDef = EnemyDef & { model: NonNullable<EnemyDef['model']> };
 const FADE_IN_SEC = 1.0;
@@ -136,8 +137,8 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
     const dt = Math.min(rawDt, 1 / 20);
     const paused = currentScreen() === 'paused';
     const ai = v.ai;
-    const winding = ai.state === 'attack' || ai.state === 'spit';
-    const windup = ai.state === 'spit' && def.behavior?.kind === 'spit' ? def.behavior.windup : def.attackWindup;
+    const winding = ai.state === 'attack' || ai.state === 'spit' || ai.state === 'spikes';
+    const windup = ai.state === 'spit' && def.behavior?.kind === 'spit' ? def.behavior.windup : ai.state === 'spikes' && def.phase2 ? def.phase2.spikes.windup : def.attackWindup;
     updateEnemyAi(id, v, def, spawner, dt);
 
     if (!paused) {
@@ -195,6 +196,11 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
     }
     const flash = v.flash > 0 ? 0.85 : winding ? 0.35 * Math.min(1, ai.timer / Math.max(windup, 0.01)) : 0;
     tmpColor.setRGB(flash, flash * (winding && v.flash <= 0 ? 0.25 : 1), flash * (winding && v.flash <= 0 ? 0.2 : 1));
+    // 枯根守衛放完根刺：胸口的紫色核心暴露（破綻），整隻一閃一閃地發紫光
+    if (ai.state === 'recover' && ai.holdSec > 0 && v.flash <= 0) {
+      const pulse = 0.35 + 0.25 * Math.sin(local.time * 9);
+      tmpColor.setRGB(0.55 * pulse, 0.18 * pulse, 0.85 * pulse);
+    }
     for (const m of materials) {
       m.opacity = opacity;
       m.depthWrite = opacity > 0.98;
@@ -221,6 +227,19 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
       <group ref={group} position={start} name={`enemy:${id}`}>
         <primitive object={root} />
       </group>
+      {def.phase2 && <GroundMarks count={def.phase2.spikes.count} marks={() => spikeMarks(id, def)} color="#7bbf5a" ring="#c4f08a" />}
     </>
   );
+}
+
+const spikeOut: GroundMark[] = [];
+
+/** 枯根守衛的地面根刺標記（前搖中才有；內圈隨前搖長大） */
+function spikeMarks(id: string, def: EnemyDef): readonly GroundMark[] {
+  spikeOut.length = 0;
+  const ai = enemyRuntime.get(id)?.ai;
+  if (!ai || ai.state !== 'spikes' || !def.phase2) return spikeOut;
+  const progress = Math.min(1, ai.timer / def.phase2.spikes.windup);
+  for (const m of ai.markers) spikeOut.push({ ...m, radius: def.phase2.spikes.radius, progress });
+  return spikeOut;
 }

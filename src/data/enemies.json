@@ -750,6 +750,11 @@
     "attackWindup": 1.0,
     "attackCooldown": 3,
     "leashRadius": 22,
+    "phase2": {
+      "below": 0.5,
+      "spikes": { "windup": 0.9, "damage": 12, "radius": 1.4, "count": 4, "spread": 3, "cooldown": 5 },
+      "coreSec": 2.2
+    },
     "lootTableId": "mob_root_guard_drop",
     "model": {
       "path": "models/monsters/Goleling.glb",
