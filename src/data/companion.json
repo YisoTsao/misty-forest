@@ -33,116 +33,116 @@
     },
     {
       "when": {
-        "type": "all",
-        "conditions": [
-          {
-            "type": "questStatus",
-            "quest": "clear_forest",
-            "is": "completed"
-          },
-          {
-            "type": "not",
-            "condition": {
-              "type": "hasBuilt",
-              "buildable": "cottage"
-            }
-          }
-        ]
+        "type": "questReady",
+        "quest": "quest_forest_001"
       },
-      "textKey": "companion.hint.buildCottage"
+      "textKey": "companion.hint.ch2.f1Ready"
     },
     {
       "when": {
         "type": "questStatus",
-        "quest": "clear_forest",
-        "is": "completed"
+        "quest": "quest_forest_001",
+        "is": "active"
       },
-      "textKey": "companion.hint.chapterEnd"
-    },
-    {
-      "when": {
-        "type": "all",
-        "conditions": [
-          {
-            "type": "questStatus",
-            "quest": "clear_forest",
-            "is": "available"
-          },
-          {
-            "type": "not",
-            "condition": {
-              "type": "hasBuilt"
-            }
-          }
-        ]
-      },
-      "textKey": "companion.hint.buildFirst"
-    },
-    {
-      "when": {
-        "type": "questStatus",
-        "quest": "clear_forest",
-        "is": "available"
-      },
-      "textKey": "companion.hint.forestOffer"
+      "textKey": "companion.hint.ch2.f1"
     },
     {
       "when": {
         "type": "questReady",
-        "quest": "repair_bridge"
+        "quest": "quest_forest_002"
       },
-      "textKey": "companion.hint.bridgeReady"
+      "textKey": "companion.hint.ch2.f2Ready"
     },
     {
       "when": {
         "type": "questStatus",
-        "quest": "repair_bridge",
+        "quest": "quest_forest_002",
         "is": "active"
       },
-      "textKey": "companion.hint.bridge"
-    },
-    {
-      "when": {
-        "type": "questStatus",
-        "quest": "repair_bridge",
-        "is": "available"
-      },
-      "textKey": "companion.hint.bridgeOffer"
+      "textKey": "companion.hint.ch2.f2"
     },
     {
       "when": {
         "type": "questReady",
-        "quest": "wood_for_bridge"
+        "quest": "quest_forest_003"
       },
-      "textKey": "companion.hint.woodReady"
+      "textKey": "companion.hint.ch2.f3Ready"
     },
     {
       "when": {
         "type": "questStatus",
-        "quest": "wood_for_bridge",
+        "quest": "quest_forest_003",
         "is": "active"
       },
-      "textKey": "companion.hint.wood"
+      "textKey": "companion.hint.ch2.f3"
     },
     {
       "when": {
-        "type": "all",
-        "conditions": [
-          {
-            "type": "questStatus",
-            "quest": "quest_dawn_003",
-            "is": "completed"
-          },
-          {
-            "type": "not",
-            "condition": {
-              "type": "bossDefeated",
-              "boss": "boss_dawn_mist_puff"
-            }
-          }
-        ]
+        "type": "questReady",
+        "quest": "quest_forest_004"
       },
-      "textKey": "companion.hint.puffKing"
+      "textKey": "companion.hint.ch2.f4Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_004",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.f4"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_005"
+      },
+      "textKey": "companion.hint.ch2.f5Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_005",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.f5"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_006"
+      },
+      "textKey": "companion.hint.ch2.f6Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_006",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.f6"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_007"
+      },
+      "textKey": "companion.hint.ch2.f7Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_007",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.f7"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_008",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.f8"
     },
     {
       "when": {
@@ -199,6 +199,237 @@
     },
     {
       "when": {
+        "type": "questReady",
+        "quest": "quest_forest_sq01"
+      },
+      "textKey": "companion.hint.ch2.sq1Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_sq01",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.sq1"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_sq02"
+      },
+      "textKey": "companion.hint.ch2.sq2Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_sq02",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.sq2"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_sq03"
+      },
+      "textKey": "companion.hint.ch2.sq3Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_sq03",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.sq3"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_sq04"
+      },
+      "textKey": "companion.hint.ch2.sq4Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_sq04",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.sq4"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_sq05"
+      },
+      "textKey": "companion.hint.ch2.sq5Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_sq05",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.sq5"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "quest_forest_sq06"
+      },
+      "textKey": "companion.hint.ch2.sq6Ready"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_sq06",
+        "is": "active"
+      },
+      "textKey": "companion.hint.ch2.sq6"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "repair_bridge"
+      },
+      "textKey": "companion.hint.bridgeReady"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "repair_bridge",
+        "is": "active"
+      },
+      "textKey": "companion.hint.bridge"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "repair_bridge",
+        "is": "available"
+      },
+      "textKey": "companion.hint.bridgeOffer"
+    },
+    {
+      "when": {
+        "type": "questReady",
+        "quest": "wood_for_bridge"
+      },
+      "textKey": "companion.hint.woodReady"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "wood_for_bridge",
+        "is": "active"
+      },
+      "textKey": "companion.hint.wood"
+    },
+    {
+      "when": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "questStatus",
+            "quest": "clear_forest",
+            "is": "available"
+          },
+          {
+            "type": "not",
+            "condition": {
+              "type": "hasBuilt"
+            }
+          }
+        ]
+      },
+      "textKey": "companion.hint.buildFirst"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "clear_forest",
+        "is": "available"
+      },
+      "textKey": "companion.hint.forestOffer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_001",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.f1Offer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_002",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.grannyOffer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_003",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.grannyOffer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_004",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.grannyOffer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_005",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.grannyOffer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_006",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.grannyOffer"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_007",
+        "is": "available"
+      },
+      "textKey": "companion.hint.ch2.grannyOffer"
+    },
+    {
+      "when": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "questStatus",
+            "quest": "quest_dawn_003",
+            "is": "completed"
+          },
+          {
+            "type": "not",
+            "condition": {
+              "type": "bossDefeated",
+              "boss": "boss_dawn_mist_puff"
+            }
+          }
+        ]
+      },
+      "textKey": "companion.hint.puffKing"
+    },
+    {
+      "when": {
         "type": "questStatus",
         "quest": "quest_dawn_001",
         "is": "active"
@@ -213,6 +444,42 @@
         }
       },
       "textKey": "companion.hint.tutorial"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "quest_forest_008",
+        "is": "completed"
+      },
+      "textKey": "companion.hint.ch2.end"
+    },
+    {
+      "when": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "questStatus",
+            "quest": "clear_forest",
+            "is": "completed"
+          },
+          {
+            "type": "not",
+            "condition": {
+              "type": "hasBuilt",
+              "buildable": "cottage"
+            }
+          }
+        ]
+      },
+      "textKey": "companion.hint.buildCottage"
+    },
+    {
+      "when": {
+        "type": "questStatus",
+        "quest": "clear_forest",
+        "is": "completed"
+      },
+      "textKey": "companion.hint.chapterEnd"
     },
     {
       "textKey": "companion.hint.village"

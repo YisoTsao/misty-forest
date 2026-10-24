@@ -31,6 +31,14 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 芽芽的第二章提示、提示順序修正（2026-10-24）
+- 問題：芽芽的提示是「第一個符合的勝出」。`clear_forest` 是燈塔任務的前置，但 `buildCottage` / `chapterEnd`（`clear_forest` 完成就成立）排在噗啾王、送信、花園、腳印、地窖之前，**燈塔之後芽芽永遠只說「蓋小木屋」或「星源古樹在等我們」**；第二章的任務也沒有任何提示。
+- `companion.json` 重排：主線進行中 → 故事與支線進行中 → 第一章前段 → 可以接的主線 → 噗啾王 → 教學 → 第二章結束（澄鏡湖）→ 蓋小木屋 → 預設。新增第二章 8 個主線、6 個支線的「進行中」與「可以回報」提示（`companion.hint.ch2.*`），莉露的入口任務與菇菇婆婆的下一個任務各有「可以接」的提示。提示不寫方位（菇菇婆婆說祕窟「在東南」與座標不完全吻合）。
+- 按鍵變數新增 `{lumen}`（星光照明，種子支線用）。
+- 測試：`src/game/companion/companionHints.test.ts`（5 項，用專案資料）；改回舊的 `companion.json` 時其中 4 項失敗。
+- 驗證：`pnpm check`（Vitest 1066 項）、`pnpm build` 通過；e2e `companion` 7 項全過。
+- 未做：第三章澄鏡湖（`quest_lake_001`–`003`）與風語草原也還沒有芽芽的提示。
+
 ### 修正：缺少的翻譯文字、網頁版 Esc 關閉視窗後要再操作一次才回到遊玩（2026-10-24，使用者回報）
 - 翻譯：根噬者的頭目血條下方顯示原始 key「root.hint」（`BossBar` 在沒有水槽的頭目戰一律顯示 `<textKey>.hint`）→ 補上 `root.hint`。另補 `boss.trough` / `boss.cleared` / `boss.shielded`（舊苔咚的水槽機制留下的，目前沒有頭目用水槽，改成通用文字）。`companion.hint.forest` / `forestReady` / `forestOffer` 在 HEAD 缺少（`companion.json` 有引用，芽芽會說出 key），工作區裡已有，一併提交。
 - `src/data/i18n/i18n.test.ts` 新增兩項：資料檔的每個 `xxxKey` / `xxxKeys` 都有文字；每個頭目依它的機制（`stun`、`veil`、`purify`、`troughs`）會用到的提示都有文字。暫時刪掉 `root.hint`、`companion.hint.dawn6` 確認兩項會失敗。
@@ -40,7 +48,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
   - 提示改為「點擊畫面或按移動鍵開始操作」。
   - **未在真的瀏覽器上驗證**：Playwright 開的 Chromium 視窗沒有焦點，無法鎖定滑鼠（WrongDocumentError），需使用者在正式網址試：開地圖 → Esc → 直接按 W。
 - 驗證：`pnpm check`（Vitest 1061 項）、`pnpm build` 通過；e2e `movement`、`gamepad`、`dev`、`npc`、`settings` 全過；`touch` 13 項中 1 項失敗（橫向時教學已跳過「移動」那一步），改動前的 HEAD 同樣失敗，見「已知問題」。
-- 同時發現：`companion.json` 沒有第二章（`quest_forest_001`–`008`）以後的提示，在祕林問芽芽只會得到第一章的提示。
+- 同時發現：`companion.json` 沒有第二章（`quest_forest_001`–`008`）以後的提示 → 已在下一項修正。
 
 ### 任務 11M-8：手機版點聊天後觸控按鈕消失（2026-10-23）
 - 現象（使用者 iPhone 截圖）：直式手機點 💬 打開聊天後，觸控搖桿與按鈕整組消失，畫面換成鍵盤版的提示（滑鼠左鍵、Q、F、C）。
