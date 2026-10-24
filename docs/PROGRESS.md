@@ -31,6 +31,17 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 修正：缺少的翻譯文字、網頁版 Esc 關閉視窗後要再操作一次才回到遊玩（2026-10-24，使用者回報）
+- 翻譯：根噬者的頭目血條下方顯示原始 key「root.hint」（`BossBar` 在沒有水槽的頭目戰一律顯示 `<textKey>.hint`）→ 補上 `root.hint`。另補 `boss.trough` / `boss.cleared` / `boss.shielded`（舊苔咚的水槽機制留下的，目前沒有頭目用水槽，改成通用文字）。`companion.hint.forest` / `forestReady` / `forestOffer` 在 HEAD 缺少（`companion.json` 有引用，芽芽會說出 key），工作區裡已有，一併提交。
+- `src/data/i18n/i18n.test.ts` 新增兩項：資料檔的每個 `xxxKey` / `xxxKeys` 都有文字；每個頭目依它的機制（`stun`、`veil`、`purify`、`troughs`）會用到的提示都有文字。暫時刪掉 `root.hint`、`companion.hint.dawn6` 確認兩項會失敗。
+- Esc：網頁版的 Esc 按鍵不算使用者手勢，用 Esc 關閉對話、地圖等視窗時重新鎖定滑鼠會被瀏覽器拒絕，游標留在畫面上。對話框與暫停選單用 Esc 關閉時原本也完全沒有重新鎖定。修正：
+  - `InputManager.relockOnMove`：遊玩中、沒有視窗、尚未鎖定時，按下移動類的鍵（前後左右、跑、跳）就重新鎖定（按鍵是使用者手勢）。只看移動鍵，因為開視窗的鍵同一下又會放開滑鼠。
+  - `DialogueBox` 的 Esc、`PauseMenu` 的 Esc 繼續：與地圖、背包相同，關掉就嘗試重新鎖定（桌面版直接回到遊玩；網頁版被拒時由上一項補上）。
+  - 提示改為「點擊畫面或按移動鍵開始操作」。
+  - **未在真的瀏覽器上驗證**：Playwright 開的 Chromium 視窗沒有焦點，無法鎖定滑鼠（WrongDocumentError），需使用者在正式網址試：開地圖 → Esc → 直接按 W。
+- 驗證：`pnpm check`（Vitest 1061 項）、`pnpm build` 通過；e2e `movement`、`gamepad`、`dev`、`npc`、`settings` 全過；`touch` 13 項中 1 項失敗（橫向時教學已跳過「移動」那一步），改動前的 HEAD 同樣失敗，見「已知問題」。
+- 同時發現：`companion.json` 沒有第二章（`quest_forest_001`–`008`）以後的提示，在祕林問芽芽只會得到第一章的提示。
+
 ### 任務 11M-8：手機版點聊天後觸控按鈕消失（2026-10-23）
 - 現象（使用者 iPhone 截圖）：直式手機點 💬 打開聊天後，觸控搖桿與按鈕整組消失，畫面換成鍵盤版的提示（滑鼠左鍵、Q、F、C）。
 - 原因：`InputManager.onMouseDown` 收到「觸控後補送的相容滑鼠事件」時會把輸入裝置切回 keyboard。iOS Safari 沒有 `sourceCapabilities`，原本的排除條件無效。
@@ -844,6 +855,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 5. **LINE 登入已移除（T-188）**：遊戲裡不再有 LINE 按鈕；Supabase 後台 Authentication → Providers 的 `custom:line` 與 LINE Developers 的頻道可以自行關閉。
 
 ## 已知問題
+- **`touch` e2e「橫向（844×390）：觸控介面出現，沒有鍵盤提示」失敗**（2026-10-24，改動前的 HEAD c7c56c7 也失敗）：教學提示已經是第二步（寶箱），不是「移動」的搖桿提示；可能與 `tutorial` 那一項是同一個原因。
 - **`tutorial` e2e「新遊戲開始時顯示第一步：移動」失敗**（2026-10-23 發現，`main` 311676e 也失敗）：開始新遊戲後 3 秒內沒有出現 `data-step="move"` 的教學提示，後面 6 項都通過。尚未追查（可能與 11M 手機版、線上模式的主選單或教學顯示時機有關）。
 - `footprints`「時間過去後回來悄悄觀察」在完整連跑時失敗一次（2026-10-23），單獨重跑通過。
 - `garden`「回報桃樂；時間過去後花圃開花」偶發失敗（0 !== 2，2026-10-22）：測試用 `setClock(20)` 推進遊玩時間看花圃成長，結果偶爾停在第 0 階段；同一程式單獨跑 4 次全過。之後若再出現，要檢查測試開始時的共享時鐘（測試沒有固定時段）。

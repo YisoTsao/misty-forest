@@ -28,6 +28,8 @@ const PAD_LOOK_Y = 640;
 const LOOK_CAP = 400;
 /** 觸控後多久內的滑鼠事件視為點擊補送的相容事件（iOS 會在 touchend 後補送 mousedown） */
 const COMPAT_MOUSE_WINDOW_MS = 800;
+/** 按下時會重新鎖定滑鼠的動作（relockOnMove） */
+const MOVE_ACTIONS: ReadonlySet<ActionId> = new Set(['moveForward', 'moveBack', 'moveLeft', 'moveRight', 'run', 'jump']);
 
 function readNavigatorPad(): PadSnapshot | null {
   const pads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : [];
@@ -299,8 +301,19 @@ class InputManager {
     if (isTextField(e.target)) return;
     if (!this.lookup.has(e.code)) return;
     if (e.code === 'Space' || e.code === 'Tab') e.preventDefault();
+    this.relockOnMove(e);
     this.press(e.code);
   };
+
+  /**
+   * 遊玩中沒有鎖定滑鼠時，按下移動鍵（WASD、跑、跳）就重新鎖定。
+   * 網頁版的 Esc 不算使用者手勢：用 Esc 關閉對話、地圖等視窗後，瀏覽器會拒絕重新鎖定，原本要再點一下畫面才回到遊玩。
+   * 只看移動類的鍵：開視窗的鍵（M、J、E…）同一下又會放開滑鼠，兩者會互相打架。
+   */
+  private relockOnMove(e: KeyboardEvent): void {
+    if (!e.isTrusted || e.repeat || !this.pointerLockEnabled || this.pointerLocked || this.uiMode()) return;
+    if (this.lookup.get(e.code)?.some((a) => MOVE_ACTIONS.has(a))) this.requestPointerLock();
+  }
 
   /** 放開所有按住的鍵（打開聊天時：之後的 keyup 送到輸入框，角色不會一直走） */
   releaseAll(): void {

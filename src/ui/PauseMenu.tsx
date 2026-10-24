@@ -45,6 +45,8 @@ export function PauseMenu() {
         toggle('pause');
       } else if (screenNow === 'paused') {
         toggle('resume');
+        // 與「繼續遊戲」按鈕相同；網頁版的 Esc 不算手勢會被拒絕，之後按移動鍵或點畫面再鎖定
+        input.requestPointerLock();
       }
     };
     document.addEventListener('pointerlockchange', onLockChange);

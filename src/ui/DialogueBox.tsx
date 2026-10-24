@@ -6,7 +6,7 @@ import { keyVars } from '@/game/input/keyLabels';
 import { useGameStore } from '@/game/state/gameStore';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { useBindings } from '@/game/state/settingsStore';
-import { useUiStore } from '@/game/state/uiStore';
+import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 
 /**
  * NPC 對話視窗（規格 6.4）：說話者、文字、選項。
@@ -36,6 +36,8 @@ function DialogueWindow() {
       if (e.code === 'Escape') {
         e.stopImmediatePropagation();
         endTalk();
+        // 與地圖、背包相同：關掉就回到遊玩（網頁版的 Esc 不算手勢會被拒絕，之後按移動鍵或點畫面再鎖定）
+        if (!isModalOpen()) input.requestPointerLock();
         return;
       }
       if (view.options) {
