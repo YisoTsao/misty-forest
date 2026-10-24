@@ -6,11 +6,14 @@ import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { CharacterDef, ClipKey } from '@/game-core/character/characterDef';
 import { moveClips, type WeaponId } from '@/game-core/combat/weapons';
-import { authority, weapons } from '@/game/authority';
+import { authority, currentLook, weapons } from '@/game/authority';
 import { combatRuntime } from '@/game/combat/combatRuntime';
 import { playerRuntime, type PlayerAction } from '@/game/player/localRuntime';
 import { assetUrl } from '@/game/worldData';
 import { toToonMaterial } from '@/render/toon';
+import type { ResolvedLook } from '@/game-core/equipment/equipment';
+import { localLook } from '@/game/player/lookDebug';
+import { createLookApplier } from './equipmentLook';
 
 const FADE = 0.15;
 /** 近戰招式之間切換較快，連段才俐落 */
@@ -161,6 +164,16 @@ export function CharacterModel({ def }: { def: CharacterDef }) {
   const weaponModels = useMemo(() => attachWeapons(root, sources), [root, sources]);
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
   useEffect(() => () => weaponModels.materials.forEach((m) => m.dispose()), [weaponModels]);
+  // 裝備外觀（第三章規格 §7.4）：裝備或武器改變時重新套用顏色與發光
+  const looks = useMemo(() => createLookApplier(root, weaponModels.nodes), [root, weaponModels]);
+  const appliedLook = useRef<ResolvedLook | null>(null);
+  useEffect(() => {
+    appliedLook.current = null;
+    localLook.inspect = looks.inspect;
+    return () => {
+      if (localLook.inspect === looks.inspect) localLook.inspect = null;
+    };
+  }, [looks]);
 
   const groupRef = useRef<THREE.Group>(null);
   const { actions, mixer } = useAnimations(gltf.animations, groupRef);
@@ -181,6 +194,11 @@ export function CharacterModel({ def }: { def: CharacterDef }) {
 
   useFrame((_, dt) => {
     const melee = combatRuntime.melee;
+    const look = currentLook();
+    if (appliedLook.current !== look) {
+      looks.apply(look);
+      appliedLook.current = look;
+    }
     // 命中停頓：動畫暫停一小段時間（打擊感）
     mixer.timeScale = melee.hitStop > 0 ? 0 : 1;
 

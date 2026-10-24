@@ -14,12 +14,43 @@ export type EquipEffectKind = (typeof equipEffectKinds)[number];
 export const equipEffectSchema = z.object({ kind: z.enum(equipEffectKinds), value: z.number().optional() });
 export type EquipEffect = z.infer<typeof equipEffectSchema>;
 
-export const equipSpecSchema = z.object({
-  slot: z.enum(equipSlots),
-  /** 武器變體的基礎武器類型（職業能用這個類型才能裝備；攻擊時只有目前的武器是這個類型才生效） */
-  base: z.enum(weaponIds).optional(),
-  effects: z.array(equipEffectSchema).min(1),
-});
+const rgb = z.tuple([z.number().min(0), z.number().min(0), z.number().min(0)]);
+const glowSchema = z.object({ color: rgb, intensity: z.number().min(0).max(4) });
+
+/**
+ * 角色模型的部位：四個 KayKit 角色模型的節點名稱是「角色前綴_部位」（Rogue_Cape、Knight_Cape…），
+ * 這裡只寫部位，套用時比對節點名稱的結尾，所以同一份資料四個職業都能用。
+ */
+export const lookParts = ['Cape', 'ArmLeft', 'ArmRight', 'Body', 'LegLeft', 'LegRight'] as const;
+export type LookPart = (typeof lookParts)[number];
+
+/**
+ * 裝備外觀（第三章規格 §7.4）：只描述顏色與發光，畫面端讀資料套用，場景不寫死。
+ * 武器變體：tint / glow 套在手上的武器，trail 換揮砍拖尾的顏色（HDR）；只在目前的武器就是基礎武器時顯示。
+ * 防具、飾品：tint / glow 套在 parts 列出的身體部位。
+ */
+export const equipLookSchema = z
+  .object({
+    /** 乘在原本顏色上的倍率（1 = 不變） */
+    tint: rgb.optional(),
+    glow: glowSchema.optional(),
+    trail: rgb.optional(),
+    parts: z.array(z.enum(lookParts)).min(1).optional(),
+  })
+  .refine((l) => l.tint || l.glow || l.trail, { message: '外觀至少要有 tint、glow 或 trail 其中一項' });
+export type EquipLook = z.infer<typeof equipLookSchema>;
+
+export const equipSpecSchema = z
+  .object({
+    slot: z.enum(equipSlots),
+    /** 武器變體的基礎武器類型（職業能用這個類型才能裝備；攻擊時只有目前的武器是這個類型才生效） */
+    base: z.enum(weaponIds).optional(),
+    effects: z.array(equipEffectSchema).min(1),
+    look: equipLookSchema.optional(),
+  })
+  .refine((e) => !e.look || (e.slot === 'weapon' ? !e.look.parts : !e.look.trail && !!e.look.parts), {
+    message: '武器變體的外觀不寫 parts（套在手上的武器）；防具、飾品的外觀要寫 parts、不能有 trail',
+  });
 export type EquipSpec = z.infer<typeof equipSpecSchema>;
 
 /** 裝備格 → 道具 id */
@@ -83,4 +114,31 @@ export function equipmentModifiers(equipment: Equipment, held: Iterable<string>,
 export function scaleDamage(amount: number, scale: number): number {
   if (amount <= 0) return amount;
   return Math.max(1, Math.round(amount * scale));
+}
+
+/** 目前裝備要呈現的外觀（畫面端套用） */
+export type ResolvedLook = {
+  /** 手上的武器（只有武器變體的基礎武器是目前的武器時才有） */
+  weapon: { base: WeaponId; tint?: [number, number, number]; glow?: { color: [number, number, number]; intensity: number }; trail?: [number, number, number] } | null;
+  /** 身體部位；同一個部位被兩件裝備指定時，後面的格（飾品）蓋過前面的（防具） */
+  parts: Partial<Record<LookPart, { tint?: [number, number, number]; glow?: { color: [number, number, number]; intensity: number } }>>;
+};
+
+export const NO_LOOK: ResolvedLook = { weapon: null, parts: {} };
+
+/** 依裝備格算出外觀。武器變體的外觀和攻擊加成的生效條件相同（基礎武器 = 目前的武器）。 */
+export function equipmentLook(equipment: Equipment, lookup: EquipItemLookup, weapon: WeaponId): ResolvedLook {
+  const look: ResolvedLook = { weapon: null, parts: {} };
+  for (const slot of equipSlots) {
+    const itemId = equipment[slot];
+    const spec = itemId ? lookup(itemId)?.equip : undefined;
+    const l = spec?.look;
+    if (!spec || !l) continue;
+    if (spec.slot === 'weapon') {
+      if (spec.base === weapon) look.weapon = { base: weapon, tint: l.tint, glow: l.glow, trail: l.trail };
+      continue;
+    }
+    for (const part of l.parts ?? []) look.parts[part] = { tint: l.tint, glow: l.glow };
+  }
+  return look;
 }

@@ -6,7 +6,8 @@ import type { DialogueDef } from '@/game-core/dialogue/dialogue';
 import type { NpcDef } from '@/game-core/npc/npc';
 import type { QuestCatalog } from '@/game-core/quest/quest';
 import type { CombatData } from '@/game-core/combat/combat';
-import type { WeaponCatalog } from '@/game-core/combat/weapons';
+import type { WeaponCatalog, WeaponId } from '@/game-core/combat/weapons';
+import { equipmentLook, type Equipment, type ResolvedLook } from '@/game-core/equipment/equipment';
 import type { SpellCatalog } from '@/game-core/combat/spells';
 import type { CompanionDef } from '@/game-core/companion/companion';
 import type { BuildableCatalog } from '@/game-core/build/build';
@@ -95,6 +96,16 @@ export const worldIndex = new WorldIndex(data);
 
 /** 目前的被動效果與裝備倍率（裝備系統，Phase 2） */
 export const currentModifiers = () => modifiersOf(authority.getState(), { items: data.items });
+
+let lookCache: { equipment: Equipment; weapon: WeaponId; look: ResolvedLook } | null = null;
+/** 目前裝備的外觀（第三章規格 §7.4）。每幀呼叫：裝備與武器沒變就回傳同一個物件，畫面端用參照比較就知道要不要重新套用。 */
+export function currentLook(): ResolvedLook {
+  const { equipment, player } = authority.getState();
+  if (lookCache?.equipment !== equipment || lookCache.weapon !== player.weapon) {
+    lookCache = { equipment, weapon: player.weapon, look: equipmentLook(equipment, (id) => data.items.get(id), player.weapon) };
+  }
+  return lookCache.look;
+}
 
 export const authority = new LocalAuthority(initialGameState(), {
   world: worldIndex,

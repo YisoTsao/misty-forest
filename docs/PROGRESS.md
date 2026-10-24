@@ -31,6 +31,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 部署、第三章規格書草案、裝備外觀（2026-10-25，分支 `feat/ch2-completion`）
+- **部署**：`feat/ch2-completion`（到 c6260c6）快轉合併進 `main` 並 push；Vercel 正式版建置完成（`mistwood-j2jayolbe`），https://mistwood-blue.vercel.app 的 JS 與本機 build 一致。push 前 `pnpm check` 1101 項、`pnpm build` 通過；完整 e2e 沿用同日的紀錄（見下一節）。
+- **第三章規格書草案** `docs/CHAPTER_03_MIRRORLAKE_SPEC.md`（T-196）：故事（承接「湖中那個不屬於你的倒影」，揭露守望者的身影但不揭露諾亞）、七區、NPC（奇奇正式登場、新居民帕可 / 茉茉 / 蘇諾）、主線 8 個與支線 6 個、新怪物回聲水母、精英沉鐘龜、迷你頭目倒影旅人（重用玩家模型與招式）、璃漪改三階段、5 件裝備（四個職業都有武器變體）、開發 Phase 0–5。**待使用者審閱**，§19 有 4 個待決定事項。
+- **裝備外觀**（T-195，第三章規格 §7.4）：`equip.look`（顏色、發光、拖尾、身體部位）、`equipmentLook`、`createLookApplier`；螢晶短劍 / 螢苔法杖拿在手上時發光、拖尾換色，守林者護腕讓兩隻手臂染綠。除錯 API `equipLook()`。
+- 測試：`equipment.test.ts` 新增 3 項（外觀生效條件、部位、資料檢查）；e2e `equipment` 新增 2 項（短刀發光、護腕染色後卸下還原），截圖 `docs/screenshots/phase14/equip_look.png`（已檢視：雙刀明顯發青光；手臂的綠色偏淡）。`pnpm check` 1104 項、`pnpm build` 通過；e2e `equipment` 6 項、`melee` 全過。
+- 未做：遠端玩家看到外觀（協定要帶裝備格）、顯示 / 隱藏模型部位（披風、帽子、盾牌）、背包的效果摘要與「加成不生效」提示、第三章的新裝備資料。
+
 ### 完整 e2e（2026-10-25，分支 `feat/ch2-completion`，圖鑑收尾）＋修正：按移動鍵重新鎖定滑鼠造成背景視窗暫停
 - `pnpm e2e` 停在第 6 個 suite `tutorial`（「新遊戲開始時顯示第一步：移動」，已知問題，2026-10-23 起在 `main` 也失敗）；`e2e:all` 用 `&&` 串接，之後的 suite 改用 Node 腳本逐一跑完。
 - 結果：`tutorial` 之後 50 個 suite 中，`lake`（單獨重跑通過，偶發）、`touch`（已知問題）、`bounds`、`melee`（飛踢）失敗。

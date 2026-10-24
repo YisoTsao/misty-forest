@@ -7,6 +7,7 @@ import { parseHeroClasses } from '@/game-core/character/heroClass';
 import { rollLoot } from '@/game-core/items/items';
 import { addItems, countItem } from '@/game-core/inventory/inventory';
 import { currentModifiersFor } from '@/game-core/equipment/testing';
+import { equipmentLook, equipSpecSchema } from '@/game-core/equipment/equipment';
 import { fromSaveData, toSaveData } from '@/game-core/save/convert';
 import { SAVE_VERSION } from '@/game-core/save/schema';
 import { characterIds } from '../../game/character/characters';
@@ -141,5 +142,36 @@ describe('迷霧持續傷害（第二章 Phase 3）', () => {
     expect(handleCommand(deep(traveler()), { type: 'MistHarm', region: 'mist_gate' }, harmCtx)[0]).toMatchObject({ reason: 'not-dense' });
     const light = { ...traveler(), mist: { ...traveler().mist, deep_mist: 'light' as const } };
     expect(handleCommand(light, { type: 'MistHarm', region: 'deep_mist' }, harmCtx)[0]).toMatchObject({ reason: 'not-dense' });
+  });
+});
+
+describe('裝備外觀（第三章規格 §7.4）', () => {
+  const lookup = (id: string) => data.items.get(id);
+
+  it('武器變體的外觀只在目前的武器就是基礎武器時出現（與攻擊加成同一個條件）', () => {
+    const knife = equipmentLook({ weapon: 'glow_knife' }, lookup, 'knife');
+    expect(knife.weapon?.base).toBe('knife');
+    expect(knife.weapon?.glow).toBeDefined();
+    expect(knife.weapon?.trail).toBeDefined();
+    expect(equipmentLook({ weapon: 'glow_knife' }, lookup, 'sword').weapon).toBeNull();
+  });
+
+  it('防具的外觀套在資料指定的身體部位；沒有裝備時什麼都不套', () => {
+    const look = equipmentLook({ armor: 'forest_bracer' }, lookup, 'sword');
+    expect(Object.keys(look.parts).sort()).toEqual(['ArmLeft', 'ArmRight']);
+    expect(look.weapon).toBeNull();
+    expect(equipmentLook({}, lookup, 'sword')).toEqual({ weapon: null, parts: {} });
+  });
+
+  it('資料檢查：武器變體不能寫 parts；防具要寫 parts、不能有拖尾；外觀不能是空的', () => {
+    const glow = { color: [1, 1, 1], intensity: 1 };
+    const base = { slot: 'weapon', base: 'knife', effects: [{ kind: 'attackScale', value: 1.1 }] };
+    expect(equipSpecSchema.safeParse({ ...base, look: { glow } }).success).toBe(true);
+    expect(equipSpecSchema.safeParse({ ...base, look: { glow, parts: ['Cape'] } }).success).toBe(false);
+    const armor = { slot: 'armor', effects: [{ kind: 'damageTakenScale', value: 0.9 }] };
+    expect(equipSpecSchema.safeParse({ ...armor, look: { glow, parts: ['Cape'] } }).success).toBe(true);
+    expect(equipSpecSchema.safeParse({ ...armor, look: { glow } }).success).toBe(false);
+    expect(equipSpecSchema.safeParse({ ...armor, look: { trail: [1, 1, 1], parts: ['Cape'] } }).success).toBe(false);
+    expect(equipSpecSchema.safeParse({ ...armor, look: { parts: ['Cape'] } }).success).toBe(false);
   });
 });

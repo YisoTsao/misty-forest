@@ -1,9 +1,11 @@
 // 端對端：第二章 Phase 2 — 裝備系統（PHASE0 §4、規格 §7.3）。
 // 背包（I 鍵）：選守林者護腕 → 按「裝備」→ 防具格出現；被敵人打時受到的傷害減少；卸下後放回背包；
 // 螢晶短劍只有在基礎武器是短刀時生效（旅人一開始拿劍，裝了不生效）。
+// 裝備外觀（第三章規格 §7.4）：換成短刀後螢晶短劍發光、拖尾換色；戴上護腕後手臂染色；截圖 docs/screenshots/phase14/equip_look.png。
 // 用法：pnpm build && node e2e/equipment.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
 import { runE2e } from './lib.mjs';
 
 await runE2e('equipment e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page, check, debug, itemCount }) => {
@@ -52,5 +54,29 @@ await runE2e('equipment e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ p
     assert.match(await page.locator('[data-testid="equip-slot-weapon"]').innerText(), /螢晶短劍/);
     await closeInventory();
     assert.equal(await debug(() => window.__mistwoodDebug.equipment().weapon), 'glow_knife');
+  });
+
+  const look = () => debug(() => window.__mistwoodDebug.equipLook());
+
+  await check('裝備外觀：拿著劍時螢晶短劍沒有外觀；換成短刀後手上的短刀發光', async () => {
+    await page.waitForFunction(() => window.__mistwoodDebug.equipLook() !== null, null, { timeout: 5000 });
+    assert.equal((await look()).weapon, null);
+    await send({ type: 'EquipWeapon', weapon: 'knife' });
+    await page.waitForFunction(() => window.__mistwoodDebug.equipLook()?.weapon === 'knife', null, { timeout: 2000 });
+    const l = await look();
+    assert.ok(l.weaponEmissive && l.weaponEmissive[1] > 0.5, `短刀沒有發光：${JSON.stringify(l)}`);
+  });
+
+  await check('裝備外觀：戴上護腕後兩隻手臂染色；卸下短劍後短刀恢復原樣', async () => {
+    await send({ type: 'EquipItem', itemId: 'forest_bracer' });
+    await page.waitForFunction(() => Object.keys(window.__mistwoodDebug.equipLook()?.parts ?? {}).length === 2, null, { timeout: 2000 });
+    assert.deepEqual(Object.keys((await look()).parts).sort(), ['ArmLeft', 'ArmRight']);
+    mkdirSync('docs/screenshots/phase14', { recursive: true });
+    await debug(() => window.__mistwoodDebug.camera({ yaw: Math.PI, pitch: 0.15, distance: 2.6 }));
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'docs/screenshots/phase14/equip_look.png' });
+    await send({ type: 'UnequipItem', slot: 'weapon' });
+    await page.waitForFunction(() => window.__mistwoodDebug.equipLook()?.weapon === null, null, { timeout: 2000 });
+    assert.equal((await look()).weaponEmissive, null);
   });
 });

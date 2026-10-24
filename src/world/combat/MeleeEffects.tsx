@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { WeaponId } from '@/game-core/combat/weapons';
-import { authority, weapons } from '@/game/authority';
+import { authority, currentLook, weapons } from '@/game/authority';
 import { combatRuntime, type TrailSample } from '@/game/combat/combatRuntime';
 import { sparkTexture } from '@/render/sparkTexture';
 
@@ -17,8 +17,9 @@ const MAX_SAMPLES = 32;
 const TRAIL_LIFE = 0.14;
 
 /** 拖尾的取樣與武器（決定顏色與寬度）；預設是本機玩家 */
-type TrailSource = () => { samples: readonly TrailSample[]; weapon: WeaponId };
-const localTrail: TrailSource = () => ({ samples: combatRuntime.trail, weapon: authority.getState().player.weapon });
+/** color：武器變體的拖尾顏色（裝備外觀，沒有就用武器資料的顏色） */
+type TrailSource = () => { samples: readonly TrailSample[]; weapon: WeaponId; color?: readonly [number, number, number] };
+const localTrail: TrailSource = () => ({ samples: combatRuntime.trail, weapon: authority.getState().player.weapon, color: currentLook().weapon?.trail });
 
 /** 揮砍拖尾；其他玩家（任務 11E）傳入自己的取樣 */
 export function WeaponTrail({ source = localTrail }: { source?: TrailSource }) {
@@ -81,7 +82,7 @@ export function WeaponTrail({ source = localTrail }: { source?: TrailSource }) {
 
   const warm = useRef(3);
   useFrame(() => {
-    const { samples, weapon: weaponId } = source();
+    const { samples, weapon: weaponId, color } = source();
     const m = mesh.current;
     if (!m) return;
     // 前幾幀以全透明畫一次，shader 在載入時編譯，第一次揮砍不會卡頓
@@ -98,7 +99,7 @@ export function WeaponTrail({ source = localTrail }: { source?: TrailSource }) {
       return;
     }
     m.visible = true;
-    const [r, g, b] = weapon.trail.color;
+    const [r, g, b] = color ?? weapon.trail.color;
     (assets.material.uniforms.uColor!.value as THREE.Color).setRGB(r, g, b);
     const n = Math.min(samples.length, MAX_SAMPLES);
     const start = samples.length - n;

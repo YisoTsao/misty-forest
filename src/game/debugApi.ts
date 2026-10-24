@@ -48,6 +48,7 @@ import { vfxStats } from './vfx/vfxQueue';
 import { mistRuntime } from './world/mistRuntime';
 import { mistTargetAt } from './world/mistTarget';
 import { cameraBookmarks } from './worldData';
+import { localLook, type LookInfo } from './player/lookDebug';
 import { assetLoadReport } from './assets/assetLoader';
 import { connect, disconnect, reconnect, sendRaw } from '@/net/netClient';
 import { chatRuntime, useChatStore } from '@/net/chatStore';
@@ -156,6 +157,8 @@ export type MistwoodDebugApi = {
   /** 背包格子快照 */
   inventory: () => InventorySlot[];
   equipment: () => Record<string, string | undefined>;
+  /** 裝備外觀實際套在角色模型上的發光顏色（角色模型還沒載入時是 null） */
+  equipLook: () => LookInfo | null;
   itemCount: (itemId: string) => number;
   /** 敵人是否還在權威狀態裡；enemyAnim 為模型怪物目前播放的動畫（含正在倒下消失的） */
   enemyKnown: (id: string) => boolean;
@@ -412,6 +415,7 @@ export function installDebugApi(): void {
     },
     inventory: () => [...authority.getState().inventory.slots],
     equipment: () => ({ ...authority.getState().equipment }),
+    equipLook: () => localLook.inspect?.() ?? null,
     itemCount: (itemId) => countItem(authority.getState().inventory, itemId),
     enemyKnown: (id) => authority.getState().enemies.has(id),
     enemyAnim: (id) => enemyRuntime.get(id)?.anim ?? null,
