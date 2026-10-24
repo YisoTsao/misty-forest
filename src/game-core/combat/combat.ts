@@ -144,6 +144,11 @@ export const enemyDefSchema = z.object({
     ])
     .optional(),
   /**
+   * 呼叫同伴（第二章 M-03 霧紋森林狼，規格 §6.2）：發現玩家時嚎叫，radius 內還在待機 / 巡邏的同種敵人一起追擊。
+   * 被叫來的不會再嚎叫（不會連鎖），也不會生成新的敵人。
+   */
+  pack: z.object({ radius: z.number().positive() }).optional(),
+  /**
    * 第二階段（第二章 M-05 枯根守衛，規格 §6.3）：血量低於 below 之後會放地面根刺——玩家腳下與周圍出現 count 個標記（spread 公尺內），
    * windup 秒後根刺突起、標記半徑內受傷；放完後停下來 coreSec 秒、胸口核心暴露（破綻，傷害倍率同 behavior 的 recoverScale）。
    * 需要 shell 或 carapace 行為（破綻倍率）。

@@ -64,6 +64,8 @@ export type AiOutput = {
   blink: { x: number; z: number } | null;
   /** 這一幀根刺突起（第二章 M-05）：標記位置與半徑，玩家在任一標記內就受傷 */
   spikes: { points: { x: number; z: number }[]; radius: number } | null;
+  /** 這一幀自己發現了玩家（待機 / 巡邏 → 追擊；被同伴叫醒的不算） */
+  noticed: boolean;
 };
 
 /** 第二階段的根刺：玩家在這個距離內才會放 */
@@ -94,6 +96,7 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
   let spit: AiOutput['spit'] = null;
   let blink: AiOutput['blink'] = null;
   let spikes: AiOutput['spikes'] = null;
+  let noticed = false;
   const behavior = def.behavior;
   ai.timer += dt;
   ai.cooldown = Math.max(0, ai.cooldown - dt);
@@ -126,6 +129,7 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
     case 'idle':
     case 'patrol': {
       if (player.alive && toPlayer <= def.aggroRadius && fromHome <= def.leashRadius) {
+        noticed = true;
         set('chase');
         break;
       }
@@ -294,7 +298,28 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
       if (moveToward(ai, home.x, home.z, def.moveSpeed * 1.2, dt) <= 0.3) set('idle');
       break;
   }
-  return { strike, spit, blink, spikes };
+  return { strike, spit, blink, spikes, noticed };
+}
+
+/**
+ * 嚎叫呼叫同伴（第二章 M-03）：caller 內 radius 公尺內、同種、還在待機 / 巡邏的敵人（不含自己），回傳要叫醒的 id。
+ * 只叫醒現有的，不生成新的敵人。
+ */
+export function packToAlert(caller: { id: string; kind: string; x: number; z: number }, radius: number, others: Iterable<{ id: string; kind: string; ai: EnemyAi }>): string[] {
+  const out: string[] = [];
+  for (const o of others) {
+    if (o.id === caller.id || o.kind !== caller.kind) continue;
+    if (o.ai.state !== 'idle' && o.ai.state !== 'patrol') continue;
+    if (Math.hypot(o.ai.x - caller.x, o.ai.z - caller.z) <= radius) out.push(o.id);
+  }
+  return out;
+}
+
+/** 被同伴叫醒：直接開始追擊（不會再嚎叫） */
+export function alertEnemy(ai: EnemyAi): void {
+  if (ai.state !== 'idle' && ai.state !== 'patrol') return;
+  ai.state = 'chase';
+  ai.timer = 0;
 }
 
 /** 攻擊者是否在敵人的正面（面向兩側 arcDeg / 2 以內） */

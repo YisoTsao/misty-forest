@@ -672,6 +672,7 @@
     "attackWindup": 0.5,
     "attackCooldown": 1.4,
     "leashRadius": 20,
+    "pack": { "radius": 14 },
     "lootTableId": "mob_mist_wolf_drop",
     "model": {
       "path": "models/monsters/GreenSpikyBlob.glb",
