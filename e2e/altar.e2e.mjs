@@ -33,6 +33,15 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
     assert.ok(await bossOf(), '根噬者沒有出現');
   });
 
+  await check('根噬者有畫面元件：頭目 AI 在跑（開場結束後離開 intro），截圖看得到模型', async () => {
+    // 頭目 AI 只由畫面元件每幀推進；以前根噬者沒有元件，隱形而且永遠停在 intro
+    await page.waitForFunction(() => window.__mistwoodDebug.boss()?.state && window.__mistwoodDebug.boss().state !== 'intro', null, { timeout: 8000 });
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [2112, 0]);
+    await page.waitForTimeout(600);
+    mkdirSync('docs/screenshots/phase13', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/phase13/altar_root_boss.png' });
+  });
+
   const wisps = () => debug(() => window.__mistwoodDebug.enemies().filter((e) => e.kind === 'mob_fog_wisp' && e.x > 2090 && e.x < 2130 && Math.abs(e.z) < 20).length);
   await check('第二階段：血量跌破門檻時召喚幻霧螢靈', async () => {
     for (let i = 0; i < 40 && (await wisps()) === 0; i++) {

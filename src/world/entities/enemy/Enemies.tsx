@@ -11,6 +11,7 @@ import { assetUrl } from '@/game/worldData';
 import { cameraIgnoredColliders } from '@/game/world/cameraIgnore';
 import { createWispMaterial, wispEyeMaterial } from '@/render/mistWisp';
 import { updateEnemyAi } from './enemyUpdate';
+import { ModelBoss } from './ModelBoss';
 import { ModelEnemy, ModelEnemyWarmup } from './ModelEnemy';
 import { CritterEnemy, CritterEnemyWarmup } from './CritterEnemy';
 import { LakeCritter, LakeCritterWarmup, type LakeKind } from './LakeCritter';
@@ -65,8 +66,9 @@ export function Enemies() {
         if (def?.boss) {
           const boss = { ...def, boss: def.boss };
           if (def.id === 'boss_liyi_echo_koi') return <LiyiKoi key={id} id={id} def={boss} />;
-          // 其他頭目（第二章的根噬者）在各自的任務加入元件
-          return def.id === 'boss_dawn_mist_puff' ? <PuffKing key={id} id={id} def={boss} /> : null;
+          if (def.id === 'boss_dawn_mist_puff') return <PuffKing key={id} id={id} def={boss} />;
+          // 沒有專屬造型、以模型呈現的頭目（第二章的根噬者）
+          return def.model ? <ModelBoss key={id} id={id} def={{ ...boss, model: def.model }} /> : null;
         }
         if (def?.model) return <ModelEnemy key={id} id={id} def={{ ...def, model: def.model }} />;
         if (def?.procedural) {
