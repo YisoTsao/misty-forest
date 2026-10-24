@@ -82,6 +82,8 @@ class InputManager {
   attach(target: HTMLElement): () => void {
     this.target = target;
     window.addEventListener('keydown', this.onKeyDown);
+    document.addEventListener('pointerlockerror', this.onLockError);
+    document.addEventListener('pointerlockchange', this.onLockChange);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onBlur);
     window.addEventListener('touchstart', this.onTouchStart, { passive: true });
@@ -97,6 +99,8 @@ class InputManager {
     return () => {
       cancelAnimationFrame(this.rafId);
       window.removeEventListener('keydown', this.onKeyDown);
+      document.removeEventListener('pointerlockerror', this.onLockError);
+      document.removeEventListener('pointerlockchange', this.onLockChange);
       window.removeEventListener('keyup', this.onKeyUp);
       window.removeEventListener('blur', this.onBlur);
       window.removeEventListener('touchstart', this.onTouchStart);
@@ -217,11 +221,24 @@ class InputManager {
     try {
       // 使用者快速連點或視窗未聚焦時瀏覽器會拒絕；屬預期情況，下次點擊再試
       const pending: Promise<void> | undefined = this.target.requestPointerLock();
-      pending?.catch((err: unknown) => console.warn('[input] 無法鎖定滑鼠：', err));
+      pending?.catch((err: unknown) => {
+        this.relockPending = true;
+        console.warn('[input] 無法鎖定滑鼠：', err);
+      });
     } catch (err) {
+      this.relockPending = true;
       console.warn('[input] 無法鎖定滑鼠：', err);
     }
   }
+
+  /** 重新鎖定被瀏覽器拒絕過（網頁版用 Esc 關視窗）：下一個移動鍵再補鎖；鎖定成功就清掉 */
+  private relockPending = false;
+  private onLockError = (): void => {
+    this.relockPending = true;
+  };
+  private onLockChange = (): void => {
+    if (this.pointerLocked) this.relockPending = false;
+  };
 
   /**
    * 除錯 / 端對端測試：模擬按下並放開一個按鍵代碼（經過與真實輸入相同的綁定查表）。
@@ -309,9 +326,11 @@ class InputManager {
    * 遊玩中沒有鎖定滑鼠時，按下移動鍵（WASD、跑、跳）就重新鎖定。
    * 網頁版的 Esc 不算使用者手勢：用 Esc 關閉對話、地圖等視窗後，瀏覽器會拒絕重新鎖定，原本要再點一下畫面才回到遊玩。
    * 只看移動類的鍵：開視窗的鍵（M、J、E…）同一下又會放開滑鼠，兩者會互相打架。
+   * 只在重新鎖定被拒絕過之後才補鎖（relockPending）：平常按移動鍵不要求鎖定——2026-10-25 曾經每次都要求，
+   * 背景執行的 e2e 視窗鎖定後立刻被解除而跳出暫停選單（bounds、melee 因此失敗）。
    */
   private relockOnMove(e: KeyboardEvent): void {
-    if (!e.isTrusted || e.repeat || !this.pointerLockEnabled || this.pointerLocked || this.uiMode()) return;
+    if (!this.relockPending || !e.isTrusted || e.repeat || !this.pointerLockEnabled || this.pointerLocked || this.uiMode()) return;
     if (this.lookup.get(e.code)?.some((a) => MOVE_ACTIONS.has(a))) this.requestPointerLock();
   }
 
