@@ -707,6 +707,7 @@
     "attackWindup": 0.6,
     "attackCooldown": 2,
     "leashRadius": 20,
+    "veil": { "scale": 0.4, "revealRadius": 7, "revealSec": 3 },
     "lootTableId": "mob_fog_wisp_drop",
     "model": {
       "path": "models/monsters/Ghost.glb",
@@ -734,7 +735,8 @@
       "damage": 7,
       "slowSec": 1,
       "slowScale": 0.8,
-      "retreat": 4
+      "retreat": 4,
+      "blindSec": 2
     }
   },
   {

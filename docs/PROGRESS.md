@@ -31,6 +31,13 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 幻霧螢靈：致盲與提燈現形（2026-10-25，第二章規格 §6.2 M-04）
+- 幻影：螢靈平常是半透明的幻影（不透明度 0.3），受到的傷害 × 0.4（姿態 `veiled`，與鏡殼蟹 / 甲蟲同一套 stance 機制）。帶著螢光提燈走進 7 公尺內就現形 3 秒（全額傷害、模型淡入成實體）。打到幻影時提示用提燈照（8 秒最多一次）。
+- 資料：敵人新增 `veil`（`scale`、`revealRadius`、`revealSec`，頭目不能用）；道具被動效果新增 `revealVeil`，螢光提燈帶有這個效果（持有即生效，不寫死道具 id）。
+- 致盲：`spit` 行為新增 `blindSec`；螢靈的光球命中時多一個 `PlayerBlinded` 事件（只是表現，不改權威狀態），畫面暗下來 2 秒（`CombatHud` 的 `blind` 遮罩，最後 40% 慢慢亮回來）並提示。
+- 測試：`src/game/world/fogWisp.test.ts` 4 項。e2e `deepwoods` 新增「沒有提燈是幻影、帶提燈靠近現形」「光球命中畫面變暗、之後恢復」。截圖 `docs/screenshots/phase13/monster_mob_fog_wisp.png`。
+- 驗證：`pnpm check`、`pnpm build` 通過；e2e `deepwoods` 7 項、`combat` 9 項、`monsters` 5 項、`magic` 11 項全過。
+
 ### 根噬者的紫霧區與共鳴石柱安全區（2026-10-24，第二章規格 §6.4 第二階段）
 - 第二階段（血量低於 60%）與淨化中，古樹祭壇地面冒出 6 塊紫霧（頭目資料 `boss.mist`：半徑 2.6、每秒 4 點、`safeRadius` 4.2）。每座共鳴石柱兩側各一塊；點亮石柱就驅散旁邊兩塊，三座都亮時整個祭壇安全。重試時石柱熄滅、紫霧回來（沿用原本的重置）。
 - game-core：`combat/bossMist.ts`（`bossMistRising`、`activeMistSpots`、`inBossMist`）；新指令 `BossMistHarm`（權威層確認頭目在第二階段、位置仍在沒被驅散的紫霧裡才扣血）；資料檢查「紫霧需要 purify」。客戶端在 `bossRuntime.stepBossMist` 計時送出（和平模式不扣血）；`BossArena` 的 `BossMistZones` 畫出紫霧（淡入淡出、驅散時往上散開）。
@@ -879,7 +886,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - `garden` e2e 的「時間過去後花圃開花」在完整連跑時失敗一次（2026-10-21，1 !== 2），單獨重跑通過；若再出現，檢查快轉時間與花圃生長的判定時機。
 - **`world.e2e`「迷霧滑桿：迷霧時畫面明顯去飽和」與 `region.e2e`「森林清除後畫面變鮮豔」都與時間有關**（2026-10-20 發現；`world` 在傍晚重跑又通過）：日光改看共享世界時鐘（T-181）後，測試沒有固定時刻；在遊戲夜晚執行時迷霧反而讓飽和度變高（0.817 → 0.870），改動前的版本同樣失敗。修法：測試開始時 `setClock` 到白天。
 - **截圖腳本的書籤沒有固定時刻**：共享世界時鐘一直在走，同一書籤不同時間拍的光線不同（12B 的截圖是傍晚）。之後可以讓截圖預設 `setClock` 到白天。
-- **第二章的已知缺口**（2026-10-23）：幻霧螢靈的致盲與提燈現形、枯根守衛的兩階段、森林狼叫同伴、真正的過場動畫、各 NPC 與根噬者的正式模型、壓力板與可推動石塊（P-02）都還沒做；`activate.afterBoss` 仍沒有資料在用。
+- **第二章的已知缺口**（2026-10-23）：枯根守衛的兩階段、森林狼叫同伴、真正的過場動畫、各 NPC 與根噬者的正式模型、壓力板與可推動石塊（P-02）都還沒做；`activate.afterBoss` 仍沒有資料在用。
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。 2026-10-23 連續出現 3 次（整組並行時），單獨跑都通過。

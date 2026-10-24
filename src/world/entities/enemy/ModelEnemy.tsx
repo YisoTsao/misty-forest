@@ -16,6 +16,9 @@ import { updateEnemyAi } from './enemyUpdate';
 type ModelDef = EnemyDef & { model: NonNullable<EnemyDef['model']> };
 const FADE_IN_SEC = 1.0;
 const VANISH_SEC = 1.6;
+/** 幻影沒現形時的不透明度與現形的淡入時間（第二章 M-04） */
+const VEIL_OPACITY = 0.3;
+const VEIL_FADE_SEC = 0.35;
 const CROSSFADE = 0.18;
 /** 攝影機超過這個距離就不畫、也不更新骨架動畫（怪物不剔除視錐，遠處的要自己隱藏） */
 const VISIBLE_DISTANCE = 90;
@@ -109,7 +112,7 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
     },
     [],
   );
-  const local = useMemo(() => ({ current: null as THREE.AnimationAction | null, lastFlash: 0, hitUntil: 0, time: 0, deathStarted: false }), []);
+  const local = useMemo(() => ({ current: null as THREE.AnimationAction | null, lastFlash: 0, hitUntil: 0, time: 0, deathStarted: false, solid: 0 }), []);
 
   const play = (next: THREE.AnimationAction | null, restart = false) => {
     if (!next || (local.current === next && !restart)) return;
@@ -175,6 +178,12 @@ export function ModelEnemy({ id, def }: { id: string; def: ModelDef }) {
 
     // 外觀：淡入、閃白、倒下後淡出
     let opacity = v.fadeIn;
+    // 幻霧螢靈（第二章 M-04）：沒被提燈照到時是淡淡的幻影，現形時淡入成實體
+    if (def.veil) {
+      const target = ai.revealed > 0 ? 1 : 0;
+      if (!paused) local.solid += Math.sign(target - local.solid) * Math.min(Math.abs(target - local.solid), dt / VEIL_FADE_SEC);
+      opacity *= VEIL_OPACITY + (1 - VEIL_OPACITY) * local.solid;
+    }
     if (v.vanishing !== null) {
       if (!paused) v.vanishing += dt;
       const t = Math.min(1, v.vanishing / VANISH_SEC);

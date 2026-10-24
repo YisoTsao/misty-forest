@@ -73,6 +73,7 @@ export function PlayerCombat() {
     combatRuntime.attackCooldown = Math.max(0, combatRuntime.attackCooldown - dt);
     combatRuntime.invulnerable = Math.max(0, combatRuntime.invulnerable - dt);
     combatRuntime.hurtFlash = Math.max(0, combatRuntime.hurtFlash - dt);
+    combatRuntime.blind.remaining = Math.max(0, combatRuntime.blind.remaining - dt);
     for (const n of combatRuntime.damageNumbers) n.age += dt;
     combatRuntime.damageNumbers = combatRuntime.damageNumbers.filter((n) => n.age < 1.1);
     for (const i of combatRuntime.impacts) i.age += dt;

@@ -130,6 +130,8 @@ export const enemyDefSchema = z.object({
         slowSec: z.number().positive(),
         slowScale: z.number().positive().max(1),
         retreat: z.number().positive().optional(),
+        /** 第二章 M-04 幻霧螢靈：光球命中時短暫致盲（畫面變暗）的秒數 */
+        blindSec: z.number().positive().optional(),
       }),
       z.object({ kind: z.literal('skirmish'), retreatSec: z.number().positive(), retreatSpeed: z.number().positive() }),
       z.object({
@@ -141,6 +143,11 @@ export const enemyDefSchema = z.object({
       }),
     ])
     .optional(),
+  /**
+   * 幻影（第二章 M-04 幻霧螢靈，規格 §6.2 弱點）：平常是半透明的幻影，受到的傷害 × scale；
+   * 玩家帶著螢光提燈走進 revealRadius 內時現形 revealSec 秒（全額傷害）。
+   */
+  veil: z.object({ scale: z.number().min(0).max(1), revealRadius: z.number().positive(), revealSec: z.number().positive() }).optional(),
   /** 被擊敗時分裂成 count 隻 enemy（任務 9B 水泡精，Bible §7.6）：分裂出來的不會再分裂、不佔生成點的數量 */
   splitInto: z.object({ enemy: z.string().min(1), count: z.number().int().positive().max(4) }).optional(),
   /** 被玩家攻擊命中的半徑（公尺，水平）；省略時 0.5（一般怪物），頭目較大 */
@@ -199,6 +206,7 @@ export function parseCombatData(rawEnemies: unknown, rawSpawners: unknown, lootT
     if (e.model && e.procedural) throw new Error(`敵人 ${e.id} 不能同時有模型與程式造型`);
     if (e.behavior?.kind === 'spit' && e.behavior.minRange >= e.behavior.range) throw new Error(`敵人 ${e.id} 的吐泥距離範圍無效`);
     if (e.splitInto && e.boss) throw new Error(`頭目 ${e.id} 不能分裂`);
+    if (e.veil && e.boss) throw new Error(`頭目 ${e.id} 不能用一般敵人的幻影（頭目用 boss.veil）`);
     if (e.boss && e.boss.shield.length !== e.boss.troughs.length + 1) throw new Error(`頭目 ${e.id} 的護盾倍率數量必須是水槽數 + 1`);
     if (e.boss && e.boss.shield.at(-1) !== 1) throw new Error(`頭目 ${e.id} 的水槽全部注水後護盾倍率必須是 1`);
     if (e.boss?.mist && !e.boss.purify) throw new Error(`頭目 ${e.id} 的紫霧區需要共鳴石柱（purify）才能驅散`);
@@ -241,9 +249,11 @@ export const PLAYER_STATS = {
 } as const;
 
 /** 敵人目前的姿態對受到傷害的倍率（根鬚甲蟲縮殼 / 鏡殼蟹正面時減傷、出手後的破綻時加傷；頭目縮入菌傘、震地後卡住） */
-export type EnemyStance = 'guard' | 'recover';
+/** veiled：幻影還沒被提燈照到現形（第二章 M-04） */
+export type EnemyStance = 'guard' | 'recover' | 'veiled';
 
 export function stanceDamageScale(def: EnemyDef, stance: EnemyStance | undefined): number {
+  if (stance === 'veiled') return def.veil?.scale ?? 1;
   if (stance && def.boss) return stance === 'guard' ? (def.boss.guard?.scale ?? 1) : def.boss.recoverScale;
   if (!stance) return 1;
   if (def.behavior?.kind === 'carapace') return stance === 'guard' ? def.behavior.frontScale : def.behavior.recoverScale;

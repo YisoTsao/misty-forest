@@ -6,7 +6,7 @@ import { bossStance, createBossAi, onBossHit, type BossAi } from '@/game-core/co
 import { aiStance, applyHitReaction, createEnemyAi, type EnemyAi } from '@/game-core/combat/enemyAi';
 import { createCombo, DEFAULT_WEAPON, type ComboState } from '@/game-core/combat/weapons';
 import { terrainHeight, WATER_LEVEL } from '@/game-core/world/terrain';
-import { authority, combat, spells, weapons } from '../authority';
+import { authority, combat, currentModifiers, spells, weapons } from '../authority';
 import { playerRuntime } from '../player/localRuntime';
 import { useUiStore } from '../state/uiStore';
 
@@ -47,6 +47,8 @@ export const combatRuntime = {
   defeatedFor: 0,
   /** 被泥團打中後的緩速（任務 8B）：剩餘秒數與移動速度倍率 */
   slow: { remaining: 0, scale: 1 },
+  /** 被幻霧螢靈的光球打中後的致盲（第二章 M-04）：剩餘秒數與這次的總長（畫面變暗） */
+  blind: { remaining: 0, total: 1 },
   damageNumbers: [] as DamageNumber[],
   /** 近戰（GAME_DESIGN 5.3）：連段、重擊冷卻、命中停頓、切換武器的出現動畫 */
   melee: {
@@ -155,7 +157,16 @@ export function attackEnemy(enemyId: string, attack: string): void {
   const v = enemyRuntime.get(enemyId);
   const stance = v?.boss ? bossStance(v.boss) : v ? aiStance(v.ai, combat.enemies.get(v.kind), playerRuntime.position) : undefined;
   authority.send(stance ? { type: 'AttackEnemy', enemyId, attack, stance } : { type: 'AttackEnemy', enemyId, attack });
+  // 打到還沒現形的幻影：提示用提燈照出來（不要一直跳）
+  const now = performance.now();
+  if (stance === 'veiled' && now - veiledHintAt > VEILED_HINT_MS) {
+    veiledHintAt = now;
+    useUiStore.getState().pushToast({ textKey: currentModifiers().revealVeil ? 'combat.veiledNear' : 'combat.veiled' });
+  }
 }
+/** 幻影的提示多久最多出現一次 */
+const VEILED_HINT_MS = 8000;
+let veiledHintAt = -Infinity;
 
 /** 被玩家攻擊命中的半徑（頭目較大） */
 export function enemyHitRadius(kind: string): number {
@@ -220,12 +231,18 @@ export function installCombatRuntime(): void {
           combatRuntime.slow.remaining = e.sec;
           combatRuntime.slow.scale = e.scale;
           break;
+        case 'PlayerBlinded':
+          if (combatRuntime.blind.remaining <= 0) useUiStore.getState().pushToast({ textKey: 'combat.blinded' });
+          combatRuntime.blind.remaining = e.sec;
+          combatRuntime.blind.total = e.sec;
+          break;
         case 'PlayerSlowCured':
           if (combatRuntime.slow.remaining > 0) useUiStore.getState().pushToast({ textKey: 'combat.slowCured' });
           combatRuntime.slow.remaining = 0;
           break;
         case 'PlayerDefeated':
           combatRuntime.slow.remaining = 0;
+          combatRuntime.blind.remaining = 0;
           combatRuntime.defeatedFor = 0;
           playerRuntime.action = { clip: 'death', remaining: Infinity };
           break;

@@ -2,7 +2,7 @@
 import type { EnemyDef, SpawnerDef } from '@/game-core/combat/combat';
 import { aiUpdateInterval, stepEnemyAi } from '@/game-core/combat/enemyAi';
 import { isControllable } from '@/game-core/flow/gameFlow';
-import { authority } from '@/game/authority';
+import { authority, currentModifiers } from '@/game/authority';
 import { combatRuntime, enemyY, type EnemyVisual } from '@/game/combat/combatRuntime';
 import { spawnSpit } from '@/game/combat/enemySpits';
 import { vfx } from '@/game/vfx/vfxQueue';
@@ -29,6 +29,8 @@ export function updateEnemyAi(id: string, v: EnemyVisual, def: EnemyDef, spawner
     player: { x: player.x, z: player.z, alive },
     home: { x: spawner.center[0], z: spawner.center[1], radius: spawner.radius },
     random: Math.random,
+    // 幻霧螢靈：帶著螢光提燈靠近就現形（持有即生效，與迷霧減傷同一個道具）
+    lantern: def.veil !== undefined && currentModifiers().revealVeil,
   });
   v.sinceUpdate = 0;
   // 出手：玩家仍在範圍內且不在無敵時間，交給權威層結算傷害

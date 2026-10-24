@@ -258,6 +258,8 @@ export type GameEvent =
   /** 被迷霧芽怪的泥團打中：一段時間內移動變慢（本機表現，不存檔） */
   /** cause：spores 為頭目的睡眠孢子（任務 8D），省略為泥團 */
   | { type: 'PlayerSlowed'; sec: number; scale: number; cause?: 'spores' }
+  /** 幻霧螢靈的光球（第二章 M-04）：短暫致盲，畫面變暗 sec 秒（只是表現，不改狀態） */
+  | { type: 'PlayerBlinded'; sec: number }
   | { type: 'PlayerHealed'; hp: number }
   /** 用月露藥膏解除緩速（本機表現，任務 7I） */
   | { type: 'PlayerSlowCured' }
@@ -728,6 +730,7 @@ function enemyStrike(state: GameState, enemyId: string, ctx: RulesContext, spit:
   const hp = Math.max(0, state.player.hp - amount);
   const events: GameEvent[] = [{ type: 'PlayerDamaged', amount, hp, enemyId }];
   if (spit && behavior?.kind === 'spit' && hp > 0) events.push({ type: 'PlayerSlowed', sec: behavior.slowSec, scale: behavior.slowScale });
+  if (spit && behavior?.kind === 'spit' && behavior.blindSec && hp > 0) events.push({ type: 'PlayerBlinded', sec: behavior.blindSec });
   // 睡眠孢子：昏昏欲睡，一段時間內走得很慢
   const spores = def.boss?.moves.spores;
   if (move === 'spores' && spores && hp > 0) events.push({ type: 'PlayerSlowed', sec: spores.slowSec, scale: spores.slowScale, cause: 'spores' });

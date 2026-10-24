@@ -1,6 +1,6 @@
 // 敵人 AI 狀態機（規格 6.6）：待機、巡邏、追擊、攻擊、返回、死亡。純函式，位置與狀態由呼叫端保存（本機模擬）。
 // 規則（傷害、死亡）在權威層；這裡只決定「怎麼動、什麼時候出手」。
-import type { EnemyDef } from './combat';
+import type { EnemyDef, EnemyStance } from './combat';
 
 // 任務 8B：orbit（飛蛾繞圈）、spit（芽怪吐泥前搖）、guard（甲蟲縮殼）、recover（甲蟲出手後的破綻）；retreat（菌帽小妖出手後跑開）
 export type AiState = 'idle' | 'patrol' | 'chase' | 'orbit' | 'attack' | 'spit' | 'guard' | 'recover' | 'retreat' | 'return' | 'dead';
@@ -26,13 +26,15 @@ export type EnemyAi = {
   spitCooldown: number;
   /** 縮殼（guard）結束後多久內不會再縮殼（避免一直被打就一直縮著、永遠不還手） */
   guardCooldown: number;
+  /** 幻影現形的剩餘時間（第二章 M-04，提燈照到時重設） */
+  revealed: number;
 };
 
 /** 縮殼結束後的冷卻（秒） */
 export const GUARD_COOLDOWN = 2.5;
 
 export function createEnemyAi(x: number, z: number, yaw = 0): EnemyAi {
-  return { state: 'idle', x, z, yaw, timer: 0, cooldown: 0, patrolTarget: null, knockback: { x: 0, z: 0 }, orbitAngle: 0, orbitFor: 0, spitCooldown: 0, guardCooldown: 0 };
+  return { state: 'idle', x, z, yaw, timer: 0, cooldown: 0, patrolTarget: null, knockback: { x: 0, z: 0 }, orbitAngle: 0, orbitFor: 0, spitCooldown: 0, guardCooldown: 0, revealed: 0 };
 }
 
 export type AiInput = {
@@ -41,6 +43,8 @@ export type AiInput = {
   home: { x: number; z: number; radius: number };
   /** 巡邏時挑選目標點用的亂數 */
   random: () => number;
+  /** 玩家帶著螢光提燈（幻影靠近時現形） */
+  lantern?: boolean;
 };
 
 export type AiOutput = {
@@ -81,6 +85,7 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
   ai.cooldown = Math.max(0, ai.cooldown - dt);
   ai.spitCooldown = Math.max(0, ai.spitCooldown - dt);
   ai.guardCooldown = Math.max(0, ai.guardCooldown - dt);
+  ai.revealed = Math.max(0, ai.revealed - dt);
 
   // 擊退（任何狀態都會被推開，死亡除外）
   if (ai.state !== 'dead') {
@@ -92,6 +97,8 @@ export function stepEnemyAi(ai: EnemyAi, def: EnemyDef, input: AiInput): AiOutpu
   }
 
   const toPlayer = Math.hypot(player.x - ai.x, player.z - ai.z);
+  // 幻霧螢靈：提燈照到就現形一段時間（離開後還會維持 revealSec 秒）
+  if (def.veil && input.lantern && ai.state !== 'dead' && toPlayer <= def.veil.revealRadius) ai.revealed = def.veil.revealSec;
   const fromHome = Math.hypot(ai.x - home.x, ai.z - home.z);
   const set = (state: AiState) => {
     ai.state = state;
@@ -252,8 +259,11 @@ export function isInFront(ai: EnemyAi, from: { x: number; z: number }, arcDeg: n
 /**
  * 目前的姿態（給權威層計算受到的傷害倍率）。
  * 鏡殼蟹（carapace）依攻擊者的方位：破綻中一律 recover；否則從正面打是 guard（鏡殼擋住）。
+ * 幻霧螢靈（veil）：還沒被提燈照到現形時是 veiled。
  */
-export function aiStance(ai: EnemyAi, def?: EnemyDef, from?: { x: number; z: number }): 'guard' | 'recover' | undefined {
+export function aiStance(ai: EnemyAi, def?: EnemyDef, from?: { x: number; z: number }): EnemyStance | undefined {
+  // 幻影還沒被提燈照到：打到的多半是霧
+  if (def?.veil && ai.state !== 'dead' && ai.revealed <= 0) return 'veiled';
   if (def?.behavior?.kind === 'carapace') {
     if (ai.state === 'dead') return undefined;
     if (ai.state === 'recover') return 'recover';

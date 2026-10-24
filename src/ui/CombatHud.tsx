@@ -36,6 +36,7 @@ export function CombatHud() {
   const spellRefs = useRef(new Map<string, HTMLDivElement | null>());
   const mpRef = useRef<HTMLDivElement>(null);
   const mpTextRef = useRef<HTMLSpanElement>(null);
+  const blindRef = useRef<HTMLDivElement>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
   const cozyRef = useRef<HTMLDivElement>(null);
   const attackRef = useRef<HTMLDivElement>(null);
@@ -83,6 +84,14 @@ export function CombatHud() {
         v.style.display = flash > 0 ? '' : 'none';
         v.style.opacity = String(flash);
       }
+      const b = blindRef.current;
+      if (b) {
+        // 致盲：一開始最暗，最後 40% 的時間慢慢亮回來
+        const { remaining, total } = combatRuntime.blind;
+        const dark = remaining > 0 ? Math.min(1, remaining / (total * 0.4)) : 0;
+        b.style.display = dark > 0 ? '' : 'none';
+        b.style.opacity = String(dark);
+      }
       const clock = clockRef.current;
       if (clock) {
         const text = t('hud.clock', {
@@ -103,6 +112,12 @@ export function CombatHud() {
   const ratio = Math.max(0, hp / PLAYER_STATS.maxHp);
   return (
     <>
+      <div
+        ref={blindRef}
+        data-testid="blind"
+        className="pointer-events-none absolute inset-0"
+        style={{ display: 'none', background: 'radial-gradient(circle at 50% 55%, rgba(20, 8, 40, 0.55) 0%, rgba(14, 6, 30, 0.9) 45%, rgba(8, 4, 20, 0.97) 100%)' }}
+      />
       <div ref={vignetteRef} className="pointer-events-none absolute inset-0" style={{ display: 'none', boxShadow: 'inset 0 0 160px 40px rgba(220, 40, 40, 0.55)' }} />
       <div className={`pointer-events-none absolute ${touch ? 'top-3 left-3 w-56' : 'bottom-6 left-6 w-60'}`} data-testid="hp-bar" data-hp={Math.round(hp)}>
         <div ref={cozyRef} data-testid="cozy" className="mb-1.5 w-fit rounded-full bg-orange-400/85 px-3 py-0.5 text-xs font-bold text-white shadow" style={{ display: 'none' }}>

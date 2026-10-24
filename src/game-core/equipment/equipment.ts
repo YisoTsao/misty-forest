@@ -8,7 +8,7 @@ import { weaponIds, type WeaponId } from '../combat/weapons';
 export const equipSlots = ['weapon', 'armor', 'charm'] as const;
 export type EquipSlot = (typeof equipSlots)[number];
 
-export const equipEffectKinds = ['damageTakenScale', 'attackScale', 'mistDamageScale', 'rareDropBonus', 'waterBreath'] as const;
+export const equipEffectKinds = ['damageTakenScale', 'attackScale', 'mistDamageScale', 'rareDropBonus', 'waterBreath', 'revealVeil'] as const;
 export type EquipEffectKind = (typeof equipEffectKinds)[number];
 
 export const equipEffectSchema = z.object({ kind: z.enum(equipEffectKinds), value: z.number().optional() });
@@ -37,9 +37,11 @@ export type Modifiers = {
   rareDropBonus: number;
   /** 涉水（水行護符：可以走進較深的水） */
   waterBreath: boolean;
+  /** 照出幻影（螢光提燈：靠近的幻霧螢靈現形，第二章 M-04） */
+  revealVeil: boolean;
 };
 
-export const NO_MODIFIERS: Modifiers = { damageTakenScale: 1, attackScale: 1, mistDamageScale: 1, rareDropBonus: 0, waterBreath: false };
+export const NO_MODIFIERS: Modifiers = { damageTakenScale: 1, attackScale: 1, mistDamageScale: 1, rareDropBonus: 0, waterBreath: false, revealVeil: false };
 
 /** 需要的最少資料：道具 id 對應到的裝備規格與被動效果 */
 export type EquipItemDef = { equip?: EquipSpec; passive?: EquipEffect[] };
@@ -60,6 +62,7 @@ export function equipmentModifiers(equipment: Equipment, held: Iterable<string>,
         case 'mistDamageScale': m.mistDamageScale *= v; break;
         case 'rareDropBonus': m.rareDropBonus += v; break;
         case 'waterBreath': m.waterBreath = true; break;
+        case 'revealVeil': m.revealVeil = true; break;
         case 'attackScale': if (weaponMatch) m.attackScale *= v; break;
       }
     }
