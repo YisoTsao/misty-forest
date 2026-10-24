@@ -69,6 +69,13 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
     await choose('好，我去看看');
     await closeDialogue();
     assert.equal(await questState('quest_forest_003'), 'active');
+    // 水閘先打開（苔石推兩格，2026-10-25）
+    for (let i = 0; i < 2; i++) await send({ type: 'PushObject', placementId: 'creek_push_stone' });
+    // 水閘打開的訊息
+    const message = page.locator('[data-testid="message-dialog"]');
+    await message.waitFor({ timeout: 2000 });
+    await page.keyboard.press('KeyE');
+    await message.waitFor({ state: 'detached', timeout: 2000 });
     const wheel = (id) => send({ type: 'TurnObject', placementId: id });
     for (const [id, times] of [['creek_wheel_01', 1], ['creek_wheel_02', 3], ['creek_wheel_03', 2]]) for (let i = 0; i < times; i++) await wheel(id);
     await page.waitForTimeout(300);

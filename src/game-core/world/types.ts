@@ -71,7 +71,7 @@ export function collisionShapes(c: Collision | undefined): CollisionShape[] {
   return Array.isArray(c) ? c : [c];
 }
 
-export const interactionKinds = ['harvest', 'open', 'talk', 'enter', 'read', 'build', 'repair', 'activate', 'turn'] as const;
+export const interactionKinds = ['harvest', 'open', 'talk', 'enter', 'read', 'build', 'repair', 'activate', 'turn', 'push'] as const;
 export type InteractionKind = (typeof interactionKinds)[number];
 
 /** 1. Prefab：這種物件「是什麼」。 */
@@ -159,7 +159,20 @@ export const prefabSchema = z
       })
       .optional(),
     /** 可轉動的機關（任務 8C 水輪）：每次互動轉到下一個位置，共 positions 個位置 */
-    turn: z.object({ positions: z.number().int().min(2), /** 只有這個任務進行中才能轉（任務 9D 水鏡） */ quest: z.string().min(1).optional() }).optional(),
+    turn: z
+      .object({
+        positions: z.number().int().min(2),
+        /** 只有這個任務進行中才能轉（任務 9D 水鏡） */
+        quest: z.string().min(1).optional(),
+        /** 這個物件（placement id）啟動後才能轉（規格 P-02：水閘打開前水輪沒有水，推不動） */
+        requires: z.string().min(1).optional(),
+      })
+      .optional(),
+    /**
+     * 可推動的石塊（規格 P-02）：每次互動沿 track 前進一格（相對物件原點的世界座標位移，公尺；第一格是 [0, 0]），
+     * 推到最後一格就停住，並啟動 activates 裡的物件（壓力板、水閘）。沿固定軌道，不會因跳躍或卡位推不動。
+     */
+    push: z.object({ track: z.array(z.tuple([z.number(), z.number()])).min(2), activates: z.array(z.string().min(1)).default([]) }).optional(),
     /** 互動點相對物件原點的位移（模型單位，會乘上縮放並旋轉）：例如木橋在橋頭互動 */
     interactOffset: vec3.optional(),
     /**
@@ -232,6 +245,10 @@ export const prefabSchema = z
   .refine((p) => p.interaction !== 'turn' || p.turn !== undefined, {
     message: 'interaction 為 turn 時必須提供 turn 設定',
     path: ['turn'],
+  })
+  .refine((p) => p.interaction !== 'push' || p.push !== undefined, {
+    message: 'interaction 為 push 時必須提供 push 設定',
+    path: ['push'],
   })
   .refine((p) => p.interaction === undefined || p.nameKey !== undefined, {
     message: '可互動的 prefab 必須提供 nameKey',

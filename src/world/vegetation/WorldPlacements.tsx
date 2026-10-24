@@ -1,8 +1,11 @@
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import { CuboidCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { useMemo, useRef } from 'react';
 import type * as THREE from 'three';
 import { groupPlacementsByPrefab, type WorldData } from '@/game-core/world/worldData';
+import { pushPosition } from '@/game-core/world/objects';
+import { terrainHeight } from '@/game-core/world/terrain';
 import type { Placement, Prefab } from '@/game-core/world/types';
 import { useGameStateStore } from '@/game/state/gameStateStore';
 import { assetUrl } from '@/game/worldData';
@@ -39,6 +42,7 @@ export function WorldPlacements({ data }: { data: WorldData }) {
         if (prefab.harvest) return <HarvestableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.repair) return <RepairableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.turn && prefab.model) return <TurnableGroup key={prefabId} prefab={prefab} placements={list} />;
+        if (prefab.push && prefab.model) return <PushableGroup key={prefabId} prefab={prefab} placements={list} />;
         if (prefab.activate) return <ActivatableGroup key={prefabId} prefab={prefab} placements={list} />;
         return (
           <InstancedPrefab
@@ -147,5 +151,73 @@ function Turnable({ prefab, placement: p, angle }: { prefab: Prefab; placement: 
         <InstancedPrefab model={prefab.model} placements={origin} castShadow={prefab.castShadow} cullDistance={Infinity} />
       </group>
     </group>
+  );
+}
+
+/** 推石滑到下一格的速度（公尺 / 秒） */
+const PUSH_SPEED = 2.4;
+
+/**
+ * 可推動的石塊（規格 P-02）：依權威狀態（第幾格）沿軌道滑過去；碰撞體跟著石塊目前的位置。
+ */
+function PushableGroup({ prefab, placements }: { prefab: Prefab; placements: readonly Placement[] }) {
+  const objects = useGameStateStore((s) => s.state.objects);
+  return (
+    <>
+      {placements.map((p) => (
+        <Pushable key={p.id} prefab={prefab} placement={p} step={objects.get(p.id)?.turn ?? 0} />
+      ))}
+    </>
+  );
+}
+
+/** 推石目前畫在哪裡（Pushable 每幀寫入；PushStoneColliders 讓碰撞體跟著走） */
+const pushShown = new Map<string, { x: number; z: number }>();
+
+function Pushable({ prefab, placement: p, step }: { prefab: Prefab; placement: Placement; step: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const target = pushPosition(prefab, p, step);
+  // 載入存檔時直接放在目前的格子上，之後每次推動才滑過去
+  const local = useMemo(() => ({ x: target.x, z: target.z }), [p]); // eslint-disable-line react-hooks/exhaustive-deps
+  const origin = useMemo(() => [{ ...p, position: [0, 0, 0] as [number, number, number], rotation: [0, 0, 0] as [number, number, number], scale: [1, 1, 1] as [number, number, number] }], [p]);
+  useFrame((_, rawDt) => {
+    const g = ref.current;
+    if (!g) return;
+    const dx = target.x - local.x;
+    const dz = target.z - local.z;
+    const d = Math.hypot(dx, dz);
+    if (d > 1e-3) {
+      const k = Math.min(1, (PUSH_SPEED * Math.min(rawDt, 1 / 20)) / d);
+      local.x += dx * k;
+      local.z += dz * k;
+    }
+    g.position.set(local.x, terrainHeight(local.x, local.z) - 0.03, local.z);
+    pushShown.set(p.id, local);
+  });
+  return (
+    <group ref={ref} position={[local.x, terrainHeight(local.x, local.z) - 0.03, local.z]} rotation={[0, p.rotation?.[1] ?? 0, 0]} scale={p.scale} name={`push:${p.id}`}>
+      <InstancedPrefab model={prefab.model} placements={origin} castShadow={prefab.castShadow} cullDistance={Infinity} />
+    </group>
+  );
+}
+
+/** 推石的碰撞體（須放在 <Physics> 內；WorldPlacements 不在物理世界裡）：跟著石塊目前畫出來的位置 */
+export function PushStoneColliders({ data }: { data: WorldData }) {
+  const stones = useMemo(() => data.placements.filter((p) => data.prefabs.get(p.prefabId)?.push), [data]);
+  return stones.map((p) => <PushStoneCollider key={p.id} placement={p} prefab={data.prefabs.get(p.prefabId)!} />);
+}
+
+function PushStoneCollider({ placement: p, prefab }: { placement: Placement; prefab: Prefab }) {
+  const body = useRef<RapierRigidBody>(null);
+  const step = useGameStateStore((s) => s.state.objects.get(p.id)?.turn ?? 0);
+  const start = pushPosition(prefab, p, step);
+  useFrame(() => {
+    const at = pushShown.get(p.id);
+    if (at) body.current?.setNextKinematicTranslation({ x: at.x, y: terrainHeight(at.x, at.z) + 0.6, z: at.z });
+  });
+  return (
+    <RigidBody ref={body} type="kinematicPosition" colliders={false} position={[start.x, terrainHeight(start.x, start.z) + 0.6, start.z]}>
+      <CuboidCollider args={[0.7, 0.6, 0.7]} />
+    </RigidBody>
   );
 }

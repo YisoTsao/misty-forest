@@ -219,6 +219,11 @@ export function addGlowmoss(placements: Out[]): void {
   place('creek_wheel_frame_03', 'waterwheel_frame', -44, -86, { yaw: Math.PI / 2 });
   place('creek_barrier', 'creek_barrier', -20, -102, { yaw: Math.PI / 2, r: 4 });
   place('creek_tablet', 'creek_tablet', -30, -60, { yaw: 0.6, r: 1.2 });
+  // 水閘與推石（2026-10-25，規格 P-02「移動石塊或啟動附近機關」）：西岸的空地上，苔石沿軌道往南推兩格壓住壓力板，水閘打開後水輪才轉得動
+  // 不加入 taken（r）：位置選在原本就沒有樹與石頭的平地（佔位會讓之後的散佈亂數整串錯開）
+  place('creek_push_stone', 'push_stone', -46, -73, { yaw: Math.PI });
+  place('creek_plate', 'pressure_plate', -46, -79);
+  place('creek_sluice', 'creek_sluice', -43, -81.5, { yaw: 0.35 });
   // 支線 CH2-SQ-01 會發光的晚餐：溪谷的蘆葦淺灘（撈溪魚）；不佔散佈的位置，選在原本空著的地方
   place('creek_fish_spot_01', 'creek_fish_spot', -34, -50, { yaw: 0.3 });
   place('creek_fish_spot_02', 'creek_fish_spot', -26, -80, { yaw: 1.9 });

@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import type { GameCommand } from '@/game-core/authority/rules';
 import { isControllable } from '@/game-core/flow/gameFlow';
 import { selectInteractTarget, type InteractCandidate } from '@/game-core/interaction/target';
-import { canInteract } from '@/game-core/world/objects';
+import { canInteract, pushPosition } from '@/game-core/world/objects';
 import type { Prefab } from '@/game-core/world/types';
 import { authority, npcs, quests } from '@/game/authority';
 import { questStatus } from '@/game-core/quest/quest';
@@ -50,6 +50,8 @@ function commandFor(prefab: Prefab, placementId: string): GameCommand | null {
       return { type: 'ActivateObject', placementId };
     case 'turn':
       return { type: 'TurnObject', placementId };
+    case 'push':
+      return { type: 'PushObject', placementId };
     default:
       return null;
   }
@@ -95,7 +97,17 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     const nearby = index.interactables.query(position.x, position.z, QUERY_RADIUS, scratch.nearby);
     scratch.candidates.length = 0;
     for (const spec of nearby) {
-      if (canInteract(spec.prefab, state.objects.get(spec.id), isQuestActive)) scratch.candidates.push(spec);
+      if (!canInteract(spec.prefab, state.objects.get(spec.id), isQuestActive)) continue;
+      // 推石（規格 P-02）會移動：互動點跟著石塊目前的位置
+      if (spec.prefab.push) {
+        const placement = index.placement(spec.id);
+        if (placement) {
+          const at = pushPosition(spec.prefab, placement, state.objects.get(spec.id)?.turn ?? 0);
+          scratch.candidates.push({ ...spec, x: at.x, z: at.z });
+          continue;
+        }
+      }
+      scratch.candidates.push(spec);
     }
     // NPC 會移動，不放進靜態格網；數量少，直接逐一檢查
     for (const npc of npcs) {

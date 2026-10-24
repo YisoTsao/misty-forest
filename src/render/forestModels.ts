@@ -591,6 +591,57 @@ function starDialBase(): ForestModel {
   return { solid: merge([paint(post, STONE_DARK), paint(slab, STONE), sphere(0.16, [0.1, 0.16, 0.2], MOSS_LIGHT, [1.4, 0.4, 1])], '星盤石座') };
 }
 
+// ── 規格 P-02（2026-10-25）：倒流溪谷的推石與水閘 ──
+
+/** 可推動的石塊：約 1.4 m 見方的苔石，正面刻著淡藍的箭頭符文（推的方向） */
+function pushStone(): ForestModel {
+  const block = new THREE.BoxGeometry(1.4, 1.2, 1.4);
+  block.translate(0, 0.6, 0);
+  const cap = new THREE.BoxGeometry(1.46, 0.16, 1.46);
+  cap.translate(0, 1.22, 0);
+  const solid = [paint(block, STONE, 0.05, mulberry32(2501)), paint(cap, STONE_DARK)];
+  const plant = [sphere(0.42, [0.25, 1.32, -0.2], MOSS_LIGHT, [1.4, 0.35, 1.1]), sphere(0.3, [-0.4, 1.3, 0.35], MOSS, [1.2, 0.3, 1])];
+  // 箭頭符文：在 +Z 面（推的方向）
+  const shaft = new THREE.BoxGeometry(0.12, 0.5, 0.04);
+  shaft.translate(0, 0.55, 0.71);
+  const headL = new THREE.BoxGeometry(0.1, 0.3, 0.04);
+  headL.rotateZ(0.75);
+  headL.translate(-0.1, 0.84, 0.71);
+  const headR2 = new THREE.BoxGeometry(0.1, 0.3, 0.04);
+  headR2.rotateZ(-0.75);
+  headR2.translate(0.1, 0.84, 0.71);
+  const glow = [paint(shaft, glowColor(CRYSTAL, 1.6)), paint(headL, glowColor(CRYSTAL, 1.6)), paint(headR2, glowColor(CRYSTAL, 1.6))];
+  return { solid: merge(solid, '推石'), plant: merge(plant, '推石苔'), glow: merge(glow, '推石符文') };
+}
+
+/** 壓力板：地上一塊刻紋石板；壓下後下沉、紋路亮起 */
+function pressurePlate(pressed: boolean): ForestModel {
+  const slab = new THREE.BoxGeometry(1.9, 0.22, 1.9);
+  slab.translate(0, pressed ? 0.02 : 0.11, 0);
+  const rim = new THREE.BoxGeometry(2.2, 0.08, 2.2);
+  rim.translate(0, 0.04, 0);
+  const ring = new THREE.TorusGeometry(0.55, 0.05, 4, 20);
+  ring.rotateX(Math.PI / 2);
+  ring.translate(0, pressed ? 0.14 : 0.23, 0);
+  const solid = [paint(rim, STONE_DARK), paint(slab, STONE)];
+  return pressed ? { solid: merge(solid, '壓力板（壓下）'), glow: merge([paint(ring, glowColor(MINT, 2.2))], '壓力板紋路') } : { solid: merge([...solid, paint(ring, STONE_DARK)], '壓力板') };
+}
+
+/** 水閘：兩根木柱夾著一片閘門；打開時閘門升到柱頂 */
+function creekSluice(open: boolean): ForestModel {
+  const wood = c('#6e4a2f');
+  const solid = [cylinder(0.14, 0.16, 2.6, [-1.1, 1.3, 0], wood, 7), cylinder(0.14, 0.16, 2.6, [1.1, 1.3, 0], wood, 7)];
+  const beam = new THREE.BoxGeometry(2.6, 0.22, 0.3);
+  beam.translate(0, 2.6, 0);
+  const gate = new THREE.BoxGeometry(2.0, 1.2, 0.16);
+  gate.translate(0, open ? 1.9 : 0.6, 0);
+  solid.push(paint(beam, BARK_DARK), paint(gate, BARK));
+  const wheel = new THREE.TorusGeometry(0.28, 0.05, 5, 12);
+  wheel.translate(0, 2.95, 0.05);
+  solid.push(paint(wheel, c('#a06a3d')));
+  return { solid: merge(solid, open ? '水閘（開）' : '水閘') };
+}
+
 export const forestBuilders: Record<string, () => ForestModel> = {
   star_dial: starDial,
   star_dial_base: starDialBase,
@@ -613,4 +664,9 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   water_wheel_rotor: waterWheelRotor,
   water_wheel_spout: waterWheelSpout,
   water_wheel_lever: waterWheelLever,
+  push_stone: pushStone,
+  pressure_plate: () => pressurePlate(false),
+  pressure_plate_pressed: () => pressurePlate(true),
+  creek_sluice: () => creekSluice(false),
+  creek_sluice_open: () => creekSluice(true),
 };

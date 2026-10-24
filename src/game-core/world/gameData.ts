@@ -152,6 +152,12 @@ export function parseGameData(raw: {
     for (const c of prefab.activate?.consume ?? []) {
       if (!items.has(c.itemId)) throw new WorldDataError(`prefab ${prefab.id} 的啟動消耗參照不存在的物品：${c.itemId}`);
     }
+    // 推石啟動的物件、水輪需要的物件必須存在且可啟動（規格 P-02）
+    for (const id of [...(prefab.push?.activates ?? []), ...(prefab.turn?.requires ? [prefab.turn.requires] : [])]) {
+      const target = placementsById.get(id);
+      if (!target || !world.prefabs.get(target.prefabId)?.activate) throw new WorldDataError(`prefab ${prefab.id} 參照的物件不存在或不能啟動：${id}`);
+    }
+    if (prefab.push && (prefab.push.track[0]![0] !== 0 || prefab.push.track[0]![1] !== 0)) throw new WorldDataError(`prefab ${prefab.id} 的推動軌道第一格必須是 [0, 0]`);
     const enter = prefab.enter;
     if (!enter) continue;
     for (const need of [enter.requires?.questCompleted, enter.requires?.questActive]) {

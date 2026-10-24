@@ -53695,6 +53695,66 @@
     ]
   },
   {
+    "id": "creek_push_stone",
+    "prefabId": "push_stone",
+    "regionId": "reverse_creek",
+    "position": [
+      1954,
+      3.88,
+      -73
+    ],
+    "rotation": [
+      0,
+      3.14,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "creek_plate",
+    "prefabId": "pressure_plate",
+    "regionId": "reverse_creek",
+    "position": [
+      1954,
+      3.86,
+      -79
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "creek_sluice",
+    "prefabId": "creek_sluice",
+    "regionId": "reverse_creek",
+    "position": [
+      1957,
+      3.72,
+      -81.5
+    ],
+    "rotation": [
+      0,
+      0.35,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "creek_fish_spot_01",
     "prefabId": "creek_fish_spot",
     "regionId": "reverse_creek",

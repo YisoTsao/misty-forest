@@ -1,10 +1,11 @@
 // 端對端：第二章 Phase 2 — 倒流溪谷（規格 P-02）。
 // 溪谷的石障擋著上游；先讀石碑（答案：1、3、2 格），再按 E 轉三座水輪；轉錯時石障不開，全部對準後石障退開。
+// 2026-10-25：水閘關著時水輪轉不動；把刻著箭頭的苔石推兩格壓住壓力板，水閘打開後才轉得動（截圖 docs/screenshots/phase13/creek_sluice.png）。
 // 存檔重開後水輪的位置與石障狀態都還在。外觀以截圖檢查（glowmoss_creek、glowmoss_barrier）。
 // 用法：pnpm build && node e2e/creek.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { placements, runE2e, SAVE_VERSION, tempSaveDir } from './lib.mjs';
 
@@ -41,6 +42,38 @@ await runE2e('creek e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env }, 
     assert.match(await dialog.innerText(), /第一座木輪轉一格[\s\S]*第二座轉三格[\s\S]*最後一座轉兩格/);
     await page.keyboard.press('KeyE');
     await dialog.waitFor({ state: 'detached', timeout: 2000 });
+  });
+
+  await check('水閘關著時水輪轉不動：提示上游的水閘', async () => {
+    await approach(at(WHEELS[0]), WHEELS[0]);
+    await page.keyboard.press('KeyE');
+    await page.waitForFunction(() => window.__mistwoodDebug.toasts().some((x) => x.textKey === 'toast.wheelNoWater'), null, { timeout: 3000 });
+    assert.equal(await turnOf(WHEELS[0]), 0);
+  });
+
+  await check('把苔石推兩格壓住壓力板：水閘打開（訊息），石塊不能再推', async () => {
+    const stone = at('creek_push_stone');
+    const track = JSON.parse(readFileSync('src/data/prefabs.json', 'utf8')).find((p) => p.id === 'push_stone').push.track;
+    for (let step = 0; step < track.length - 1; step++) {
+      const [dx, dz] = track[step];
+      // 站在石塊北邊（推的反方向）、面向石塊
+      const x = stone.position[0] + dx;
+      const z = stone.position[2] + dz;
+      await teleport(x, z + 2, 800);
+      await debug(([fx, fz]) => window.__mistwoodDebug.face(fx, fz), [x, z]);
+      await turnOnce('creek_push_stone');
+      await page.waitForTimeout(1500);
+    }
+    await dialog.waitFor({ timeout: 3000 });
+    assert.match(await dialog.innerText(), /水閘/);
+    assert.equal((await objectState('creek_sluice'))?.active, true);
+    assert.equal((await objectState('creek_plate'))?.active, true);
+    mkdirSync('docs/screenshots/phase13', { recursive: true });
+    await page.keyboard.press('KeyE');
+    await dialog.waitFor({ state: 'detached', timeout: 2000 });
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'docs/screenshots/phase13/creek_sluice.png' });
+    assert.notEqual(await debug(() => window.__mistwoodDebug.interactTarget()), 'creek_push_stone');
   });
 
   await check('轉錯的時候石障不開（只轉第一座）', async () => {

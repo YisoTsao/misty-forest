@@ -119,6 +119,8 @@ export type GameCommand =
   | { type: 'ActivateObject'; placementId: string }
   /** 轉動機關到下一個位置（任務 8C 水輪） */
   | { type: 'TurnObject'; placementId: string }
+  /** 推動石塊一格（規格 P-02） */
+  | { type: 'PushObject'; placementId: string }
   /**
    * 玩家攻擊命中敵人（命中判定在本機以招式範圍計算，規則驗證目標存在並結算傷害）。
    * attack：近戰招式 id（必須屬於目前裝備的武器，data/weapons.json），或法術 id（data/spells.json）
@@ -180,6 +182,7 @@ export type RejectReason =
   | 'not-revealed'
   | 'not-dense'
   | 'no-mist'
+  | 'not-powered'
   | 'outside-mist'
   | 'unknown-object'
   | 'wrong-interaction'
@@ -345,6 +348,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return activateObject(state, cmd.placementId, ctx);
     case 'TurnObject':
       return withLight(state, turnObject(state, cmd.placementId, ctx), ctx);
+    case 'PushObject':
+      return pushObject(state, cmd.placementId, ctx);
     case 'AttackEnemy':
       return attackEnemy(state, cmd.enemyId, cmd.attack, ctx, cmd.stance);
     case 'CastSpell': {
@@ -610,12 +615,27 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
   return events;
 }
 
+/** 推動石塊（規格 P-02）：沿軌道前進一格（狀態沿用 turn）；推到最後一格時啟動壓力板與水閘 */
+function pushObject(state: GameState, placementId: string, ctx: RulesContext): GameEvent[] {
+  const found = lookup(ctx, placementId);
+  if (!found) return reject('PushObject', 'unknown-object', placementId);
+  const spec = found.prefab.push;
+  if (found.prefab.interaction !== 'push' || !spec) return reject('PushObject', 'wrong-interaction', placementId);
+  const step = state.objects.get(placementId)?.turn ?? 0;
+  const last = spec.track.length - 1;
+  if (step >= last) return reject('PushObject', 'already-active', placementId);
+  const events: GameEvent[] = [{ type: 'ObjectTurned', placementId, turn: step + 1 }];
+  if (step + 1 === last) for (const id of spec.activates) if (!state.objects.get(id)?.active) events.push({ type: 'ObjectActivated', placementId: id, source: 'player' });
+  return events;
+}
+
 function turnObject(state: GameState, placementId: string, ctx: RulesContext): GameEvent[] {
   const found = lookup(ctx, placementId);
   if (!found) return reject('TurnObject', 'unknown-object', placementId);
   const spec = found.prefab.turn;
   if (found.prefab.interaction !== 'turn' || !spec) return reject('TurnObject', 'wrong-interaction', placementId);
   if (spec.quest && state.quests[spec.quest]?.status !== 'active') return reject('TurnObject', 'quest-unavailable', placementId);
+  if (spec.requires && !state.objects.get(spec.requires)?.active) return reject('TurnObject', 'not-powered', placementId);
   const turn = ((state.objects.get(placementId)?.turn ?? 0) + 1) % spec.positions;
   const events: GameEvent[] = [{ type: 'ObjectTurned', placementId, turn }];
   // 謎題：這一下轉動讓整組機關都對準了 → 啟動謎題開的物件（只在剛完成的那一刻啟動）

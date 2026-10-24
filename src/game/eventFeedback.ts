@@ -17,6 +17,7 @@ const rejectMessageKeys: Partial<Record<Extract<GameEvent, { type: 'CommandRejec
   'not-usable': 'toast.notUsable',
   'recipe-locked': 'toast.recipeLocked',
   'too-soon': 'toast.tooSoon',
+  'not-powered': 'toast.wheelNoWater',
   'not-for-sale': 'toast.notForSale',
 };
 
@@ -68,6 +69,8 @@ export function installEventFeedback(): void {
       } else if (e.type === 'ObjectTurned') {
         // 星光鏡（任務 7E）的提示由頭目戰處理
         if (objectNameKey(e.placementId) === 'object.waterWheel') ui.pushToast({ textKey: 'toast.wheelTurned' });
+        // 推石（規格 P-02）：還沒推到壓力板上時提示（推到底時由水閘的訊息說明）
+        else if (objectNameKey(e.placementId) === 'object.pushStone' && !events.some((x) => x.type === 'ObjectActivated')) ui.pushToast({ textKey: 'toast.stonePushed' });
       } else if (e.type === 'ItemsRemoved') {
         // 喝藥不顯示「交出」（體力條本身就會變化）
         if (e.reason === 'use' || e.reason === 'craft') continue;

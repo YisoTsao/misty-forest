@@ -9,7 +9,7 @@ export type WorldLookup = {
 };
 
 /** 這個版本已實作規則的互動類型。其他類型（建造等）於後續階段加入。 */
-const implemented = new Set<Prefab['interaction']>(['open', 'harvest', 'repair', 'enter', 'read', 'activate', 'turn']);
+const implemented = new Set<Prefab['interaction']>(['open', 'harvest', 'repair', 'enter', 'read', 'activate', 'turn', 'push']);
 
 /**
  * 物件目前是否可以互動（決定是否顯示提示）。
@@ -24,5 +24,14 @@ export function canInteract(prefab: Prefab, runtime: ObjectRuntime | undefined, 
   if (prefab.interaction === 'repair') return runtime?.repaired !== true && (!prefab.repair?.quest || isQuestActive(prefab.repair.quest));
   // 開始任務的物件（腳印）在任務可接取時由規則判斷，這裡先讓它可以互動
   if (prefab.interaction === 'activate') return runtime?.active !== true && (!prefab.activate?.quest || isQuestActive(prefab.activate.quest));
+  // 推到底的石塊不能再推
+  if (prefab.interaction === 'push') return (runtime?.turn ?? 0) < (prefab.push?.track.length ?? 1) - 1;
   return true;
+}
+
+/** 可推動石塊目前的位置（世界座標 x、z；第 step 格） */
+export function pushPosition(prefab: Prefab, placement: Placement, step: number): { x: number; z: number } {
+  const track = prefab.push?.track ?? [[0, 0]];
+  const [dx, dz] = track[Math.max(0, Math.min(track.length - 1, step))]!;
+  return { x: placement.position[0] + dx, z: placement.position[2] + dz };
 }

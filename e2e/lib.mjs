@@ -36,7 +36,8 @@ export function tempSaveDir() {
  * 啟動遊戲並執行 body(t)。t 提供 page、check（單項檢查，失敗不中斷）與常用操作。
  * 結束時印出結果；任何一項失敗則以 exit code 1 結束。
  */
-export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {}, body) {
+export async function runE2e(title, options = {}, body) {
+  const { query = 'debug=1&play=1', env = {} } = options;
   const app = await electron.launch({
     // MISTWOOD_E2E_ARGS：額外的 Chromium 參數（例如沒有 GPU 的雲端機器用 --use-angle=swiftshader --enable-unsafe-swiftshader）
     args: ['.', ...(process.env.MISTWOOD_E2E_ARGS?.split(' ').filter(Boolean) ?? [])],
@@ -82,6 +83,13 @@ export async function runE2e(title, { query = 'debug=1&play=1', env = {} } = {},
     };
     await page.waitForTimeout(800);
     await body(t);
+    // 每個 suite 最後都確認畫面上沒有執行期錯誤（2026-10-25：推石的碰撞體放在 <Physics> 外，整個世界物件區塊掛掉，邏輯測試卻都通過）
+    if (!options.allowRuntimeErrors) {
+      await check('畫面上沒有執行期錯誤', async () => {
+        const errors = await page.locator('[data-testid="error-overlay"]').allInnerTexts();
+        if (errors.length > 0) throw new Error(errors.join('\n'));
+      });
+    }
   } catch (err) {
     failed = true;
     results.push(`  ✗ 執行失敗：${err.message}`);

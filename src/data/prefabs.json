@@ -4966,10 +4966,51 @@
     "verbKey": "interact.turn",
     "interactRadius": 2.6,
     "turn": {
-      "positions": 4
+      "positions": 4,
+      "requires": "creek_sluice"
     },
     "persists": true,
     "cullDistance": 120
+  },
+  {
+    "id": "push_stone",
+    "model": "procedural:push_stone",
+    "collider": "none",
+    "interaction": "push",
+    "nameKey": "object.pushStone",
+    "verbKey": "interact.push",
+    "interactRadius": 2.4,
+    "push": {
+      "track": [[0, 0], [0, -3], [0, -6]],
+      "activates": ["creek_plate", "creek_sluice"]
+    },
+    "persists": true
+  },
+  {
+    "id": "pressure_plate",
+    "model": "procedural:pressure_plate",
+    "collider": "none",
+    "activate": {
+      "model": "procedural:pressure_plate_pressed"
+    },
+    "persists": true
+  },
+  {
+    "id": "creek_sluice",
+    "model": "procedural:creek_sluice",
+    "collider": "static",
+    "collision": {
+      "shape": "box",
+      "size": [2.6, 2.8, 0.4]
+    },
+    "activate": {
+      "model": "procedural:creek_sluice_open",
+      "message": {
+        "titleKey": "creek.sluice.title",
+        "bodyKey": "creek.sluice.body"
+      }
+    },
+    "persists": true
   },
   {
     "id": "creek_barrier",

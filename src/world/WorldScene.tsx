@@ -50,7 +50,7 @@ import { Water } from './water/Water';
 import { LighthouseBeam } from './dawn/LighthouseBeam';
 import { WindowGlowDriver } from './dawn/WindowGlowDriver';
 import { GrassField } from './vegetation/GrassField';
-import { WorldPlacements } from './vegetation/WorldPlacements';
+import { PushStoneColliders, WorldPlacements } from './vegetation/WorldPlacements';
 
 
 /** 開放世界場景組合：每個系統為獨立元件（規格 3-5）。 */
@@ -86,6 +86,7 @@ export function WorldScene({ data }: { data: WorldData }) {
             <Terrain map="whispermeadow" />
           </MapOnly>
           <EnvironmentColliders index={index} />
+          <PushStoneColliders data={data} />
           <BoundaryColliders map="dawnvale" />
           <BoundaryColliders map="glowmoss" />
           <BoundaryColliders map="mirrorlake" />

@@ -31,6 +31,14 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### P-02：倒流溪谷的推石、壓力板與水閘（2026-10-25，第二章規格 §9.2「移動石塊或啟動附近機關」）
+- 溪谷西岸（第二、三座水輪之間）新增刻著箭頭的苔石、壓力板與水閘。苔石沿固定軌道每次互動往南前進 3 公尺，推兩格壓住壓力板 → 壓力板下沉亮起、水閘升起並顯示訊息。水閘打開前水輪轉不動（`not-powered`，提示「上游的水閘好像關著」）。沿軌道推動，不會因跳躍或卡位推不動（規格驗收）。
+- game-core：新互動 `push`（prefab `push.track`、`push.activates`；狀態沿用物件的 `turn` 欄位當格數，事件沿用 `ObjectTurned`，存檔格式不變）、指令 `PushObject`、水輪 `turn.requires`；資料檢查（啟動對象要可啟動、軌道第一格是 [0, 0]）；`pushPosition`。本機端：互動目標跟著石塊目前的位置、`PushableGroup`（平滑滑過去）、`PushStoneColliders`（碰撞體在 `<Physics>` 內）。程式模型 `push_stone`、`pressure_plate(_pressed)`、`creek_sluice(_open)`。`gen-glowmoss` 新增 3 個 placement（其餘 7703 個不變）。
+- **e2e 框架**：`runE2e` 每個 suite 結尾都檢查「畫面上沒有執行期錯誤」（`ErrorOverlay` 加 `data-testid`）。起因：第一版的推石碰撞體放在 `<Physics>` 外，整個世界物件區塊掛掉（樹、物件全不見），邏輯測試卻都通過，是看截圖才發現的。
+- 測試：`waterwheel.test.ts` 改為先開水閘，並新增 4 項（水閘關著轉不動、推兩格才啟動且只一次、終點在壓力板上、存讀檔保留）。e2e `creek` 新增「水閘關著轉不動」「推兩格開水閘」（截圖 `docs/screenshots/phase13/creek_sluice.png`）；`granny` 改為先推石並關掉水閘訊息。
+- 驗證：`pnpm check`（1092 項）、`pnpm build` 通過；e2e `creek` 10 項、`granny` 6 項、`glowmoss` 19 項、`forestquest` 11 項、`world` 11 項全過。
+- 已有存檔：水輪謎題已完成的不受影響；轉到一半的要先推石。
+
 ### 霧紋森林狼：嚎叫呼叫同伴（2026-10-25，第二章規格 §6.2 M-03）
 - 狼自己發現玩家時（待機 / 巡邏 → 追擊）嚎叫：14 公尺內還在待機或巡邏的同種狼一起追擊，地面一圈淡紫色衝擊波，有同伴被叫來時提示（10 秒最多一次）。被叫來的不會再嚎叫（不連鎖），只叫醒現有的狼、不生成新敵人（規格「不得無限生成」）。
 - game-core：敵人資料新增 `pack`；AI 輸出新增 `noticed`；`packToAlert`、`alertEnemy`。
@@ -905,7 +913,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - `garden` e2e 的「時間過去後花圃開花」在完整連跑時失敗一次（2026-10-21，1 !== 2），單獨重跑通過；若再出現，檢查快轉時間與花圃生長的判定時機。
 - **`world.e2e`「迷霧滑桿：迷霧時畫面明顯去飽和」與 `region.e2e`「森林清除後畫面變鮮豔」都與時間有關**（2026-10-20 發現；`world` 在傍晚重跑又通過）：日光改看共享世界時鐘（T-181）後，測試沒有固定時刻；在遊戲夜晚執行時迷霧反而讓飽和度變高（0.817 → 0.870），改動前的版本同樣失敗。修法：測試開始時 `setClock` 到白天。
 - **截圖腳本的書籤沒有固定時刻**：共享世界時鐘一直在走，同一書籤不同時間拍的光線不同（12B 的截圖是傍晚）。之後可以讓截圖預設 `setClock` 到白天。
-- **第二章的已知缺口**（2026-10-23）：真正的過場動畫、各 NPC 與根噬者的正式模型、壓力板與可推動石塊（P-02）都還沒做；`activate.afterBoss` 仍沒有資料在用。
+- **第二章的已知缺口**（2026-10-23）：真正的過場動畫、各 NPC 與根噬者的正式模型都還沒做；`activate.afterBoss` 仍沒有資料在用。
 - `melee` e2e 的「fist 右鍵重擊」在完整連跑時偶爾沒打中（2026-10-17，48 → 48），單獨重跑通過；若再出現，檢查飛踢的命中判定時機與目標站位。
 - 帳號（11G）：驗證碼信件需要在 Supabase 後台把 Magic Link **與 Confirm signup**（第一次登入的信箱用這份）範本都改成含 `{{ .Token }}`，否則玩家收不到可以輸入的數字（見 `docs/multiplayer/accounts.md`）。寄信改用 Resend（SMTP 設定在 Supabase 後台，步驟見 `docs/multiplayer/accounts.md`）。
 - `server/WorldRoom.test.ts` 的「兩個人看得到彼此」在整組 `pnpm check` 並行時偶爾逾時（單獨重跑 3 次全過，與帳號改動無關）。 2026-10-23 連續出現 3 次（整組並行時），單獨跑都通過。
