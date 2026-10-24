@@ -3,6 +3,7 @@
 // 單人時由 LocalAuthority 在同一行程呼叫；Phase 6 伺服器可直接重用。
 import { isBuildableUnlocked, placementProblem, refundFor, snapToGrid, snapYaw, type Building, type BuildableCatalog, type PlacementProblem } from '../build/build';
 import { bossRequirementsMet, bossShieldScale, bossSpawner, PLAYER_STATS, stanceDamageScale, type BossDef, type BossMoveId, type CombatData, type EnemyStance } from '../combat/combat';
+import { bossMistRising, inBossMist } from '../combat/bossMist';
 import { DEFAULT_WEAPON, type WeaponCatalog, type WeaponId } from '../combat/weapons';
 import { canCastSpell, canUseWeapon, DEFAULT_HERO_CLASS, type HeroClassCatalog, type HeroClassId } from '../character/heroClass';
 import { MAX_MP, regenMp, type SpellCatalog } from '../combat/spells';
@@ -136,6 +137,8 @@ export type GameCommand =
   | { type: 'Lumen' }
   /** 迷霧持續傷害（第二章 Phase 3）：客戶端在濃霧區域裡每隔一段時間送一次；權威層確認區域仍是濃霧才扣血 */
   | { type: 'MistHarm'; region: RegionId }
+  /** 迷霧暴走的紫霧（第二章 B-01）：客戶端站在紫霧裡時每隔一段時間送一次；權威層確認頭目在第二階段、位置仍在沒被石柱驅散的紫霧裡才扣血 */
+  | { type: 'BossMistHarm'; boss: string; x: number; z: number }
   | { type: 'UnequipItem'; slot: EquipSlot }
   /** 敵人攻擊前搖結束、玩家在攻擊範圍內 */
   /** spit：迷霧芽怪的泥團命中（傷害依行為資料，並讓玩家變慢）；move：頭目的招式命中（任務 8D） */
@@ -176,6 +179,8 @@ export type RejectReason =
   | 'no-star-power'
   | 'not-revealed'
   | 'not-dense'
+  | 'no-mist'
+  | 'outside-mist'
   | 'unknown-object'
   | 'wrong-interaction'
   | 'already-open'
@@ -377,6 +382,8 @@ function handleCommandInner(state: GameState, cmd: GameCommand, ctx: RulesContex
       return lumen(state);
     case 'MistHarm':
       return mistHarm(state, cmd.region, ctx);
+    case 'BossMistHarm':
+      return bossMistHarm(state, cmd.boss, cmd.x, cmd.z, ctx);
     case 'UnequipItem':
       return unequipItem(state, cmd.slot, ctx);
     case 'ChooseClass': {
@@ -595,11 +602,7 @@ function activateObject(state: GameState, placementId: string, ctx: RulesContext
     const fighting = bossEnemies(state, spec.boss).find((e) => e.purifying);
     if (purify && fighting) {
       const lit = (id: string) => (id === placementId ? true : state.objects.get(id)?.active === true);
-      if (purify.pillars.every(lit)) {
-        events.push({ type: 'EnemyDefeated', enemyId: fighting.id, kind: fighting.kind, spawner: fighting.spawner }, { type: 'BossDefeated', boss: fighting.kind });
-        // 淨化完成：召喚出來的幻霧螢靈跟著散去
-        for (const add of bossSummons(state, fighting.kind, ctx)) events.push({ type: 'EnemyDespawned', enemyId: add.id });
-      }
+      if (purify.pillars.every(lit)) events.push(...purified(state, fighting, ctx));
     }
   }
   return events;
@@ -663,7 +666,11 @@ function attackEnemy(state: GameState, enemyId: string, attack: string, ctx: Rul
   const floor = boss && (filled < boss.troughs.length || purifying) ? 1 : 0;
   const hp = Math.max(floor, enemy.hp - amount);
   const events: GameEvent[] = [{ type: 'EnemyDamaged', enemyId, amount: boss ? enemy.hp - hp : amount, hp, attack }];
-  if (purifying && hp === 1 && !enemy.purifying && enemy.hp > 1) events.push({ type: 'EnemyPurifying', enemyId });
+  if (purifying && hp === 1 && !enemy.purifying && enemy.hp > 1) {
+    events.push({ type: 'EnemyPurifying', enemyId });
+    // 第二階段就把共鳴石柱都點亮了（紫霧的安全區）：不用再點，直接完成淨化（否則石柱已亮、再也觸發不了）
+    if (boss.purify!.pillars.every((id) => state.objects.get(id)?.active)) return [...events, ...purified(state, enemy, ctx)];
+  }
   // 迷霧暴走（第二章 B-01 第二階段）：血量跌破第二階段的門檻時召喚小怪（id 為「頭目 id+序號」，在頭目的生成點出現）
   if (boss?.summon && enemy.hp / def.maxHp >= boss.phase2Below && hp / def.maxHp < boss.phase2Below) {
     for (let k = 1; k <= boss.summon.count; k++) events.push({ type: 'EnemySpawned', enemyId: `${enemyId}+${k}`, kind: boss.summon.enemy, spawner: enemy.spawner, hp: ctx.combat.enemies.get(boss.summon.enemy)?.maxHp ?? 1 });
@@ -748,6 +755,28 @@ function mistHarm(state: GameState, region: RegionId, ctx: RulesContext): GameEv
   return events;
 }
 
+/** 已點亮的共鳴石柱位置（紫霧的安全區） */
+export function litPillarPositions(state: Pick<GameState, 'objects'>, pillars: readonly string[], ctx: Pick<RulesContext, 'world'>): [number, number][] {
+  return pillars.flatMap((id) => {
+    const p = state.objects.get(id)?.active ? ctx.world.placement(id) : undefined;
+    return p ? [[p.position[0], p.position[2]] as [number, number]] : [];
+  });
+}
+
+function bossMistHarm(state: GameState, bossId: string, x: number, z: number, ctx: RulesContext): GameEvent[] {
+  if (state.player.defeated) return reject('BossMistHarm', 'player-defeated');
+  const def = ctx.combat.enemies.get(bossId);
+  const mist = def?.boss?.mist;
+  const fighting = bossEnemies(state, bossId)[0];
+  if (!def?.boss || !mist || !fighting) return reject('BossMistHarm', 'not-in-fight');
+  if (!bossMistRising(def.boss, fighting.hp / def.maxHp, fighting.purifying === true)) return reject('BossMistHarm', 'no-mist');
+  if (!inBossMist(mist, litPillarPositions(state, def.boss.purify?.pillars ?? [], ctx), x, z)) return reject('BossMistHarm', 'outside-mist');
+  const hp = Math.max(0, state.player.hp - mist.damage);
+  const events: GameEvent[] = [{ type: 'PlayerDamaged', amount: mist.damage, hp, enemyId: 'mist' }];
+  if (hp <= 0) events.push({ type: 'PlayerDefeated' });
+  return events;
+}
+
 /** 星光照明（第二章 Phase 3）：花 LUMEN_COST 點星光值，LUMEN_SEC 秒內能打開隱藏的寶箱 */
 export const LUMEN_COST = 15;
 export const LUMEN_SEC = 12;
@@ -800,6 +829,15 @@ function unequipItem(state: GameState, slot: EquipSlot, ctx: RulesContext): Game
   return [
     { type: 'ItemUnequipped', slot, itemId },
     { type: 'ItemsGained', items: [{ itemId, count: 1 }], source: 'unequip' },
+  ];
+}
+
+/** 淨化完成（第二章 B-01）：頭目打倒（只結算一次），召喚出來的幻霧螢靈跟著散去 */
+function purified(state: GameState, fighting: EnemyRuntime, ctx: RulesContext): GameEvent[] {
+  return [
+    { type: 'EnemyDefeated', enemyId: fighting.id, kind: fighting.kind, spawner: fighting.spawner },
+    { type: 'BossDefeated', boss: fighting.kind },
+    ...bossSummons(state, fighting.kind, ctx).map((add): GameEvent => ({ type: 'EnemyDespawned', enemyId: add.id })),
   ];
 }
 

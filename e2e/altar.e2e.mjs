@@ -3,7 +3,7 @@
 // 依序點亮三座古樹共鳴石柱 → 根噬者被淨化、打倒只結算一次；回報菇菇婆婆後任務完成。
 // 章節結尾（CH2-MQ-08）：回報時拿到古樹核心、接下 quest_forest_008；觀看古樹核心的記憶、走到澄鏡湖的入口 → 完成；無名旅人出現在出口。
 // 支線 CH2-SQ-06 守護者的夢：菇菇婆婆提出 → 和淨化後的守護者說話 → 回報拿古樹守護符（截圖 docs/screenshots/phase13/glowmoss_guardian.png）。
-// 第二階段（血量跌破門檻）召喚幻霧螢靈；離開戰場時頭目、召喚物與點亮的石柱都重置（規格 §6.4 重試）。
+// 第二階段（血量跌破門檻）召喚幻霧螢靈、祭壇冒出紫霧，點亮的石柱驅散附近的紫霧（截圖 docs/screenshots/phase13/altar_mist.png）；離開戰場時頭目、召喚物與點亮的石柱都重置（規格 §6.4 重試）。
 // 用法：pnpm build && node e2e/altar.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -43,6 +43,16 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
     assert.equal(await wisps(), 2);
   });
 
+  const mistCount = () => debug(() => window.__mistwoodDebug.boss()?.mist.length ?? 0);
+  await check('第二階段：祭壇冒出六塊紫霧', async () => {
+    assert.equal(await mistCount(), 6);
+    await teleport(2112, 13, 1500);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [2112, 0]);
+    await page.waitForTimeout(1200);
+    mkdirSync('docs/screenshots/phase13', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/phase13/altar_mist.png' });
+  });
+
   await check('重試：點亮一座石柱後離開戰場，頭目、召喚的螢靈與石柱都重置', async () => {
     const p = at(PILLARS[0]);
     await teleport(p.position[0] + 1.2, p.position[2] + 0.6, 800);
@@ -50,6 +60,7 @@ await runE2e('altar e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page,
     await page.waitForFunction((x) => window.__mistwoodDebug.interactTarget() === x, PILLARS[0], { timeout: 3000 });
     await page.keyboard.press('KeyE');
     await page.waitForFunction((x) => window.__mistwoodDebug.objectState(x)?.active === true, PILLARS[0], { timeout: 3000 });
+    assert.equal(await mistCount(), 4, '點亮的石柱沒有驅散附近的兩塊紫霧');
     await teleport(2106, 18, 800);
     await page.waitForFunction((k) => !window.__mistwoodDebug.enemies().some((e) => e.kind === k), BOSS, { timeout: 5000 });
     await page.waitForTimeout(1500);

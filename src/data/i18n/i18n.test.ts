@@ -60,6 +60,7 @@ describe('i18n', () => {
       if (boss.stun) names.push('stunned', 'mirrorEarly');
       if (boss.veil) names.push('veiled');
       if (boss.purify) names.push('purify');
+      if (boss.mist) names.push('pillar');
       missing.push(...names.map((n) => `${boss.textKey}.${n}`).filter((key) => !(key in dictionary)));
       if (boss.troughs.length > 0) missing.push(...['boss.trough', 'boss.cleared', 'boss.shielded'].filter((key) => !(key in dictionary)));
     }

@@ -841,6 +841,13 @@
       "phase2Below": 0.6,
       "phase2Cooldown": 0.7,
       "recoverScale": 1.5,
+      "mist": {
+        "radius": 2.6,
+        "damage": 4,
+        "interval": 1,
+        "safeRadius": 4.2,
+        "spots": [[2116.94, -2.41], [2116.94, 2.41], [2111.62, 5.49], [2107.44, 3.08], [2107.44, -3.08], [2111.62, -5.49]]
+      },
       "summon": {
         "enemy": "mob_fog_wisp",
         "count": 2

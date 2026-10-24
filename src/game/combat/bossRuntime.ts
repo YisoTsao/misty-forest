@@ -1,7 +1,8 @@
 // 頭目戰的本機端（任務 8D）：走進戰場開戰、離開戰場結束、推進頭目 AI、招式命中交給權威層、HUD 狀態與提示。
 // 開戰 / 結束 / 傷害都是權威指令；這裡只做「玩家在哪裡、有沒有被打到」的本機判定。
 import { create } from 'zustand';
-import { filledTroughs } from '@/game-core/authority/rules';
+import { filledTroughs, litPillarPositions } from '@/game-core/authority/rules';
+import { activeMistSpots, bossMistRising } from '@/game-core/combat/bossMist';
 import { bossStrikeHits, stepBossAi, stunBoss, type BossState, type BossStrike } from '@/game-core/combat/bossAi';
 import { bossRequirementsMet, type BossDef, type BossMoveId, type EnemyDef } from '@/game-core/combat/combat';
 import { isControllable } from '@/game-core/flow/gameFlow';
@@ -57,6 +58,31 @@ export function activeBossEnemy(bossId: string): string | null {
   return null;
 }
 
+/** 紫霧區（第二章 B-01）：站在紫霧裡累積時間，到了間隔就送出扣血指令（是否真的在紫霧裡由權威層確認） */
+let mistTimer = 0;
+
+/** 這個頭目戰目前看得到的紫霧（第二階段或淨化中、沒被石柱驅散的）；沒有紫霧時是空陣列 */
+export function visibleBossMist(def: { maxHp: number; boss: BossDef }, enemyId: string): [number, number][] {
+  const mist = def.boss.mist;
+  const state = authority.getState();
+  const enemy = state.enemies.get(enemyId);
+  if (!mist || !enemy || !bossMistRising(def.boss, enemy.hp / def.maxHp, enemy.purifying === true)) return [];
+  return activeMistSpots(mist, litPillarPositions(state, def.boss.purify?.pillars ?? [], { world: worldIndex }));
+}
+
+function stepBossMist(def: EnemyDef & { boss: BossDef }, enemyId: string, x: number, z: number, dt: number): void {
+  const mist = def.boss.mist;
+  const spots = mist ? visibleBossMist(def, enemyId) : [];
+  if (!mist || useDebugStore.getState().peaceful || !spots.some(([sx, sz]) => Math.hypot(x - sx, z - sz) <= mist.radius)) {
+    mistTimer = 0;
+    return;
+  }
+  mistTimer += dt;
+  if (mistTimer < mist.interval) return;
+  mistTimer = 0;
+  authority.send({ type: 'BossMistHarm', boss: def.id, x, z });
+}
+
 /** 每幀：玩家走進戰場就開戰，離開戰場就結束（頭目回去，下次重新開戰） */
 export function stepBossArenas(dt: number): void {
   startCooldown = Math.max(0, startCooldown - dt);
@@ -70,6 +96,8 @@ export function stepBossArenas(dt: number): void {
       if (!inArena(def.boss, x, z, LEAVE_MARGIN)) {
         authority.send({ type: 'EndBossFight', boss: def.id });
         useUiStore.getState().pushToast({ textKey: bossText(def, 'left') });
+      } else {
+        stepBossMist(def, fighting, x, z, dt);
       }
       continue;
     }
@@ -210,6 +238,13 @@ export function installBossRuntime(): void {
         }
         case 'ObjectActivated': {
           if (resonanceRestored(e.placementId, state.companion.unlocked)) break;
+          // 共鳴石柱（第二章 B-01）：還在淨化前點亮時，提示附近的紫霧散開了
+          const pillarOf = bosses.find((b) => b.boss.mist && b.boss.purify?.pillars.includes(e.placementId));
+          if (pillarOf) {
+            const enemy = state.enemies.get(useBossStore.getState().hud?.enemyId ?? '');
+            if (enemy && !enemy.purifying) ui.pushToast({ textKey: bossText(pillarOf, 'pillar') });
+            break;
+          }
           const def = bosses.find((b) => b.boss.troughs.includes(e.placementId));
           if (!def) break;
           const filled = filledTroughs(state, def.boss);
@@ -302,10 +337,11 @@ function resonanceRestored(placementId: string, companionUnlocked: boolean): boo
 export const bossDebugState = { force: null as BossMoveId | null };
 
 /** 除錯與測試：目前頭目戰的狀態 */
-export function bossDebug(): (BossHud & { x: number; z: number; markers: { x: number; z: number }[]; slamTo: { x: number; z: number } | null; name: string }) | null {
+export function bossDebug(): (BossHud & { x: number; z: number; markers: { x: number; z: number }[]; slamTo: { x: number; z: number } | null; name: string; mist: [number, number][] }) | null {
   const hud = useBossStore.getState().hud;
   const v = hud && enemyRuntime.get(hud.enemyId);
   if (!hud || !v?.boss) return null;
+  const def = bosses.find((b) => b.id === hud.bossId);
   return {
     ...hud,
     x: v.ai.x,
@@ -313,5 +349,7 @@ export function bossDebug(): (BossHud & { x: number; z: number; markers: { x: nu
     markers: v.boss.state === 'spikes' ? v.boss.markers.map((m) => ({ ...m })) : [],
     slamTo: v.boss.state === 'slam' || v.boss.state === 'air' ? { ...v.boss.slamTo } : null,
     name: t(combat.enemies.get(hud.bossId)?.nameKey ?? hud.bossId),
+    // 目前看得到的紫霧（第二章 B-01）
+    mist: def ? visibleBossMist(def, hud.enemyId) : [],
   };
 }
