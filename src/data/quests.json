@@ -570,11 +570,20 @@
     ],
     "objectives": [
       {
-        "type": "collect",
-        "itemId": "glow_spore",
-        "count": 2,
-        "consume": true,
-        "descKey": "quest.forest4.spore"
+        "type": "talk",
+        "npc": "mush_farmer",
+        "descKey": "quest.forest4.farmer"
+      },
+      {
+        "type": "talk",
+        "npc": "mush_kid",
+        "item": "glow_spore",
+        "descKey": "quest.forest4.kid"
+      },
+      {
+        "type": "talk",
+        "npc": "mush_lookout",
+        "descKey": "quest.forest4.lookout"
       }
     ],
     "rewards": {

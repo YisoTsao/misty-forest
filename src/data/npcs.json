@@ -970,6 +970,9 @@
     "talk": [
       { "when": { "type": "questStatus", "quest": "quest_forest_007", "is": "completed" }, "dialogue": "mush_kid_after" },
       { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "completed" }, "dialogue": "mush_kid_trust" },
+      { "when": { "type": "all", "conditions": [{ "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, { "type": "questTalkDone", "quest": "quest_forest_004", "npc": "mush_kid" }] }, "dialogue": "mush_kid_quest_wait" },
+      { "when": { "type": "all", "conditions": [{ "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, { "type": "hasItems", "items": [{ "itemId": "glow_spore", "count": 1 }] }] }, "dialogue": "mush_kid_quest" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, "dialogue": "mush_kid_quest_need" },
       { "dialogue": "mush_kid_wary" }
     ]
   },
@@ -989,6 +992,8 @@
     "talk": [
       { "when": { "type": "questStatus", "quest": "quest_forest_007", "is": "completed" }, "dialogue": "mush_farmer_after" },
       { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "completed" }, "dialogue": "mush_farmer_trust" },
+      { "when": { "type": "all", "conditions": [{ "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, { "type": "questTalkDone", "quest": "quest_forest_004", "npc": "mush_farmer" }] }, "dialogue": "mush_farmer_quest_wait" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, "dialogue": "mush_farmer_quest" },
       { "dialogue": "mush_farmer_wary" }
     ]
   },
@@ -1008,6 +1013,8 @@
     "talk": [
       { "when": { "type": "questStatus", "quest": "quest_forest_007", "is": "completed" }, "dialogue": "mush_lookout_after" },
       { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "completed" }, "dialogue": "mush_lookout_trust" },
+      { "when": { "type": "all", "conditions": [{ "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, { "type": "questTalkDone", "quest": "quest_forest_004", "npc": "mush_lookout" }] }, "dialogue": "mush_lookout_quest_wait" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, "dialogue": "mush_lookout_quest" },
       { "dialogue": "mush_lookout_wary" }
     ]
   },

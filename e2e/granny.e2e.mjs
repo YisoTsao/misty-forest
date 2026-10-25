@@ -1,5 +1,5 @@
 // 端對端：第二章 Phase 2 — 聚落的主線（規格 8.2 CH2-MQ-02 至 04）與菇菇婆婆的對話。
-// 螢苔的呼吸（凝膠 ×2 → 純淨螢苔 ×2）→ 倒流的溪水（在對話裡接取，水輪轉到石碑的答案，任務自動達成）→ 不願相信旅人的居民（微光孢子 ×2 → 螢光提燈）。
+// 螢苔的呼吸（凝膠 ×2 → 純淨螢苔 ×2）→ 倒流的溪水（在對話裡接取，水輪轉到石碑的答案，任務自動達成）→ 不願相信旅人的居民（和菇伯、菇丁、菇哨談過 → 螢光提燈）。
 // 支線 CH2-SQ-01 會發光的晚餐：主線沒有新委託時提出；實際在溪谷淺灘撈一條溪魚，其餘材料用指令給，回報拿燉湯、工作台多出燉湯配方。
 // 每一步都實際和菇菇婆婆對話；水輪的轉動用權威指令代替（實際按 E 的流程由 creek 驗證）。外觀以截圖檢查。
 // 用法：pnpm build && node e2e/granny.e2e.mjs
@@ -16,13 +16,15 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
   const dialogue = () => debug(() => window.__mistwoodDebug.dialogue());
   const questState = (q) => debug((id) => window.__mistwoodDebug.questState(id), q);
   const send = (cmd) => debug((c) => window.__mistwoodDebug.send(c), cmd);
-  const talkToGranny = async () => {
-    await teleport(granny.position[0] + 1.6, granny.position[1] + 1.2, 800);
-    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [granny.position[0], granny.position[1]]);
-    await page.waitForFunction(() => window.__mistwoodDebug.interactTarget() === 'npc:granny', null, { timeout: 3000 });
+  const talkTo = async (id) => {
+    const npc = npcs.find((n) => n.id === id);
+    await teleport(npc.position[0] + 1.6, npc.position[1] + 1.2, 800);
+    await debug(([x, z]) => window.__mistwoodDebug.face(x, z), [npc.position[0], npc.position[1]]);
+    await page.waitForFunction((target) => window.__mistwoodDebug.interactTarget() === target, `npc:${id}`, { timeout: 3000 });
     await page.keyboard.press('KeyE');
     await box.waitFor({ timeout: 2000 });
   };
+  const talkToGranny = () => talkTo(granny.id);
   /** 選項在文字打完後才出現：沒有選項就按空白前進，直到出現為止 */
   const choose = async (text) => {
     const option = page.locator('[data-testid="dialogue-option"]', { hasText: text });
@@ -86,12 +88,32 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
     assert.equal(await questState('quest_forest_003'), 'completed');
   });
 
-  await check('不願相信旅人的居民：交出微光孢子 ×2，拿到螢光提燈', async () => {
+  await check('不願相信旅人的居民：和菇伯、菇丁（送孢子）、菇哨談過，拿到螢光提燈', async () => {
     await talkToGranny();
     assert.equal((await dialogue()).dialogueId, 'granny_help_offer');
     await choose('好，我去看看');
     await closeDialogue();
-    await send({ type: 'DebugGiveItems', items: [{ itemId: 'glow_spore', count: 2 }] });
+    await talkTo('mush_farmer');
+    assert.equal((await dialogue()).dialogueId, 'mush_farmer_quest');
+    await choose('我只是想幫上忙');
+    await closeDialogue();
+    // 沒有孢子時菇丁只說想要什麼
+    await talkTo('mush_kid');
+    assert.equal((await dialogue()).dialogueId, 'mush_kid_quest_need');
+    await closeDialogue();
+    await send({ type: 'DebugGiveItems', items: [{ itemId: 'glow_spore', count: 1 }] });
+    await talkTo('mush_kid');
+    await choose('送你一顆微光孢子');
+    await closeDialogue();
+    assert.equal(await itemCount('glow_spore'), 0);
+    // 答錯可以重來
+    await talkTo('mush_lookout');
+    await choose('拔腿就跑');
+    await closeDialogue();
+    assert.equal(await questState('quest_forest_004'), 'active');
+    await talkTo('mush_lookout');
+    await choose('點亮燈');
+    await closeDialogue();
     await talkToGranny();
     assert.equal((await dialogue()).dialogueId, 'granny_help_turnin');
     await choose('交給她');
