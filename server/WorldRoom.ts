@@ -83,6 +83,23 @@ function accountOf(client: Client): string | null {
 
 let nextPlayerNumber = 1;
 
+/** 被同一帳號的其他裝置踢下的裝置記多久（毫秒） */
+const KICKED_TTL_MS = 6 * 60 * 60 * 1000;
+const kickedDevices = new Map<string, number>();
+
+/** 記下被踢下的裝置：它的連線可能早就斷了（手機切到背景）收不到踢人通知，回來時用 /kicked 查 */
+export function markDeviceKicked(device: string | undefined, now = Date.now()): void {
+  if (!device) return;
+  for (const [id, at] of kickedDevices) if (now - at > KICKED_TTL_MS) kickedDevices.delete(id);
+  kickedDevices.set(device, now);
+}
+
+/** 這台裝置是不是被同一帳號的其他裝置踢下了（device 是客戶端隨機產生的 UUID，猜不到別人的） */
+export function isDeviceKicked(device: string, now = Date.now()): boolean {
+  const at = kickedDevices.get(device);
+  return at !== undefined && now - at <= KICKED_TTL_MS;
+}
+
 export class WorldRoom extends Room<{ state: WorldState }> {
   /** 連線來源允許清單（createGameServer 設定；空的 = 全部允許，任務 11D） */
   static originRules: OriginRule[] = [];
@@ -155,9 +172,15 @@ export class WorldRoom extends Room<{ state: WorldState }> {
       // 舊裝置斷線太久、座位沒了之後的自動重新加入：不能反過來把新裝置踢掉（2026-10-25）
       if (options.rejoin && options.device && latest && latest !== options.device) {
         console.info(`[world] 帳號 ${accountId} 已在別的裝置登入，拒絕舊裝置自動重新加入`);
+        markDeviceKicked(options.device);
         throw new ServerError(KICKED_JOIN_CODE, KICKED_ELSEWHERE);
       }
-      if (options.device) this.accountDevice.set(accountId, options.device);
+      if (options.device) {
+        // 主動登入：上一台裝置（可能斷線中、座位還保留著）被踢下；自己若曾被踢，這次重新登入就解除
+        if (latest && latest !== options.device) markDeviceKicked(latest);
+        kickedDevices.delete(options.device);
+        this.accountDevice.set(accountId, options.device);
+      }
       client.userData = { device: options.device };
       this.kickOtherSessions(accountId, client);
     }
@@ -224,6 +247,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     const latest = accountId ? this.accountDevice.get(accountId) : undefined;
     if (accountId && (this.hasOtherSession(accountId, client) || (device && latest && latest !== device))) {
       console.info(`[world] 帳號 ${accountId} 已在別處登入，踢下重連的 ${client.sessionId}`);
+      markDeviceKicked(device);
       client.leave(KICK_CODE, KICKED_ELSEWHERE);
       return;
     }
@@ -250,6 +274,7 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     for (const other of [...this.clients]) {
       if (other.sessionId === keep.sessionId || accountOf(other) !== accountId) continue;
       console.info(`[world] 帳號 ${accountId} 在別處登入，中斷 ${other.sessionId}`);
+      markDeviceKicked((other.userData as { device?: string } | undefined)?.device);
       other.leave(KICK_CODE, KICKED_ELSEWHERE);
     }
   }

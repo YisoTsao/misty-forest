@@ -2,6 +2,7 @@ import { request } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PROTOCOL_VERSION, ROOM_NAME } from '@/game-core/net/protocol';
 import { createGameServer } from './app';
+import { markDeviceKicked } from './WorldRoom';
 import { parseAllowedOrigins } from './origins';
 
 // 部署時的來源允許清單（任務 11D）：以實際的 HTTP 請求確認比對房間與 WebSocket 升級都會擋下其他網站
@@ -67,5 +68,16 @@ describe('連線來源允許清單：實際的請求（任務 11D）', () => {
 
   it('其他網站直接開 WebSocket（例如拿別人的重連憑證）：升級被拒 403', async () => {
     expect(await upgradeStatus('https://evil.example')).toBe(403);
+  });
+});
+
+describe('/kicked：被同一帳號的其他裝置踢下的裝置（2026-10-25）', () => {
+  const ask = async (device: string) => (await (await fetch(`http://localhost:${PORT}/kicked?device=${encodeURIComponent(device)}`, { headers: { Origin: ALLOWED } })).json()) as { kicked: boolean };
+
+  it('記下的裝置回 true，其他回 false', async () => {
+    markDeviceKicked('dev-kicked-1');
+    expect(await ask('dev-kicked-1')).toEqual({ kicked: true });
+    expect(await ask('dev-other')).toEqual({ kicked: false });
+    expect(await ask('')).toEqual({ kicked: false });
   });
 });

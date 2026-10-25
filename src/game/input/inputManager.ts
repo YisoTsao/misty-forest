@@ -49,6 +49,8 @@ class InputManager {
   private lookup = new Map<string, ActionId[]>();
   private downCodes = new Set<string>();
   private pressedSinceConsume = new Set<ActionId>();
+  /** UI 已經處理掉的按鍵：放開之前都不算遊戲動作 */
+  private swallowed = new Set<string>();
   private lookDx = 0;
   private lookDy = 0;
   private zoom = 0;
@@ -249,7 +251,18 @@ class InputManager {
     this.downCodes.delete(code);
   }
 
+  /**
+   * UI 已經用掉這一下按鍵（例如空白鍵結束對話）：直到放開前都不算遊戲動作，角色不會同時跳起來。
+   * 不論 UI 與輸入層的 keydown 誰先收到都有效：先收到的話這裡把已記下的按下清掉，後收到的話 press 會略過。
+   */
+  swallowKey(code: string): void {
+    this.swallowed.add(code);
+    this.downCodes.delete(code);
+    for (const action of this.lookup.get(code) ?? []) this.pressedSinceConsume.delete(action);
+  }
+
   private press(code: string): void {
+    if (this.swallowed.has(code)) return;
     if (this.downCodes.has(code)) return; // 忽略按住時的重複事件
     this.downCodes.add(code);
     for (const action of this.lookup.get(code) ?? []) this.pressedSinceConsume.add(action);
@@ -341,6 +354,7 @@ class InputManager {
 
   private onKeyUp = (e: KeyboardEvent): void => {
     this.downCodes.delete(e.code);
+    this.swallowed.delete(e.code);
   };
 
   private onTouchStart = (): void => {
@@ -377,6 +391,7 @@ class InputManager {
   /** 視窗失焦時放開所有按鍵，避免角色卡在持續移動。 */
   private onBlur = (): void => {
     this.downCodes.clear();
+    this.swallowed.clear();
     this.touchMove = { right: 0, forward: 0, run: false };
     this.pressedSinceConsume.clear();
     this.lookDx = 0;

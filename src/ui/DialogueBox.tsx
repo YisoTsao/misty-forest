@@ -10,7 +10,10 @@ import { isModalOpen, useUiStore } from '@/game/state/uiStore';
 
 /**
  * NPC 對話視窗（規格 6.4）：說話者、文字、選項。
- * 互動鍵 / 空白鍵 / Enter / 點擊繼續；數字鍵或點擊選擇選項；Esc 結束對話。
+ * 互動鍵 / 空白鍵 / Enter / 點擊繼續（最後一句就結束對話）；數字鍵或點擊選擇選項。
+ * Esc 結束對話只在桌面版：網頁版的 Esc 會放開滑鼠鎖定、之後要再點畫面，所以不用 Esc（2026-10-25 使用者指示）；
+ * 手把 B 與觸控送出的 Esc（不是使用者實際按鍵）照樣結束。
+ * 用掉的按鍵交給 input.swallowKey：空白鍵結束對話時角色不會同時跳起來、互動鍵不會馬上又開啟對話。
  */
 export function DialogueBox() {
   const active = useUiStore((s) => s.dialogue);
@@ -21,6 +24,12 @@ export function DialogueBox() {
   }, [playing]);
   if (!active || !playing) return null;
   return <DialogueWindow key={`${active.dialogueId}:${active.nodeId}`} />;
+}
+
+/** 繼續 / 選擇；對話因此結束時直接回到遊玩（按鍵與點擊都算使用者手勢，網頁版也能重新鎖定滑鼠） */
+function advance(option?: number): void {
+  advanceTalk(option);
+  if (!useUiStore.getState().dialogue && !isModalOpen()) input.requestPointerLock();
 }
 
 function DialogueWindow() {
@@ -35,6 +44,7 @@ function DialogueWindow() {
       if (e.repeat || !view) return;
       if (e.code === 'Escape') {
         e.stopImmediatePropagation();
+        if (e.isTrusted && !window.mistwood?.isElectron) return;
         endTalk();
         // 與地圖、背包相同：關掉就回到遊玩（網頁版的 Esc 不算手勢會被拒絕，之後按移動鍵或點畫面再鎖定）
         if (!isModalOpen()) input.requestPointerLock();
@@ -43,12 +53,16 @@ function DialogueWindow() {
       if (view.options) {
         const n = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)?.[1];
         const option = n ? view.options[Number(n) - 1] : undefined;
-        if (option) advanceTalk(option.index);
+        if (option) {
+          input.swallowKey(e.code);
+          advance(option.index);
+        }
         return;
       }
       if (e.code === 'Space' || e.code === 'Enter' || input.isBound(e.code, 'interact')) {
         e.preventDefault();
-        advanceTalk();
+        input.swallowKey(e.code);
+        advance();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -63,7 +77,7 @@ function DialogueWindow() {
         aria-label={view.speakerKey ? t(view.speakerKey) : undefined}
         data-testid="dialogue" data-pad-scope
         data-node={view.nodeId}
-        onClick={view.options ? undefined : () => advanceTalk()}
+        onClick={view.options ? undefined : () => advance()}
         className={`relative w-[min(94vw,46rem)] rounded-2xl border-4 border-amber-200 bg-amber-50/95 px-7 pt-7 pb-5 text-amber-950 shadow-2xl ${
           view.options ? '' : 'cursor-pointer'
         }`}
@@ -83,7 +97,7 @@ function DialogueWindow() {
                 key={o.index}
                 type="button"
                 data-testid="dialogue-option"
-                onClick={() => advanceTalk(o.index)}
+                onClick={() => advance(o.index)}
                 className="flex items-center gap-3 rounded-xl bg-white/80 px-4 py-2 text-left hover:bg-amber-200"
               >
                 <kbd className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-200 text-sm font-bold">{i + 1}</kbd>

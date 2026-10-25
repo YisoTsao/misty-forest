@@ -76,6 +76,39 @@ await runE2e('npc e2e', {}, async ({ page, check, debug, state, camera, teleport
     assert.equal(await page.locator('[data-testid="pause-menu"]').count(), 0);
   });
 
+  await check('最後一句按空白鍵結束對話：角色不會同時跳起來', async () => {
+    await page.waitForTimeout(300);
+    await page.keyboard.press('KeyE');
+    await box.waitFor({ timeout: 2000 });
+    await page.keyboard.press('Space');
+    await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'tree');
+    await page.keyboard.press('Space');
+    await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'mist');
+    await page.keyboard.press('Digit1');
+    await page.waitForFunction(() => window.__mistwoodDebug.dialogue()?.nodeId === 'help');
+    const base = await state();
+    // 按住一下再放開（真實按鍵會有一段按住的時間）
+    await page.keyboard.down('Space');
+    await box.waitFor({ state: 'detached', timeout: 2000 });
+    let maxY = base.y;
+    for (let i = 0; i < 8; i++) {
+      await page.waitForTimeout(80);
+      maxY = Math.max(maxY, (await state()).y);
+    }
+    await page.keyboard.up('Space');
+    assert.ok(maxY - base.y < 0.15, `結束對話時跳起來了（高度差 ${(maxY - base.y).toFixed(2)}）`);
+    // 放開後再按一次空白鍵就是正常的跳躍
+    await page.waitForTimeout(200);
+    await page.keyboard.press('Space');
+    let jumped = 0;
+    for (let i = 0; i < 6; i++) {
+      await page.waitForTimeout(80);
+      jumped = Math.max(jumped, (await state()).y - base.y);
+    }
+    assert.ok(jumped > 0.3, `放開後空白鍵沒有跳（${jumped.toFixed(2)}）`);
+    await page.waitForTimeout(800);
+  });
+
   await check('條件對話：森林迷霧清除後村長說不同的話', async () => {
     await debug(() => window.__mistwoodDebug.setMistStage('forest', 'clear'));
     await page.waitForTimeout(300);

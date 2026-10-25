@@ -178,6 +178,46 @@ function onDropped(code: number): void {
   console.warn(`[net] 連線中斷（${code}），自動重新連線中`);
   useNetStore.setState({ status: 'reconnecting' });
   useUiStore.getState().pushToast({ textKey: 'net.unstable' });
+  // 斷線可能是因為同一帳號在別的裝置登入（手機切到背景時收不到踢人通知）：先問伺服器，被踢了就不重連
+  void checkKicked();
+}
+
+/** 伺服器的「這台裝置是否被踢下」網址（ws → http） */
+function kickedUrl(): string {
+  const u = new URL(lastOptions.url ?? serverUrl());
+  u.protocol = u.protocol === 'wss:' ? 'https:' : 'http:';
+  u.pathname = '/kicked';
+  u.search = `?device=${encodeURIComponent(deviceId)}`;
+  return u.toString();
+}
+
+/** 問伺服器這台裝置是不是被同一帳號的其他裝置踢下了；是的話停止自動重連、回到首頁（2026-10-25） */
+async function checkKicked(): Promise<void> {
+  const current = room;
+  if (!current) return;
+  let kicked: boolean;
+  try {
+    const res = await fetch(kickedUrl(), { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+    kicked = res.ok && ((await res.json()) as { kicked?: unknown }).kicked === true;
+  } catch {
+    return; // 網路真的斷了：照常自動重連，重新加入時伺服器還會再擋一次
+  }
+  if (!kicked || room !== current) return;
+  // 停掉 SDK 的自動重連，不再觸發 onLeave / onReconnect
+  current.reconnection.enabled = false;
+  current.reconnection.maxRetries = 0;
+  current.removeAllListeners();
+  room = null;
+  stopSending();
+  clearRemotes();
+  kickedElsewhere();
+}
+
+/** 分頁回到前景（手機解鎖、切回瀏覽器）時也問一次：背景期間可能已被踢下，但連線還沒被判定中斷 */
+export function checkKickedOnResume(): void {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && room) void checkKicked();
+  });
 }
 
 /** 重連回同一個座位：其他人看到的還是同一個人 */

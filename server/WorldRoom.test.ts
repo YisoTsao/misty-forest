@@ -3,7 +3,7 @@ import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { ClientMessage, KICKED_ELSEWHERE, NET, PROTOCOL_VERSION, ROOM_NAME, ServerMessage, type ChatOut, type CorrectionMessage, type RemoteActionMessage, type TimeReply } from '@/game-core/net/protocol';
 import { MAPS, NEW_GAME_SPAWN } from '@/game-core/world/maps';
 import { createGameServer } from './app';
-import { WorldRoom } from './WorldRoom';
+import { isDeviceKicked, WorldRoom } from './WorldRoom';
 
 let colyseus: ColyseusTestServer;
 
@@ -513,6 +513,8 @@ describe('世界房間：同一帳號只能一處連線（任務 11M-7）', () =
       (err: unknown) => err,
     );
     expect(String((error as Error | null)?.message)).toContain(KICKED_ELSEWHERE);
+    expect(isDeviceKicked('pc')).toBe(true);
+    expect(isDeviceKicked('phone')).toBe(false);
     expect([...room.clients].map((c) => c.sessionId)).toEqual([phone.sessionId]);
     expect(leftPhone.reason).toBeUndefined();
   });
@@ -526,6 +528,7 @@ describe('世界房間：同一帳號只能一處連線（任務 11M-7）', () =
     await until(() => room.clients.length === 1);
     const again = await join(room, { name: 'A', account: 'ok:acc1', device: 'pc', rejoin: true });
     expect(again.sessionId).toBeTruthy();
+    expect(isDeviceKicked('pc')).toBe(false);
     const phone = await join(room, { name: 'A2', account: 'ok:acc1', device: 'phone' });
     await until(() => room.clients.length === 2);
     expect([...room.clients].map((c) => c.sessionId).sort()).toEqual([guest.sessionId, phone.sessionId].sort());

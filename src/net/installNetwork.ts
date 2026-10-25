@@ -4,10 +4,11 @@ import { useDebugStore } from '@/game/state/debugStore';
 import { useGameStore } from '@/game/state/gameStore';
 import { onlineDisplayName } from '@/online/onlineStore';
 import { autoConnectFromUrl } from './config';
-import { connect, disconnect, leaveOnPageHide } from './netClient';
+import { checkKickedOnResume, connect, disconnect, leaveOnPageHide } from './netClient';
 
 export function installNetwork(): void {
   leaveOnPageHide();
+  checkKickedOnResume();
   const auto = autoConnectFromUrl();
   useGameStore.subscribe((state, prev) => {
     if (state.screen === prev.screen) return;

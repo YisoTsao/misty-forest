@@ -4,7 +4,7 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { PROTOCOL_VERSION, ROOM_NAME } from '@/game-core/net/protocol';
 import { verifierFromEnv, type AccountVerifier } from './accounts';
 import { isAllowedOrigin, type OriginRule } from './origins';
-import { WorldRoom } from './WorldRoom';
+import { isDeviceKicked, WorldRoom } from './WorldRoom';
 
 const startedAt = Date.now();
 
@@ -16,6 +16,15 @@ const health = createEndpoint('/health', { method: 'GET' }, async () => {
   const rooms = await matchMaker.query({ name: ROOM_NAME });
   const players = rooms.reduce((sum, r) => sum + r.clients, 0);
   return Response.json({ ok: true, protocol: PROTOCOL_VERSION, rooms: rooms.length, players, uptimeSec: Math.round((Date.now() - startedAt) / 1000), accounts: WorldRoom.verifyAccount !== null, now: Date.now() });
+});
+
+/**
+ * 這台裝置是不是被同一帳號的其他裝置踢下了：客戶端斷線（例如手機切到背景再回來）時先問這裡，
+ * 被踢了就直接回到首頁，不必等自動重連失敗（2026-10-25）。
+ */
+const kicked = createEndpoint('/kicked', { method: 'GET' }, async (ctx) => {
+  const device = new URL(ctx.request?.url ?? 'http://x/').searchParams.get('device') ?? '';
+  return Response.json({ kicked: device.length > 0 && device.length <= 64 && isDeviceKicked(device) });
 });
 
 /**
@@ -46,7 +55,7 @@ export function createGameServer(options: { allowedOrigins?: OriginRule[]; verif
       },
     }),
     rooms: { [ROOM_NAME]: defineRoom(WorldRoom) },
-    routes: createRouter({ health }),
+    routes: createRouter({ health, kicked }),
     greet: false,
   });
 }
