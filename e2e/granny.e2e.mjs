@@ -1,5 +1,5 @@
 // 端對端：第二章 Phase 2 — 聚落的主線（規格 8.2 CH2-MQ-02 至 04）與菇菇婆婆的對話。
-// 螢苔的呼吸（凝膠 ×2 → 純淨螢苔 ×2）→ 倒流的溪水（在對話裡接取，水輪轉到石碑的答案，任務自動達成）→ 不願相信旅人的居民（和菇伯、菇丁、菇哨談過 → 螢光提燈）。
+// 螢苔的呼吸（凝膠 ×2 → 純淨螢苔 ×2）→ 倒流的溪水（婆婆指路、菇伯委託與回報，水輪轉到石碑的答案）→ 不願相信旅人的居民（和菇伯、菇丁、菇哨談過 → 螢光提燈）。
 // 支線 CH2-SQ-01 會發光的晚餐：主線沒有新委託時提出；實際在溪谷淺灘撈一條溪魚，其餘材料用指令給，回報拿燉湯、工作台多出燉湯配方。
 // 每一步都實際和菇菇婆婆對話；水輪的轉動用權威指令代替（實際按 E 的流程由 creek 驗證）。外觀以截圖檢查。
 // 用法：pnpm build && node e2e/granny.e2e.mjs
@@ -64,11 +64,14 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
     assert.equal(await itemCount('pure_glowmoss'), 2);
   });
 
-  await check('倒流的溪水：轉到石碑的答案，任務在菇菇婆婆那裡變成可以回報', async () => {
+  await check('倒流的溪水：婆婆指路、菇伯委託；轉到石碑的答案，回菇伯那裡回報', async () => {
     await talkToGranny();
-    assert.equal((await dialogue()).dialogueId, 'granny_wheels_hint');
+    assert.equal((await dialogue()).dialogueId, 'granny_wheels_point');
+    await closeDialogue();
     assert.equal(await questState('quest_forest_003'), 'available');
-    await choose('好，我去看看');
+    await talkTo('mush_farmer');
+    assert.equal((await dialogue()).dialogueId, 'mush_farmer_wheels_offer');
+    await choose('交給我');
     await closeDialogue();
     assert.equal(await questState('quest_forest_003'), 'active');
     // 水閘先打開（苔石推兩格，2026-10-25）
@@ -81,9 +84,9 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
     const wheel = (id) => send({ type: 'TurnObject', placementId: id });
     for (const [id, times] of [['creek_wheel_01', 1], ['creek_wheel_02', 3], ['creek_wheel_03', 2]]) for (let i = 0; i < times; i++) await wheel(id);
     await page.waitForTimeout(300);
-    await talkToGranny();
-    assert.equal((await dialogue()).dialogueId, 'granny_wheels_turnin');
-    await choose('交給她');
+    await talkTo('mush_farmer');
+    assert.equal((await dialogue()).dialogueId, 'mush_farmer_wheels_turnin');
+    await choose('水輪都轉好了');
     await closeDialogue();
     assert.equal(await questState('quest_forest_003'), 'completed');
   });
@@ -123,10 +126,15 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
   });
 
   await check('會發光的晚餐：主線有新委託時先說主線；之後提出支線，撈溪魚、交材料，拿到燉湯與配方', async () => {
-    // 004 完成後主線 005 可接：先提出主線
+    // 004 完成後主線 005 可接：婆婆先指路到北口的莉露；莉露從花園移到北口
     await talkToGranny();
-    assert.equal((await dialogue()).dialogueId, 'granny_guard_offer');
+    assert.equal((await dialogue()).dialogueId, 'granny_guard_point');
     await closeDialogue();
+    await talkTo('lilu_north');
+    assert.equal((await dialogue()).dialogueId, 'lilu_guard_offer');
+    await choose('我們一起去');
+    await closeDialogue();
+    assert.equal(await questState('quest_forest_005'), 'active');
     await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_005'));
     await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_006'));
     await debug(() => window.__mistwoodDebug.setQuestCompleted('quest_forest_007'));

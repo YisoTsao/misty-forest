@@ -18,6 +18,11 @@ export const npcDefSchema = z
   clips: z.object({ idle: z.string().min(1), walk: z.string().min(1), talk: z.string().min(1) }).optional(),
   /** 出現的條件（任務 8D-2：苔咚在戰後才成為 NPC）；省略時一直都在 */
   visible: conditionSchema.optional(),
+  /**
+   * 同一個角色的另一個站位（2026-10-25：莉露拿到提燈後從花園移到聚落北口）：寫原本的 NPC id。
+   * 任務的發起人仍是原本的 NPC；原本的不在場時，地圖標記改指向這一個。兩者的出現條件要互斥。
+   */
+  sameAs: z.string().min(1).optional(),
   /** 說話的聲音：bubble 為泡泡音（不會說完整句子的苔咚）；省略時是一般的翻頁音 */
   voice: z.enum(['bubble']).optional(),
   /** 站立位置與面向（yaw，0 = 面向 +Z） */
@@ -43,6 +48,9 @@ export function parseNpcs(raw: unknown, dialogueIds: ReadonlySet<string>): NpcDe
     for (const t of npc.talk) {
       if (!dialogueIds.has(t.dialogue)) throw new Error(`NPC ${npc.id} 參照不存在的對話：${t.dialogue}`);
     }
+  }
+  for (const npc of list) {
+    if (npc.sameAs !== undefined && !seen.has(npc.sameAs)) throw new Error(`NPC ${npc.id} 的 sameAs 指向不存在的 NPC：${npc.sameAs}`);
   }
   return list;
 }

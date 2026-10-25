@@ -5,7 +5,9 @@ import { applyEvents, handleCommand, initialGameState, type GameCommand, type Ga
 import { evaluateCondition } from '@/game-core/dialogue/conditions';
 import { countItem } from '@/game-core/inventory/inventory';
 import { isQuestReady } from '@/game-core/quest/quest';
+import { currentQuestMarkers } from '@/ui/map/mapDraw';
 import { npcs } from '../authority';
+import { npcVisible } from '../npc/npcRuntime';
 import { worldDataResult } from '../worldData';
 import { WorldIndex } from './worldIndex';
 
@@ -64,5 +66,34 @@ describe('不願相信旅人的居民', () => {
     s = talk(talk(s, 'mush_farmer').state, 'mush_lookout').state;
     s = run(s, { type: 'TurnInQuest', quest: 'quest_forest_004' }).state;
     expect(dialogueOf(s, 'mush_lookout')).toBe('mush_lookout_trust');
+  });
+});
+
+// 方案 B：分散任務發起人——倒流的溪水由菇伯發起，被遺忘的守護者由莉露（拿到提燈後移到聚落北口）發起
+describe('任務發起人', () => {
+  const completed = (...ids: string[]): GameState => ({ ...initialGameState(), quests: Object.fromEntries(ids.map((id) => [id, { status: 'completed' as const }])) });
+  const lilu = npcs.find((n) => n.id === 'lilu')!;
+  const liluNorth = npcs.find((n) => n.id === 'lilu_north')!;
+
+  it('倒流的溪水：菇伯接、菇伯收；婆婆只指路', () => {
+    let s = completed('quest_forest_001', 'quest_forest_002');
+    expect(data.quests.get('quest_forest_003')?.giver).toBe('mush_farmer');
+    expect(dialogueOf(s, 'mush_farmer')).toBe('mush_farmer_wheels_offer');
+    expect(dialogueOf(s, 'granny')).toBe('granny_wheels_point');
+    s = run(s, { type: 'AcceptQuest', quest: 'quest_forest_003' }).state;
+    expect(dialogueOf(s, 'mush_farmer')).toBe('mush_farmer_wheels_progress');
+  });
+
+  it('莉露拿到提燈後移到聚落北口，發起被遺忘的守護者；地圖標記跟著她', () => {
+    const before = completed('quest_forest_001', 'quest_forest_002', 'quest_forest_003');
+    expect(npcVisible(lilu, before)).toBe(true);
+    expect(npcVisible(liluNorth, before)).toBe(false);
+    const after = completed('quest_forest_001', 'quest_forest_002', 'quest_forest_003', 'quest_forest_004');
+    expect(npcVisible(lilu, after)).toBe(false);
+    expect(npcVisible(liluNorth, after)).toBe(true);
+    expect(dialogueOf(after, 'lilu_north')).toBe('lilu_guard_offer');
+    expect(dialogueOf(after, 'granny')).toBe('granny_guard_point');
+    const marker = currentQuestMarkers(after).find((m) => m.questId === 'quest_forest_005' && m.kind === 'available');
+    expect(marker).toMatchObject({ x: liluNorth.position[0], z: liluNorth.position[1] });
   });
 });

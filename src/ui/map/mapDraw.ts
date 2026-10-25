@@ -166,9 +166,11 @@ export function drawEnemies(ctx: CanvasRenderingContext2D, view: MapView, maxDis
 export function currentQuestMarkers(state: GameState): QuestMarker[] {
   return questMarkers(state, quests, {
     npcPosition: (id) => {
-      const r = npcRuntime.get(id);
-      const def = npcs.find((n) => n.id === id);
-      if (def && !npcVisible(def, state)) return null;
+      let def = npcs.find((n) => n.id === id);
+      // 原本的站位不在場：找同一個角色現在的站位（sameAs）
+      if (def && !npcVisible(def, state)) def = npcs.find((n) => n.sameAs === id && npcVisible(n, state));
+      if (!def) return null;
+      const r = npcRuntime.get(def.id);
       if (r && onSomeMap(r.x, r.z)) return { x: r.x, z: r.z };
       return def && onSomeMap(def.position[0], def.position[1]) ? { x: def.position[0], z: def.position[1] } : null;
     },

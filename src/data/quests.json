@@ -526,7 +526,7 @@
     "nameKey": "quest.forest3.name",
     "category": "main",
     "descKey": "quest.forest3.desc",
-    "giver": "granny",
+    "giver": "mush_farmer",
     "requires": [
       "quest_forest_002"
     ],
@@ -600,7 +600,7 @@
     "nameKey": "quest.forest5.name",
     "category": "main",
     "descKey": "quest.forest5.desc",
-    "giver": "granny",
+    "giver": "lilu",
     "requires": [
       "quest_forest_004"
     ],

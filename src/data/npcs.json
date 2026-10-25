@@ -888,6 +888,7 @@
       "walk": "Walking_A",
       "talk": "Cheer"
     },
+    "visible": { "type": "not", "condition": { "type": "questStatus", "quest": "quest_forest_004", "is": "completed" } },
     "position": [
       1896,
       12
@@ -955,6 +956,32 @@
     ]
   },
   {
+    "id": "lilu_north",
+    "nameKey": "npc.lilu",
+    "sameAs": "lilu",
+    "regionId": "mushroom_village",
+    "model": "models/characters/kaykit-adventurers/Rogue.glb",
+    "scale": 0.72,
+    "hiddenNodes": ["Knife_Offhand", "1H_Crossbow", "2H_Crossbow", "Knife", "Throwable"],
+    "clips": { "idle": "Idle", "walk": "Walking_A", "talk": "Cheer" },
+    "visible": { "type": "questStatus", "quest": "quest_forest_004", "is": "completed" },
+    "position": [
+      2039.5,
+      29
+    ],
+    "facingYaw": 2.8,
+    "interactRadius": 2.6,
+    "talk": [
+      { "when": { "type": "questReady", "quest": "quest_forest_005" }, "dialogue": "lilu_guard_turnin" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_005", "is": "active" }, "dialogue": "lilu_guard_progress" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_005", "is": "available" }, "dialogue": "lilu_guard_offer" },
+      { "when": { "type": "questReady", "quest": "quest_forest_sq02" }, "dialogue": "lilu_firefly_turnin" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_sq02", "is": "active" }, "dialogue": "lilu_firefly_progress" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_sq02", "is": "available" }, "dialogue": "lilu_firefly_offer" },
+      { "dialogue": "lilu_north_after" }
+    ]
+  },
+  {
     "id": "mush_kid",
     "nameKey": "npc.mush_kid",
     "regionId": "mushroom_village",
@@ -990,6 +1017,9 @@
     "facingYaw": -1.3,
     "interactRadius": 2.4,
     "talk": [
+      { "when": { "type": "questReady", "quest": "quest_forest_003" }, "dialogue": "mush_farmer_wheels_turnin" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_003", "is": "active" }, "dialogue": "mush_farmer_wheels_progress" },
+      { "when": { "type": "questStatus", "quest": "quest_forest_003", "is": "available" }, "dialogue": "mush_farmer_wheels_offer" },
       { "when": { "type": "questStatus", "quest": "quest_forest_007", "is": "completed" }, "dialogue": "mush_farmer_after" },
       { "when": { "type": "questStatus", "quest": "quest_forest_004", "is": "completed" }, "dialogue": "mush_farmer_trust" },
       { "when": { "type": "all", "conditions": [{ "type": "questStatus", "quest": "quest_forest_004", "is": "active" }, { "type": "questTalkDone", "quest": "quest_forest_004", "npc": "mush_farmer" }] }, "dialogue": "mush_farmer_quest_wait" },
@@ -1070,23 +1100,9 @@
       {
         "when": {
           "type": "questReady",
-          "quest": "quest_forest_005"
-        },
-        "dialogue": "granny_guard_turnin"
-      },
-      {
-        "when": {
-          "type": "questReady",
           "quest": "quest_forest_004"
         },
         "dialogue": "granny_help_turnin"
-      },
-      {
-        "when": {
-          "type": "questReady",
-          "quest": "quest_forest_003"
-        },
-        "dialogue": "granny_wheels_turnin"
       },
       {
         "when": {
@@ -1117,7 +1133,7 @@
           "quest": "quest_forest_005",
           "is": "available"
         },
-        "dialogue": "granny_guard_offer"
+        "dialogue": "granny_guard_point"
       },
       {
         "when": {
@@ -1133,7 +1149,7 @@
           "quest": "quest_forest_003",
           "is": "available"
         },
-        "dialogue": "granny_wheels_hint"
+        "dialogue": "granny_wheels_point"
       },
       {
         "when": {
