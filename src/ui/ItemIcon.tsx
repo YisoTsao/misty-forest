@@ -469,7 +469,64 @@ const icons: Record<string, ReactNode> = {
       ))}
     </>
   ),
+  seed: (
+    <>
+      {(
+        [
+          [17, 20, -25],
+          [30, 17, 20],
+          [24, 31, 5],
+        ] as const
+      ).map(([x, y, r]) => (
+        <g key={`${x}-${y}`} transform={`rotate(${r} ${x} ${y})`}>
+          <ellipse cx={x} cy={y} rx="5.5" ry="8" fill="#c99a5a" stroke="#6e4a24" strokeWidth="1.8" />
+          <path d={`M${x - 1.5} ${y - 4} Q${x - 2.5} ${y} ${x - 1.5} ${y + 4}`} stroke="#f0d6a2" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        </g>
+      ))}
+      <path d="M24 23 Q24 14 28 10 M24 17 Q20 14 17 15" stroke="#4f8f34" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </>
+  ),
+  glow_seed: (
+    <>
+      <circle cx="24" cy="25" r="16" fill="#9ff0c8" opacity="0.28" />
+      <ellipse cx="24" cy="27" rx="8" ry="11" fill="#6fd6a6" stroke="#2f7a5a" strokeWidth="2" />
+      <path d="M21 21 Q19 27 21 33" stroke="#e6fff3" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M24 16 Q24 9 29 6 M24 12 Q20 9 17 10" stroke="#3f9a5a" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <circle cx="35" cy="16" r="1.6" fill="#d9ffe9" />
+      <circle cx="13" cy="33" r="1.3" fill="#d9ffe9" />
+    </>
+  ),
+  forgotten_seed: (
+    <>
+      <circle cx="24" cy="26" r="17" fill="#c9b8ee" opacity="0.25" />
+      <path d="M24 9 Q35 17 34 29 Q32 40 24 41 Q16 40 14 29 Q13 17 24 9 Z" fill="#8a6a9c" stroke="#4a3462" strokeWidth="2" />
+      <path d="M24 15 Q28 22 24 28 Q20 34 24 38" stroke="#e6d6ff" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <circle cx="19" cy="22" r="1.4" fill="#f4ecff" />
+      <circle cx="29" cy="31" r="1.2" fill="#f4ecff" />
+    </>
+  ),
+  soil: (
+    <>
+      <path d="M6 36 Q10 22 24 20 Q38 22 42 36 Q24 42 6 36 Z" fill="#8a5a34" stroke="#4e3018" strokeWidth="2" />
+      <path d="M12 33 Q18 27 24 27 M27 25 Q33 27 36 32" stroke="#b07a4a" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <circle cx="17" cy="35" r="1.6" fill="#5e3a1c" />
+      <circle cx="30" cy="34" r="1.8" fill="#5e3a1c" />
+      <circle cx="23" cy="31" r="1.2" fill="#c99a6a" />
+      <path d="M24 20 Q23 13 27 9 M24 15 Q20 12 18 13" stroke="#4f8f34" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </>
+  ),
+  water_charm: (
+    <>
+      <path d="M24 5 V11" stroke="#7a8a9a" strokeWidth="2" />
+      <circle cx="24" cy="28" r="15" fill="#d8eef6" stroke="#4f8aa8" strokeWidth="2" />
+      <path d="M24 17 Q32 27 31 32 Q29 38 24 38 Q19 38 17 32 Q16 27 24 17 Z" fill="#6cb8e0" stroke="#2f6a90" strokeWidth="1.8" />
+      <path d="M21 30 Q21 34 24 35" stroke="#e6f6ff" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    </>
+  ),
 };
+
+/** 有繪製的圖示 id（測試用：資料引用的 icon 都要畫出來，避免畫面出現「?」） */
+export const itemIconIds: readonly string[] = Object.keys(icons);
 
 export function ItemIcon({ icon, className }: { icon: string; className?: string }) {
   return (

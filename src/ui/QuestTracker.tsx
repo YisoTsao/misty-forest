@@ -11,19 +11,19 @@ import { ItemIcon } from './ItemIcon';
 
 const items = worldDataResult.ok ? worldDataResult.data.items : new Map();
 
-/** 任務追蹤（規格 6.5）：畫面左側列出進行中的任務、目標進度與回報對象。只讀權威狀態。 */
+/** 任務追蹤（規格 6.5）：畫面左側列出進行中的任務、目標進度與回報對象。只讀權威狀態。
+ *  手機版不顯示（2026-10-25 使用者指示：會擋住畫面），任務改由暫停選單的任務日誌查看。 */
 export function QuestTracker() {
   const state = useGameStateStore((s) => s.state);
   const playing = useGameStore((s) => s.screen === 'playing');
-  // 手機版（任務 11M）：血條在左上，任務追蹤放在血條下面、窄一點
   const touch = useTouchUi();
-  if (!playing) return null;
+  if (!playing || touch) return null;
   // 任務日誌取消追蹤的不顯示（主線一定顯示，任務 7F）
   const active = [...quests.values()].filter((q) => isQuestTracked(state.quests[q.id], q));
   if (active.length === 0) return null;
 
   return (
-    <div className={`pointer-events-none absolute flex flex-col gap-2 ${touch ? 'top-[7.5rem] left-3 w-52 portrait:w-44 text-xs' : 'top-36 left-4 w-64'}`} data-testid="quest-tracker">
+    <div className="pointer-events-none absolute top-36 left-4 flex w-64 flex-col gap-2" data-testid="quest-tracker">
       {active.map((q) => {
         const ready = isQuestReady(state, q);
         const giver = npcs.find((n) => n.id === q.giver);

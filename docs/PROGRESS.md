@@ -31,6 +31,14 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 使用者回報的四個問題與保持伺服器喚醒（2026-10-25，分支 `feat/ch2-completion`）
+- **手機版拿掉任務追蹤**：`QuestTracker` 在觸控介面不顯示（會擋住畫面），任務改由暫停選單的任務日誌查看。e2e `touch` 改為驗證手機版沒有任務追蹤。
+- **同帳號在另一台登入時，舊的那台回到首頁**：踢人的邏輯（11M-7/9）本來就有，但有漏洞——舊裝置斷線（分頁在背景、手機鎖屏）超過座位保留時間後走「自動重新加入」，伺服器當成新登入，反過來踢掉新裝置，舊的那台一直顯示「重新連線中」。修正：客戶端每個分頁產生 `device` id，自動重新加入時帶 `rejoin: true`；伺服器記住每個帳號最後一次主動登入的裝置，其他裝置的自動重新加入回 409 `KICKED_ELSEWHERE`、斷線重連也踢下；客戶端收到後停止重試、回到首頁並說明。`/health` 新增 `accounts`（帳號驗證是否啟用）。Render 的 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY` 使用者確認早已設定（PLATFORMS.md 原本記載「尚未設定」是過時的，已更正），所以回報的現象來自上述漏洞；部署後打 `/health` 確認 `accounts` 是 `true`。
+- **夜晚調亮**（使用者：螢幕亮度要開到 75% 才看得清，目標 30%）：`timeLook` 的夜晚半球光 1.05 → 1.65、月光 0.75 → 1.25、無光照材質色與迷霧色調提亮，日出日落的過渡不再比夜晚暗；天空維持深色。截圖 `docs/screenshots/phase6/daynight_*`（已檢視）。
+- **物品圖示補齊**：鬆土、野花種子（`soil`、`seed`）、螢光種子、遺忘的種子（改用各自的 `glow_seed`、`forgotten_seed`）、水行護符（`water_charm`）原本顯示「?」；`glow_plot` 建造物也改用 `glow_seed`。新增 `src/ui/itemIcons.test.ts`：每個物品與建造物的 icon 都要有畫。（武器的 icon 是 emoji，不經過 `ItemIcon`。）
+- **保持喚醒**：`.github/workflows/keep-alive.yml`，GitHub Actions 每 10 分鐘打伺服器 `/health` 與網頁首頁（公開 repo 免費；排程只在預設分支 `main` 上執行；repo 60 天沒活動會被 GitHub 停用）。
+- 測試：`WorldRoom.test.ts` 新增 3 項（舊裝置自動重新加入被拒、同裝置與主動登入照常、別台登入後又離開時舊裝置重連仍被踢）、`timeLook.test.ts` 新增 1 項。`pnpm check` 1110 項中 `WorldRoom`「兩個人看得到彼此」並行逾時一次（已知，單獨重跑通過）、`pnpm build` 通過；e2e `multiplayer` 18、`daynight` 11、`dev` 9 項全過，`touch` 16 項中 1 項失敗（已知的橫向教學那一項）。完整 `pnpm e2e` 未跑（push 前要跑）。
+
 ### 部署、第三章規格書草案、裝備外觀（2026-10-25，分支 `feat/ch2-completion`）
 - **部署**：`feat/ch2-completion`（到 c6260c6）快轉合併進 `main` 並 push；Vercel 正式版建置完成（`mistwood-j2jayolbe`），https://mistwood-blue.vercel.app 的 JS 與本機 build 一致。push 前 `pnpm check` 1101 項、`pnpm build` 通過；完整 e2e 沿用同日的紀錄（見下一節）。
 - **第三章規格書草案** `docs/CHAPTER_03_MIRRORLAKE_SPEC.md`（T-196）：故事（承接「湖中那個不屬於你的倒影」，揭露守望者的身影但不揭露諾亞）、七區、NPC（奇奇正式登場、新居民帕可 / 茉茉 / 蘇諾）、主線 8 個與支線 6 個、新怪物回聲水母、精英沉鐘龜、迷你頭目倒影旅人（重用玩家模型與招式）、璃漪改三階段、5 件裝備（四個職業都有武器變體）、開發 Phase 0–5。**待使用者審閱**，§19 有 4 個待決定事項。

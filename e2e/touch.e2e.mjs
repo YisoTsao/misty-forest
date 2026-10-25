@@ -177,8 +177,9 @@ await runE2e('touch e2e', { query: 'debug=1&play=1&peaceful=1&touch=1&quality=lo
   await check('直向（390×844）：HUD 都在畫面內、互不重疊；搖桿一樣能走', async () => {
     await resize(390, 844);
     await page.getByTestId('touch-attack').waitFor({ timeout: 2000 });
-    // 開完寶箱已經接到任務：任務追蹤、教學也要在畫面內且不重疊
-    await assertLayout([...HUD, 'quest-tracker']);
+    // 開完寶箱已經接到任務：手機版不顯示任務追蹤（會擋畫面，2026-10-25）
+    await assertLayout(HUD);
+    assert.equal(await page.getByTestId('quest-tracker').count(), 0, '手機版不該顯示任務追蹤');
     await page.screenshot({ path: `${shots}/portrait_hud.png` });
     const before = await state();
     await drag([90, 700], [90, 640], { holdMs: 1000 });

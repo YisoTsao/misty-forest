@@ -56,6 +56,8 @@ let firstState = true;
 let rejoin: { timer: number | null; startedAt: number; attempt: number } | null = null;
 /** 重連回同一個座位後，下一次送出改送 warp（斷線期間自己走動過，伺服器把它當合法的位置跳動） */
 let forceWarp = false;
+/** 這個分頁 / 視窗的識別：伺服器用它分辨同一帳號的不同裝置（舊裝置自動重新加入時不能搶回座位） */
+const deviceId = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `d${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
 
 /** 本機玩家目前的位置、朝向與動畫（送給伺服器的格式） */
 function localMove(): MoveMessage {
@@ -89,7 +91,7 @@ async function accountToken(): Promise<string | undefined> {
 }
 
 /** 加入房間（第一次連線與自動重新加入共用）；失敗時把原因寫進 error、回傳 false */
-async function join(): Promise<boolean> {
+async function join(rejoining = false): Promise<boolean> {
   const url = lastOptions.url ?? serverUrl();
   const name = connectionName();
   rememberName(name);
@@ -105,8 +107,15 @@ async function join(): Promise<boolean> {
       weapon: authority.getState().player.weapon,
       heroClass: authority.getState().player.heroClass,
       account: await accountToken(),
+      device: deviceId,
+      ...(rejoining ? { rejoin: true } : {}),
     });
   } catch (err) {
+    // 同一帳號已在別的裝置登入：這裡是舊的那一個，不再重試，回到首頁（2026-10-25）
+    if (errorText(err).includes(KICKED_ELSEWHERE)) {
+      kickedElsewhere();
+      return false;
+    }
     useNetStore.setState({ error: `${t('net.connectFailed')}：${errorText(err)}` });
     return false;
   }
@@ -198,15 +207,20 @@ function onLeft(code: number, reason?: string): void {
   }
   // 同一帳號在別處登入：先進的這裡被踢下線，不自動重新加入（任務 11M-7）
   if (reason === KICKED_ELSEWHERE) {
-    console.warn('[net] 同一帳號在別處登入，這裡的線上連線已中斷');
-    useNetStore.setState({ ...initialNetState });
-    returnToTitleAfterKick();
+    kickedElsewhere();
     return;
   }
   // 座位沒了（伺服器重啟、休眠喚醒、保留逾時、自動重連失敗）：自動重新加入
   console.warn(`[net] 與伺服器的連線中斷（${code}${reason ? `：${reason}` : ''}），自動重新加入`);
   useNetStore.setState({ status: 'reconnecting', roomId: null, sessionId: null, playerId: null, playerCount: 0, members: [] });
   startRejoin();
+}
+
+function kickedElsewhere(): void {
+  console.warn('[net] 同一帳號在別處登入，這裡的線上連線已中斷');
+  cancelRejoin();
+  useNetStore.setState({ ...initialNetState });
+  returnToTitleAfterKick();
 }
 
 /**
@@ -246,8 +260,8 @@ async function attemptRejoin(r: NonNullable<typeof rejoin>): Promise<void> {
   if (rejoin !== r || room) return;
   r.timer = null;
   r.attempt++;
-  const ok = await join();
-  // 等待期間玩家可能已經中斷或手動重新連線
+  const ok = await join(true);
+  // 等待期間玩家可能已經中斷、手動重新連線，或被別的裝置踢下線
   if (rejoin !== r) return;
   if (ok) {
     rejoin = null;

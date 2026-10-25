@@ -24,6 +24,15 @@ describe('timeLook', () => {
     expect(night.stars).toBe(1);
   });
 
+  it('night stays readable on a dim screen (user report 2026-10-25: had to raise screen brightness to 75%)', () => {
+    const night = timeLook(0, createTimeLook());
+    expect(night.hemiIntensity).toBeGreaterThanOrEqual(1.5);
+    expect(night.lightIntensity).toBeGreaterThanOrEqual(1.1);
+    expect(luma(night.ambient)).toBeGreaterThan(0.12);
+    // 日出日落的過渡不比深夜暗
+    for (const h of [5.5, 18.5]) expect(timeLook(h, createTimeLook()).hemiIntensity).toBeGreaterThanOrEqual(night.hemiIntensity - 0.1);
+  });
+
   it('directional light fades out at sunrise and sunset (source switches there)', () => {
     expect(timeLook(5.5, createTimeLook()).lightIntensity).toBeCloseTo(0);
     expect(timeLook(18.5, createTimeLook()).lightIntensity).toBeCloseTo(0);

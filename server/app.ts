@@ -8,11 +8,14 @@ import { WorldRoom } from './WorldRoom';
 
 const startedAt = Date.now();
 
-/** 健康檢查：部署平台與 e2e 用來確認伺服器已就緒；now 讓沒有連線的客戶端也能對時（共享日光，T-181） */
+/**
+ * 健康檢查：部署平台與 e2e 用來確認伺服器已就緒；now 讓沒有連線的客戶端也能對時（共享日光，T-181）。
+ * accounts：帳號驗證是否啟用（沒啟用時同一帳號可以重複登入、不會踢人），保持喚醒的排程也打這裡。
+ */
 const health = createEndpoint('/health', { method: 'GET' }, async () => {
   const rooms = await matchMaker.query({ name: ROOM_NAME });
   const players = rooms.reduce((sum, r) => sum + r.clients, 0);
-  return Response.json({ ok: true, protocol: PROTOCOL_VERSION, rooms: rooms.length, players, uptimeSec: Math.round((Date.now() - startedAt) / 1000), now: Date.now() });
+  return Response.json({ ok: true, protocol: PROTOCOL_VERSION, rooms: rooms.length, players, uptimeSec: Math.round((Date.now() - startedAt) / 1000), accounts: WorldRoom.verifyAccount !== null, now: Date.now() });
 });
 
 /**

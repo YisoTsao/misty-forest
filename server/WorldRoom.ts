@@ -73,6 +73,9 @@ export type WorldRoomOptions = { instanceId?: string };
 /** Colyseus 的「正常離開」關閉碼：不保留座位、不自動重連 */
 const KICK_CODE = 4000;
 
+/** 自動重新加入被拒絕（同一帳號已在別的裝置登入）的錯誤碼 */
+const KICKED_JOIN_CODE = 409;
+
 /** 連線的帳號 id（onAuth 回傳的 accountId；訪客為 null） */
 function accountOf(client: Client): string | null {
   return (client.auth as { accountId?: string | null } | undefined)?.accountId ?? null;
@@ -96,6 +99,8 @@ export class WorldRoom extends Room<{ state: WorldState }> {
   /** 全服頻道最近的訊息（新加入的人要紀錄時給） */
   private readonly globalHistory: ChatOut[] = [];
   private nextChatId = 1;
+  /** 每個帳號最後一次主動登入的裝置（2026-10-25）：之後其他裝置斷線重連或自動重新加入都會被拒絕 */
+  private readonly accountDevice = new Map<string, string>();
 
   onCreate(options: WorldRoomOptions = {}): void {
     this.state.instanceId = options.instanceId ?? 'main';
@@ -145,7 +150,17 @@ export class WorldRoom extends Room<{ state: WorldState }> {
     const options = parsed.data;
     // 同一個帳號同時只能一處連線：後進的登入，先進的會被踢下線（任務 11M-7）
     const accountId = accountOf(client);
-    if (accountId) this.kickOtherSessions(accountId, client);
+    if (accountId) {
+      const latest = this.accountDevice.get(accountId);
+      // 舊裝置斷線太久、座位沒了之後的自動重新加入：不能反過來把新裝置踢掉（2026-10-25）
+      if (options.rejoin && options.device && latest && latest !== options.device) {
+        console.info(`[world] 帳號 ${accountId} 已在別的裝置登入，拒絕舊裝置自動重新加入`);
+        throw new ServerError(KICKED_JOIN_CODE, KICKED_ELSEWHERE);
+      }
+      if (options.device) this.accountDevice.set(accountId, options.device);
+      client.userData = { device: options.device };
+      this.kickOtherSessions(accountId, client);
+    }
     const number = nextPlayerNumber++;
     const player = new PlayerState();
     player.playerId = `p${number}-${client.sessionId.slice(0, 4)}`;
@@ -205,7 +220,9 @@ export class WorldRoom extends Room<{ state: WorldState }> {
   onReconnect(client: Client): void {
     // 斷線期間同一帳號已在別處登入：這次重連的是先進的那一個，要被踢下線（任務 11M-7）
     const accountId = accountOf(client);
-    if (accountId && this.hasOtherSession(accountId, client)) {
+    const device = (client.userData as { device?: string } | undefined)?.device;
+    const latest = accountId ? this.accountDevice.get(accountId) : undefined;
+    if (accountId && (this.hasOtherSession(accountId, client) || (device && latest && latest !== device))) {
       console.info(`[world] 帳號 ${accountId} 已在別處登入，踢下重連的 ${client.sessionId}`);
       client.leave(KICK_CODE, KICKED_ELSEWHERE);
       return;

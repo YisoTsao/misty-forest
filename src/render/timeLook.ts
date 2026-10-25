@@ -6,6 +6,8 @@ import { palette, fogRange } from './palette';
  * 日夜外觀（GAME_DESIGN 5.2）：依時鐘（小時）在關鍵時刻之間插值出「晴朗時」的天空、霧、光線顏色。
  * 迷霧外觀（mist.ts）再以這組值為晴朗端，往迷霧端混合；迷霧端的顏色也乘上本時段的色調，夜晚的霧不會發亮。
  * 夜晚不做真黑夜：月光 + 偏藍的半球光保底，道路、角色與攻擊預兆都看得清楚（Bible 13.5）。
+ * 2026-10-25 再調亮：使用者回報手機與電腦螢幕亮度要開到 75% 才看得清，目標是 30% 也看得清楚。
+ * 天空維持深色（夜晚感），提亮的是照在地面、角色上的光。
  */
 
 type Key = {
@@ -33,16 +35,16 @@ type Key = {
 
 const NIGHT: Omit<Key, 'hour'> = {
   zenith: '#0d1838',
-  horizon: '#2a3866',
-  fog: '#26335c',
-  fogScale: 0.75,
-  hemiSky: '#5a6fb0',
-  hemiGround: '#24323a',
-  hemiIntensity: 1.05,
-  light: '#a9c0ff',
-  lightIntensity: 0.75,
-  ambient: '#3a4a78',
-  mistTint: '#4b5781',
+  horizon: '#33437a',
+  fog: '#33426e',
+  fogScale: 0.8,
+  hemiSky: '#8399d8',
+  hemiGround: '#3e5058',
+  hemiIntensity: 1.65,
+  light: '#b8ccff',
+  lightIntensity: 1.25,
+  ambient: '#5a6ca4',
+  mistTint: '#6674a0',
   stars: 1,
   glow: 0,
 };
@@ -66,7 +68,7 @@ const DAY: Omit<Key, 'hour'> = {
 /** 依小時排序；0 與 24 相同，插值時繞回 */
 const KEYS: Key[] = [
   { hour: 0, ...NIGHT },
-  { hour: 4.6, ...NIGHT, horizon: '#33406f' },
+  { hour: 4.6, ...NIGHT, horizon: '#3a4878' },
   {
     hour: 5.5,
     zenith: '#36508f',
@@ -75,7 +77,7 @@ const KEYS: Key[] = [
     fogScale: 0.85,
     hemiSky: '#8a98c6',
     hemiGround: '#46543e',
-    hemiIntensity: 1.05,
+    hemiIntensity: 1.6,
     light: '#ffa070',
     lightIntensity: 0,
     ambient: '#9a8aa0',
@@ -125,7 +127,7 @@ const KEYS: Key[] = [
     fogScale: 0.85,
     hemiSky: '#8a86ba',
     hemiGround: '#46483e',
-    hemiIntensity: 1.05,
+    hemiIntensity: 1.6,
     light: '#ff9466',
     lightIntensity: 0,
     ambient: '#8c7c98',
@@ -133,7 +135,7 @@ const KEYS: Key[] = [
     stars: 0.3,
     glow: 1,
   },
-  { hour: 19.6, ...NIGHT, horizon: '#424a84', fog: '#323d6c', stars: 0.85 },
+  { hour: 19.6, ...NIGHT, horizon: '#46508a', fog: '#3a4676', stars: 0.85 },
   { hour: 24, ...NIGHT },
 ];
 

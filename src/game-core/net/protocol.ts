@@ -186,6 +186,10 @@ export const joinOptionsSchema = z.object({
   heroClass: dataId.optional(),
   /** 登入帳號的 access token（任務 11M-7）：伺服器用它確認是哪個帳號；同一帳號同時只能一處連線 */
   account: z.string().min(1).max(4096).optional(),
+  /** 這個分頁 / 視窗的識別（每次開啟遊戲隨機產生）：分辨同一帳號的不同裝置 */
+  device: z.string().min(1).max(64).optional(),
+  /** 斷線後自動重新加入（不是玩家自己按連線）：同一帳號已在別的裝置登入時拒絕，不搶回座位 */
+  rejoin: z.boolean().optional(),
 });
 export type JoinOptions = z.infer<typeof joinOptionsSchema>;
 

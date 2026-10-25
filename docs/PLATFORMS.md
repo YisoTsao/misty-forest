@@ -69,7 +69,7 @@
 | `ELECTRON_SKIP_BINARY_DOWNLOAD` | `1` | — | `render.yaml` 已設定 |
 | `ALLOWED_ORIGINS` | `https://mistwood.yisoapp.com,https://mistwood-blue.vercel.app,https://mistwood-*-yisotsaos-projects.vercel.app,null,file://` | — | `render.yaml` 標記為 `sync: false`，**只在後台設定**。改了會自動重新部署 |
 | `PORT` | Render 自動提供 | — | 伺服器會讀取 |
-| `SUPABASE_URL` | `https://dnnlmunlmmhiqpgkjbvr.supabase.co` | 公開 | Phase 5 才需要（伺服器用它取 JWKS 驗證 JWT）。尚未設定 |
+| `SUPABASE_URL` | `https://dnnlmunlmmhiqpgkjbvr.supabase.co` | 公開 | 伺服器用它驗證帳號（同一帳號只能一處連線）。已設定（2026-10-25 使用者確認）。沒設定就不會踢人；`/health` 的 `accounts` 是 `true` 表示已啟用 |
 | `SUPABASE_SECRET_KEY` | Supabase 後台的 secret key（`sb_secret_…`） | **機密** | 只放 Render。Phase 5 才需要。**不貼到對話、不進 git** |
 
 > `ALLOWED_ORIGINS` 規則：`*` 只比對英數與連字號；`null` 與 `file://` 是 Electron 正式版的來源。沒設定時全部允許（僅限本機開發）。

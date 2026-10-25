@@ -502,6 +502,49 @@ describe('世界房間：同一帳號只能一處連線（任務 11M-7）', () =
     expect(room.clients.length).toBe(0);
   });
 
+  it('舊裝置的座位沒了之後自動重新加入：被拒絕（不會反過來踢掉新裝置）', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    await join(room, { name: 'A', account: 'ok:acc1', device: 'pc' });
+    const phone = await join(room, { name: 'A2', account: 'ok:acc1', device: 'phone' });
+    const leftPhone = watchLeave(phone);
+    await until(() => room.clients.length === 1);
+    const error = await join(room, { name: 'A', account: 'ok:acc1', device: 'pc', rejoin: true }).then(
+      () => null,
+      (err: unknown) => err,
+    );
+    expect(String((error as Error | null)?.message)).toContain(KICKED_ELSEWHERE);
+    expect([...room.clients].map((c) => c.sessionId)).toEqual([phone.sessionId]);
+    expect(leftPhone.reason).toBeUndefined();
+  });
+
+  it('同一台裝置自動重新加入、或另一台主動登入：照常加入', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    // 留一個訪客，房間才不會在沒人時關掉
+    const guest = await join(room, { name: 'G' });
+    const pc = await join(room, { name: 'A', account: 'ok:acc1', device: 'pc' });
+    await pc.leave(true);
+    await until(() => room.clients.length === 1);
+    const again = await join(room, { name: 'A', account: 'ok:acc1', device: 'pc', rejoin: true });
+    expect(again.sessionId).toBeTruthy();
+    const phone = await join(room, { name: 'A2', account: 'ok:acc1', device: 'phone' });
+    await until(() => room.clients.length === 2);
+    expect([...room.clients].map((c) => c.sessionId).sort()).toEqual([guest.sessionId, phone.sessionId].sort());
+  });
+
+  it('斷線期間另一台登入後又離開：舊裝置重連回來仍被踢', async () => {
+    const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
+    await join(room, { name: 'G' });
+    const first = await join(room, { name: 'A', account: 'ok:acc1', device: 'pc' });
+    const leftFirst = watchLeave(first);
+    const serverFirst = room.clients.get(first.sessionId)!;
+    room.clients.delete(serverFirst);
+    const phone = await join(room, { name: 'A2', account: 'ok:acc1', device: 'phone' });
+    await phone.leave(true);
+    await until(() => room.clients.length === 1);
+    room['onReconnect'](serverFirst);
+    await until(() => leftFirst.reason === KICKED_ELSEWHERE);
+  });
+
   it('斷線期間同一帳號在別處登入：斷線的那一個重連回來時被踢（先進的不能搶回來）', async () => {
     const room = (await colyseus.createRoom(ROOM_NAME, {})) as WorldRoom;
     const first = await join(room, { name: 'A', account: 'ok:acc1' });
