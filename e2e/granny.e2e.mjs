@@ -126,11 +126,11 @@ await runE2e('granny e2e', { query: 'debug=1&play=1&peaceful=1' }, async ({ page
   });
 
   await check('會發光的晚餐：主線有新委託時先說主線；之後提出支線，撈溪魚、交材料，拿到燉湯與配方', async () => {
-    // 004 完成後主線 005 可接：婆婆先指路到北口的莉露；莉露從花園移到北口
+    // 004 完成後主線 005 可接：婆婆先指路到南口的莉露；莉露從花園移到南口
     await talkToGranny();
     assert.equal((await dialogue()).dialogueId, 'granny_guard_point');
     await closeDialogue();
-    await talkTo('lilu_north');
+    await talkTo('lilu_gate');
     assert.equal((await dialogue()).dialogueId, 'lilu_guard_offer');
     await choose('我們一起去');
     await closeDialogue();

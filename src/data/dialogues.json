@@ -2496,5 +2496,5 @@
   {"id": "lilu_guard_offer", "start": "ask", "nodes": {"ask": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.guard.offer", "options": [{"textKey": "dlg.lilu.guard.opt.yes", "next": "accept", "effects": [{"type": "acceptQuest", "quest": "quest_forest_005"}]}, {"textKey": "dlg.lilu.guard.opt.later"}]}, "accept": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.guard.accept"}}},
   {"id": "lilu_guard_progress", "start": "say", "nodes": {"say": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.guard.progress"}}},
   {"id": "lilu_guard_turnin", "start": "ask", "nodes": {"ask": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.guard.done", "options": [{"textKey": "dlg.lilu.guard.opt.report", "next": "done", "effects": [{"type": "turnInQuest", "quest": "quest_forest_005"}]}]}, "done": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.guard.gift", "next": "outro1"}, "outro1": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.guard.outro1"}}},
-  {"id": "lilu_north_after", "start": "say", "nodes": {"say": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.north.after"}}}
+  {"id": "lilu_gate_after", "start": "say", "nodes": {"say": {"speakerKey": "npc.lilu", "textKey": "dlg.lilu.gate.after"}}}
 ]

@@ -19,7 +19,7 @@ export const npcDefSchema = z
   /** 出現的條件（任務 8D-2：苔咚在戰後才成為 NPC）；省略時一直都在 */
   visible: conditionSchema.optional(),
   /**
-   * 同一個角色的另一個站位（2026-10-25：莉露拿到提燈後從花園移到聚落北口）：寫原本的 NPC id。
+   * 同一個角色的另一個站位（2026-10-25：莉露拿到提燈後從花園移到聚落南口——往迷霧深層的出口）：寫原本的 NPC id。
    * 任務的發起人仍是原本的 NPC；原本的不在場時，地圖標記改指向這一個。兩者的出現條件要互斥。
    */
   sameAs: z.string().min(1).optional(),

@@ -69,11 +69,11 @@ describe('不願相信旅人的居民', () => {
   });
 });
 
-// 方案 B：分散任務發起人——倒流的溪水由菇伯發起，被遺忘的守護者由莉露（拿到提燈後移到聚落北口）發起
+// 方案 B：分散任務發起人——倒流的溪水由菇伯發起，被遺忘的守護者由莉露（拿到提燈後移到聚落南口）發起
 describe('任務發起人', () => {
   const completed = (...ids: string[]): GameState => ({ ...initialGameState(), quests: Object.fromEntries(ids.map((id) => [id, { status: 'completed' as const }])) });
   const lilu = npcs.find((n) => n.id === 'lilu')!;
-  const liluNorth = npcs.find((n) => n.id === 'lilu_north')!;
+  const liluGate = npcs.find((n) => n.id === 'lilu_gate')!;
 
   it('倒流的溪水：菇伯接、菇伯收；婆婆只指路', () => {
     let s = completed('quest_forest_001', 'quest_forest_002');
@@ -84,16 +84,16 @@ describe('任務發起人', () => {
     expect(dialogueOf(s, 'mush_farmer')).toBe('mush_farmer_wheels_progress');
   });
 
-  it('莉露拿到提燈後移到聚落北口，發起被遺忘的守護者；地圖標記跟著她', () => {
+  it('莉露拿到提燈後移到聚落南口，發起被遺忘的守護者；地圖標記跟著她', () => {
     const before = completed('quest_forest_001', 'quest_forest_002', 'quest_forest_003');
     expect(npcVisible(lilu, before)).toBe(true);
-    expect(npcVisible(liluNorth, before)).toBe(false);
+    expect(npcVisible(liluGate, before)).toBe(false);
     const after = completed('quest_forest_001', 'quest_forest_002', 'quest_forest_003', 'quest_forest_004');
     expect(npcVisible(lilu, after)).toBe(false);
-    expect(npcVisible(liluNorth, after)).toBe(true);
-    expect(dialogueOf(after, 'lilu_north')).toBe('lilu_guard_offer');
+    expect(npcVisible(liluGate, after)).toBe(true);
+    expect(dialogueOf(after, 'lilu_gate')).toBe('lilu_guard_offer');
     expect(dialogueOf(after, 'granny')).toBe('granny_guard_point');
     const marker = currentQuestMarkers(after).find((m) => m.questId === 'quest_forest_005' && m.kind === 'available');
-    expect(marker).toMatchObject({ x: liluNorth.position[0], z: liluNorth.position[1] });
+    expect(marker).toMatchObject({ x: liluGate.position[0], z: liluGate.position[1] });
   });
 });

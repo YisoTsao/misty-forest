@@ -39,7 +39,7 @@ const LOOKS: Record<MushroomKind, Look> = {
   kid: { size: 0.72, cap: '#d0483a', spot: '#fff4e0', stem: '#f6ead2', cloth: '#5a8ac0', accent: '#7fc860', capWidth: 1.3, capHeight: 0.75, props: ['leaf'], hop: true },
   // 菇伯：種菇的農夫，寬大的棕色菌傘、沾泥圍裙、提著一籃螢苔
   farmer: { size: 1.15, cap: '#9a6a44', spot: '#f1dcb4', stem: '#e8d8b8', cloth: '#6b5a3e', accent: '#c9a060', capWidth: 1.45, capHeight: 0.5, props: ['apron', 'basket'] },
-  // 菇哨：守在聚落北口的哨兵，灰藍菌傘、圍巾，提著燈籠望著迷霧深層
+  // 菇哨：守在聚落南口（往迷霧深層）的哨兵，灰藍菌傘、圍巾，提著燈籠望著迷霧深層
   lookout: { size: 1.05, cap: '#5a6f8a', spot: '#d8e6f0', stem: '#e6dcc8', cloth: '#3f5a6a', accent: '#d8a040', capWidth: 1.15, capHeight: 0.7, props: ['scarf', 'lantern'] },
 };
 
