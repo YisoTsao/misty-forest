@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import cameraBookmarks from '@/data/cameraBookmarks.json';
 import { rebindableActions } from '@/game-core/input/actions';
@@ -73,5 +74,15 @@ describe('i18n', () => {
     const missing = worldDataResult.data.codex.flatMap((e) => need[e.category]!.map((n) => `${e.textPrefix}.${n}`)).filter((key) => !(key in dictionary));
     expect(missing).toEqual([]);
     for (const c of ['creature', 'material', 'lore']) expect(`codex.tab.${c}` in dictionary && `codex.locked.${c}` in dictionary).toBe(true);
+  });
+});
+
+describe('zh-TW.json', () => {
+  it('沒有重複的 key（JSON 解析時後面的會靜靜蓋掉前面的，2026-10-25 曾因此把出入口的「前往」變成「傳送」）', () => {
+    const raw = readFileSync(new URL('./zh-TW.json', import.meta.url), 'utf8');
+    const keys = [...raw.matchAll(/^ {2}"([^"]+)":/gm)].map((m) => m[1]!);
+    const seen = new Set<string>();
+    const duplicated = keys.filter((k) => (seen.has(k) ? true : (seen.add(k), false)));
+    expect(duplicated).toEqual([]);
   });
 });

@@ -57,6 +57,11 @@ function commandFor(prefab: Prefab, placementId: string): GameCommand | null {
   }
 }
 
+/** 已點亮的傳送點（再互動是打開傳送選單，不是啟動） */
+function isOpenWaypoint(spec: InteractableSpec): boolean {
+  return spec.prefab.waypoint === true && useGameStateStore.getState().state.objects.get(spec.id)?.active === true;
+}
+
 /**
  * 互動系統（規格 6.2）：靠近 → 提示 → E → 指令 → 事件 → 更新世界與 UI。
  * 以空間格網找附近候選，再由 game-core 選出最合適者，不對所有物件做射線檢測。
@@ -172,7 +177,9 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
     if (target?.kind === 'npc') {
       ui.setInteractTarget({ id: NPC_PREFIX + target.id, kind: 'talk', nameKey: target.nameKey });
     } else {
-      const { interaction, nameKey, verbKey } = target?.spec.prefab ?? {};
+      const { interaction, nameKey } = target?.spec.prefab ?? {};
+      // 點亮的傳送點：提示改成「傳送」
+      const verbKey = target && isOpenWaypoint(target.spec) ? 'interact.teleport' : target?.spec.prefab.verbKey;
       ui.setInteractTarget(target && interaction && nameKey ? { id: target.spec.id, kind: interaction, nameKey, verbKey } : null);
     }
     if (!pressed || !target) return;
@@ -206,6 +213,13 @@ export function InteractionSystem({ index }: { index: WorldIndex }) {
         return;
       }
       travel(enter.to);
+      return;
+    }
+    // 點亮的傳送點：打開傳送選單（本機；移動也是本機狀態，同地圖出入口）
+    if (isOpenWaypoint(target.spec)) {
+      ui.setInteractTarget(null);
+      if (document.pointerLockElement) document.exitPointerLock();
+      ui.setWaypoint(target.spec.id);
       return;
     }
     // 告示牌 / 路標：顯示內容（本機，不改變世界狀態）

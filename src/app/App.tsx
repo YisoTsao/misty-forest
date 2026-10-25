@@ -23,6 +23,7 @@ import { InventoryPanel } from '@/ui/InventoryPanel';
 import { Minimap } from '@/ui/map/Minimap';
 import { WorldMap } from '@/ui/map/WorldMap';
 import { CodexPanel } from '@/ui/CodexPanel';
+import { WaypointPanel } from '@/ui/WaypointPanel';
 import { QuestJournal } from '@/ui/QuestJournal';
 import { ShopPanel } from '@/ui/ShopPanel';
 import { CraftPanel } from '@/ui/CraftPanel';
@@ -105,6 +106,7 @@ export function App() {
       <WorldMap />
       <QuestJournal />
       <CodexPanel />
+      <WaypointPanel />
       <ShopPanel />
       <CraftPanel />
       <SettingsPanel />

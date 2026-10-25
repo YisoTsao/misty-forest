@@ -268,6 +268,18 @@ export function addGlowmoss(placements: Out[]): void {
   place('village_glow_02', 'glow_mushrooms', 52, 8, { scale: 2, yaw: 1.9 });
   place('village_glow_03', 'glow_mushrooms', 21, -10, { scale: 1.9, yaw: 3.1 });
 
+  // ── 2f. 星光路標（第二章檢討方案 C：傳送點）：各區一座，正面朝向步道（抵達時站在正面、面向步道）。
+  // 不佔散佈的位置（不給 r），避免整片森林的散佈重排；位置已避開步道、溪水與可採集物。
+  // 傳送選單裡的名稱是文字 key waypoint.name.<id>（祕窟與深層的路標站在區域外的入口，不能用所在區域的名字）
+  const waystone = (id: string, x: number, z: number, lookX: number, lookZ: number) => place(id, 'star_waystone', x, z, { yaw: Math.atan2(lookX - x, lookZ - z) });
+  waystone('waystone_arrival', -124, 12, -124, 4);
+  waystone('waystone_garden', -71, 19, -66, 8);
+  waystone('waystone_creek', -24, -64, -32, -64);
+  waystone('waystone_village', 31, -15, 36, -15);
+  waystone('waystone_grotto', 54, -128, 44, -134);
+  waystone('waystone_deep', 47, 45, 41, 43);
+  waystone('waystone_altar', 98, 31, 103, 29);
+
   // ── 2d. 古樹祭壇（規格 G、B-01）：三座共鳴石柱環繞戰場（淨化用），祭壇中心是古樹 ──
   // 戰場中心 (112, 0)（局部座標，世界 2112, 0）；石柱在半徑 8 的圓上
   place('altar_resonance_01', 'altar_resonance', 120, 0, { r: 1.2 });

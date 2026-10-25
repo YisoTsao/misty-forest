@@ -151,6 +151,8 @@ export type MistwoodDebugApi = {
   boundary: () => { distance: number; near: boolean; warnings: number; colliders: number };
   /** 目前顯示互動提示的物件 id */
   interactTarget: () => string | null;
+  /** 開著的傳送選單（所在的傳送點 id） */
+  waypointMenu: () => string | null;
   objectState: (placementId: string) => ObjectRuntime | null;
   /** 權威狀態回到新遊戲（端對端測試用） */
   resetWorld: () => void;
@@ -408,6 +410,7 @@ export function installDebugApi(): void {
       colliders: boundaryRuntime.colliders,
     }),
     interactTarget: () => useUiStore.getState().interactTarget?.id ?? null,
+    waypointMenu: () => useUiStore.getState().waypoint,
     objectState: (id) => authority.getState().objects.get(id) ?? null,
     resetWorld: () => {
       authority.replaceState(initialGameState());

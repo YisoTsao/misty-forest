@@ -7,6 +7,7 @@ import { mapIdAt, type MapId } from '@/game-core/world/maps';
 import { createSafePointTrail } from '@/game-core/world/safePoints';
 import { terrainHeight } from '@/game-core/world/terrain';
 import type { Prefab } from '@/game-core/world/types';
+import { waypointArrival } from '@/game-core/world/waypoints';
 import { interiors, worldIndex } from './authority';
 import { cameraRuntime, playerRuntime } from './player/localRuntime';
 import { worldDataResult } from './worldData';
@@ -110,6 +111,21 @@ export function travelToMap(map: MapId, arriveAt: string, arriveDistance: number
     place(to.x, to.z, to.yaw, { pitch: 0.32, distance: cameraRuntime.distance });
     playerRuntime.safePoints = createSafePointTrail({ x: to.x, y: terrainHeight(to.x, to.z) + 0.9, z: to.z });
     useLocationStore.setState({ map, fade: 'in' });
+    window.setTimeout(() => useLocationStore.setState({ fade: 'none' }), FADE_MS);
+  }, FADE_MS);
+}
+
+/** 傳送到點亮的星光路標（第二章檢討方案 C）：黑幕淡入 → 站到路標前方 → 淡出；同一張地圖內 */
+export function travelToWaypoint(placementId: string): void {
+  if (useLocationStore.getState().fade !== 'none') return;
+  const placement = worldIndex.placement(placementId);
+  if (!placement) throw new Error(`找不到傳送點 ${placementId}`);
+  const to = waypointArrival(placement);
+  useLocationStore.setState({ fade: 'out' });
+  window.setTimeout(() => {
+    place(to.x, to.z, to.yaw, { pitch: 0.32, distance: cameraRuntime.distance });
+    playerRuntime.safePoints = createSafePointTrail({ x: to.x, y: terrainHeight(to.x, to.z) + 0.9, z: to.z });
+    useLocationStore.setState({ fade: 'in' });
     window.setTimeout(() => useLocationStore.setState({ fade: 'none' }), FADE_MS);
   }, FADE_MS);
 }

@@ -190,6 +190,11 @@ export const prefabSchema = z
         lockedKey: z.string().min(1).optional(),
       })
       .optional(),
+    /**
+     * 傳送點（2026-10-25，第二章檢討方案 C）：interaction 為 activate，第一次互動點亮；點亮後再互動打開傳送選單，
+     * 可以移到同一張地圖上其他已點亮的傳送點。名稱用所在區域的名字。
+     */
+    waypoint: z.literal(true).optional(),
     /** 互動提示的動詞（i18n key），預設依 interaction（例如出口顯示「離開」） */
     verbKey: z.string().min(1).optional(),
     /** 可閱讀的告示牌 / 路標（interaction 為 read）：顯示的標題與內文（i18n key） */

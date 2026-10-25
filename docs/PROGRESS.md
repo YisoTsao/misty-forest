@@ -31,6 +31,16 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 第二章優化 A、B、C、E（2026-10-25，分支 `feat/ch2-completion`，`docs/CHAPTER_02_REVIEW.md`）
+- **A 取得居民信任**：`quest_forest_004` 由「交微光孢子 ×2」改為三個 talk 目標——菇伯（聽他的顧慮）、菇丁（送一顆微光孢子當夜燈）、菇哨（回答問題，答錯可重來）；三位居民在任務中有專屬對話，談過後提醒去找婆婆。舊存檔進行中的不用遷移（talk 進度從 0 開始，手上的孢子還在）。
+- **B 分散發起人**：倒流的溪水（003）改由菇伯發起與回報、被遺忘的守護者（005）改由莉露；婆婆改為指路。莉露拿到提燈後從花園移到聚落南口（新 NPC `lilu_gate`，`sameAs: lilu`，兩者出現條件互斥）；`NpcDef.sameAs` 讓地圖標記在原本站位不在場時指向新站位。**注意方位**：地圖 +z 是南，迷霧深層在聚落南邊（之前的台詞寫成北口，已更正）。
+- **C 星光路標（傳送點）**：新 prefab `star_waystone`（程式模型 `star_waystone(_lit)`）、`Prefab.waypoint`；第一次互動點亮（不用材料），之後互動打開傳送選單（`WaypointPanel`，數字鍵 / 點選，Esc 或互動鍵關閉），列出同一張地圖上其他點亮的路標與距離，選了就黑幕傳送到路標正面（`travelToWaypoint`）。祕林 7 座：迷霧入口、花園、溪谷、聚落、星晶祕窟入口、迷霧深層入口、古樹祭壇前；名稱是 `waypoint.name.<id>`。game-core `waypoints.ts`（可去的地方、抵達位置）。placement 只新增這 7 個。
+- **E 主線過場對話**：螢苔的呼吸講森林生命循環斷了、星晶的記憶回報後揭露「有人改過星光流動的方向」、古樹最後的呼吸說明根噬者其實在封鎖污染；信任與守衛回報後菇丁、莉露各有收尾。
+- **發現與修正**：我新增的 `interact.travel` 和原本出入口的「前往」重複，JSON 解析時後者靜靜蓋掉前者（出入口變成「傳送」）——改名 `interact.teleport`，並在 i18n 測試新增「沒有重複的 key」。
+- 測試：`villageTrust.test.ts`（信任任務、居民對話隨進度、發起人與莉露移位含地圖標記）、`waypoints.test.ts`（路標位置與名稱、點亮、可去的地方、抵達位置）；e2e `granny` 改走三位居民、菇伯與南口的莉露，`glowmoss` 新增「點亮路標、傳送到溪谷」。截圖 `docs/screenshots/phase13/glowmoss_waystone_h21.png`（已檢視，未點亮）。
+- 驗證：`pnpm check` 1125 項、`pnpm build` 通過；e2e `granny` 6、`forestquest` 11、`deepwoods` 10、`map` 11、`altar` 13、`crystal` 5、`glowmoss` 20、`world` 11、`dev` 9、`settings` 11 項全過。完整 `pnpm e2e` 未跑。
+- 未做：D（就地回報）、F（聚落作息）、G（星光碎片用途）；路標點亮後的外觀沒有截圖。
+
 ### 蘑菇居民聚落重做、踢人與對話按鍵（2026-10-25，分支 `feat/ch2-completion`）
 - **蘑菇屋**（使用者回報房子小到像玩具、居民是蘑菇就該住蘑菇屋）：原因是聚落的 KayKit 小屋沒有縮放（晨曦谷地同款用 5.5 倍）。新增程式模型 `mushroom_house_{red,brown,violet,amber}`（菌柄屋身、圓拱木門、會亮的圓窗、門邊燈籠、石煙囪，高約 6.6 m），prefab 同名。`gen-glowmoss` 的聚落改成步道（x≈36）兩側各兩間、門朝步道，加上公告板、營火、木桶 / 貨箱 / 麻袋、發光小菇；重產 placement 只有聚落的 13 個物件變動。
 - **蘑菇居民**（使用者回報聚落沒有居民）：新元件 `MushroomVillager`（菌柄身體、菌傘、臉、說話揮手、小孩會蹦跳）；菇菇婆婆改用蘑菇造型（紫傘螢光斑點、披肩、拐杖），面向北邊（玩家從溪谷過來的方向）。新增 NPC 菇丁（小孩）、菇伯（菇農）、菇哨（南口哨兵），對話依進度三段：取得信任前（`quest_forest_004` 未完成）、之後、古樹淨化後。

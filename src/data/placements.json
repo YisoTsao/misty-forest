@@ -54295,6 +54295,146 @@
     ]
   },
   {
+    "id": "waystone_arrival",
+    "prefabId": "star_waystone",
+    "regionId": "mist_gate",
+    "position": [
+      1876,
+      1.35,
+      12
+    ],
+    "rotation": [
+      0,
+      3.14,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "waystone_garden",
+    "prefabId": "star_waystone",
+    "regionId": "glow_garden",
+    "position": [
+      1929,
+      0.47,
+      19
+    ],
+    "rotation": [
+      0,
+      2.71,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "waystone_creek",
+    "prefabId": "star_waystone",
+    "regionId": "reverse_creek",
+    "position": [
+      1976,
+      0.16,
+      -64
+    ],
+    "rotation": [
+      0,
+      -1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "waystone_village",
+    "prefabId": "star_waystone",
+    "regionId": "mushroom_village",
+    "position": [
+      2031,
+      2.43,
+      -15
+    ],
+    "rotation": [
+      0,
+      1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "waystone_grotto",
+    "prefabId": "star_waystone",
+    "regionId": "glow_garden",
+    "position": [
+      2054,
+      0.88,
+      -128
+    ],
+    "rotation": [
+      0,
+      -2.11,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "waystone_deep",
+    "prefabId": "star_waystone",
+    "regionId": "glow_garden",
+    "position": [
+      2047,
+      1.24,
+      45
+    ],
+    "rotation": [
+      0,
+      -1.89,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "waystone_altar",
+    "prefabId": "star_waystone",
+    "regionId": "ancient_altar",
+    "position": [
+      2098,
+      1.26,
+      31
+    ],
+    "rotation": [
+      0,
+      1.95,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
     "id": "altar_resonance_01",
     "prefabId": "altar_resonance",
     "regionId": "ancient_altar",

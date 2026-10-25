@@ -28,6 +28,8 @@ type UiState = {
   shop: string | null;
   /** 開著的工作台（任務 7J），null 表示沒有 */
   craft: string | null;
+  /** 開著的傳送選單：玩家所在的傳送點 placement id（第二章檢討方案 C），null 表示沒有 */
+  waypoint: string | null;
   /** 設定畫面（從主選單或暫停選單開啟） */
   settingsOpen: boolean;
   /** 多人連線面板（任務 11A，從暫停選單開啟） */
@@ -51,6 +53,7 @@ type UiState = {
   setCodexOpen: (open: boolean) => void;
   setShop: (shop: string | null) => void;
   setCraft: (craft: string | null) => void;
+  setWaypoint: (waypoint: string | null) => void;
   setSettingsOpen: (open: boolean) => void;
   setMultiplayerOpen: (open: boolean) => void;
   setChatOpen: (open: boolean) => void;
@@ -69,6 +72,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   codexOpen: false,
   shop: null,
   craft: null,
+  waypoint: null,
   settingsOpen: false,
   multiplayerOpen: false,
   chatOpen: false,
@@ -89,6 +93,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setCodexOpen: (codexOpen) => set({ codexOpen }),
   setShop: (shop) => set({ shop }),
   setCraft: (craft) => set({ craft }),
+  setWaypoint: (waypoint) => set({ waypoint }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
   setMultiplayerOpen: (multiplayerOpen) => set({ multiplayerOpen }),
   setChatOpen: (chatOpen) => set({ chatOpen }),
@@ -101,7 +106,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 /** 有任何會擋住遊玩的視窗開啟中（角色停止接受移動輸入、釋放滑鼠） */
 export function isModalOpen(): boolean {
-  const { message, inventoryOpen, mapOpen, journalOpen, codexOpen, shop, craft, settingsOpen, multiplayerOpen, chatOpen, dialogue, build } = useUiStore.getState();
+  const { message, inventoryOpen, mapOpen, journalOpen, codexOpen, shop, craft, waypoint, settingsOpen, multiplayerOpen, chatOpen, dialogue, build } = useUiStore.getState();
   return (
     message !== null ||
     inventoryOpen ||
@@ -110,6 +115,7 @@ export function isModalOpen(): boolean {
     codexOpen ||
     shop !== null ||
     craft !== null ||
+    waypoint !== null ||
     settingsOpen ||
     multiplayerOpen ||
     chatOpen ||

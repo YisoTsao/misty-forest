@@ -468,6 +468,52 @@ function starLamp(lit: boolean): ForestModel {
   return { solid: merge(solid, '星光燈柱'), glow: merge(glow, '星光燈柱光') };
 }
 
+/**
+ * 星光路標（第二章檢討方案 C：傳送點）：刻著星形符紋的立石，比燈柱高、寬，遠遠就認得出來。
+ * 點亮後符紋與頂上的星石發光，周圍飄著光點；高約 2.6 m，正面朝 +Z（抵達的玩家站在正面）。
+ */
+function starWaystone(lit: boolean): ForestModel {
+  const rand = mulberry32(840);
+  const solid: THREE.BufferGeometry[] = [
+    sphere(0.9, [0, 0.1, 0], MOSS, [1.3, 0.25, 1.3]),
+    cylinder(0.75, 0.85, 0.3, [0, 0, 0], STONE_DARK, 8),
+  ];
+  // 立石：略微收窄的方柱，頂端削尖
+  const pillar = new THREE.CylinderGeometry(0.36, 0.5, 2.0, 4, 1);
+  pillar.rotateY(Math.PI / 4);
+  pillar.translate(0, 1.3, 0);
+  solid.push(paint(pillar, STONE, 0.05, rand));
+  const tip = new THREE.ConeGeometry(0.36 * Math.SQRT2 * 0.72, 0.45, 4);
+  tip.rotateY(Math.PI / 4);
+  tip.translate(0, 2.52, 0);
+  solid.push(paint(tip, STONE_DARK));
+  // 立石上的苔蘚
+  for (let i = 0; i < 4; i++) solid.push(sphere(0.18 + rand() * 0.1, [(rand() - 0.5) * 0.6, 0.5 + rand() * 1.4, -0.32], MOSS_LIGHT, [1.2, 0.5, 0.6]));
+  // 正面的星形符紋（五角星）與頂上的星石
+  const star = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const a = Math.PI / 2 + (i / 10) * Math.PI * 2;
+    const r = i % 2 === 0 ? 0.26 : 0.11;
+    if (i === 0) star.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    else star.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  const emblem = new THREE.ShapeGeometry(star);
+  emblem.translate(0, 1.55, 0.375);
+  const gem = new THREE.OctahedronGeometry(0.2, 0);
+  gem.scale(1, 1.4, 1);
+  gem.translate(0, 2.95, 0);
+  if (!lit) {
+    solid.push(paint(emblem, c('#5d6b7a')), paint(gem, c('#6f7f8f')));
+    return { solid: merge(solid, '星光路標') };
+  }
+  const glow = [paint(emblem, glowColor(MINT, 2.4)), paint(gem, glowColor('#bff7e0', 2.6))];
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2;
+    glow.push(sphere(0.045, [Math.cos(a) * 0.85, 0.8 + (i % 3) * 0.6, Math.sin(a) * 0.85], glowColor(MINT, 1.7), [1, 1, 1], 0));
+  }
+  return { solid: merge(solid, '星光路標'), glow: merge(glow, '星光路標光') };
+}
+
 /** 分水木輪的骨架（原點在渠底中央，X 橫跨渠道）：兩根石柱、輪軸、頂上的平台；高約 6 m */
 function waterWheelFrame(): ForestModel {
   const stone = c('#8f8e86');
@@ -759,6 +805,8 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   forest_gate: forestGate,
   star_lamp: () => starLamp(false),
   star_lamp_lit: () => starLamp(true),
+  star_waystone: () => starWaystone(false),
+  star_waystone_lit: () => starWaystone(true),
   water_wheel_frame: waterWheelFrame,
   water_wheel_rotor: waterWheelRotor,
   water_wheel_spout: waterWheelSpout,

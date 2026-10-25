@@ -23,6 +23,8 @@ export function canInteract(prefab: Prefab, runtime: ObjectRuntime | undefined, 
   if (prefab.interaction === 'harvest') return runtime?.harvested !== true && (!prefab.harvest?.quest || isQuestActive(prefab.harvest.quest));
   if (prefab.interaction === 'repair') return runtime?.repaired !== true && (!prefab.repair?.quest || isQuestActive(prefab.repair.quest));
   // 開始任務的物件（腳印）在任務可接取時由規則判斷，這裡先讓它可以互動
+  // 已點亮的傳送點：再互動是打開傳送選單
+  if (prefab.waypoint && runtime?.active) return true;
   if (prefab.interaction === 'activate') return runtime?.active !== true && (!prefab.activate?.quest || isQuestActive(prefab.activate.quest));
   // 推到底的石塊不能再推
   if (prefab.interaction === 'push') return (runtime?.turn ?? 0) < (prefab.push?.track.length ?? 1) - 1;

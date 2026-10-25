@@ -2954,6 +2954,29 @@
     "persists": true
   },
   {
+    "id": "star_waystone",
+    "model": "procedural:star_waystone",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.6,
+      "height": 2.8
+    },
+    "interaction": "activate",
+    "nameKey": "object.starWaystone",
+    "verbKey": "interact.lightWaystone",
+    "interactRadius": 2.6,
+    "activate": {
+      "model": "procedural:star_waystone_lit",
+      "message": {
+        "titleKey": "waystone.lit.title",
+        "bodyKey": "waystone.lit.body"
+      }
+    },
+    "waypoint": true,
+    "persists": true
+  },
+  {
     "id": "moondew",
     "model": "procedural:moondew",
     "collider": "none",

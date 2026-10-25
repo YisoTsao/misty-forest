@@ -1,7 +1,7 @@
 // 端對端：任務 8A、12B — 螢苔祕林（第二章，Bible §6）與地圖切換。
 // 晨曦谷地溪東荒野的林道入口：木橋修好前說明原因、不能通過；修好後黑幕轉場到螢苔祕林的迷霧入口，
 // 站在新地圖的地面上、顯示地圖與區域名稱、小地圖換成新地圖、穿過石拱門走進螢苔花園、讀破損的路牌、打開第一個寶箱、
-// 邊界擋得住、掉落回到新地圖、花園可採集螢苔、存檔重開後仍在螢苔祕林，從入口回到晨曦谷地。外觀以截圖檢查（glowmoss_* 書籤）。
+// 星光路標點亮與傳送、邊界擋得住、掉落回到新地圖、花園可採集螢苔、存檔重開後仍在螢苔祕林，從入口回到晨曦谷地。外觀以截圖檢查（glowmoss_* 書籤）。
 // 用法：pnpm build && node e2e/glowmoss.e2e.mjs
 /* global window */
 import assert from 'node:assert/strict';
@@ -20,6 +20,8 @@ const chest = placements.find((p) => p.id === 'glowmoss_first_chest');
 const lamp = placements.find((p) => p.id === 'glowmoss_star_lamp_01');
 const pureNode = placements.find((p) => p.id === 'glowmoss_pure_node_01');
 const arch = placements.find((p) => p.id === 'glowmoss_mist_arch');
+const waystoneVillage = placements.find((p) => p.id === 'waystone_village');
+const waystoneCreek = placements.find((p) => p.id === 'waystone_creek');
 const inGlowmoss = (s) => Math.abs(s.x - ORIGIN.x) < 170 && Math.abs(s.z - ORIGIN.z) < 170;
 
 await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env }, async ({ page, check, debug, state, teleport, interactTarget, itemCount, objectState }) => {
@@ -183,6 +185,46 @@ await runE2e('glowmoss e2e（1/2）', { query: 'debug=1&play=1&peaceful=1', env 
     assert.ok(b.distance > -0.5, `超出邊界 ${b.distance}`);
     assert.ok(b.colliders > 80, `邊界碰撞體 ${b.colliders}`);
     assert.equal((await state()).respawnCount, 0);
+  });
+
+  await check('星光路標：第一次互動點亮；點亮的路標之間可以傳送（第二章檢討方案 C）', async () => {
+    const message = page.locator('[data-testid="message-dialog"]');
+    const panel = page.locator('[data-testid="waypoint-panel"]');
+    await faceGate(waystoneVillage);
+    assert.equal(await interactTarget(), 'waystone_village');
+    assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /點亮/);
+    await page.keyboard.press('KeyE');
+    await message.waitFor({ timeout: 3000 });
+    await page.keyboard.press('KeyE');
+    await message.waitFor({ state: 'detached', timeout: 2000 });
+    assert.equal((await objectState('waystone_village'))?.active, true);
+    // 只有自己亮著：選單說還沒有其他路標（等點亮的動作播完，動作中不接受互動）
+    await page.waitForTimeout(1000);
+    assert.equal(await interactTarget(), 'waystone_village');
+    assert.match(await page.locator('[data-testid="interact-prompt"]').innerText(), /傳送/);
+    await page.keyboard.press('KeyE');
+    await panel.waitFor({ timeout: 2000 });
+    assert.equal(await page.locator('[data-testid="waypoint-empty"]').count(), 1);
+    await page.keyboard.press('Escape');
+    await panel.waitFor({ state: 'detached', timeout: 2000 });
+    // 溪谷的路標也點亮後，選單列出它，選了就傳送過去
+    await debug(() => window.__mistwoodDebug.send({ type: 'ActivateObject', placementId: 'waystone_creek' }));
+    // 用指令點亮也會顯示點亮的訊息：先關掉
+    await message.waitFor({ timeout: 2000 });
+    await page.keyboard.press('KeyE');
+    await message.waitFor({ state: 'detached', timeout: 2000 });
+    await page.waitForTimeout(300);
+    await page.keyboard.press('KeyE');
+    await panel.waitFor({ timeout: 2000 });
+    const option = page.locator('[data-testid="waypoint-option"]');
+    assert.equal(await option.count(), 1);
+    assert.match(await option.innerText(), /倒流溪谷/);
+    await page.keyboard.press('Digit1');
+    await panel.waitFor({ state: 'detached', timeout: 2000 });
+    await page.waitForTimeout(1600);
+    const s = await state();
+    assert.ok(Math.hypot(s.x - waystoneCreek.position[0], s.z - waystoneCreek.position[2]) < 3.5, `沒有傳送到溪谷的路標：${JSON.stringify(s)}`);
+    assert.equal(await page.locator('[data-testid="pause-menu"]').count(), 0);
   });
 
   await check('掉出地圖時回到螢苔祕林的安全點，不會被拉回晨曦谷地', async () => {
