@@ -38,7 +38,7 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 - **E 主線過場對話**：螢苔的呼吸講森林生命循環斷了、星晶的記憶回報後揭露「有人改過星光流動的方向」、古樹最後的呼吸說明根噬者其實在封鎖污染；信任與守衛回報後菇丁、莉露各有收尾。
 - **發現與修正**：我新增的 `interact.travel` 和原本出入口的「前往」重複，JSON 解析時後者靜靜蓋掉前者（出入口變成「傳送」）——改名 `interact.teleport`，並在 i18n 測試新增「沒有重複的 key」。
 - 測試：`villageTrust.test.ts`（信任任務、居民對話隨進度、發起人與莉露移位含地圖標記）、`waypoints.test.ts`（路標位置與名稱、點亮、可去的地方、抵達位置）；e2e `granny` 改走三位居民、菇伯與南口的莉露，`glowmoss` 新增「點亮路標、傳送到溪谷」。截圖 `docs/screenshots/phase13/glowmoss_waystone_h21.png`（已檢視，未點亮）。
-- 驗證：`pnpm check` 1125 項、`pnpm build` 通過；e2e `granny` 6、`forestquest` 11、`deepwoods` 10、`map` 11、`altar` 13、`crystal` 5、`glowmoss` 20、`world` 11、`dev` 9、`settings` 11 項全過。完整 `pnpm e2e` 未跑。
+- 驗證：`pnpm check` 1125 項、`pnpm build` 通過；e2e `granny` 6、`forestquest` 11、`deepwoods` 10、`map` 11、`altar` 13、`crystal` 5、`glowmoss` 20、`world` 11、`dev` 9、`settings` 11 項全過。完整 `pnpm e2e` 未跑：使用者指示直接 push 部署。
 - 未做：D（就地回報）、F（聚落作息）、G（星光碎片用途）；路標點亮後的外觀沒有截圖。
 
 ### 蘑菇居民聚落重做、踢人與對話按鍵（2026-10-25，分支 `feat/ch2-completion`）
