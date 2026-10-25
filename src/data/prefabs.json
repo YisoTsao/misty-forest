@@ -3008,6 +3008,50 @@
     "persists": false
   },
   {
+    "id": "mushroom_house_red",
+    "model": "procedural:mushroom_house_red",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 2.6,
+      "height": 7
+    },
+    "persists": false
+  },
+  {
+    "id": "mushroom_house_brown",
+    "model": "procedural:mushroom_house_brown",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 2.6,
+      "height": 7
+    },
+    "persists": false
+  },
+  {
+    "id": "mushroom_house_violet",
+    "model": "procedural:mushroom_house_violet",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 2.6,
+      "height": 7
+    },
+    "persists": false
+  },
+  {
+    "id": "mushroom_house_amber",
+    "model": "procedural:mushroom_house_amber",
+    "collider": "static",
+    "collision": {
+      "shape": "cylinder",
+      "radius": 2.6,
+      "height": 7
+    },
+    "persists": false
+  },
+  {
     "id": "giant_mushroom",
     "model": "procedural:giant_mushroom",
     "collider": "static",

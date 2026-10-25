@@ -2740,5 +2740,14 @@
         "textKey": "dlg.granny.seed.gift"
       }
     }
-  }
+  },
+  {"id": "mush_kid_wary", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_kid", "textKey": "dlg.mush_kid.wary.1", "next": "b"}, "b": {"speakerKey": "npc.mush_kid", "textKey": "dlg.mush_kid.wary.2"}}},
+  {"id": "mush_kid_trust", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_kid", "textKey": "dlg.mush_kid.trust.1", "next": "b"}, "b": {"speakerKey": "npc.mush_kid", "textKey": "dlg.mush_kid.trust.2"}}},
+  {"id": "mush_kid_after", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_kid", "textKey": "dlg.mush_kid.after.1", "next": "b"}, "b": {"speakerKey": "npc.mush_kid", "textKey": "dlg.mush_kid.after.2"}}},
+  {"id": "mush_farmer_wary", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_farmer", "textKey": "dlg.mush_farmer.wary.1", "next": "b"}, "b": {"speakerKey": "npc.mush_farmer", "textKey": "dlg.mush_farmer.wary.2"}}},
+  {"id": "mush_farmer_trust", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_farmer", "textKey": "dlg.mush_farmer.trust.1", "next": "b"}, "b": {"speakerKey": "npc.mush_farmer", "textKey": "dlg.mush_farmer.trust.2"}}},
+  {"id": "mush_farmer_after", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_farmer", "textKey": "dlg.mush_farmer.after.1", "next": "b"}, "b": {"speakerKey": "npc.mush_farmer", "textKey": "dlg.mush_farmer.after.2"}}},
+  {"id": "mush_lookout_wary", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_lookout", "textKey": "dlg.mush_lookout.wary.1", "next": "b"}, "b": {"speakerKey": "npc.mush_lookout", "textKey": "dlg.mush_lookout.wary.2"}}},
+  {"id": "mush_lookout_trust", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_lookout", "textKey": "dlg.mush_lookout.trust.1", "next": "b"}, "b": {"speakerKey": "npc.mush_lookout", "textKey": "dlg.mush_lookout.trust.2"}}},
+  {"id": "mush_lookout_after", "start": "a", "nodes": {"a": {"speakerKey": "npc.mush_lookout", "textKey": "dlg.mush_lookout.after.1", "next": "b"}, "b": {"speakerKey": "npc.mush_lookout", "textKey": "dlg.mush_lookout.after.2"}}}
 ]

@@ -1,5 +1,6 @@
 // 視覺驗證截圖（規格 8）：啟動 Electron 正式版，依序切換攝影機書籤並輸出圖片。
 // 用法：node scripts/screenshot.mjs [階段名稱，預設 phase0] [--anim] [--mist] [--interact] [書籤 id...]
+//   --hour=N：書籤改在 N 點拍，檔名加 _hN（例如 --hour=22 看夜晚）
 //   --anim：另外輸出角色每個必要動畫的定格圖（動畫來源驗證，規格 4.6）
 //   --mist：每個書籤另外輸出迷霧外觀（<id>_mist.png，uMist = 1；規格 4.8 晴朗 / 迷霧兩種外觀）
 //   --interact：輸出寶箱互動提示與開箱後畫面（任務 1C）
@@ -70,6 +71,7 @@ const withLightPuzzle = flags.has('--lightpuzzle');
 const withLiyi = flags.has('--liyi');
 const onlyEnemies = process.argv.find((a) => a.startsWith('--enemies='))?.slice('--enemies='.length).split(',') ?? null;
 const [stage = 'phase0', ...only] = args.filter((a) => !a.startsWith('--'));
+const atHour = process.argv.find((a) => a.startsWith('--hour='))?.slice('--hour='.length);
 const outDir = path.join('docs', 'screenshots', stage);
 mkdirSync(outDir, { recursive: true });
 
@@ -112,11 +114,12 @@ try {
   }
 
   const bookmarks = only.length > 0 ? only : await page.evaluate(() => window.__mistwoodDebug.bookmarks());
+  if (atHour !== undefined) await page.evaluate((h) => window.__mistwoodDebug.setClock(h), Number(atHour));
   for (const id of bookmarks) {
     await page.evaluate((b) => window.__mistwoodDebug.setBookmark(b), id);
     // 等待阻尼相機穩定與數幀渲染
     await page.waitForTimeout(1200);
-    await shot(id);
+    await shot(atHour !== undefined ? `${id}_h${atHour}` : id);
     if (withMist) {
       await setMist(1);
       await shot(`${id}_mist`);

@@ -17,6 +17,7 @@ import { prepareModel } from '../player/CharacterModel';
 import { AnimalVillager } from './AnimalVillager';
 import { HornBunny } from './HornBunny';
 import { LiyiBuddy } from '../enemy/LiyiKoi';
+import { MushroomVillager } from './MushroomVillager';
 import { OwlScholar } from './OwlScholar';
 
 /** 與玩家相同的膠囊尺寸（同一套骨架模型） */
@@ -63,6 +64,11 @@ const PROCEDURAL_NPCS: Record<string, { radius: number; render: (talking: () => 
   villager_niko: { radius: 0.26, render: (talking) => <AnimalVillager kind="niko" talking={talking} /> },
   villager_tao: { radius: 0.3, render: (talking) => <AnimalVillager kind="tao" talking={talking} /> },
   villager_eve: { radius: 0.32, render: (talking) => <AnimalVillager kind="eve" talking={talking} /> },
+  // 蘑菇居民聚落（第二章）：菇菇婆婆與聚落居民
+  mushroom_granny: { radius: 0.36, render: (talking) => <MushroomVillager kind="granny" talking={talking} /> },
+  mushroom_kid: { radius: 0.26, render: (talking) => <MushroomVillager kind="kid" talking={talking} /> },
+  mushroom_farmer: { radius: 0.4, render: (talking) => <MushroomVillager kind="farmer" talking={talking} /> },
+  mushroom_lookout: { radius: 0.34, render: (talking) => <MushroomVillager kind="lookout" talking={talking} /> },
   // 戰後的璃漪（任務 9E-2）
   liyi_calm: { radius: 0.8, render: (talking) => <LiyiBuddy talking={talking} /> },
 };

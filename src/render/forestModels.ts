@@ -304,6 +304,101 @@ function giantMushroom(): ForestModel {
   return { solid: merge(solid, '巨大蘑菇樹'), glow: merge(glow, '巨大蘑菇樹光點') };
 }
 
+/** 蘑菇屋的菌傘配色（聚落 D，第二章規格 §4.2「蘑菇屋」）：菌傘、斑點、斑點是否發光 */
+const MUSHROOM_HOUSE_CAPS = {
+  red: { cap: '#c8483a', spot: '#fbf1dc', glowSpots: false },
+  brown: { cap: '#9a6a44', spot: '#f1dcb4', glowSpots: false },
+  violet: { cap: '#7a5a9a', spot: MINT, glowSpots: true },
+  amber: { cap: '#d8923a', spot: '#fff2c8', glowSpots: false },
+} as const;
+export type MushroomHouseCap = keyof typeof MUSHROOM_HOUSE_CAPS;
+
+/**
+ * 蘑菇屋（2026-10-25 使用者指示：居民是蘑菇，房子也用蘑菇）：菌柄就是屋身，門朝 +Z；
+ * 圓拱木門、兩扇會亮的圓窗、門邊的燈籠、從菌傘穿出的石煙囪。高約 6.6 m（門 2 m，玩家約 1.6 m）。
+ */
+function mushroomHouse(kind: MushroomHouseCap): ForestModel {
+  const look = MUSHROOM_HOUSE_CAPS[kind];
+  const rand = mulberry32(830 + Object.keys(MUSHROOM_HOUSE_CAPS).indexOf(kind));
+  const wall = c('#efe2c4');
+  const wood = c('#7a4e30');
+  const woodDark = c('#4f321f');
+  const stone = c('#8f8e86');
+  const solid: THREE.BufferGeometry[] = [
+    // 石砌地基與屋身（略帶腰身的菌柄）
+    cylinder(2.75, 2.95, 0.45, [0, 0, 0], stone, 14),
+    cylinder(2.05, 2.5, 3.8, [0, 0.4, 0], wall, 16),
+  ];
+  // 地基上的苔蘚
+  for (let i = 0; i < 6; i++) {
+    const a = rand() * Math.PI * 2;
+    solid.push(sphere(0.45 + rand() * 0.25, [Math.cos(a) * 2.75, 0.42, Math.sin(a) * 2.75], MOSS, [1.3, 0.35, 1.3]));
+  }
+  // 圓拱木門（+Z）：門板、上方半圓、門框、門把、門前台階
+  const door = new THREE.BoxGeometry(1.1, 1.45, 0.16);
+  door.translate(0, 0.4 + 0.72, 2.42);
+  solid.push(paint(door, wood));
+  const arch = new THREE.CylinderGeometry(0.55, 0.55, 0.16, 14, 1, false, -Math.PI / 2, Math.PI);
+  arch.rotateX(Math.PI / 2);
+  arch.translate(0, 0.4 + 1.45, 2.42);
+  solid.push(paint(arch, wood));
+  const frame = new THREE.TorusGeometry(0.62, 0.09, 6, 16, Math.PI);
+  frame.translate(0, 0.4 + 1.45, 2.5);
+  solid.push(paint(frame, woodDark));
+  for (const side of [-1, 1]) solid.push(cylinder(0.09, 0.09, 1.45, [side * 0.62, 0.4, 2.5], woodDark, 6));
+  solid.push(sphere(0.07, [0.36, 1.15, 2.53], c('#d6b25a')));
+  const step = new THREE.BoxGeometry(1.6, 0.22, 0.8);
+  step.translate(0, 0.11, 2.85);
+  solid.push(paint(step, stone));
+  // 兩扇圓窗（左右前方）：木框，玻璃是暖色光
+  const glow: THREE.BufferGeometry[] = [];
+  for (const a of [-0.95, 0.95]) {
+    const x = Math.sin(a) * 2.28;
+    const z = Math.cos(a) * 2.28;
+    const ring = new THREE.TorusGeometry(0.42, 0.09, 6, 16);
+    ring.rotateY(a);
+    ring.translate(x, 2.45, z);
+    solid.push(paint(ring, woodDark));
+    const pane = new THREE.CircleGeometry(0.38, 16);
+    pane.rotateY(a);
+    pane.translate(x * 1.01, 2.45, z * 1.01);
+    glow.push(paint(pane, glowColor('#ffcf7a', 1.9)));
+    // 窗台上的小花盆
+    solid.push(cylinder(0.16, 0.12, 0.2, [x * 1.08, 1.92, z * 1.08], c('#b8683f'), 8));
+    solid.push(sphere(0.18, [x * 1.08, 2.18, z * 1.08], MOSS_LIGHT, [1, 0.7, 1]));
+  }
+  // 菌傘：壓扁的半球、下方菌褶、邊緣捲起
+  const cap = new THREE.SphereGeometry(3.7, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+  cap.scale(1, 0.62, 1);
+  cap.translate(0, 4.05, 0);
+  solid.push(paint(cap, c(look.cap), 0.04, rand));
+  const gills = new THREE.CircleGeometry(3.65, 24);
+  gills.rotateX(Math.PI / 2);
+  gills.translate(0, 4.03, 0);
+  solid.push(paint(gills, c('#d9c6a4')));
+  const rim = new THREE.TorusGeometry(3.6, 0.28, 6, 28);
+  rim.rotateX(Math.PI / 2);
+  rim.scale(1, 0.7, 1);
+  rim.translate(0, 4.12, 0);
+  solid.push(paint(rim, c(look.cap).multiplyScalar(0.8)));
+  // 斑點
+  for (let i = 0; i < 11; i++) {
+    const a = rand() * Math.PI * 2;
+    const r = 0.6 + rand() * 2.6;
+    const y = 4.05 + Math.sqrt(Math.max(0, 1 - (r / 3.7) ** 2)) * 3.7 * 0.62;
+    const spot = sphere(0.32 + rand() * 0.22, [Math.cos(a) * r, y, Math.sin(a) * r], look.glowSpots ? glowColor(look.spot, 1.5) : c(look.spot), [1.2, 0.3, 1.2]);
+    (look.glowSpots ? glow : solid).push(spot);
+  }
+  // 石煙囪：從菌傘後方穿出
+  solid.push(cylinder(0.32, 0.38, 2.2, [-1.2, 4.6, -1.1], stone, 8));
+  solid.push(cylinder(0.42, 0.42, 0.2, [-1.2, 6.8, -1.1], c('#6f6e68'), 8));
+  // 門邊的燈籠：木柱掛著暖光
+  solid.push(cylinder(0.07, 0.08, 2.1, [1.25, 0, 2.75], woodDark, 6));
+  solid.push(cylinder(0.04, 0.04, 0.4, [1.25, 2.05, 2.75], woodDark, 4, [0, 0, Math.PI / 2]));
+  glow.push(sphere(0.17, [1.45, 1.82, 2.75], glowColor('#ffb85a', 2.4), [1, 1.3, 1], 1));
+  return { solid: merge(solid, `蘑菇屋（${kind}）`), glow: merge(glow, `蘑菇屋光（${kind}）`) };
+}
+
 /** 發光石環的立石：苔蘚覆頂，石面刻著一圈會發光的符紋 */
 function glowStone(): ForestModel {
   const rand = mulberry32(818);
@@ -656,6 +751,10 @@ export const forestBuilders: Record<string, () => ForestModel> = {
   root_arch: rootArch,
   root_wall: rootWall,
   giant_mushroom: giantMushroom,
+  mushroom_house_red: () => mushroomHouse('red'),
+  mushroom_house_brown: () => mushroomHouse('brown'),
+  mushroom_house_violet: () => mushroomHouse('violet'),
+  mushroom_house_amber: () => mushroomHouse('amber'),
   glow_stone: glowStone,
   forest_gate: forestGate,
   star_lamp: () => starLamp(false),

@@ -249,11 +249,24 @@ export function addGlowmoss(placements: Out[]): void {
   place('crystal_chest', 'crystal_chest', 16, -120, { yaw: 0.9, r: 2 });
   place('crystal_tablet', 'crystal_tablet', 26, -118, { yaw: 3.0, r: 1.2 });
 
-  // ── 2e. D 蘑菇居民聚落（規格 4.2 D）：幾間小屋、公告板；菇菇婆婆在聚落中央（NPC 位置在 npcs.json）──
-  place('village_house_01', 'house_small_yellow', 34, -6, { yaw: 0.6, r: 4 });
-  place('village_house_02', 'house_small_blue', 46, 10, { yaw: -0.8, r: 4 });
-  place('village_house_03', 'house_small_red', 22, 16, { yaw: 2.2, r: 4 });
-  place('village_board', 'notice_board', 30, 2, { yaw: 1.4, r: 1.2 });
+  // ── 2e. D 蘑菇居民聚落（規格 4.2 D）：步道沿 x≈36 南北穿過聚落，蘑菇屋分在兩側、門朝步道；
+  // 公告板、營火廣場與貨物堆；居民（菇菇婆婆與蘑菇居民）的位置在 npcs.json。
+  // 2026-10-25 使用者回報：原本的 KayKit 小屋沒有縮放（晨曦谷地用 5.5 倍），小到像玩具，改成蘑菇屋。
+  place('village_house_01', 'mushroom_house_red', 25, -4, { yaw: Math.PI / 2, r: 4.2 });
+  place('village_house_02', 'mushroom_house_violet', 24, 15, { yaw: Math.PI / 2 + 0.25, r: 4.2 });
+  place('village_house_03', 'mushroom_house_brown', 47, -3, { yaw: -Math.PI / 2, r: 4.2 });
+  place('village_house_04', 'mushroom_house_amber', 48, 16, { yaw: -Math.PI / 2 - 0.25, r: 4.2 });
+  place('village_board', 'notice_board', 30, 4, { yaw: Math.PI / 2, r: 1.2 });
+  // 廣場的營火（步道東側，居民晚上圍著聊天）
+  place('village_campfire', 'k_campfire_logs', 42, 7, { scale: 2.6, r: 1.6 });
+  // 屋旁的貨物與發光小菇
+  place('village_barrel_01', 'barrel', 28.5, -8, { scale: 4.2, yaw: 0.4, r: 0.8 });
+  place('village_barrel_02', 'barrel', 51, 1.5, { scale: 4.4, yaw: 1.3, r: 0.8 });
+  place('village_crate_01', 'crate_small', 29, 19.5, { scale: 4.5, yaw: 0.7, r: 0.8 });
+  place('village_sack_01', 'sack', 44, 20.5, { scale: 4, yaw: 2.1, r: 0.7 });
+  place('village_glow_01', 'glow_mushrooms', 20.5, 6, { scale: 2.2, yaw: 0.3 });
+  place('village_glow_02', 'glow_mushrooms', 52, 8, { scale: 2, yaw: 1.9 });
+  place('village_glow_03', 'glow_mushrooms', 21, -10, { scale: 1.9, yaw: 3.1 });
 
   // ── 2d. 古樹祭壇（規格 G、B-01）：三座共鳴石柱環繞戰場（淨化用），祭壇中心是古樹 ──
   // 戰場中心 (112, 0)（局部座標，世界 2112, 0）；石柱在半徑 8 的圓上

@@ -31,6 +31,15 @@ Phase 1 已依使用者指示視為通過（DECISIONS P-01）；風格參考圖�
 7. Windows 機器：腳本皆為 Node，應可直接執行；`window-all-closed` 已會結束程式。效能數字請以 `node scripts/perf.mjs` 另外記錄到 `PERF.md`（可順便作為 B 級機器量測）。
 
 ## 已完成
+### 蘑菇居民聚落重做、踢人與對話按鍵（2026-10-25，分支 `feat/ch2-completion`）
+- **蘑菇屋**（使用者回報房子小到像玩具、居民是蘑菇就該住蘑菇屋）：原因是聚落的 KayKit 小屋沒有縮放（晨曦谷地同款用 5.5 倍）。新增程式模型 `mushroom_house_{red,brown,violet,amber}`（菌柄屋身、圓拱木門、會亮的圓窗、門邊燈籠、石煙囪，高約 6.6 m），prefab 同名。`gen-glowmoss` 的聚落改成步道（x≈36）兩側各兩間、門朝步道，加上公告板、營火、木桶 / 貨箱 / 麻袋、發光小菇；重產 placement 只有聚落的 13 個物件變動。
+- **蘑菇居民**（使用者回報聚落沒有居民）：新元件 `MushroomVillager`（菌柄身體、菌傘、臉、說話揮手、小孩會蹦跳）；菇菇婆婆改用蘑菇造型（紫傘螢光斑點、披肩、拐杖），面向南邊步道。新增 NPC 菇丁（小孩）、菇伯（菇農）、菇哨（北口哨兵），對話依進度三段：取得信任前（`quest_forest_004` 未完成）、之後、古樹淨化後。
+- **踢人**（使用者：先登入的要直接被踢，不是重新連線）：舊裝置的連線若已經死掉（手機切到背景）收不到踢人通知，回到前景後會先重連約 15 秒才被拒絕。伺服器記住被踢的裝置（`markDeviceKicked`，6 小時），新增 `GET /kicked?device=`；客戶端在斷線當下與分頁回到前景時查詢，被踢了就停掉 SDK 的自動重連、直接回到首頁。
+- **對話按鍵**（使用者：網頁版不要用 Esc 離開，用空白鍵，但不能同時跳）：網頁版對話中 Esc 不結束對話（桌面版、手把、觸控照舊）；新增 `input.swallowKey`，UI 用掉的按鍵在放開前不算遊戲動作，空白鍵結束對話時不會跳；對話結束時重新鎖定滑鼠。
+- 截圖工具新增 `--hour=N`（書籤改在 N 點拍）；新增書籤 `glowmoss_village_folk`。截圖 `docs/screenshots/phase13/glowmoss_village.png`、`glowmoss_village_h22.png`、`glowmoss_village_folk.png`（已檢視）。
+- 測試：`WorldRoom.test.ts` 加驗被踢裝置的紀錄、`originsServer.test.ts` 新增 `/kicked`；e2e `npc` 新增「空白鍵結束對話不跳、放開後能正常跳」。`pnpm check` 通過（`WorldRoom`「兩個人看得到彼此」偶發逾時一次，已知）；e2e `npc` 13、`multiplayer` 18、`granny` 6、`glowmoss` 19、`forestquest` 11、`toto` 7、`creek` 10 項全過。
+- **第二章優化**：使用者要求整體優化，範圍大，先寫成 `docs/CHAPTER_02_REVIEW.md`（現況問題與 A–G 七個方案、建議順序），使用者選了 A、B、C/D、E，依序進行。
+
 ### 使用者回報的四個問題與保持伺服器喚醒（2026-10-25，分支 `feat/ch2-completion`）
 - **手機版拿掉任務追蹤**：`QuestTracker` 在觸控介面不顯示（會擋住畫面），任務改由暫停選單的任務日誌查看。e2e `touch` 改為驗證手機版沒有任務追蹤。
 - **同帳號在另一台登入時，舊的那台回到首頁**：踢人的邏輯（11M-7/9）本來就有，但有漏洞——舊裝置斷線（分頁在背景、手機鎖屏）超過座位保留時間後走「自動重新加入」，伺服器當成新登入，反過來踢掉新裝置，舊的那台一直顯示「重新連線中」。修正：客戶端每個分頁產生 `device` id，自動重新加入時帶 `rejoin: true`；伺服器記住每個帳號最後一次主動登入的裝置，其他裝置的自動重新加入回 409 `KICKED_ELSEWHERE`、斷線重連也踢下；客戶端收到後停止重試、回到首頁並說明。`/health` 新增 `accounts`（帳號驗證是否啟用）。Render 的 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY` 使用者確認早已設定（PLATFORMS.md 原本記載「尚未設定」是過時的，已更正），所以回報的現象來自上述漏洞；部署後打 `/health` 確認 `accounts` 是 `true`。

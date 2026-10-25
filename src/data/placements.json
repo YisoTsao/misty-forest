@@ -54036,16 +54036,16 @@
   },
   {
     "id": "village_house_01",
-    "prefabId": "house_small_yellow",
+    "prefabId": "mushroom_house_red",
     "regionId": "mushroom_village",
     "position": [
-      2034,
-      2.23,
-      -6
+      2025,
+      2.37,
+      -4
     ],
     "rotation": [
       0,
-      0.6,
+      1.57,
       0
     ],
     "scale": [
@@ -54056,16 +54056,16 @@
   },
   {
     "id": "village_house_02",
-    "prefabId": "house_small_blue",
+    "prefabId": "mushroom_house_violet",
     "regionId": "mushroom_village",
     "position": [
-      2046,
+      2024,
       2.37,
-      10
+      15
     ],
     "rotation": [
       0,
-      -0.8,
+      1.82,
       0
     ],
     "scale": [
@@ -54076,16 +54076,36 @@
   },
   {
     "id": "village_house_03",
-    "prefabId": "house_small_red",
+    "prefabId": "mushroom_house_brown",
     "regionId": "mushroom_village",
     "position": [
-      2022,
+      2047,
+      2.37,
+      -3
+    ],
+    "rotation": [
+      0,
+      -1.57,
+      0
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "id": "village_house_04",
+    "prefabId": "mushroom_house_amber",
+    "regionId": "mushroom_village",
+    "position": [
+      2048,
       2.37,
       16
     ],
     "rotation": [
       0,
-      2.2,
+      -1.82,
       0
     ],
     "scale": [
@@ -54101,17 +54121,177 @@
     "position": [
       2030,
       2.37,
-      2
+      4
     ],
     "rotation": [
       0,
-      1.4,
+      1.57,
       0
     ],
     "scale": [
       1,
       1,
       1
+    ]
+  },
+  {
+    "id": "village_campfire",
+    "prefabId": "k_campfire_logs",
+    "regionId": "mushroom_village",
+    "position": [
+      2042,
+      2.37,
+      7
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2.6,
+      2.6,
+      2.6
+    ]
+  },
+  {
+    "id": "village_barrel_01",
+    "prefabId": "barrel",
+    "regionId": "mushroom_village",
+    "position": [
+      2028.5,
+      2.37,
+      -8
+    ],
+    "rotation": [
+      0,
+      0.4,
+      0
+    ],
+    "scale": [
+      4.2,
+      4.2,
+      4.2
+    ]
+  },
+  {
+    "id": "village_barrel_02",
+    "prefabId": "barrel",
+    "regionId": "mushroom_village",
+    "position": [
+      2051,
+      2.37,
+      1.5
+    ],
+    "rotation": [
+      0,
+      1.3,
+      0
+    ],
+    "scale": [
+      4.4,
+      4.4,
+      4.4
+    ]
+  },
+  {
+    "id": "village_crate_01",
+    "prefabId": "crate_small",
+    "regionId": "mushroom_village",
+    "position": [
+      2029,
+      2.37,
+      19.5
+    ],
+    "rotation": [
+      0,
+      0.7,
+      0
+    ],
+    "scale": [
+      4.5,
+      4.5,
+      4.5
+    ]
+  },
+  {
+    "id": "village_sack_01",
+    "prefabId": "sack",
+    "regionId": "mushroom_village",
+    "position": [
+      2044,
+      2.37,
+      20.5
+    ],
+    "rotation": [
+      0,
+      2.1,
+      0
+    ],
+    "scale": [
+      4,
+      4,
+      4
+    ]
+  },
+  {
+    "id": "village_glow_01",
+    "prefabId": "glow_mushrooms",
+    "regionId": "mushroom_village",
+    "position": [
+      2020.5,
+      2.37,
+      6
+    ],
+    "rotation": [
+      0,
+      0.3,
+      0
+    ],
+    "scale": [
+      2.2,
+      2.2,
+      2.2
+    ]
+  },
+  {
+    "id": "village_glow_02",
+    "prefabId": "glow_mushrooms",
+    "regionId": "mushroom_village",
+    "position": [
+      2052,
+      2.37,
+      8
+    ],
+    "rotation": [
+      0,
+      1.9,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "village_glow_03",
+    "prefabId": "glow_mushrooms",
+    "regionId": "mushroom_village",
+    "position": [
+      2021,
+      3.18,
+      -10
+    ],
+    "rotation": [
+      0,
+      3.1,
+      0
+    ],
+    "scale": [
+      1.9,
+      1.9,
+      1.9
     ]
   },
   {
