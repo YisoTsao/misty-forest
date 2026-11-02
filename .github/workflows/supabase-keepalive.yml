@@ -1,0 +1,62 @@
+# 防止 Supabase 免費方案專案（mistwood）因閒置被暫停（2026-11-02 使用者指示）。
+# Supabase Free 專案一週沒有活動就會被暫停，這裡每天用 publishable key 對 PostgREST 查一筆資料。
+# 需要兩個 repo Actions secrets：SUPABASE_URL、SUPABASE_PUBLISHABLE_KEY（publishable key 本身是公開的，
+# 放 secret 只是避免寫死在 repo 裡）。
+# 查詢目標：先試 game_config（RLS 允許 anon 讀取），失敗再從 /rest/v1/ 的 OpenAPI 清單找其他可讀的表。
+# 注意：repo 60 天沒有活動時 GitHub 會自動停用排程（到 Actions 頁面按 Enable 即可恢復）。
+name: supabase-keepalive
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - name: 查詢一筆資料
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_KEY}" ]; then
+            echo "::error::缺少 secrets：請在 repo 設定 SUPABASE_URL 與 SUPABASE_PUBLISHABLE_KEY"
+            exit 1
+          fi
+          base="${SUPABASE_URL%/}/rest/v1"
+
+          query() {
+            curl --silent --show-error --max-time 30 --retry 3 --retry-delay 5 --retry-all-errors \
+              --output /tmp/body --write-out '%{http_code}' \
+              -H "apikey: ${SUPABASE_KEY}" -H "Authorization: Bearer ${SUPABASE_KEY}" \
+              "${base}/$1?select=*&limit=1" || echo 000
+          }
+
+          # 優先嘗試已知 anon 可讀的表
+          candidates="game_config"
+          # 再從 OpenAPI 清單補上其他表（publishable key 可能沒有權限讀清單，失敗就略過）
+          spec_code=$(curl --silent --max-time 30 --output /tmp/spec --write-out '%{http_code}' \
+            -H "apikey: ${SUPABASE_KEY}" -H "Authorization: Bearer ${SUPABASE_KEY}" "${base}/" || echo 000)
+          if [ "${spec_code}" -ge 200 ] && [ "${spec_code}" -lt 300 ]; then
+            discovered=$(jq -r '.paths | keys[] | select(startswith("/rpc/") | not) | ltrimstr("/") | select(length > 0)' /tmp/spec || true)
+            candidates="${candidates} ${discovered}"
+          else
+            echo "無法讀取 OpenAPI 清單（HTTP ${spec_code}），只試已知的表"
+          fi
+
+          for table in ${candidates}; do
+            code=$(query "${table}")
+            if [ "${code}" -ge 200 ] && [ "${code}" -lt 300 ]; then
+              echo "OK：${table} 回應 HTTP ${code}"
+              exit 0
+            fi
+            echo "${table} 回應 HTTP ${code}：$(head -c 200 /tmp/body 2>/dev/null || true)"
+          done
+
+          echo "::error::找不到可讀的資料表，保活查詢失敗"
+          exit 1
